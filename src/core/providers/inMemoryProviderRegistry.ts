@@ -16,6 +16,19 @@ const providerPluginSchema = z.object({
   initialize: z.function().optional(),
   supportsModel: z.function().optional(),
   metadata: z.record(z.unknown()).optional(),
+  translateRequest: z.function(),
+  parseResponse: z.function(),
+  isTerminal: z.function(),
+  normalizeError: z.function(),
+  capabilities: z
+    .object({
+      streaming: z.boolean(),
+      toolCalls: z.boolean(),
+      images: z.boolean(),
+      documents: z.boolean(),
+      supportedContentTypes: z.array(z.string()),
+    })
+    .optional(),
 });
 
 /**
@@ -169,6 +182,18 @@ export class InMemoryProviderRegistry implements ProviderRegistry {
     this.validateProviderPlugin(plugin);
 
     const key = this.createKey(plugin.id, plugin.version);
+
+    // Log when overwriting existing registration
+    if (this.providers.has(key)) {
+      const existingRegistration = this.registrationTimes.get(key);
+      console.warn(
+        `Overwriting existing provider registration: ${plugin.id}:${plugin.version}` +
+          (existingRegistration
+            ? ` (originally registered at ${existingRegistration.toISOString()})`
+            : ""),
+      );
+    }
+
     this.providers.set(key, plugin);
     this.registrationTimes.set(key, new Date());
   }

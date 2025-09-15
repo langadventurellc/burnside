@@ -70,7 +70,7 @@ export interface ProviderPlugin {
    * });
    * ```
    */
-  translateRequest?(
+  translateRequest(
     request: ChatRequest & { stream?: boolean },
   ): ProviderHttpRequest;
 
@@ -105,7 +105,7 @@ export interface ProviderPlugin {
    * }
    * ```
    */
-  parseResponse?(
+  parseResponse(
     response: ProviderHttpResponse,
     isStreaming: boolean,
   ):
@@ -141,7 +141,7 @@ export interface ProviderPlugin {
    * }
    * ```
    */
-  isTerminal?(
+  isTerminal(
     deltaOrResponse:
       | StreamDelta
       | {
@@ -176,7 +176,7 @@ export interface ProviderPlugin {
    * }
    * ```
    */
-  normalizeError?(error: unknown): BridgeError;
+  normalizeError(error: unknown): BridgeError;
 
   /**
    * Provider capability descriptors.

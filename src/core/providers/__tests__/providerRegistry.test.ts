@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from "@jest/globals";
 import { InMemoryProviderRegistry } from "../inMemoryProviderRegistry.js";
 import type { ProviderRegistry, ProviderPlugin } from "../index.js";
 import { ValidationError } from "../../errors/validationError.js";
+import { BridgeError } from "../../errors/bridgeError.js";
 
 /**
  * Creates a mock ProviderPlugin for testing purposes
@@ -18,6 +19,22 @@ function createMockProvider(
     initialize: async () => {},
     supportsModel: () => true,
     metadata: { test: true },
+    translateRequest: () => ({
+      url: "https://api.example.com/chat",
+      method: "POST",
+      headers: {},
+      body: "{}",
+    }),
+    parseResponse: () => ({
+      message: {
+        role: "assistant",
+        content: [{ type: "text", text: "test response" }],
+      },
+      model: "test-model",
+    }),
+    isTerminal: () => true,
+    normalizeError: (error: unknown) =>
+      new BridgeError(String(error), "PROVIDER_ERROR"),
   };
 }
 
@@ -97,6 +114,22 @@ describe("InMemoryProviderRegistry", () => {
         id: "minimal",
         name: "Minimal Provider",
         version: "1.0.0",
+        translateRequest: () => ({
+          url: "https://api.example.com/chat",
+          method: "POST",
+          headers: {},
+          body: "{}",
+        }),
+        parseResponse: () => ({
+          message: {
+            role: "assistant",
+            content: [{ type: "text", text: "test response" }],
+          },
+          model: "test-model",
+        }),
+        isTerminal: () => true,
+        normalizeError: (error: unknown) =>
+          new BridgeError(String(error), "PROVIDER_ERROR"),
       };
 
       expect(() => registry.register(minimalProvider)).not.toThrow();
