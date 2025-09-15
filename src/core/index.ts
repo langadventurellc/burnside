@@ -2,16 +2,19 @@
  * Core Domain Module Exports
  *
  * This module aggregates and exports all core functionality including
- * configuration, messages, tools, agent orchestration, streaming,
- * transport, providers, performance, errors, observability, validation,
- * and runtime.
+ * validation, model management, configuration, messages, tools, agent
+ * orchestration, streaming, transport, providers, performance, errors,
+ * observability, and runtime.
  *
- * Future exports will provide the primary internal interfaces for
+ * The core module provides the primary internal interfaces for
  * the LLM Bridge library's core functionality.
  */
 
 // Validation infrastructure
 export * from "./validation/index.js";
+
+// Model management
+export * from "./models/index.js";
 
 // TODO: Export configuration interfaces when implemented
 // TODO: Export message and content model types when implemented
