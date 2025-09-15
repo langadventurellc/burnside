@@ -6,9 +6,10 @@
  * tool system.
  *
  * These exports provide the foundation for tool registration,
- * execution, and provider integration.
+ * execution, and provider integration with comprehensive Zod validation.
  */
 
 export type { ToolDefinition } from "./toolDefinition";
 export type { ToolHandler } from "./toolHandler";
 export type { ToolExecutionContext } from "./toolExecutionContext";
+export { ToolDefinitionSchema } from "./toolDefinitionSchema";

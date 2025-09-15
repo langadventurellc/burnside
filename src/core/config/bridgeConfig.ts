@@ -14,7 +14,11 @@
  *     anthropic: { apiKey: "sk-ant-..." }
  *   },
  *   defaultModel: "gpt-4",
- *   timeout: 30000
+ *   timeout: 30000,
+ *   registryOptions: {
+ *     providers: {},
+ *     models: {}
+ *   }
  * };
  * ```
  */
@@ -29,4 +33,11 @@ export interface BridgeConfig {
   timeout?: number;
   /** Additional global configuration options */
   options?: Record<string, unknown>;
+  /** Registry initialization options for Phase 1 (empty state) */
+  registryOptions?: {
+    /** Provider registry initialization data */
+    providers?: Record<string, unknown>;
+    /** Model registry initialization data */
+    models?: Record<string, unknown>;
+  };
 }

@@ -7,9 +7,10 @@
  * @example
  * ```typescript
  * const gpt4Capabilities: ModelCapabilities = {
- *   supportsStreaming: true,
- *   supportsTools: true,
- *   supportsImages: true,
+ *   streaming: true,
+ *   toolCalls: true,
+ *   images: true,
+ *   documents: false,
  *   maxTokens: 128000,
  *   supportedContentTypes: ["text", "image"]
  * };
@@ -17,11 +18,13 @@
  */
 export interface ModelCapabilities {
   /** Whether the model supports streaming responses */
-  supportsStreaming: boolean;
+  streaming: boolean;
   /** Whether the model supports tool/function calling */
-  supportsTools: boolean;
+  toolCalls: boolean;
   /** Whether the model supports image inputs */
-  supportsImages: boolean;
+  images: boolean;
+  /** Whether the model supports document inputs */
+  documents: boolean;
   /** Maximum number of tokens the model can handle */
   maxTokens?: number;
   /** Array of supported content types */

@@ -1,0 +1,255 @@
+import type { BridgeClientConfig } from "../bridgeClientConfig";
+
+describe("BridgeClientConfig", () => {
+  describe("interface structure", () => {
+    it("should accept valid configuration with all required fields", () => {
+      const config: BridgeClientConfig = {
+        defaultProvider: "openai",
+        defaultModel: "gpt-4",
+        timeout: 30000,
+        providers: new Map([
+          ["openai", { apiKey: "sk-test" }],
+          ["anthropic", { apiKey: "sk-ant-test" }],
+        ]),
+        options: {},
+        registryOptions: {
+          providers: {},
+          models: {},
+        },
+        validated: true,
+      };
+
+      expect(config.defaultProvider).toBe("openai");
+      expect(config.defaultModel).toBe("gpt-4");
+      expect(config.timeout).toBe(30000);
+      expect(config.providers.size).toBe(2);
+      expect(config.validated).toBe(true);
+    });
+
+    it("should enforce Map type for providers", () => {
+      const providersMap = new Map<string, Record<string, unknown>>();
+      providersMap.set("openai", {
+        apiKey: "sk-test",
+        baseURL: "https://api.openai.com",
+      });
+      providersMap.set("anthropic", { apiKey: "sk-ant-test" });
+
+      const config: BridgeClientConfig = {
+        defaultProvider: "openai",
+        defaultModel: "gpt-3.5-turbo",
+        timeout: 60000,
+        providers: providersMap,
+        options: { retries: 3 },
+        registryOptions: {
+          providers: {},
+          models: {},
+        },
+        validated: true,
+      };
+
+      expect(config.providers.get("openai")).toEqual({
+        apiKey: "sk-test",
+        baseURL: "https://api.openai.com",
+      });
+      expect(config.providers.get("anthropic")).toEqual({
+        apiKey: "sk-ant-test",
+      });
+    });
+
+    it("should accept empty providers Map", () => {
+      const config: BridgeClientConfig = {
+        defaultProvider: "default",
+        defaultModel: "default-model",
+        timeout: 15000,
+        providers: new Map(),
+        options: {},
+        registryOptions: {
+          providers: {},
+          models: {},
+        },
+        validated: true,
+      };
+
+      expect(config.providers.size).toBe(0);
+    });
+
+    it("should accept complex options object", () => {
+      const options = {
+        logging: { level: "debug", enabled: true },
+        retries: { count: 3, backoff: "exponential" },
+        cache: { enabled: false, ttl: 300 },
+        customSettings: {
+          feature1: true,
+          feature2: { config: "value" },
+        },
+      };
+
+      const config: BridgeClientConfig = {
+        defaultProvider: "custom",
+        defaultModel: "custom-model",
+        timeout: 45000,
+        providers: new Map([["custom", { endpoint: "http://localhost:8080" }]]),
+        options,
+        registryOptions: {
+          providers: {},
+          models: {},
+        },
+        validated: true,
+      };
+
+      expect(config.options).toEqual(options);
+      expect((config.options as any).logging.level).toBe("debug");
+      expect((config.options as any).retries.count).toBe(3);
+    });
+  });
+
+  describe("providers Map behavior", () => {
+    it("should maintain Map functionality", () => {
+      const config: BridgeClientConfig = {
+        defaultProvider: "test",
+        defaultModel: "test-model",
+        timeout: 20000,
+        providers: new Map(),
+        options: {},
+        registryOptions: {
+          providers: {},
+          models: {},
+        },
+        validated: true,
+      };
+
+      // Test Map methods
+      config.providers.set("provider1", { key: "value1" });
+      config.providers.set("provider2", { key: "value2" });
+
+      expect(config.providers.has("provider1")).toBe(true);
+      expect(config.providers.has("provider3")).toBe(false);
+      expect(config.providers.get("provider1")).toEqual({ key: "value1" });
+      expect(config.providers.size).toBe(2);
+
+      // Test iteration
+      const providerNames = Array.from(config.providers.keys());
+      expect(providerNames).toEqual(["provider1", "provider2"]);
+    });
+
+    it("should support complex provider configurations", () => {
+      const openaiConfig: Record<string, unknown> = {
+        apiKey: "sk-openai-test",
+        baseURL: "https://api.openai.com/v1",
+        organization: "org-test",
+        timeout: 30000,
+        defaultHeaders: { "User-Agent": "LLM-Bridge/1.0" },
+      };
+
+      const anthropicConfig: Record<string, unknown> = {
+        apiKey: "sk-ant-test",
+        baseURL: "https://api.anthropic.com",
+        version: "2023-06-01",
+        maxRetries: 3,
+      };
+
+      const config: BridgeClientConfig = {
+        defaultProvider: "openai",
+        defaultModel: "gpt-4",
+        timeout: 30000,
+        providers: new Map<string, Record<string, unknown>>([
+          ["openai", openaiConfig],
+          ["anthropic", anthropicConfig],
+        ]),
+        options: {},
+        registryOptions: {
+          providers: {},
+          models: {},
+        },
+        validated: true,
+      };
+
+      expect(config.providers.get("openai")).toEqual(openaiConfig);
+      expect(config.providers.get("anthropic")).toEqual(anthropicConfig);
+    });
+  });
+
+  describe("TypeScript compilation", () => {
+    it("should enforce all required fields", () => {
+      // These should cause TypeScript compilation errors if uncommented:
+      // const invalid1: BridgeClientConfig = { defaultModel: "test", timeout: 1000, providers: new Map(), options: {}, validated: true }; // missing defaultProvider
+      // const invalid2: BridgeClientConfig = { defaultProvider: "test", timeout: 1000, providers: new Map(), options: {}, validated: true }; // missing defaultModel
+      // const invalid3: BridgeClientConfig = { defaultProvider: "test", defaultModel: "test", providers: new Map(), options: {}, validated: true }; // missing timeout
+
+      const valid: BridgeClientConfig = {
+        defaultProvider: "test",
+        defaultModel: "test-model",
+        timeout: 30000,
+        providers: new Map(),
+        options: {},
+        registryOptions: {
+          providers: {},
+          models: {},
+        },
+        validated: true,
+      };
+
+      expect(valid).toBeDefined();
+    });
+
+    it("should allow proper type inference", () => {
+      const config: BridgeClientConfig = {
+        defaultProvider: "openai",
+        defaultModel: "gpt-4",
+        timeout: 30000,
+        providers: new Map([["openai", { apiKey: "test" }]]),
+        options: { debug: true },
+        registryOptions: {
+          providers: {},
+          models: {},
+        },
+        validated: true,
+      };
+
+      // TypeScript should infer correct types
+      const provider: string = config.defaultProvider;
+      const model: string = config.defaultModel;
+      const timeout: number = config.timeout;
+      const providers: Map<string, Record<string, unknown>> = config.providers;
+      const options: Record<string, unknown> = config.options;
+      const validated: boolean = config.validated;
+
+      expect(provider).toBe("openai");
+      expect(model).toBe("gpt-4");
+      expect(timeout).toBe(30000);
+      expect(providers.size).toBe(1);
+      expect(options.debug).toBe(true);
+      expect(validated).toBe(true);
+    });
+
+    it("should maintain type safety for provider configurations", () => {
+      const config: BridgeClientConfig = {
+        defaultProvider: "test",
+        defaultModel: "test-model",
+        timeout: 30000,
+        providers: new Map(),
+        options: {},
+        registryOptions: {
+          providers: {},
+          models: {},
+        },
+        validated: true,
+      };
+
+      // Should accept any Record<string, unknown> for provider config
+      config.providers.set("provider1", { stringProp: "value" });
+      config.providers.set("provider2", { numberProp: 42 });
+      config.providers.set("provider3", { booleanProp: true });
+      config.providers.set("provider4", { objectProp: { nested: "value" } });
+
+      expect(config.providers.get("provider1")).toEqual({
+        stringProp: "value",
+      });
+      expect(config.providers.get("provider2")).toEqual({ numberProp: 42 });
+      expect(config.providers.get("provider3")).toEqual({ booleanProp: true });
+      expect(config.providers.get("provider4")).toEqual({
+        objectProp: { nested: "value" },
+      });
+    });
+  });
+});

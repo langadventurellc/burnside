@@ -5,12 +5,32 @@
  * executed by the LLM Bridge library. Provides the foundation for tool
  * registration and invocation across different providers.
  *
+ * Enhanced with comprehensive Zod validation supporting both Zod schemas
+ * and JSON Schema-style parameters for maximum flexibility.
+ *
  * @example
  * ```typescript
- * const weatherTool: ToolDefinition = {
+ * import { z } from "zod";
+ *
+ * // Using Zod schema (recommended)
+ * const zodTool: ToolDefinition = {
  *   name: "get_weather",
  *   description: "Get current weather for a location",
- *   parameters: {
+ *   inputSchema: z.object({
+ *     location: z.string().min(1, "Location is required"),
+ *     units: z.enum(["celsius", "fahrenheit"]).optional()
+ *   }),
+ *   outputSchema: z.object({
+ *     temperature: z.number(),
+ *     description: z.string()
+ *   })
+ * };
+ *
+ * // JSON Schema format (backward compatibility)
+ * const jsonTool: ToolDefinition = {
+ *   name: "get_weather",
+ *   description: "Get current weather for a location",
+ *   inputSchema: {
  *     type: "object",
  *     properties: {
  *       location: { type: "string", description: "City name" }
@@ -20,18 +40,12 @@
  * };
  * ```
  */
-export interface ToolDefinition {
-  /** Unique name identifier for the tool */
-  name: string;
-  /** Human-readable description of what the tool does */
-  description: string;
-  /** JSON Schema defining the tool's input parameters */
-  parameters: {
-    type: string;
-    properties?: Record<string, unknown>;
-    required?: string[];
-    [key: string]: unknown;
-  };
-  /** Optional metadata associated with the tool */
-  metadata?: Record<string, unknown>;
-}
+
+import type { z } from "zod";
+import type { ToolDefinitionSchema } from "./toolDefinitionSchema.js";
+
+/**
+ * ToolDefinition type derived from comprehensive Zod schema validation.
+ * Supports both Zod schemas and JSON Schema objects for input/output validation.
+ */
+export type ToolDefinition = z.infer<typeof ToolDefinitionSchema>;
