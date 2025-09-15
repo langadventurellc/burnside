@@ -1,14 +1,35 @@
 ---
 id: F-transport-and-streaming
 title: Transport and Streaming Foundations Implementation
-status: open
+status: in-progress
 priority: medium
 parent: none
 prerequisites: []
-affectedFiles: {}
+affectedFiles:
+  src/core/streaming/chunkParser.ts: Core ChunkParser class implementation with
+    JSON boundary detection, buffer management, async iteration, and security
+    limits. Includes static methods for parseJson and parseJsonLines with
+    comprehensive error handling.
+  src/core/streaming/parsedChunk.ts:
+    ParsedChunk interface defining the structure
+    for parsed JSON data and raw string content returned by the parser.
+  src/core/streaming/chunkParserOptions.ts: ChunkParserOptions interface for
+    configurable parser settings including maxObjectSize and encoding options.
+  src/core/streaming/index.ts: Updated streaming module exports to include
+    ChunkParser class and related interfaces for public API access.
+  src/core/streaming/__tests__/chunkParser.test.ts:
+    Comprehensive test suite with
+    23 test cases covering basic parsing, buffer management, error handling,
+    string handling, configuration options, and JSON Lines format parsing.
 log: []
 schema: v1.0
-childrenIds: []
+childrenIds:
+  - T-enhance-error-normalization
+  - T-implement-chunked-response
+  - T-implement-http-transport-with
+  - T-implement-interceptor-chain
+  - T-implement-requestresponse
+  - T-implement-sse-server-sent
 created: 2025-09-15T08:12:57.732Z
 updated: 2025-09-15T08:12:57.732Z
 ---

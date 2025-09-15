@@ -1,12 +1,33 @@
 ---
 id: T-implement-chunked-response
 title: Implement Chunked Response Parser
-status: open
+status: done
 priority: high
 parent: F-transport-and-streaming
 prerequisites: []
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/streaming/chunkParser.ts: Core ChunkParser class implementation with
+    JSON boundary detection, buffer management, async iteration, and security
+    limits. Includes static methods for parseJson and parseJsonLines with
+    comprehensive error handling.
+  src/core/streaming/parsedChunk.ts:
+    ParsedChunk interface defining the structure
+    for parsed JSON data and raw string content returned by the parser.
+  src/core/streaming/chunkParserOptions.ts: ChunkParserOptions interface for
+    configurable parser settings including maxObjectSize and encoding options.
+  src/core/streaming/index.ts: Updated streaming module exports to include
+    ChunkParser class and related interfaces for public API access.
+  src/core/streaming/__tests__/chunkParser.test.ts:
+    Comprehensive test suite with
+    23 test cases covering basic parsing, buffer management, error handling,
+    string handling, configuration options, and JSON Lines format parsing.
+log:
+  - Implemented comprehensive ChunkParser for streaming JSON responses with
+    boundary detection, buffer management, error recovery, and complete test
+    coverage. The parser handles JSON objects split across chunks, multiple
+    objects in sequence, UTF-8 encoding, malformed JSON recovery, and security
+    limits. Supports both single JSON objects and JSON Lines format with
+    configurable options.
 schema: v1.0
 childrenIds: []
 created: 2025-09-15T08:19:51.124Z
