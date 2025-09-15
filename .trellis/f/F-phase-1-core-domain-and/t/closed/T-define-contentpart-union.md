@@ -1,13 +1,39 @@
 ---
 id: T-define-contentpart-union
 title: Define ContentPart union schema for all content types
-status: open
+status: done
 priority: high
 parent: F-phase-1-core-domain-and
 prerequisites:
   - T-add-zod-dependency-and
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/validation/commonSchemas.ts: Enhanced with base64, image MIME type,
+    document MIME type, filename, and language identifier validation schemas
+  src/core/validation/__tests__/commonSchemas.test.ts: Added comprehensive tests
+    for new validation schemas including base64, MIME types, filenames, and
+    language identifiers
+  src/core/messages/contentPartSchema.ts: Created main Zod discriminated union
+    schema for ContentPart validation with strict validation rules
+  src/core/messages/contentPartTypes.ts: Created TypeScript types derived from Zod schema for ContentPart union
+  src/core/messages/contentPartValidation.ts:
+    Created validation utility functions
+    for ContentPart validation and type checking
+  src/core/messages/__tests__/contentPartSchema.test.ts:
+    Implemented comprehensive
+    test suite covering all content types, validation scenarios, and edge cases
+  src/core/messages/contentPart.ts: Updated to export Zod-derived types while maintaining backward compatibility
+  src/core/messages/index.ts: Updated to export new schema and validation
+    utilities alongside existing types
+log:
+  - Successfully implemented comprehensive Zod validation for the ContentPart
+    union type, replacing the generic interface with a strongly-typed
+    discriminated union schema supporting text, image, document, and code
+    content types. All validation rules are properly enforced including
+    non-empty text/code validation, strict base64 data validation, comprehensive
+    MIME type validation, and optional field validation. The implementation
+    follows the project's one-export-per-file pattern with separate files for
+    schema, types, and validation utilities. All quality checks pass and
+    comprehensive test coverage achieved with 100% test success rate.
 schema: v1.0
 childrenIds: []
 created: 2025-09-15T05:35:28.830Z

@@ -14,7 +14,10 @@ affectedFiles:
   src/core/validation/schemaValidator.ts: Created SchemaValidator interface for consistent validation patterns
   src/core/validation/validationOptions.ts: Created ValidationOptions interface for customizable validation behavior
   src/core/validation/schemaCompositionOptions.ts: Created SchemaCompositionOptions interface for schema merging configuration
-  src/core/validation/commonSchemas.ts: Implemented common validation schemas for email, URL, and timestamps
+  src/core/validation/commonSchemas.ts:
+    Implemented common validation schemas for
+    email, URL, and timestamps; Enhanced with base64, image MIME type, document
+    MIME type, filename, and language identifier validation schemas
   src/core/validation/formatValidationError.ts: Created error message formatter with context and field information
   src/core/validation/safeValidate.ts: Implemented safe validation wrapper
     returning ValidationResult instead of throwing
@@ -24,15 +27,29 @@ affectedFiles:
   src/core/validation/index.ts: Created barrel export module aggregating all validation functionality
   src/core/index.ts: Updated core module to export validation infrastructure
   src/core/validation/__tests__/validationResult.test.ts: Comprehensive tests for ValidationResult type and type discrimination
-  src/core/validation/__tests__/commonSchemas.test.ts: Complete test suite for email, URL, and timestamp validation schemas
+  src/core/validation/__tests__/commonSchemas.test.ts: Complete test suite for
+    email, URL, and timestamp validation schemas; Added comprehensive tests for
+    new validation schemas including base64, MIME types, filenames, and language
+    identifiers
   src/core/validation/__tests__/safeValidate.test.ts: Thorough tests for safe validation utility with various scenarios
   src/core/validation/__tests__/validateOrThrow.test.ts: Comprehensive tests for throwing validation utility and error handling
   src/core/validation/__tests__/createTypeGuard.test.ts: Complete tests for type guard creation and runtime type checking
   src/core/validation/__tests__/index.test.ts: Integration tests for module exports and API surface validation
+  src/core/messages/contentPartSchema.ts: Created main Zod discriminated union
+    schema for ContentPart validation with strict validation rules
+  src/core/messages/contentPartTypes.ts: Created TypeScript types derived from Zod schema for ContentPart union
+  src/core/messages/contentPartValidation.ts:
+    Created validation utility functions
+    for ContentPart validation and type checking
+  src/core/messages/__tests__/contentPartSchema.test.ts:
+    Implemented comprehensive
+    test suite covering all content types, validation scenarios, and edge cases
+  src/core/messages/contentPart.ts: Updated to export Zod-derived types while maintaining backward compatibility
+  src/core/messages/index.ts: Updated to export new schema and validation
+    utilities alongside existing types
 log: []
 schema: v1.0
 childrenIds:
-  - T-add-zod-dependency-and
   - T-create-bridgeclient-class
   - T-define-contentpart-union
   - T-define-message-zod-schema
@@ -42,6 +59,7 @@ childrenIds:
   - T-implement-createclient
   - T-integrate-registries-with
   - T-update-public-api-exports-and
+  - T-add-zod-dependency-and
 created: 2025-09-15T05:30:47.335Z
 updated: 2025-09-15T05:30:47.335Z
 ---

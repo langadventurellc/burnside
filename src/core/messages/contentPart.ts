@@ -1,20 +1,26 @@
 /**
- * Content Part Interface
+ * Content Part Types
  *
- * Base interface for different types of content that can be included in a message.
- * Content parts enable rich, multi-modal messages with text, images, and other media.
+ * Strongly-typed content part definitions derived from Zod validation schemas.
+ * Supports text, image, document, and code content types with comprehensive
+ * validation and type safety.
  *
  * @example
  * ```typescript
- * const textContent: ContentPart = {
+ * import { ContentPart, TextContent } from "./contentPart.js";
+ *
+ * const textContent: TextContent = {
  *   type: "text",
  *   text: "Hello, world!"
  * };
+ *
+ * const imageContent: ContentPart = {
+ *   type: "image",
+ *   data: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAY...",
+ *   mimeType: "image/png",
+ *   alt: "Sample image"
+ * };
  * ```
  */
-export interface ContentPart {
-  /** The type of content (text, image, etc.) */
-  type: string;
-  /** Additional properties are defined by specific content type implementations */
-  [key: string]: unknown;
-}
+
+export type { ContentPart } from "./contentPartTypes.js";
