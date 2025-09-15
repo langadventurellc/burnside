@@ -1,0 +1,32 @@
+/**
+ * Bridge Config Interface
+ *
+ * Top-level configuration interface for the LLM Bridge library.
+ * Defines the main configuration structure for library initialization
+ * and operation across different platforms and providers.
+ *
+ * @example
+ * ```typescript
+ * const config: BridgeConfig = {
+ *   defaultProvider: "openai",
+ *   providers: {
+ *     openai: { apiKey: "sk-..." },
+ *     anthropic: { apiKey: "sk-ant-..." }
+ *   },
+ *   defaultModel: "gpt-4",
+ *   timeout: 30000
+ * };
+ * ```
+ */
+export interface BridgeConfig {
+  /** Default provider to use when none specified */
+  defaultProvider?: string;
+  /** Configuration for each provider */
+  providers?: Record<string, Record<string, unknown>>;
+  /** Default model to use when none specified */
+  defaultModel?: string;
+  /** Request timeout in milliseconds */
+  timeout?: number;
+  /** Additional global configuration options */
+  options?: Record<string, unknown>;
+}
