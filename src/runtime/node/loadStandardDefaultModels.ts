@@ -1,10 +1,11 @@
-import { loadDefaultModels } from "./loadDefaultModels.js";
 import type { ModelInfo } from "../../core/providers/modelInfo.js";
+import { mapJsonToModelInfo } from "../../core/models/modelLoader.js";
+import { defaultLlmModels } from "../../data/defaultLlmModels.js";
 
 /**
  * Convenience function to load default models from standard location
  *
- * @returns Array of ModelInfo objects loaded from docs/defaultLlmModels.json
+ * @returns Array of ModelInfo objects loaded from packaged default seed
  *
  * @example
  * ```typescript
@@ -14,5 +15,5 @@ import type { ModelInfo } from "../../core/providers/modelInfo.js";
  * ```
  */
 export function loadStandardDefaultModels(): ModelInfo[] {
-  return loadDefaultModels("./docs/defaultLlmModels.json");
+  return mapJsonToModelInfo(defaultLlmModels);
 }

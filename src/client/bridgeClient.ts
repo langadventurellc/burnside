@@ -12,6 +12,11 @@ import type { ModelRegistry } from "../core/models/modelRegistry";
 import type { ModelCapabilities } from "../core/providers/modelCapabilities";
 import { InMemoryProviderRegistry } from "../core/providers/inMemoryProviderRegistry";
 import { InMemoryModelRegistry } from "../core/models/inMemoryModelRegistry";
+import { mapJsonToModelInfo } from "../core/models/modelLoader";
+import { DefaultLlmModelsSchema } from "../core/models/defaultLlmModelsSchema";
+import { defaultLlmModels } from "../data/defaultLlmModels";
+import { ValidationError } from "../core/errors/validationError";
+import type { ModelInfo } from "../core/providers/modelInfo";
 
 /**
  * Bridge Client Class
@@ -69,6 +74,9 @@ export class BridgeClient {
     // Initialize registries with empty state for Phase 1
     this.providerRegistry = new InMemoryProviderRegistry();
     this.modelRegistry = new InMemoryModelRegistry();
+
+    // Optionally seed model registry based on configuration
+    this.seedModelsIfConfigured(config);
   }
 
   /**
@@ -168,6 +176,59 @@ export class BridgeClient {
    */
   getModelRegistry(): ModelRegistry {
     return this.modelRegistry;
+  }
+
+  /**
+   * Seeds the model registry from configured sources. Defaults to no seeding.
+   * - 'builtin': uses packaged default model seed
+   * - { data }: validates and maps provided JSON seed
+   * - { path }: not supported cross‑platform; prefer loading via Node helper and passing data
+   */
+  private seedModelsIfConfigured(config: BridgeConfig): void {
+    const seed = config.modelSeed;
+
+    if (!seed || seed === "none") return;
+
+    try {
+      if (seed === "builtin") {
+        const models = mapJsonToModelInfo(defaultLlmModels);
+        this.registerModels(models);
+        return;
+      }
+
+      if (typeof seed === "object" && "data" in seed) {
+        const validated = DefaultLlmModelsSchema.parse(seed.data);
+        const models = mapJsonToModelInfo(validated);
+        this.registerModels(models);
+        return;
+      }
+
+      if (typeof seed === "object" && "path" in seed) {
+        // Node-only convenience is not wired here to keep core cross‑platform.
+        // Guidance: load with runtime/node.loadDefaultModels(path) and pass via { data }.
+        // We throw a clear validation error to steer correct usage.
+        throw new ValidationError(
+          "modelSeed.path is not supported in cross-platform core. Load via Node runtime loader and pass as modelSeed.data.",
+        );
+      }
+    } catch (error) {
+      // Non-fatal: leave registry empty if seeding fails
+
+      console.warn("Model registry seeding failed:", error);
+    }
+  }
+
+  private registerModels(models: ModelInfo[]): void {
+    for (const m of models) {
+      const modelId = `${m.provider}:${m.id}`;
+      this.modelRegistry.register(modelId, {
+        id: modelId,
+        name: m.name,
+        provider: m.provider,
+        capabilities: m.capabilities,
+        metadata: m.metadata,
+      });
+    }
   }
 
   /**

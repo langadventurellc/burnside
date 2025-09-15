@@ -40,4 +40,11 @@ export interface BridgeConfig {
     /** Model registry initialization data */
     models?: Record<string, unknown>;
   };
+
+  /** Optional model registry seeding configuration */
+  modelSeed?:
+    | "builtin" // use packaged default seed
+    | "none" // do not seed (default)
+    | { data?: unknown } // app‑supplied JSON object matching DefaultLlmModels schema
+    | { path: string }; // Node-only path; prefer supplying data instead in cross-platform apps
 }
