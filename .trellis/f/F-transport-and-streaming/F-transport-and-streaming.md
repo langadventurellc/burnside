@@ -35,6 +35,19 @@ affectedFiles:
     Implemented extensive test suite
     with 30 test cases covering basic parsing, streaming scenarios, error
     handling, and real-world provider formats
+  src/core/errors/httpErrorNormalizer.ts: Created complete HttpErrorNormalizer
+    class implementing ErrorNormalizer interface with HTTP status mapping,
+    network error handling, context preservation, retry-after parsing, error
+    sanitization, and configurable behavior
+  src/core/errors/errorNormalizationConfig.ts: Created ErrorNormalizationConfig
+    interface for customizing error normalization behavior including status code
+    mapping, error preservation, and stack trace options
+  src/core/errors/index.ts: Updated exports to include new HttpErrorNormalizer
+    class and ErrorNormalizationConfig interface for public API access
+  src/core/errors/__tests__/httpErrorNormalizer.test.ts: Created comprehensive
+    test suite with 42 test cases covering HTTP status mapping, network errors,
+    context preservation, rate limits, sanitization, static methods, and edge
+    cases
 log: []
 schema: v1.0
 childrenIds:
@@ -42,8 +55,8 @@ childrenIds:
   - T-implement-http-transport-with
   - T-implement-interceptor-chain
   - T-implement-requestresponse
-  - T-implement-sse-server-sent
   - T-implement-chunked-response
+  - T-implement-sse-server-sent
 created: 2025-09-15T08:12:57.732Z
 updated: 2025-09-15T08:12:57.732Z
 ---

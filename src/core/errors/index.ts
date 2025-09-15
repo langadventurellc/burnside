@@ -34,10 +34,12 @@ export { ProviderError } from "./providerError.js";
 export { StreamingError } from "./streamingError.js";
 export { ToolError } from "./toolError.js";
 
-// Normalization Interfaces
+// Error Normalization
+export { HttpErrorNormalizer } from "./httpErrorNormalizer.js";
 export type { ErrorNormalizer } from "./errorNormalizer.js";
 export type { ErrorContext } from "./errorContext.js";
 export type { NormalizedError } from "./normalizedError.js";
+export type { ErrorNormalizationConfig } from "./errorNormalizationConfig.js";
 export type { ErrorCodeMapping } from "./errorCodeMapping.js";
 export type { ErrorFactory } from "./errorFactory.js";
 

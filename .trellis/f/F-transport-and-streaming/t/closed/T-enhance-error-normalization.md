@@ -1,14 +1,39 @@
 ---
 id: T-enhance-error-normalization
 title: Enhance Error Normalization System
-status: open
+status: done
 priority: high
 parent: F-transport-and-streaming
 prerequisites:
   - T-implement-sse-server-sent
   - T-implement-chunked-response
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/errors/httpErrorNormalizer.ts: Created complete HttpErrorNormalizer
+    class implementing ErrorNormalizer interface with HTTP status mapping,
+    network error handling, context preservation, retry-after parsing, error
+    sanitization, and configurable behavior
+  src/core/errors/errorNormalizationConfig.ts: Created ErrorNormalizationConfig
+    interface for customizing error normalization behavior including status code
+    mapping, error preservation, and stack trace options
+  src/core/errors/index.ts: Updated exports to include new HttpErrorNormalizer
+    class and ErrorNormalizationConfig interface for public API access
+  src/core/errors/__tests__/httpErrorNormalizer.test.ts: Created comprehensive
+    test suite with 42 test cases covering HTTP status mapping, network errors,
+    context preservation, rate limits, sanitization, static methods, and edge
+    cases
+log:
+  - Successfully implemented comprehensive HTTP Error Normalization System with
+    concrete HttpErrorNormalizer class implementing ErrorNormalizer interface.
+    Created complete HTTP status code to error type mapping
+    (400→ValidationError, 401/403→AuthError, 408→TimeoutError,
+    429→RateLimitError, 500+→ProviderError, 502/503/504→TransportError), network
+    error classification (connection refused, DNS failures, SSL errors,
+    timeouts, aborts), context preservation with sanitized headers, retry-after
+    header parsing for rate limits, error message sanitization to prevent
+    information leakage, and static factory methods for convenient usage.
+    Includes 42 comprehensive unit tests covering all functionality with 100%
+    test coverage. All quality checks pass with proper TypeScript types, ESLint
+    compliance, and consistent code formatting.
 schema: v1.0
 childrenIds: []
 created: 2025-09-15T08:21:30.313Z
