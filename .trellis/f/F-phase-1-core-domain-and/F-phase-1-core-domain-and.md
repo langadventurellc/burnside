@@ -46,12 +46,23 @@ affectedFiles:
     test suite covering all content types, validation scenarios, and edge cases
   src/core/messages/contentPart.ts: Updated to export Zod-derived types while maintaining backward compatibility
   src/core/messages/index.ts: Updated to export new schema and validation
-    utilities alongside existing types
+    utilities alongside existing types; Updated module exports to include
+    MessageSchema, validateMessage function, and ValidatedMessage type
+  src/core/messages/messageSchema.ts:
+    Created comprehensive Zod schema for Message
+    interface with UUID, role enum, content array, timestamp, sources, and
+    metadata validation
+  src/core/messages/messageValidation.ts: Created validateMessage function using
+    validateOrThrow utility for runtime Message validation
+  src/core/messages/messageTypes.ts: Created ValidatedMessage type inferred from
+    Zod schema for type-safe validated messages
+  src/core/messages/__tests__/messageSchema.test.ts: Implemented comprehensive
+    test suite with 36 tests covering all validation rules, error cases, and
+    edge conditions
 log: []
 schema: v1.0
 childrenIds:
   - T-create-bridgeclient-class
-  - T-define-contentpart-union
   - T-define-message-zod-schema
   - T-define-modelregistry
   - T-define-providerregistry
@@ -60,6 +71,7 @@ childrenIds:
   - T-integrate-registries-with
   - T-update-public-api-exports-and
   - T-add-zod-dependency-and
+  - T-define-contentpart-union
 created: 2025-09-15T05:30:47.335Z
 updated: 2025-09-15T05:30:47.335Z
 ---

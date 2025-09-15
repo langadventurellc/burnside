@@ -1,13 +1,35 @@
 ---
 id: T-define-message-zod-schema
 title: Define Message Zod schema with comprehensive validation
-status: open
+status: done
 priority: high
 parent: F-phase-1-core-domain-and
 prerequisites:
   - T-add-zod-dependency-and
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/messages/messageSchema.ts:
+    Created comprehensive Zod schema for Message
+    interface with UUID, role enum, content array, timestamp, sources, and
+    metadata validation
+  src/core/messages/messageValidation.ts: Created validateMessage function using
+    validateOrThrow utility for runtime Message validation
+  src/core/messages/messageTypes.ts: Created ValidatedMessage type inferred from
+    Zod schema for type-safe validated messages
+  src/core/messages/__tests__/messageSchema.test.ts: Implemented comprehensive
+    test suite with 36 tests covering all validation rules, error cases, and
+    edge conditions
+  src/core/messages/index.ts: Updated module exports to include MessageSchema,
+    validateMessage function, and ValidatedMessage type
+log:
+  - Implemented comprehensive Message Zod schema with complete validation for
+    all Message interface fields including role enum validation, content array
+    validation, UUID v4 format validation for IDs, ISO 8601 timestamp
+    validation, SourceRef object validation, and metadata record validation.
+    Created modular architecture following one-export-per-file rule with
+    separate files for schema, validation function, and types. Added
+    comprehensive test suite with 36 test cases covering all validation
+    scenarios, error cases, and edge conditions. All tests passing with full
+    type safety and security validation.
 schema: v1.0
 childrenIds: []
 created: 2025-09-15T05:34:57.016Z
