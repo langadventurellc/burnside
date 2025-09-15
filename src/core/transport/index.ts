@@ -28,6 +28,10 @@
  * - `StreamChunk` - Individual data chunks within streams
  * - `StreamingOptions` - Configuration for streaming operations
  *
+ * ## Request/Response Redaction System
+ * - `RedactionProcessor` - Configurable processor for redacting sensitive data
+ * - `DEFAULT_REDACTION_CONFIG` - Default configuration with common security patterns
+ *
  * ## Fetch Injection
  * - `FetchFunction` - Type for injectable fetch implementations
  * - `HttpClientConfig` - Configuration with fetch and interceptors
@@ -71,6 +75,12 @@ export type { ResponseInterceptor } from "./responseInterceptorChain.js";
 export type { StreamingResponse } from "./streamingResponse.js";
 export type { StreamChunk } from "./streamChunk.js";
 export type { StreamingOptions } from "./streamingOptions.js";
+
+// Request/Response redaction system
+export {
+  RedactionProcessor,
+  DEFAULT_REDACTION_CONFIG,
+} from "./redactionHooks.js";
 
 // Fetch injection and configuration
 export type { FetchFunction } from "./fetchFunction.js";
