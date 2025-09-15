@@ -96,9 +96,8 @@ function buildOpenAIRequestBody(
   };
 
   // Add optional parameters
-  if (request.stream !== undefined) {
-    openaiRequest.stream = request.stream;
-  }
+  // Always include stream field, defaulting to false for non-streaming
+  openaiRequest.stream = request.stream ?? false;
   if (request.temperature !== undefined) {
     openaiRequest.temperature = request.temperature;
   }

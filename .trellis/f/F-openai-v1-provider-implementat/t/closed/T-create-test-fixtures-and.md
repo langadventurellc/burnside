@@ -1,13 +1,51 @@
 ---
 id: T-create-test-fixtures-and
 title: Create test fixtures and contract tests for OpenAI integration
-status: open
+status: done
 priority: medium
 parent: F-openai-v1-provider-implementat
 prerequisites:
   - T-register-openai-responses-v1
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/providers/openai-responses-v1/__tests__/fixtures/nonStreamingResponses.ts:
+    Created realistic OpenAI API non-streaming response fixtures including
+    success, empty content, usage data, content parts, length limits, and
+    content filtering scenarios
+  src/providers/openai-responses-v1/__tests__/fixtures/streamingEvents.ts:
+    Created comprehensive streaming SSE event fixtures including complete
+    sequences, partial usage, individual events, malformed events, and long
+    sequences for performance testing
+  src/providers/openai-responses-v1/__tests__/fixtures/errorResponses.ts:
+    Created error response fixtures covering HTTP 401, 429, 400, 500 errors and
+    malformed error responses for robust error handling testing
+  src/providers/openai-responses-v1/__tests__/fixtures/requestExamples.ts:
+    Created request example fixtures with expected OpenAI API translations for
+    contract validation, including basic text, streaming, complex parameters,
+    and multimodal content
+  src/providers/openai-responses-v1/__tests__/fixtures/index.ts:
+    Created central export point for all test fixtures providing organized
+    access for contract testing and integration validation
+  src/providers/openai-responses-v1/__tests__/integration.test.ts:
+    Created comprehensive integration tests validating complete request →
+    response pipeline using fixtures, covering non-streaming, streaming, error
+    handling, request translation, and end-to-end validation
+  src/providers/openai-responses-v1/__tests__/contractValidation.test.ts:
+    Created contract validation tests ensuring fixture data matches real OpenAI
+    API response structures and validates API contract compliance
+  src/providers/openai-responses-v1/__tests__/e2eStreaming.test.ts:
+    Created end-to-end streaming tests specifically for Phase 4 acceptance
+    criteria, validating streaming delta accumulation produces correct final
+    text
+  src/providers/openai-responses-v1/translator.ts: Fixed translator to always
+    include stream field defaulting to false for proper OpenAI API compliance
+    and contract testing
+log:
+  - Successfully created comprehensive test fixtures and contract tests for
+    OpenAI integration. Implemented realistic fixtures for non-streaming
+    responses, streaming events, error cases, and request examples. Added
+    integration tests, contract validation tests, and e2e streaming tests. All
+    tests pass and cover the Phase 3 and Phase 4 acceptance criteria for
+    contract testing and streaming validation.
 schema: v1.0
 childrenIds: []
 created: 2025-09-15T19:41:13.591Z

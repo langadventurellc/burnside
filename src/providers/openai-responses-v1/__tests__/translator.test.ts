@@ -62,6 +62,7 @@ describe("translateChatRequest", () => {
             content: "Hello, world!",
           },
         ],
+        stream: false,
       });
     });
 
