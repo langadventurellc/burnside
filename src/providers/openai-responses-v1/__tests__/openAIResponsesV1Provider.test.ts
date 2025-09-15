@@ -109,18 +109,18 @@ describe("OpenAIResponsesV1Provider", () => {
       expect(provider.supportsModel("gpt-5-2025-08-07")).toBe(true);
     });
 
-    it("should not support unsupported models", () => {
-      expect(provider.supportsModel("gpt-3.5-turbo")).toBe(false);
-      expect(provider.supportsModel("claude-3")).toBe(false);
-      expect(provider.supportsModel("non-existent-model")).toBe(false);
+    it("should support all models (model support determined by registry)", () => {
+      expect(provider.supportsModel("gpt-3.5-turbo")).toBe(true);
+      expect(provider.supportsModel("claude-3")).toBe(true);
+      expect(provider.supportsModel("non-existent-model")).toBe(true);
     });
 
     it("should handle empty string", () => {
-      expect(provider.supportsModel("")).toBe(false);
+      expect(provider.supportsModel("")).toBe(true);
     });
 
-    it("should be case sensitive", () => {
-      expect(provider.supportsModel("GPT-4O-2024-08-06")).toBe(false);
+    it("should handle any model ID format", () => {
+      expect(provider.supportsModel("GPT-4O-2024-08-06")).toBe(true);
     });
   });
 

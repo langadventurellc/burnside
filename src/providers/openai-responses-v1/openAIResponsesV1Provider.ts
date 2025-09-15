@@ -19,7 +19,6 @@ import {
   OpenAIResponsesV1ConfigSchema,
   type OpenAIResponsesV1Config,
 } from "./configSchema.js";
-import { getModelCapabilities } from "./models.js";
 import { translateChatRequest } from "./translator.js";
 import { parseOpenAIResponse } from "./responseParser.js";
 import { parseOpenAIResponseStream } from "./streamingParser.js";
@@ -69,13 +68,14 @@ export class OpenAIResponsesV1Provider implements ProviderPlugin {
    * Check if the provider supports a specific model
    *
    * Determines whether the given model ID is supported by this provider.
-   * Currently supports GPT-4o and GPT-5 model families.
+   * Model support is now determined by the centralized model registry,
+   * not by hardcoded capabilities in the provider.
    *
-   * @param modelId - The model identifier to check
-   * @returns True if the model is supported
+   * @param _modelId - The model identifier (unused - support determined by registry)
+   * @returns True - all models are potentially supported; actual support is determined by model registry routing
    */
-  supportsModel(modelId: string): boolean {
-    return getModelCapabilities(modelId) !== undefined;
+  supportsModel(_modelId: string): boolean {
+    return true;
   }
 
   /**

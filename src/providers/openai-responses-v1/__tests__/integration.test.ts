@@ -398,10 +398,10 @@ describe("OpenAI Responses v1 Provider Integration", () => {
       ).resolves.toBeUndefined();
     });
 
-    test("should support expected models", () => {
+    test("should support all models (model support determined by registry)", () => {
       expect(provider.supportsModel("gpt-4o-2024-08-06")).toBe(true);
       expect(provider.supportsModel("gpt-5-2025-08-07")).toBe(true);
-      expect(provider.supportsModel("gpt-3.5-turbo")).toBe(false);
+      expect(provider.supportsModel("gpt-3.5-turbo")).toBe(true);
     });
 
     test("should have correct provider metadata", () => {

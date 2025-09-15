@@ -106,10 +106,15 @@ affectedFiles:
     StreamDeltas, UnifiedResponse handling, and edge cases with 17 test
     scenarios
   src/client/bridgeClient.ts: Added public registerProvider() method with proper
-    validation and error handling for provider registration
+    validation and error handling for provider registration; Added
+    resolveProviderPlugin method to resolve provider plugin from model
+    configuration, added getProviderKeyFromPluginString method with canonical
+    mapping from providerPlugin strings to provider registry keys
   src/providers/openai-responses-v1/__tests__/registration.test.ts:
     Created extensive unit tests covering successful registration, validation,
-    error handling, provider capabilities, and registry state management
+    error handling, provider capabilities, and registry state management;
+    Updated test expectations to reflect that model support is determined by
+    registry, not hardcoded capabilities
   src/providers/openai-responses-v1/__tests__/fixtures/nonStreamingResponses.ts:
     Created realistic OpenAI API non-streaming response fixtures including
     success, empty content, usage data, content parts, length limits, and
@@ -131,7 +136,8 @@ affectedFiles:
   src/providers/openai-responses-v1/__tests__/integration.test.ts:
     Created comprehensive integration tests validating complete request →
     response pipeline using fixtures, covering non-streaming, streaming, error
-    handling, request translation, and end-to-end validation
+    handling, request translation, and end-to-end validation; Updated test
+    expectations for new supportsModel behavior
   src/providers/openai-responses-v1/__tests__/contractValidation.test.ts:
     Created contract validation tests ensuring fixture data matches real OpenAI
     API response structures and validates API contract compliance
@@ -139,12 +145,29 @@ affectedFiles:
     Created end-to-end streaming tests specifically for Phase 4 acceptance
     criteria, validating streaming delta accumulation produces correct final
     text
+  src/core/models/defaultLlmModelsSchema.ts:
+    Enhanced schema validation to include
+    providerPlugin and other missing fields (streaming, toolCalls, images,
+    documents) as optional fields, updated JSDoc example
+  src/core/models/modelLoader.ts:
+    Modified mapJsonToModelInfo function to preserve
+    providerPlugin field in model metadata using conditional spread operator for
+    backward compatibility
+  src/providers/openai-responses-v1/openAIResponsesV1Provider.ts:
+    Removed import of hardcoded getModelCapabilities function, simplified
+    supportsModel method to return true for all models since support is now
+    determined by model registry
+  src/providers/openai-responses-v1/__tests__/openAIResponsesV1Provider.test.ts:
+    Updated test expectations to reflect new behavior where supportsModel
+    returns true for all models
 log:
+  - "Auto-completed: All child tasks are complete"
   - "Auto-completed: All child tasks are complete"
 schema: v1.0
 childrenIds:
   - T-create-openai-responses-v1
   - T-create-test-fixtures-and
+  - T-fix-model-configuration
   - T-implement-error-normalizer
   - T-implement-request-translator
   - T-implement-response-parser-for

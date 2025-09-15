@@ -41,7 +41,7 @@ type DefaultLlmModelsJson = z.infer<typeof DefaultLlmModelsSchema>;
  * //   name: "GPT-4o",
  * //   provider: "openai",
  * //   capabilities: { streaming: false, toolCalls: false, ... },
- * //   metadata: { contextLength: 128000 }
+ * //   metadata: { contextLength: 128000, providerPlugin: "openai-responses-v1" }
  * // }]
  * ```
  *
@@ -73,6 +73,9 @@ export function mapJsonToModelInfo(
           metadata: {
             contextLength: model.contextLength,
             originalProviderId: provider.id,
+            ...(model.providerPlugin && {
+              providerPlugin: model.providerPlugin,
+            }),
           },
         };
 

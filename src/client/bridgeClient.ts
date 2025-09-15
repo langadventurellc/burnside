@@ -325,6 +325,54 @@ export class BridgeClient {
   }
 
   /**
+   * Resolve Provider Plugin from Model Configuration
+   *
+   * Looks up a model in the model registry and resolves the appropriate
+   * provider plugin based on the model's providerPlugin field.
+   *
+   * @param modelId - Model ID to resolve provider plugin for
+   * @returns Provider plugin instance or undefined if not found/mapped
+   */
+  private resolveProviderPlugin(modelId: string): ProviderPlugin | undefined {
+    // Look up model in model registry
+    const model = this.modelRegistry.get(modelId);
+    if (!model?.metadata?.providerPlugin) {
+      return undefined;
+    }
+
+    // Map providerPlugin string to provider registry key
+    const providerKey = this.getProviderKeyFromPluginString(
+      model.metadata.providerPlugin as string,
+    );
+    if (!providerKey) {
+      return undefined;
+    }
+
+    // Get provider from provider registry
+    return this.providerRegistry.get(providerKey.id, providerKey.version);
+  }
+
+  /**
+   * Map Provider Plugin String to Registry Key
+   *
+   * Defines canonical mapping from providerPlugin strings to provider registry keys.
+   * Enables dynamic provider selection based on model configuration.
+   *
+   * @param pluginString - Provider plugin string from model configuration
+   * @returns Provider registry key or undefined for unknown plugins
+   */
+  private getProviderKeyFromPluginString(
+    pluginString: string,
+  ): { id: string; version: string } | undefined {
+    // Define canonical mapping from providerPlugin to provider registry keys
+    const mapping: Record<string, { id: string; version: string }> = {
+      "openai-responses-v1": { id: "openai", version: "responses-v1" },
+    };
+
+    return mapping[pluginString];
+  }
+
+  /**
    * Validate and Transform Configuration
    *
    * Private method that validates the input BridgeConfig and transforms
