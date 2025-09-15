@@ -1,0 +1,30 @@
+{
+  "mcpServers": {
+    "task-trellis": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "dist/server.js",
+        "--projectRootFolder",
+        "/Users/zach/code/task-trellis-mcp"
+      ],
+      "env": {}
+    },
+    "serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena-mcp-server",
+        "--context",
+        "ide-assistant",
+        "--project",
+        "/Users/zach/code/task-trellis-mcp",
+        "--enable-web-dashboard",
+        "false"
+      ],
+      "env": {}
+    }
+  }
+}

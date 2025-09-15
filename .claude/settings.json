@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__task-trellis__complete_task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pre-complete-task.sh'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|MultiEdit|Write|mcp__serena__delete_lines|mcp__serena__insert_after_symbol|mcp__serena__insert_at_line|mcp__serena__insert_before_symbol|mcp__serena__replace_text|mcp__serena__replace_lines|mcp__serena__replace_line|mcp__serena__replace_regex|mcp__serena__replace_symbol_body",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/post-edit-task.sh'"
+          }
+        ]
+      }
+    ]
+  }
+}
