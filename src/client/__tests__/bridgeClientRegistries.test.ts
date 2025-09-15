@@ -4,6 +4,7 @@ import type { ProviderRegistry } from "../../core/providers/providerRegistry";
 import type { ModelRegistry } from "../../core/models/modelRegistry";
 import { InMemoryProviderRegistry } from "../../core/providers/inMemoryProviderRegistry";
 import { InMemoryModelRegistry } from "../../core/models/inMemoryModelRegistry";
+import { ProviderError } from "../../core/errors/providerError";
 
 describe("BridgeClient Registry Integration", () => {
   const validConfig: BridgeConfig = {
@@ -136,6 +137,26 @@ describe("BridgeClient Registry Integration", () => {
           models: [],
           chat: jest.fn(),
           stream: jest.fn(),
+          translateRequest: jest.fn().mockReturnValue({
+            url: "https://api.example.com/chat",
+            method: "POST",
+            headers: {},
+            body: "{}",
+          }),
+          parseResponse: jest.fn().mockReturnValue({
+            message: {
+              role: "assistant",
+              content: [{ type: "text", text: "test response" }],
+            },
+            model: "test-model",
+          }),
+          isTerminal: jest.fn().mockReturnValue(true),
+          normalizeError: jest
+            .fn()
+            .mockImplementation(
+              (error: unknown) =>
+                new ProviderError(String(error), { originalError: error }),
+            ),
         };
 
         providerRegistry.register(testProvider);
@@ -153,6 +174,26 @@ describe("BridgeClient Registry Integration", () => {
           models: [],
           chat: jest.fn(),
           stream: jest.fn(),
+          translateRequest: jest.fn().mockReturnValue({
+            url: "https://api.example.com/chat",
+            method: "POST",
+            headers: {},
+            body: "{}",
+          }),
+          parseResponse: jest.fn().mockReturnValue({
+            message: {
+              role: "assistant",
+              content: [{ type: "text", text: "test response" }],
+            },
+            model: "test-model",
+          }),
+          isTerminal: jest.fn().mockReturnValue(true),
+          normalizeError: jest
+            .fn()
+            .mockImplementation(
+              (error: unknown) =>
+                new ProviderError(String(error), { originalError: error }),
+            ),
         };
 
         const provider2 = {
@@ -163,6 +204,26 @@ describe("BridgeClient Registry Integration", () => {
           models: [],
           chat: jest.fn(),
           stream: jest.fn(),
+          translateRequest: jest.fn().mockReturnValue({
+            url: "https://api.example.com/chat",
+            method: "POST",
+            headers: {},
+            body: "{}",
+          }),
+          parseResponse: jest.fn().mockReturnValue({
+            message: {
+              role: "assistant",
+              content: [{ type: "text", text: "test response" }],
+            },
+            model: "test-model",
+          }),
+          isTerminal: jest.fn().mockReturnValue(true),
+          normalizeError: jest
+            .fn()
+            .mockImplementation(
+              (error: unknown) =>
+                new ProviderError(String(error), { originalError: error }),
+            ),
         };
 
         providerRegistry.register(provider1);

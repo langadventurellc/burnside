@@ -22,6 +22,11 @@ export type { SchemaCompositionOptions } from "./schemaCompositionOptions.js";
 // Common validation schemas
 export { commonSchemas } from "./commonSchemas.js";
 
+// Provider validation
+export { providerSchemas } from "./providerSchemas.js";
+export { providerValidation } from "./providerValidation.js";
+export type { ProviderSchemaTypes } from "./providerSchemaTypes.js";
+
 // Validation utilities
 export { formatValidationError } from "./formatValidationError.js";
 export { safeValidate } from "./safeValidate.js";

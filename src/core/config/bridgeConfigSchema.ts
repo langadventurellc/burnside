@@ -60,6 +60,16 @@ export const BridgeConfigSchema = z
         models: z.record(z.string(), z.unknown()).optional(),
       })
       .optional(),
+
+    /** Optional model registry seeding configuration */
+    modelSeed: z
+      .union([
+        z.literal("builtin"),
+        z.literal("none"),
+        z.object({ data: z.unknown() }),
+        z.object({ path: z.string().min(1) }),
+      ])
+      .optional(),
   })
   .superRefine((config, ctx) => {
     // At least one of defaultProvider or providers must be specified

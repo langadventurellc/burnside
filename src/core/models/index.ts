@@ -46,3 +46,5 @@ export { InMemoryModelRegistry } from "./inMemoryModelRegistry.js";
 // Utility function exports
 export { createModelId } from "./createModelId.js";
 export { parseModelId } from "./parseModelId.js";
+export { mapJsonToModelInfo } from "./modelLoader.js";
+export { DefaultLlmModelsSchema } from "./defaultLlmModelsSchema.js";

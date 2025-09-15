@@ -1,0 +1,115 @@
+import { DefaultLlmModelsSchema } from "../core/models/defaultLlmModelsSchema.js";
+
+// Packaged default LLM models seed used for optional registry seeding.
+// This is a convenience seed; capabilities are determined by provider plugins/config.
+export const defaultLlmModels = DefaultLlmModelsSchema.parse({
+  schemaVersion: "1.0.0",
+  providers: [
+    {
+      id: "openai",
+      name: "OpenAI",
+      models: [
+        {
+          id: "gpt-5-nano-2025-08-07",
+          name: "GPT-5 Nano",
+          contextLength: 400000,
+        },
+        { id: "gpt-4o-2024-08-06", name: "GPT-4o", contextLength: 128000 },
+        {
+          id: "gpt-4.1-nano-2025-04-14",
+          name: "GPT-4.1 Nano",
+          contextLength: 1000000,
+        },
+        {
+          id: "gpt-5-mini-2025-08-07",
+          name: "GPT-5 Mini",
+          contextLength: 400000,
+        },
+        {
+          id: "gpt-4.1-mini-2025-04-14",
+          name: "GPT-4.1 Mini",
+          contextLength: 1000000,
+        },
+        { id: "o4-mini-2025-04-16", name: "O4 Mini", contextLength: 200000 },
+        { id: "gpt-5-2025-08-07", name: "GPT-5", contextLength: 400000 },
+        { id: "gpt-4.1-2025-04-14", name: "GPT-4.1", contextLength: 1000000 },
+        { id: "o3-2025-04-16", name: "o3", contextLength: 200000 },
+        { id: "o1-2024-12-17", name: "o1", contextLength: 200000 },
+        { id: "o3-pro-2025-06-10", name: "o3 Pro", contextLength: 200000 },
+      ],
+    },
+    {
+      id: "anthropic",
+      name: "Anthropic",
+      models: [
+        {
+          id: "claude-3-haiku-20240307",
+          name: "Claude 3 Haiku",
+          contextLength: 200000,
+        },
+        {
+          id: "claude-3-5-haiku-latest",
+          name: "Claude 3.5 Haiku",
+          contextLength: 200000,
+        },
+        {
+          id: "claude-sonnet-4-20250514",
+          name: "Claude Sonnet 4",
+          contextLength: 200000,
+        },
+        {
+          id: "claude-opus-4-20250514",
+          name: "Claude Opus 4",
+          contextLength: 200000,
+        },
+        {
+          id: "claude-opus-4-1-20250805",
+          name: "Claude Opus 4.1",
+          contextLength: 200000,
+        },
+      ],
+    },
+    {
+      id: "google",
+      name: "Google",
+      models: [
+        {
+          id: "gemini-2.0-flash-lite",
+          name: "Gemini 2.0 Flash Lite",
+          contextLength: 1000000,
+        },
+        {
+          id: "gemini-2.5-flash-lite",
+          name: "Gemini 2.5 Flash Lite",
+          contextLength: 1000000,
+        },
+        {
+          id: "gemini-2.0-flash",
+          name: "Gemini 2.0 Flash",
+          contextLength: 1000000,
+        },
+        {
+          id: "gemini-2.5-flash",
+          name: "Gemini 2.5 Flash",
+          contextLength: 1000000,
+        },
+        {
+          id: "gemini-2.5-pro",
+          name: "Gemini 2.5 Pro",
+          contextLength: 1000000,
+        },
+      ],
+    },
+    {
+      id: "xai",
+      name: "xAI",
+      models: [
+        { id: "grok-3-mini", name: "Grok 3 Mini", contextLength: 130000 },
+        { id: "grok-3", name: "Grok 3", contextLength: 256000 },
+        { id: "grok-4-0709", name: "Grok 4", contextLength: 256000 },
+      ],
+    },
+  ],
+});
+
+export type DefaultLlmModelsJson = typeof defaultLlmModels;

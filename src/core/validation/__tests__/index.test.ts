@@ -108,6 +108,8 @@ describe("validation module exports", () => {
       // Should only export the documented public API
       const expectedExports = [
         "commonSchemas",
+        "providerSchemas",
+        "providerValidation",
         "formatValidationError",
         "safeValidate",
         "validateOrThrow",
