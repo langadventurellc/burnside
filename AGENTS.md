@@ -62,6 +62,7 @@ A TypeScript library that acts as a unified bridge to multiple LLM provider APIs
 - Dead code kept around
 - Shared “kitchen‑sink” modules
 - Hard‑coded secrets or env values
+- Never create integration or performance tests
 
 ---
 

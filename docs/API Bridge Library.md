@@ -6,7 +6,7 @@ A TypeScript library that acts as a unified bridge to multiple LLM provider APIs
 
 ### Provider Management
 
-- **Extensible Provider System**: Support for multiple LLM providers (OpenAI, Anthropic, Google, xAI, Ollama, etc.) through a plugin architecture
+- **Extensible Provider System**: Support for multiple LLM providers (OpenAI, Anthropic, Google, xAI, Ollama, etc.)
 - **API Version Specificity**: Providers must be versioned by API version, not just provider name (e.g., `openai-v1`, `openai-v2`) to handle API evolution
 - **Configuration-Driven**: All provider and model definitions must be configuration-based with no hard-coded provider logic, including model capabilities
 - **Dynamic Configuration Schema**: Each provider can define its own configuration requirements (API keys, base URLs, region settings, etc.) while conforming to common interfaces
@@ -29,7 +29,7 @@ A TypeScript library that acts as a unified bridge to multiple LLM provider APIs
 
 ### MCP (Model Context Protocol) Support
 
-- **Tool Discovery**: Automatic discovery and integration of tools from connected MCP servers
+- **Tool Discovery**: Integration of tools from connected MCP servers via configuration
 - **Connection Lifecycle Management**: Handle connection, disconnection, and reconnection of MCP servers
 
 ### File and Content Handling
@@ -65,8 +65,10 @@ A TypeScript library that acts as a unified bridge to multiple LLM provider APIs
 
 - **Context Window Management**: Automatic handling of conversation history within provider limits
 - **Message History Tracking**: Maintain conversation state across multiple interactions
-- **Thread/Session Support**: Handle provider-specific conversation threading mechanisms
-- **Context Truncation Strategies**: Intelligent trimming when approaching context limits
+- **No Thread/Session Support**: No threading support
+- **Context Length Strategies**: Configurable and extensible strategies for dealing with context length
+  - Trimming
+  - Compacting / summarizing
 
 ## Non-Functional Requirements
 

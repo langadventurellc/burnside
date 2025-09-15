@@ -45,15 +45,11 @@ jobs:
             Focus on:
             - Code quality and TypeScript/Node.js best practices
             - Security vulnerabilities and potential issues
-            - Performance considerations
             - Adherence to the project's coding standards in CLAUDE.md
-            - MCP server best practices
             - Type safety and proper TypeScript type annotations
             - Async/await patterns and error handling
 
             Consider the project context:
-            - This is a TypeScript Node.js MCP server using @modelcontextprotocol/sdk
-            - Implements hierarchical project management (Projects → Epics → Features → Tasks)
             - Uses Zod for data validation and YAML/Markdown for file storage
             - Follows strict typing with TypeScript
             - Uses ESLint for linting, Prettier for formatting, and Jest for testing

@@ -2,11 +2,13 @@
   "mcpServers": {
     "task-trellis": {
       "type": "stdio",
-      "command": "node",
+      "command": "npx",
       "args": [
-        "dist/server.js",
+        "@langadventurellc/task-trellis-mcp@latest",
         "--projectRootFolder",
-        "/Users/zach/code/task-trellis-mcp"
+        "/Users/zach/code/llm-bridge",
+        "--prompt-package",
+        "none"
       ],
       "env": {}
     },
@@ -20,7 +22,7 @@
         "--context",
         "ide-assistant",
         "--project",
-        "/Users/zach/code/task-trellis-mcp",
+        "/Users/zach/code/llm-bridge",
         "--enable-web-dashboard",
         "false"
       ],
