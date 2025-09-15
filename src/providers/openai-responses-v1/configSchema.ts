@@ -24,7 +24,7 @@ export const OpenAIResponsesV1ConfigSchema = z.object({
   project: z.string().optional(),
 
   /** Request timeout in milliseconds (optional) */
-  timeout: z.number().int().positive().max(60000).optional(),
+  timeout: z.number().int().positive().max(120000).optional(),
 
   /** Custom headers to include in requests (optional) */
   headers: z.record(z.string(), z.string()).optional(),

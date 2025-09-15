@@ -80,7 +80,7 @@ describe("OpenAIResponsesV1ConfigSchema", () => {
     it("should reject timeout exceeding maximum", () => {
       const config = {
         apiKey: "sk-test123",
-        timeout: 70000, // Exceeds 60000ms limit
+        timeout: 121000, // Exceeds 60000ms limit
       };
 
       expect(() => OpenAIResponsesV1ConfigSchema.parse(config)).toThrow();
