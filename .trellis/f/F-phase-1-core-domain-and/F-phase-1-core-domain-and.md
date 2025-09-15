@@ -105,7 +105,8 @@ affectedFiles:
     feature flag behavior, configuration transformation, and error handling
   src/index.ts: Updated main public API exports to include BridgeClient,
     request/response types, configuration interfaces, core message types, error
-    classes, and feature flag system
+    classes, and feature flag system; Updated public API exports to include
+    createClient function as the primary entry point with updated JSDoc examples
   src/core/tools/toolDefinitionSchema.ts: Created comprehensive Zod schema for
     ToolDefinition with discriminated union support for both Zod schemas and
     JSON Schema objects, strict validation rules, and security considerations
@@ -118,12 +119,27 @@ affectedFiles:
     Implemented comprehensive
     test suite with 37 tests covering all validation rules, error cases, edge
     conditions, and type inference verification
+  src/core/config/bridgeConfigSchema.ts: Created comprehensive Zod schema for
+    BridgeConfig validation with strict validation rules, custom refinements for
+    provider validation, and proper TypeScript type inference
+  src/core/config/__tests__/bridgeConfigSchema.test.ts:
+    Implemented complete test
+    suite with 39 test cases covering all validation scenarios, edge cases, and
+    type inference verification
+  src/core/config/index.ts: Added exports for BridgeConfigSchema and
+    ValidatedBridgeConfig type to make schema validation available throughout
+    the library
+  src/createClient.ts: Implemented main factory function with configuration
+    validation, environment variable processing, default merging, and
+    comprehensive error handling with clear JSDoc documentation
+  src/__tests__/createClient.test.ts: Created extensive test suite with 24 test
+    cases covering all functionality including valid/invalid configurations,
+    environment variables, error handling, and integration testing
 log: []
 schema: v1.0
 childrenIds:
   - T-define-modelregistry
   - T-define-providerregistry
-  - T-define-tooldefinition-schema
   - T-implement-createclient
   - T-integrate-registries-with
   - T-update-public-api-exports-and
@@ -131,6 +147,7 @@ childrenIds:
   - T-create-bridgeclient-class
   - T-define-contentpart-union
   - T-define-message-zod-schema
+  - T-define-tooldefinition-schema
 created: 2025-09-15T05:30:47.335Z
 updated: 2025-09-15T05:30:47.335Z
 ---
