@@ -235,7 +235,7 @@ describe("providerSchemas", () => {
       name: "Test Plugin",
       version: "1.0.0",
       translateRequest: () => {},
-      parseResponse: () => {},
+      parseResponse: async () => {},
       isTerminal: () => false,
       normalizeError: () => new Error(),
     };
@@ -361,7 +361,7 @@ describe("providerValidation", () => {
       name: "Test Plugin",
       version: "1.0.0",
       translateRequest: () => {},
-      parseResponse: () => {},
+      parseResponse: async () => {},
       isTerminal: () => false,
       normalizeError: () => new Error(),
     };

@@ -179,8 +179,8 @@ describe("OpenAIResponsesV1Provider", () => {
     });
   });
 
-  describe("placeholder implementations", () => {
-    it("should throw NOT_IMPLEMENTED for parseResponse", () => {
+  describe("parseResponse implementation", () => {
+    it("should throw ValidationError for null response body", async () => {
       const mockResponse = {
         status: 200,
         statusText: "OK",
@@ -188,25 +188,39 @@ describe("OpenAIResponsesV1Provider", () => {
         body: null,
       };
 
-      expect(() => provider.parseResponse(mockResponse, false)).toThrow(
+      const parsePromise = provider.parseResponse(mockResponse, false);
+      await expect(parsePromise).rejects.toThrow("Response body is null");
+    });
+
+    it("should throw NOT_IMPLEMENTED for streaming responses", () => {
+      const mockResponse = {
+        status: 200,
+        statusText: "OK",
+        headers: { "content-type": "application/json" },
+        body: null,
+      };
+
+      expect(() => provider.parseResponse(mockResponse, true)).toThrow(
         BridgeError,
       );
-      expect(() => provider.parseResponse(mockResponse, false)).toThrow(
-        "Response parsing not implemented",
+      expect(() => provider.parseResponse(mockResponse, true)).toThrow(
+        "Streaming response parsing not implemented",
       );
 
       try {
-        provider.parseResponse(mockResponse, false);
+        provider.parseResponse(mockResponse, true);
         fail("Expected BridgeError to be thrown");
       } catch (error) {
         expect(error).toBeInstanceOf(BridgeError);
         const bridgeError = error as BridgeError;
         expect(bridgeError.code).toBe("NOT_IMPLEMENTED");
         expect(bridgeError.context?.method).toBe("parseResponse");
-        expect(bridgeError.context?.isStreaming).toBe(false);
+        expect(bridgeError.context?.isStreaming).toBe(true);
       }
     });
+  });
 
+  describe("placeholder implementations", () => {
     it("should throw NOT_IMPLEMENTED for isTerminal", () => {
       const mockDelta = {
         id: "chunk-123",

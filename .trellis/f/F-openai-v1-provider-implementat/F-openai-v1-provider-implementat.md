@@ -18,13 +18,21 @@ affectedFiles:
     Main provider plugin implementation
     with ProviderPlugin interface and placeholder methods; Updated
     translateRequest method to use real translator implementation instead of
-    placeholder, added proper error handling for uninitialized provider
+    placeholder, added proper error handling for uninitialized provider; Updated
+    parseResponse method to note interface limitation requiring async body
+    reading for non-streaming responses; Implemented async parseResponse method
+    with ReadableStream body reading, added private readResponseBody method with
+    proper stream handling and error management
   src/providers/openai-responses-v1/__tests__/configSchema.test.ts: Comprehensive unit tests for configuration schema validation
   src/providers/openai-responses-v1/__tests__/requestSchema.test.ts: Unit tests for request schema with valid/invalid cases and edge conditions
   src/providers/openai-responses-v1/__tests__/models.test.ts: Unit tests for model capabilities and metadata functions
   src/providers/openai-responses-v1/__tests__/index.test.ts:
     Provider plugin tests
-    covering initialization, model support, and placeholder implementations
+    covering initialization, model support, and placeholder implementations;
+    Updated existing test to match new parseResponse error message reflecting
+    interface limitation; Updated tests to handle new async parseResponse
+    behavior, added tests for ValidationError on null response body and
+    streaming NOT_IMPLEMENTED behavior
   src/providers/index.ts: Updated to export OpenAIResponsesV1Provider for registration and use
   src/providers/openai-responses-v1/translator.ts: Created core request
     translation logic converting unified ChatRequest to OpenAI Responses API v1
@@ -34,17 +42,43 @@ affectedFiles:
     Added comprehensive unit tests covering successful translations, error
     handling, URL construction, header generation, and parameter mapping with 16
     test cases
+  src/providers/openai-responses-v1/responseSchema.ts: Created comprehensive Zod
+    schemas for OpenAI Responses API v1 validation including content parts,
+    choices, usage, and complete response structure
+  src/providers/openai-responses-v1/responseParser.ts: Implemented core response
+    parsing logic converting OpenAI responses to unified Message format with
+    content conversion, usage extraction, and metadata handling
+  src/providers/openai-responses-v1/__tests__/responseSchema.test.ts:
+    Created 30 comprehensive unit tests validating OpenAI response schema with
+    valid/invalid responses and edge cases
+  src/providers/openai-responses-v1/__tests__/responseParser.test.ts:
+    Created 67 comprehensive unit tests covering successful parsing, error
+    handling, content conversion, usage extraction, and metadata handling
+  src/core/providers/providerPlugin.ts:
+    Updated parseResponse method signature to
+    return Promise<ResponseObject> for non-streaming responses, updated JSDoc
+    examples to show async/await usage patterns
+  src/core/validation/providerSchemas.ts: Enhanced parseResponse validation to
+    accept functions returning Promise or AsyncIterable using Zod union type
+  src/core/providers/inMemoryProviderRegistry.ts: Updated provider registration
+    validation to accept async parseResponse functions
+  src/core/providers/__tests__/providerRegistry.test.ts: Updated test mocks to
+    return promises using Promise.resolve for async parseResponse behavior
+  src/client/__tests__/bridgeClientRegistries.test.ts: Changed jest mocks from
+    mockReturnValue to mockResolvedValue for async parseResponse testing
+  src/core/validation/__tests__/providerSchemas.test.ts: Updated test functions to async for parseResponse validation compatibility
 log: []
 schema: v1.0
 childrenIds:
   - T-create-test-fixtures-and
   - T-implement-error-normalizer
-  - T-implement-request-translator
-  - T-implement-response-parser-for
   - T-implement-sse-streaming
   - T-implement-termination
   - T-register-openai-responses-v1
+  - T-update-providerplugin
   - T-create-openai-responses-v1
+  - T-implement-request-translator
+  - T-implement-response-parser-for
 created: 2025-09-15T19:04:11.147Z
 updated: 2025-09-15T19:04:11.147Z
 ---

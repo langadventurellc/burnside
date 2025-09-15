@@ -143,7 +143,7 @@ describe("BridgeClient Registry Integration", () => {
             headers: {},
             body: "{}",
           }),
-          parseResponse: jest.fn().mockReturnValue({
+          parseResponse: jest.fn().mockResolvedValue({
             message: {
               role: "assistant",
               content: [{ type: "text", text: "test response" }],
@@ -180,7 +180,7 @@ describe("BridgeClient Registry Integration", () => {
             headers: {},
             body: "{}",
           }),
-          parseResponse: jest.fn().mockReturnValue({
+          parseResponse: jest.fn().mockResolvedValue({
             message: {
               role: "assistant",
               content: [{ type: "text", text: "test response" }],
@@ -210,7 +210,7 @@ describe("BridgeClient Registry Integration", () => {
             headers: {},
             body: "{}",
           }),
-          parseResponse: jest.fn().mockReturnValue({
+          parseResponse: jest.fn().mockResolvedValue({
             message: {
               role: "assistant",
               content: [{ type: "text", text: "test response" }],

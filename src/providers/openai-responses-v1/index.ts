@@ -13,12 +13,14 @@ import type { Message } from "../../core/messages/message.js";
 import type { ProviderHttpRequest } from "../../core/transport/providerHttpRequest.js";
 import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse.js";
 import { BridgeError } from "../../core/errors/bridgeError.js";
+import { ValidationError } from "../../core/errors/validationError.js";
 import {
   OpenAIResponsesV1ConfigSchema,
   type OpenAIResponsesV1Config,
 } from "./configSchema.js";
 import { getModelCapabilities } from "./models.js";
 import { translateChatRequest } from "./translator.js";
+import { parseOpenAIResponse } from "./responseParser.js";
 
 /**
  * OpenAI Responses v1 Provider Plugin
@@ -98,18 +100,20 @@ export class OpenAIResponsesV1Provider implements ProviderPlugin {
   /**
    * Parse provider HTTP response back to unified format
    *
-   * Placeholder implementation that throws "Not implemented" error.
-   * Will be implemented in subsequent task: T-implement-response-parser-for
+   * Parse responses from the OpenAI Responses API v1 back to unified format.
+   * Handles both streaming and non-streaming responses based on the isStreaming flag.
    *
    * @param response - The HTTP response from provider API
    * @param isStreaming - Whether the response should be treated as streaming
-   * @throws {BridgeError} Always throws "Not implemented"
+   * @returns Promise of parsed response object for non-streaming or AsyncIterable for streaming
+   * @throws {ValidationError} When response validation fails
+   * @throws {BridgeError} When streaming is requested (not yet implemented)
    */
   parseResponse(
     response: ProviderHttpResponse,
     isStreaming: boolean,
   ):
-    | {
+    | Promise<{
         message: Message;
         usage?: {
           promptTokens: number;
@@ -118,13 +122,62 @@ export class OpenAIResponsesV1Provider implements ProviderPlugin {
         };
         model: string;
         metadata?: Record<string, unknown>;
-      }
+      }>
     | AsyncIterable<StreamDelta> {
-    throw new BridgeError(
-      "Response parsing not implemented",
-      "NOT_IMPLEMENTED",
-      { method: "parseResponse", isStreaming },
+    if (isStreaming) {
+      throw new BridgeError(
+        "Streaming response parsing not implemented",
+        "NOT_IMPLEMENTED",
+        { method: "parseResponse", isStreaming: true },
+      );
+    }
+
+    // Return Promise for non-streaming responses
+    return this.readResponseBody(response).then((responseText) =>
+      parseOpenAIResponse(response, responseText),
     );
+  }
+
+  /**
+   * Read ReadableStream response body to string
+   *
+   * @param response - HTTP response with ReadableStream body
+   * @returns Promise resolving to response body as string
+   * @throws {ValidationError} When response body is null or reading fails
+   */
+  private async readResponseBody(
+    response: ProviderHttpResponse,
+  ): Promise<string> {
+    if (!response.body) {
+      throw new ValidationError("Response body is null", {
+        status: response.status,
+        statusText: response.statusText,
+      });
+    }
+
+    const reader = response.body.getReader();
+    const chunks: Uint8Array[] = [];
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    // Combine chunks and decode to string
+    const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+    const combined = new Uint8Array(totalLength);
+    let offset = 0;
+    for (const chunk of chunks) {
+      combined.set(chunk, offset);
+      offset += chunk.length;
+    }
+
+    return new TextDecoder().decode(combined);
   }
 
   /**

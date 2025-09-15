@@ -78,17 +78,17 @@ export interface ProviderPlugin {
    * Parse provider HTTP response back to unified format.
    *
    * Transforms the provider's HTTP response into either a complete
-   * unified response or an async stream of delta chunks depending
-   * on whether streaming was requested.
+   * unified response (async for non-streaming) or an async stream
+   * of delta chunks depending on whether streaming was requested.
    *
    * @param response - The HTTP response from provider API
    * @param isStreaming - Whether the response should be treated as streaming
-   * @returns Complete response with message and usage info, or async iterable of streaming deltas
+   * @returns Promise of complete response for non-streaming, or async iterable of streaming deltas
    * @throws {BridgeError} When response parsing fails
    *
    * @example Non-streaming response
    * ```typescript
-   * const result = plugin.parseResponse(httpResponse, false) as {
+   * const result = await plugin.parseResponse(httpResponse, false) as {
    *   message: Message;
    *   usage?: { promptTokens: number; completionTokens: number; totalTokens?: number };
    *   model: string;
@@ -109,7 +109,7 @@ export interface ProviderPlugin {
     response: ProviderHttpResponse,
     isStreaming: boolean,
   ):
-    | {
+    | Promise<{
         message: Message;
         usage?: {
           promptTokens: number;
@@ -118,7 +118,7 @@ export interface ProviderPlugin {
         };
         model: string;
         metadata?: Record<string, unknown>;
-      }
+      }>
     | AsyncIterable<StreamDelta>;
 
   /**
