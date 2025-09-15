@@ -1,55 +1,235 @@
 /**
- * LLM Bridge Library
+ * LLM Bridge Library - Main Public API
  *
- * A unified bridge to multiple LLM provider APIs for use across
- * Desktop (Electron), Mobile (React Native), and Web (Node.js) platforms.
+ * A unified TypeScript library that acts as a bridge to multiple LLM provider APIs
+ * for use across Desktop (Electron), Mobile (React Native), and Web (Node.js) platforms.
  *
- * This is the main public API surface entry point providing the createClient
- * factory function and related types for chat and streaming functionality.
+ * The library provides an extensible architecture for integrating various LLM providers
+ * and tools while maintaining a consistent interface across all platforms with comprehensive
+ * Zod validation for runtime type safety.
  *
- * @example
+ * ## Primary Usage
+ *
+ * The main entry point is the `createClient` function which creates a configured
+ * BridgeClient instance ready for chat and streaming operations:
+ *
+ * @example Basic client creation and usage
  * ```typescript
- * import { createClient } from "@llm-bridge/library";
+ * import { createClient, BridgeConfig } from "@llm-bridge/library";
  *
+ * // Create client with provider configuration
  * const client = createClient({
  *   defaultProvider: "openai",
  *   providers: {
- *     openai: { apiKey: "sk-..." }
+ *     openai: { apiKey: process.env.OPENAI_API_KEY }
  *   },
- *   defaultModel: "gpt-4"
+ *   defaultModel: "gpt-4",
+ *   timeout: 30000
  * });
  *
- * // Phase 2+ functionality (currently throws FEATURE_DISABLED)
+ * // Phase 2+ functionality (currently no-op in Phase 1)
  * const response = await client.chat({
  *   messages: [{ role: "user", content: [{ type: "text", text: "Hello!" }] }],
  *   model: "gpt-4"
  * });
  * ```
+ *
+ * ## Advanced Usage with Registries
+ *
+ * For advanced scenarios, you can work directly with provider and model registries
+ * to dynamically manage available providers and models:
+ *
+ * @example Registry-based model management
+ * ```typescript
+ * import {
+ *   createClient,
+ *   InMemoryModelRegistry,
+ *   createModelId
+ * } from "@llm-bridge/library";
+ *
+ * // Create and configure model registry
+ * const modelRegistry = new InMemoryModelRegistry();
+ * const modelId = createModelId("openai", "gpt-4");
+ *
+ * modelRegistry.register(modelId, {
+ *   id: modelId,
+ *   name: "GPT-4",
+ *   provider: "openai",
+ *   capabilities: {
+ *     streaming: true,
+ *     toolCalls: true,
+ *     images: true,
+ *     documents: false,
+ *     supportedContentTypes: ["text", "image"]
+ *   }
+ * });
+ *
+ * // Use registry in client configuration
+ * const client = createClient({
+ *   defaultProvider: "openai",
+ *   providers: { openai: { apiKey: process.env.OPENAI_API_KEY } },
+ *   registryOptions: {
+ *     models: { registry: modelRegistry }
+ *   }
+ * });
+ * ```
+ *
+ * ## Runtime Validation
+ *
+ * All public interfaces include Zod schemas for runtime validation:
+ *
+ * @example Message validation
+ * ```typescript
+ * import { MessageSchema, validateMessage } from "@llm-bridge/library";
+ *
+ * const message = {
+ *   role: "user" as const,
+ *   content: [{ type: "text" as const, text: "Hello!" }]
+ * };
+ *
+ * // Validate message structure
+ * const validatedMessage = validateMessage(message);
+ *
+ * // Or use schema directly
+ * const result = MessageSchema.safeParse(message);
+ * if (result.success) {
+ *   console.log("Valid message:", result.data);
+ * }
+ * ```
+ *
+ * @since 0.1.0 (Phase 1)
  */
 
-// Main client factory function and class (Phase 1)
+// ============================================================================
+// PRIMARY API - Main Entry Points
+// ============================================================================
+
+/**
+ * Primary client factory function for creating configured BridgeClient instances.
+ *
+ * This is the recommended entry point for most applications. The function validates
+ * the provided configuration, applies defaults, and returns a fully configured client
+ * ready for chat and streaming operations.
+ *
+ * @since 0.1.0 (Phase 1)
+ */
 export { createClient } from "./createClient";
+
+/**
+ * Main client class for chat and streaming operations.
+ *
+ * While `createClient` is the recommended factory function, BridgeClient can be
+ * instantiated directly for advanced scenarios requiring custom initialization.
+ *
+ * @since 0.1.0 (Phase 1)
+ */
 export { BridgeClient } from "./client";
 
-// Request and response types for chat and streaming
+// ============================================================================
+// CORE TYPES AND SCHEMAS - Runtime Validation
+// ============================================================================
+
+/**
+ * Core message and content types with Zod validation schemas.
+ * These provide the foundation for all message handling with runtime type safety.
+ *
+ * @since 0.1.0 (Phase 1)
+ */
+// Message types
+export type { Message, ValidatedMessage } from "./core/messages";
+export type { ContentPart } from "./core/messages";
+export type { Role } from "./core/messages";
+export type { SourceRef } from "./core/messages";
+
+// Message validation schemas and utilities
+export { MessageSchema, validateMessage } from "./core/messages";
+export { ContentPartSchema, validateContentPart } from "./core/messages";
+
+/**
+ * Tool definition types and validation schemas.
+ * These provide type-safe tool registration and execution contracts.
+ *
+ * @since 0.1.0 (Phase 1)
+ */
+export type {
+  ToolDefinition,
+  ToolHandler,
+  ToolExecutionContext,
+} from "./core/tools";
+export { ToolDefinitionSchema } from "./core/tools";
+
+/**
+ * Configuration types and validation schemas.
+ * These provide runtime validation for all client and provider configurations.
+ *
+ * @since 0.1.0 (Phase 1)
+ */
+export type { BridgeConfig, ProviderConfig, ModelConfig } from "./core/config";
+export { BridgeConfigSchema, type ValidatedBridgeConfig } from "./core/config";
+
+// ============================================================================
+// CLIENT API TYPES - Request and Response Interfaces
+// ============================================================================
+
+/**
+ * Request and response types for chat and streaming operations.
+ * These define the public API surface for LLM interactions.
+ *
+ * @since 0.1.0 (Phase 1)
+ */
 export type { ChatRequest, StreamRequest, StreamDelta } from "./client";
-
-// Configuration types
 export type { BridgeClientConfig } from "./client";
-export type { BridgeConfig } from "./core/config/bridgeConfig";
 
-// Core message types for public consumption
-export type { Message } from "./core/messages/message";
-export type { ContentPart } from "./core/messages/contentPart";
-export type { Role } from "./core/messages/role";
-export type { SourceRef } from "./core/messages/sourceRef";
+// ============================================================================
+// PROVIDER AND MODEL REGISTRIES - Advanced Usage
+// ============================================================================
 
-// Error types for error handling
-export { BridgeError } from "./core/errors/bridgeError";
+/**
+ * Provider registry interfaces and implementations.
+ * These enable dynamic provider plugin registration and management.
+ *
+ * @since 0.1.0 (Phase 1)
+ */
+export type {
+  ProviderRegistry,
+  ProviderPlugin,
+  ProviderInfo,
+  ProviderKey,
+  ModelCapabilities,
+  ModelInfo,
+} from "./core/providers";
+export { InMemoryProviderRegistry } from "./core/providers";
 
-// Feature flag system (for advanced usage)
+/**
+ * Model registry interfaces and implementations.
+ * These enable dynamic model registration and capability-based querying.
+ *
+ * @since 0.1.0 (Phase 1)
+ */
+export type { ModelRegistry, ModelId, ModelQuery } from "./core/models";
+export {
+  InMemoryModelRegistry,
+  createModelId,
+  parseModelId,
+} from "./core/models";
+
+// ============================================================================
+// FEATURE FLAGS AND ERROR HANDLING
+// ============================================================================
+
+/**
+ * Feature flag system for progressive feature enablement.
+ * Used internally for phased rollout, exposed for advanced usage and testing.
+ *
+ * @since 0.1.0 (Phase 1)
+ */
 export type { FeatureFlags, FeatureFlagOverrides } from "./client";
 export { initializeFeatureFlags, isFeatureEnabled } from "./client";
 
-// TODO: Export provider registration interfaces when implemented (Phase 1)
-// TODO: Export model registry interfaces when implemented (Phase 1)
+/**
+ * Error types and utilities for comprehensive error handling.
+ * All library errors extend BridgeError for consistent error handling patterns.
+ *
+ * @since 0.1.0 (Phase 1)
+ */
+export { BridgeError } from "./core/errors/bridgeError";

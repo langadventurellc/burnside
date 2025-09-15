@@ -1,7 +1,7 @@
 ---
 id: F-phase-1-core-domain-and
 title: "Phase 1: Core Domain and Public API Skeleton"
-status: in-progress
+status: done
 priority: medium
 parent: none
 prerequisites: []
@@ -117,7 +117,12 @@ affectedFiles:
   src/index.ts: Updated main public API exports to include BridgeClient,
     request/response types, configuration interfaces, core message types, error
     classes, and feature flag system; Updated public API exports to include
-    createClient function as the primary entry point with updated JSDoc examples
+    createClient function as the primary entry point with updated JSDoc
+    examples; Updated main library exports with comprehensive JSDoc
+    documentation, organized exports into clear sections (Primary API, Core
+    Types & Schemas, Client API Types, Registries, Feature Flags & Error
+    Handling), added Zod schema exports, registry interfaces and
+    implementations, and extensive usage examples with @since tags for Phase 1
   src/core/tools/toolDefinitionSchema.ts: Created comprehensive Zod schema for
     ToolDefinition with discriminated union support for both Zod schemas and
     JSON Schema objects, strict validation rules, and security considerations
@@ -210,11 +215,14 @@ affectedFiles:
     suite with 36 test cases covering registry initialization, accessor methods,
     convenience functions, configuration integration, error handling, and type
     safety
-log: []
+  src/__tests__/exports.test.ts: Created comprehensive test suite with 25 tests
+    verifying all expected exports are available, import patterns work
+    correctly, documentation examples are syntactically valid, API completeness,
+    and TypeScript type system integration
+log:
+  - "Auto-completed: All child tasks are complete"
 schema: v1.0
 childrenIds:
-  - T-integrate-registries-with
-  - T-update-public-api-exports-and
   - T-add-zod-dependency-and
   - T-create-bridgeclient-class
   - T-define-contentpart-union
@@ -223,6 +231,8 @@ childrenIds:
   - T-define-providerregistry
   - T-define-tooldefinition-schema
   - T-implement-createclient
+  - T-integrate-registries-with
+  - T-update-public-api-exports-and
 created: 2025-09-15T05:30:47.335Z
 updated: 2025-09-15T05:30:47.335Z
 ---

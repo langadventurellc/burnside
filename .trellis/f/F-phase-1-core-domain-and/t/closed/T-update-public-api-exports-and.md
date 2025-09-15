@@ -1,14 +1,32 @@
 ---
 id: T-update-public-api-exports-and
 title: Update public API exports and add comprehensive JSDoc documentation
-status: open
+status: done
 priority: low
 parent: F-phase-1-core-domain-and
 prerequisites:
   - T-implement-createclient
   - T-integrate-registries-with
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/index.ts: Updated main library exports with comprehensive JSDoc
+    documentation, organized exports into clear sections (Primary API, Core
+    Types & Schemas, Client API Types, Registries, Feature Flags & Error
+    Handling), added Zod schema exports, registry interfaces and
+    implementations, and extensive usage examples with @since tags for Phase 1
+  src/__tests__/exports.test.ts: Created comprehensive test suite with 25 tests
+    verifying all expected exports are available, import patterns work
+    correctly, documentation examples are syntactically valid, API completeness,
+    and TypeScript type system integration
+log:
+  - Successfully updated the public API exports in src/index.ts with
+    comprehensive JSDoc documentation and organized all Phase 1 exports into
+    clear sections. Added complete exports for all Zod validation schemas
+    (MessageSchema, ContentPartSchema, ToolDefinitionSchema,
+    BridgeConfigSchema), tool-related interfaces, provider and model registry
+    implementations, and comprehensive JSDoc examples showing real-world usage
+    patterns. Created extensive test suite with 25 tests verifying all exports
+    work correctly and maintain type safety. All quality checks pass with 606
+    total tests passing.
 schema: v1.0
 childrenIds: []
 created: 2025-09-15T05:40:08.568Z
