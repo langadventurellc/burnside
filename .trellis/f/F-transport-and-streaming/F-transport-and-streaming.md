@@ -61,21 +61,30 @@ affectedFiles:
   src/core/transport/requestInterceptorChain.ts: Type definition for request interceptor functions with context parameter
   src/core/transport/responseInterceptorChain.ts: Type definition for response interceptor functions with context parameter
   src/core/transport/index.ts: Updated transport module exports to include new
-    interceptor chain classes and types
+    interceptor chain classes and types; Updated module exports to include
+    HttpTransport class for public API access
   src/core/transport/__tests__/interceptorChain.test.ts:
     Comprehensive test suite
     with 25 test cases covering interceptor registration, execution order, error
     handling, context management, and edge cases
   src/core/transport/__tests__/interceptorError.test.ts: Test suite with 7 test
     cases for InterceptorError class validation, inheritance, and serialization
+  src/core/transport/httpTransport.ts: Main HttpTransport class implementation
+    with fetch() and stream() methods, integrated streaming parsers (SSE,
+    chunk), interceptor chain execution, error normalization, and
+    platform-agnostic fetch support
+  src/core/transport/__tests__/httpTransport.test.ts: Comprehensive test suite
+    with 15 test cases covering fetch requests, streaming responses, error
+    handling, interceptor integration, AbortSignal support, and context
+    management
 log: []
 schema: v1.0
 childrenIds:
   - T-implement-http-transport-with
-  - T-implement-interceptor-chain
   - T-implement-requestresponse
   - T-enhance-error-normalization
   - T-implement-chunked-response
+  - T-implement-interceptor-chain
   - T-implement-sse-server-sent
 created: 2025-09-15T08:12:57.732Z
 updated: 2025-09-15T08:12:57.732Z

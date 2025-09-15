@@ -56,6 +56,7 @@ export type { ProviderHttpResponse } from "./providerHttpResponse.js";
 
 // Transport interfaces
 export type { Transport } from "./transport.js";
+export { HttpTransport } from "./httpTransport.js";
 export type { HttpClient } from "./httpClient.js";
 
 // Interceptor chain system
