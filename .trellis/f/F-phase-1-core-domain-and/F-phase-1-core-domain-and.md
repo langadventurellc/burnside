@@ -17,7 +17,9 @@ affectedFiles:
   src/core/validation/commonSchemas.ts:
     Implemented common validation schemas for
     email, URL, and timestamps; Enhanced with base64, image MIME type, document
-    MIME type, filename, and language identifier validation schemas
+    MIME type, filename, and language identifier validation schemas; Added
+    toolName and toolDescription validation schemas following existing patterns
+    with regex validation and length constraints
   src/core/validation/formatValidationError.ts: Created error message formatter with context and field information
   src/core/validation/safeValidate.ts: Implemented safe validation wrapper
     returning ValidationResult instead of throwing
@@ -104,10 +106,21 @@ affectedFiles:
   src/index.ts: Updated main public API exports to include BridgeClient,
     request/response types, configuration interfaces, core message types, error
     classes, and feature flag system
+  src/core/tools/toolDefinitionSchema.ts: Created comprehensive Zod schema for
+    ToolDefinition with discriminated union support for both Zod schemas and
+    JSON Schema objects, strict validation rules, and security considerations
+  src/core/tools/toolDefinition.ts: Updated to use Zod-derived types while
+    maintaining backward compatibility, enhanced JSDoc with examples for both
+    Zod and JSON Schema usage patterns
+  src/core/tools/index.ts: Added export for ToolDefinitionSchema to make schema
+    validation available to external consumers
+  src/core/tools/__tests__/toolDefinitionSchema.test.ts:
+    Implemented comprehensive
+    test suite with 37 tests covering all validation rules, error cases, edge
+    conditions, and type inference verification
 log: []
 schema: v1.0
 childrenIds:
-  - T-create-bridgeclient-class
   - T-define-modelregistry
   - T-define-providerregistry
   - T-define-tooldefinition-schema
@@ -115,6 +128,7 @@ childrenIds:
   - T-integrate-registries-with
   - T-update-public-api-exports-and
   - T-add-zod-dependency-and
+  - T-create-bridgeclient-class
   - T-define-contentpart-union
   - T-define-message-zod-schema
 created: 2025-09-15T05:30:47.335Z

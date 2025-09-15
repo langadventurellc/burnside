@@ -1,13 +1,38 @@
 ---
 id: T-define-tooldefinition-schema
 title: Define ToolDefinition schema with nested validation
-status: open
+status: done
 priority: high
 parent: F-phase-1-core-domain-and
 prerequisites:
   - T-add-zod-dependency-and
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/validation/commonSchemas.ts: Added toolName and toolDescription
+    validation schemas following existing patterns with regex validation and
+    length constraints
+  src/core/tools/toolDefinitionSchema.ts: Created comprehensive Zod schema for
+    ToolDefinition with discriminated union support for both Zod schemas and
+    JSON Schema objects, strict validation rules, and security considerations
+  src/core/tools/toolDefinition.ts: Updated to use Zod-derived types while
+    maintaining backward compatibility, enhanced JSDoc with examples for both
+    Zod and JSON Schema usage patterns
+  src/core/tools/index.ts: Added export for ToolDefinitionSchema to make schema
+    validation available to external consumers
+  src/core/tools/__tests__/toolDefinitionSchema.test.ts:
+    Implemented comprehensive
+    test suite with 37 tests covering all validation rules, error cases, edge
+    conditions, and type inference verification
+log:
+  - Successfully implemented comprehensive ToolDefinition Zod schema with nested
+    validation supporting both Zod schemas and JSON Schema objects for maximum
+    flexibility. The implementation includes strict tool name validation
+    (alphanumeric, underscore, hyphen patterns, 1-50 chars), optional
+    description validation (max 500 chars), robust input/output schema
+    validation supporting both Zod schemas and JSON Schema objects, and flexible
+    hints/metadata object support. Created comprehensive test suite with 37
+    passing tests covering all validation scenarios, error cases, and edge
+    conditions. All quality checks (linting, formatting, type checking) pass
+    successfully.
 schema: v1.0
 childrenIds: []
 created: 2025-09-15T05:36:07.052Z

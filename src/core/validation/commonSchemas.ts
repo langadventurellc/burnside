@@ -97,4 +97,24 @@ export const commonSchemas = {
       /^[a-zA-Z0-9+#-]+$/,
       "Language identifier can only contain letters, numbers, +, #, and hyphens",
     ),
+
+  /**
+   * Tool name validation schema for tool identifiers.
+   */
+  toolName: z
+    .string()
+    .min(1, "Tool name is required")
+    .max(50, "Tool name must be 50 characters or less")
+    .regex(
+      /^[a-zA-Z0-9_-]+$/,
+      "Tool name must contain only alphanumeric characters, underscores, and hyphens",
+    ),
+
+  /**
+   * Tool description validation schema with reasonable length limits.
+   */
+  toolDescription: z
+    .string()
+    .max(500, "Tool description cannot exceed 500 characters")
+    .optional(),
 };
