@@ -1,15 +1,15 @@
 /**
  * Universal Streaming Interface Module
  *
- * This module will contain universal streaming interface and parsers
- * for provider-agnostic streaming including Stream interface and
- * buffer management for real-time response handling.
+ * This module contains universal streaming parsers for provider-agnostic
+ * streaming including chunked response parsing, SSE parsing, and buffer
+ * management for real-time response handling.
  *
- * Future exports will provide streaming abstractions for all providers.
+ * Provides streaming abstractions for all LLM providers.
  */
 
-// TODO: Export Stream interface when implemented
-// TODO: Export buffer management utilities when implemented
-// TODO: Export streaming parsers when implemented
-
-export {};
+export { ChunkParser } from "./chunkParser.js";
+export { SseParser } from "./sseParser.js";
+export type { ParsedChunk } from "./parsedChunk.js";
+export type { ChunkParserOptions } from "./chunkParserOptions.js";
+export type { SseEvent } from "./sseEvent.js";
