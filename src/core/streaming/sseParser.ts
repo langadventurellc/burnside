@@ -197,76 +197,134 @@ export class SseParser {
   ): { shouldYield: boolean } {
     const trimmedLine = line.trim();
 
-    // Empty line signals end of event
-    if (trimmedLine === "") {
+    if (SseParser.isEndOfEvent(trimmedLine)) {
       return { shouldYield: true };
     }
 
-    // Comment lines (start with :) are ignored
-    if (trimmedLine.startsWith(":")) {
+    if (SseParser.isCommentLine(trimmedLine)) {
       return { shouldYield: false };
     }
 
-    // Parse field line
-    const colonIndex = trimmedLine.indexOf(":");
+    const parsedField = SseParser.parseFieldLine(trimmedLine);
+    if (!parsedField) {
+      SseParser.handleFieldWithoutColon(trimmedLine, currentEvent);
+      return { shouldYield: false };
+    }
+
+    SseParser.processField(parsedField, currentEvent);
+    return { shouldYield: false };
+  }
+
+  /**
+   * Checks if a line signals the end of an event.
+   */
+  private static isEndOfEvent(line: string): boolean {
+    return line === "";
+  }
+
+  /**
+   * Checks if a line is a comment line.
+   */
+  private static isCommentLine(line: string): boolean {
+    return line.startsWith(":");
+  }
+
+  /**
+   * Parses a field line into name and value.
+   */
+  private static parseFieldLine(
+    line: string,
+  ): { name: string; value: string } | null {
+    const colonIndex = line.indexOf(":");
     if (colonIndex === -1) {
-      // Line without colon is treated as field name with empty value
-      const fieldName = trimmedLine;
-      if (fieldName === "data") {
-        currentEvent.data = (currentEvent.data || "") + "\n";
-      }
-      return { shouldYield: false };
+      return null;
     }
 
-    const fieldName = trimmedLine.substring(0, colonIndex);
-    let fieldValue = trimmedLine.substring(colonIndex + 1);
+    const fieldName = line.substring(0, colonIndex);
+    let fieldValue = line.substring(colonIndex + 1);
 
     // Remove leading space from field value if present
     if (fieldValue.startsWith(" ")) {
       fieldValue = fieldValue.substring(1);
     }
 
+    return { name: fieldName, value: fieldValue };
+  }
+
+  /**
+   * Handles field lines without colons.
+   */
+  private static handleFieldWithoutColon(
+    fieldName: string,
+    currentEvent: Partial<SseEvent>,
+  ): void {
+    if (fieldName === "data") {
+      currentEvent.data = (currentEvent.data || "") + "\n";
+    }
+  }
+
+  /**
+   * Processes a parsed field and updates the current event.
+   */
+  private static processField(
+    field: { name: string; value: string },
+    currentEvent: Partial<SseEvent>,
+  ): void {
     try {
-      switch (fieldName) {
+      switch (field.name) {
         case "data":
-          // Concatenate multiple data fields with newlines
-          currentEvent.data = currentEvent.data
-            ? currentEvent.data + "\n" + fieldValue
-            : fieldValue;
+          SseParser.processDataField(field.value, currentEvent);
           break;
 
         case "event":
-          currentEvent.event = fieldValue;
+          currentEvent.event = field.value;
           break;
 
         case "id":
-          currentEvent.id = fieldValue;
+          currentEvent.id = field.value;
           break;
 
-        case "retry": {
-          const retryValue = parseInt(fieldValue, 10);
-          if (!isNaN(retryValue) && retryValue >= 0) {
-            currentEvent.retry = retryValue;
-          } else {
-            console.warn(`Invalid retry value: ${fieldValue}, ignoring`);
-          }
+        case "retry":
+          SseParser.processRetryField(field.value, currentEvent);
           break;
-        }
 
         default:
-          // Unknown fields are ignored per SSE specification
-          console.warn(`Unknown SSE field: ${fieldName}, ignoring`);
+          console.warn(`Unknown SSE field: ${field.name}, ignoring`);
           break;
       }
     } catch (error) {
-      // Log error but continue parsing
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       console.warn(
-        `Error processing SSE field ${fieldName}: ${errorMessage}, ignoring`,
+        `Error processing SSE field ${field.name}: ${errorMessage}, ignoring`,
       );
     }
+  }
 
-    return { shouldYield: false };
+  /**
+   * Processes a data field value.
+   */
+  private static processDataField(
+    value: string,
+    currentEvent: Partial<SseEvent>,
+  ): void {
+    currentEvent.data = currentEvent.data
+      ? currentEvent.data + "\n" + value
+      : value;
+  }
+
+  /**
+   * Processes a retry field value.
+   */
+  private static processRetryField(
+    value: string,
+    currentEvent: Partial<SseEvent>,
+  ): void {
+    const retryValue = parseInt(value, 10);
+    if (!isNaN(retryValue) && retryValue >= 0) {
+      currentEvent.retry = retryValue;
+    } else {
+      console.warn(`Invalid retry value: ${value}, ignoring`);
+    }
   }
 }
