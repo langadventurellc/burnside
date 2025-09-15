@@ -16,20 +16,34 @@ affectedFiles:
   src/core/streaming/chunkParserOptions.ts: ChunkParserOptions interface for
     configurable parser settings including maxObjectSize and encoding options.
   src/core/streaming/index.ts: Updated streaming module exports to include
-    ChunkParser class and related interfaces for public API access.
+    ChunkParser class and related interfaces for public API access.; Updated
+    module exports to include SseParser class and SseEvent interface for public
+    API access
   src/core/streaming/__tests__/chunkParser.test.ts:
     Comprehensive test suite with
     23 test cases covering basic parsing, buffer management, error handling,
     string handling, configuration options, and JSON Lines format parsing.
+  src/core/streaming/sseEvent.ts: Created SseEvent interface and Zod validation
+    schema for parsed SSE events with optional data, event, id, and retry fields
+  src/core/streaming/sseParser.ts: Implemented complete SSE parser class with
+    static parse method, buffering, multi-line data support, field parsing, and
+    error recovery
+  src/core/streaming/__tests__/sseEvent.test.ts:
+    Created comprehensive test suite
+    for SSE event interface and validation schema with 13 test cases
+  src/core/streaming/__tests__/sseParser.test.ts:
+    Implemented extensive test suite
+    with 30 test cases covering basic parsing, streaming scenarios, error
+    handling, and real-world provider formats
 log: []
 schema: v1.0
 childrenIds:
   - T-enhance-error-normalization
-  - T-implement-chunked-response
   - T-implement-http-transport-with
   - T-implement-interceptor-chain
   - T-implement-requestresponse
   - T-implement-sse-server-sent
+  - T-implement-chunked-response
 created: 2025-09-15T08:12:57.732Z
 updated: 2025-09-15T08:12:57.732Z
 ---
