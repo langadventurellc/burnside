@@ -5,6 +5,7 @@
  */
 
 import { OpenAIResponsesV1Provider } from "../index.js";
+import type { StreamDelta } from "../../../client/streamDelta.js";
 import { BridgeError } from "../../../core/errors/bridgeError.js";
 
 describe("OpenAIResponsesV1Provider", () => {
@@ -192,31 +193,33 @@ describe("OpenAIResponsesV1Provider", () => {
       await expect(parsePromise).rejects.toThrow("Response body is null");
     });
 
-    it("should throw NOT_IMPLEMENTED for streaming responses", () => {
+    it("should return AsyncIterable for streaming responses", () => {
+      const encoder = new TextEncoder();
+      const mockStream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(
+            encoder.encode(
+              'data: {"type":"response.output_text.delta","delta":{"text":"Hello"}}\n\n',
+            ),
+          );
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.close();
+        },
+      });
+
       const mockResponse = {
         status: 200,
         statusText: "OK",
         headers: { "content-type": "application/json" },
-        body: null,
+        body: mockStream,
       };
 
-      expect(() => provider.parseResponse(mockResponse, true)).toThrow(
-        BridgeError,
-      );
-      expect(() => provider.parseResponse(mockResponse, true)).toThrow(
-        "Streaming response parsing not implemented",
-      );
+      const result = provider.parseResponse(mockResponse, true);
+      expect(result).toBeDefined();
 
-      try {
-        provider.parseResponse(mockResponse, true);
-        fail("Expected BridgeError to be thrown");
-      } catch (error) {
-        expect(error).toBeInstanceOf(BridgeError);
-        const bridgeError = error as BridgeError;
-        expect(bridgeError.code).toBe("NOT_IMPLEMENTED");
-        expect(bridgeError.context?.method).toBe("parseResponse");
-        expect(bridgeError.context?.isStreaming).toBe(true);
-      }
+      // Type assertion to confirm it's an AsyncIterable
+      const asyncIterable = result as AsyncIterable<StreamDelta>;
+      expect(typeof asyncIterable[Symbol.asyncIterator]).toBe("function");
     });
   });
 

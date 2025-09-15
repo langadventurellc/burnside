@@ -21,6 +21,7 @@ import {
 import { getModelCapabilities } from "./models.js";
 import { translateChatRequest } from "./translator.js";
 import { parseOpenAIResponse } from "./responseParser.js";
+import { parseOpenAIResponseStream } from "./streamingParser.js";
 
 /**
  * OpenAI Responses v1 Provider Plugin
@@ -107,7 +108,7 @@ export class OpenAIResponsesV1Provider implements ProviderPlugin {
    * @param isStreaming - Whether the response should be treated as streaming
    * @returns Promise of parsed response object for non-streaming or AsyncIterable for streaming
    * @throws {ValidationError} When response validation fails
-   * @throws {BridgeError} When streaming is requested (not yet implemented)
+   * @throws {StreamingError} When streaming parsing fails
    */
   parseResponse(
     response: ProviderHttpResponse,
@@ -125,11 +126,7 @@ export class OpenAIResponsesV1Provider implements ProviderPlugin {
       }>
     | AsyncIterable<StreamDelta> {
     if (isStreaming) {
-      throw new BridgeError(
-        "Streaming response parsing not implemented",
-        "NOT_IMPLEMENTED",
-        { method: "parseResponse", isStreaming: true },
-      );
+      return parseOpenAIResponseStream(response);
     }
 
     // Return Promise for non-streaming responses
