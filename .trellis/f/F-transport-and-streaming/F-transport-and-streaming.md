@@ -48,13 +48,33 @@ affectedFiles:
     test suite with 42 test cases covering HTTP status mapping, network errors,
     context preservation, rate limits, sanitization, static methods, and edge
     cases
+  src/core/transport/interceptorChain.ts: Main InterceptorChain class with
+    priority-based interceptor management, request/response execution methods,
+    context cloning, validation, and error handling
+  src/core/transport/interceptorError.ts:
+    Specialized error class for interceptor
+    execution failures extending BridgeError with interceptor-specific context
+  src/core/transport/interceptorErrorContext.ts: Interface defining context information for interceptor execution failures
+  src/core/transport/interceptorContext.ts: Interface for context object passed
+    through interceptor chain containing request, response, metadata, and abort
+    signal
+  src/core/transport/requestInterceptorChain.ts: Type definition for request interceptor functions with context parameter
+  src/core/transport/responseInterceptorChain.ts: Type definition for response interceptor functions with context parameter
+  src/core/transport/index.ts: Updated transport module exports to include new
+    interceptor chain classes and types
+  src/core/transport/__tests__/interceptorChain.test.ts:
+    Comprehensive test suite
+    with 25 test cases covering interceptor registration, execution order, error
+    handling, context management, and edge cases
+  src/core/transport/__tests__/interceptorError.test.ts: Test suite with 7 test
+    cases for InterceptorError class validation, inheritance, and serialization
 log: []
 schema: v1.0
 childrenIds:
-  - T-enhance-error-normalization
   - T-implement-http-transport-with
   - T-implement-interceptor-chain
   - T-implement-requestresponse
+  - T-enhance-error-normalization
   - T-implement-chunked-response
   - T-implement-sse-server-sent
 created: 2025-09-15T08:12:57.732Z
