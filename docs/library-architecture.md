@@ -57,7 +57,6 @@ src/
     openai-responses-v1/
       schema.ts                # Zod config for this provider version
       translator.ts            # Messages/tools → OpenAI payloads; responses → unified
-      models.ts                # Configured models + capabilities
       http.ts                  # Endpoints, headers, SSE parsing specifics
     anthropic-2025-05-14/
       ...
@@ -150,7 +149,7 @@ export interface ProviderPlugin<PCfg extends z.ZodTypeAny> {
   id: string; // e.g., 'openai'
   version: string; // e.g., 'v1'
   configSchema: PCfg; // provider-specific config (baseUrl, apiKey, region, ...)
-  models(): Promise<ModelInfo[]>;
+  supportsModel(modelId: string): boolean; // model-agnostic: typically returns true
   translateRequest(input: {
     messages: Message[];
     tools?: ToolDefinition[];
@@ -212,11 +211,12 @@ Note: Types above illustrate shape; production types will be complete and strict
 
 - `BridgeConfig` (Zod)
   - `providers`: array of provider entries `{ id, version, config }`. Multiple entries for the same provider with different versions are valid concurrently.
-  - `models`: per provider/model capability metadata, configurable and overrideable at runtime (no hard‑coded capability logic in code).
+  - `models`: centralized model definitions with `providerPlugin` field specifying which provider implementation to use (e.g., "openai-responses-v1").
   - `tools`: built‑in, provider‑native enablement, and MCP endpoints.
   - `policies`: retry, timeout, rate limit, caching strategy, and token budgets.
 - Provider Registry resolves `(providerId, version)` to a concrete plugin.
-- Model Registry stores capability descriptors used by the agent loop and translators.
+- Model Registry stores centralized model definitions and routes requests to appropriate provider plugins via `providerPlugin` field.
+- Dynamic Provider Resolution: BridgeClient automatically selects the correct provider plugin based on the model's `providerPlugin` configuration.
 
 Example (shape):
 
@@ -232,6 +232,7 @@ const BridgeConfig = z.object({
   models: z.record(
     z.string(),
     z.object({
+      providerPlugin: z.string().optional(), // e.g., "openai-responses-v1"
       capabilities: z.object({
         toolCalls: z.boolean(),
         streaming: z.boolean(),
@@ -273,7 +274,8 @@ const BridgeConfig = z.object({
   - Streaming parse/normalize to unified deltas (text, tool calls, citations).
   - Termination detection per provider conventions.
   - Error normalization (HTTP status ↔ provider codes ↔ unified errors).
-  - Capability exposure and prompt caching support where applicable.
+  - Model-agnostic operation: providers accept any model ID routed to them by the model registry.
+- Model Selection: The `BridgeClient` uses the centralized model registry to route requests to appropriate provider plugins based on each model's `providerPlugin` field.
 - Examples:
   - `openai-responses-v1`: function/tool calls, chunks via SSE or chunked transfer.
   - `anthropic-2025-05-14`: tools array, stop reasons, cache points.
@@ -412,6 +414,7 @@ const client = createClient({
   ],
   models: {
     "openai:gpt-4o-mini": {
+      providerPlugin: "openai-responses-v1",
       capabilities: {
         toolCalls: true,
         streaming: true,
@@ -420,6 +423,7 @@ const client = createClient({
       },
     },
     "anthropic:claude-3-5-sonnet": {
+      providerPlugin: "anthropic-2025-05-14",
       capabilities: {
         toolCalls: true,
         streaming: true,

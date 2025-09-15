@@ -42,15 +42,19 @@ Acceptance
 
 - Unit tests for SSE parsing and error mapping; simulated chunking tests.
 
-### Phase 3 — Provider Plugin Framework
+### Phase 3 — Provider Plugin Framework ✅ COMPLETED
 
 - Define `ProviderPlugin` interface (request translate/response parse/termination detection).
 - Implement `ProviderRegistry` (register/resolve by `{id, version}`) with Zod‑validated provider configs.
-- Load `docs/defaultLlmModels.json` into the `ModelRegistry` for model ids and context lengths.
+- Implement centralized `ModelRegistry` with `providerPlugin` field for dynamic provider routing.
+- Enhanced schema validation to include `providerPlugin` and capability fields.
+- Dynamic provider resolution in `BridgeClient` based on model configuration.
 
 Acceptance
 
 - Contract tests for registry behavior and config validation.
+- Model-to-provider routing via `providerPlugin` field implemented.
+- Centralized model configuration eliminates hardcoded provider models.
 
 ### Phase 4 — Vertical Slice A: OpenAI v1 (Responses API), Chat + Streaming
 
@@ -183,9 +187,11 @@ Acceptance
 
 ### Notes on Models and Capabilities
 
-- `docs/defaultLlmModels.json` seeds provider/model identifiers and `contextLength` only.
-- Capability flags (`toolCalls`, `streaming`, `images`, `documents`, `promptCaching`) are derived from provider plugins and/or configuration, not from the JSON seed.
+- `src/data/defaultLlmModels.ts` provides centralized model configuration with `providerPlugin` fields specifying which provider implementation to use.
+- Capability flags (`toolCalls`, `streaming`, `images`, `documents`, `promptCaching`) are included in the centralized model definitions.
+- Model-to-provider routing is handled dynamically by `BridgeClient` based on the model's `providerPlugin` field.
+- Provider plugins operate model-agnostically and accept any model ID routed to them by the model registry.
 
 ---
 
-Next suggested slice: Phase 4 (OpenAI v1 chat + streaming), as it validates the full path with the least translation complexity.
+Current Status: Phase 4 completed with unified model configuration architecture. Next suggested slice: Phase 5 (Tool System Core + OpenAI Tool Calls).
