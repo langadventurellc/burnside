@@ -18,7 +18,9 @@ affectedFiles:
   src/core/transport/index.ts: HTTP transport interfaces module placeholder
   src/core/providers/index.ts: Provider base types module placeholder; Updated to export all provider types
   src/core/performance/index.ts: Performance and cache interfaces module placeholder
-  src/core/errors/index.ts: Error taxonomy foundation module placeholder
+  src/core/errors/index.ts:
+    Error taxonomy foundation module placeholder; Updated
+    with comprehensive exports of all error classes, interfaces, and utilities
   src/core/observability/index.ts: Observability and logging module placeholder
   src/core/runtime/index.ts: Runtime platform adapters module placeholder
   src/providers/index.ts: Provider plugins aggregator (empty placeholder)
@@ -41,15 +43,41 @@ affectedFiles:
   src/core/tools/__tests__/types.test.ts: Created comprehensive tests for tool type interfaces
   src/core/providers/__tests__/types.test.ts: Created comprehensive tests for provider type interfaces
   src/core/config/__tests__/types.test.ts: Created comprehensive tests for configuration type interfaces
+  src/core/errors/bridgeError.ts: Created base BridgeError class with code,
+    context, stack trace preservation, and JSON serialization support
+  src/core/errors/transportError.ts: Created TransportError class for HTTP transport and network failures
+  src/core/errors/authError.ts: Created AuthError class for authentication and authorization failures
+  src/core/errors/rateLimitError.ts: Created RateLimitError class for rate limiting and quota exceeded scenarios
+  src/core/errors/timeoutError.ts: Created TimeoutError class for request timeout scenarios
+  src/core/errors/validationError.ts: Created ValidationError class for input validation failures
+  src/core/errors/providerError.ts: Created ProviderError class for provider-specific API errors
+  src/core/errors/streamingError.ts: Created StreamingError class for streaming-related failures
+  src/core/errors/toolError.ts: Created ToolError class for tool execution failures
+  src/core/errors/errorNormalizer.ts: Created ErrorNormalizer interface for provider error mapping
+  src/core/errors/errorContext.ts: Created ErrorContext interface for error context information
+  src/core/errors/normalizedError.ts: Created NormalizedError interface for standardized error format
+  src/core/errors/errorCodeMapping.ts: Created ErrorCodeMapping type for error code translation
+  src/core/errors/errorFactory.ts: Created ErrorFactory type for functional error creation
+  src/core/errors/errorCodes.ts: Created ERROR_CODES constant with all standardized error codes
+  src/core/errors/serializedError.ts: Created SerializedError interface for JSON-safe error representation
+  src/core/errors/serializeError.ts:
+    Created serializeError function with circular
+    reference handling and TypeScript compliance
+  src/core/errors/isBridgeError.ts: Created type guard function for BridgeError instances
+  src/core/errors/__tests__/types.test.ts: Created comprehensive tests for all
+    error class inheritance, construction, and behavior
+  src/core/errors/__tests__/normalization.test.ts: Created tests for error normalization interfaces and workflow patterns
+  src/core/errors/__tests__/utils.test.ts: Created tests for utility functions,
+    serialization, and type guards with edge case coverage
 log: []
 schema: v1.0
 childrenIds:
   - T-create-placeholder-test-and
   - T-create-transport-interfaces
-  - T-define-core-type-interfaces
   - T-implement-basic-error
   - T-implement-runtime-adapter
   - T-create-base-directory
+  - T-define-core-type-interfaces
 created: 2025-09-15T03:51:56.069Z
 updated: 2025-09-15T03:51:56.069Z
 ---
