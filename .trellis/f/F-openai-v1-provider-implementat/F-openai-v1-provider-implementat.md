@@ -26,7 +26,9 @@ affectedFiles:
     use streaming parser instead of throwing NOT_IMPLEMENTED error for streaming
     responses; Updated normalizeError method to use actual error normalizer
     implementation instead of placeholder, added import for normalizeOpenAIError
-    function and ProviderError class
+    function and ProviderError class; Implemented isTerminal method with proper
+    type discrimination between StreamDelta and UnifiedResponse, checking
+    finished flag and response.completed event type
   src/providers/openai-responses-v1/__tests__/configSchema.test.ts: Comprehensive unit tests for configuration schema validation
   src/providers/openai-responses-v1/__tests__/requestSchema.test.ts: Unit tests for request schema with valid/invalid cases and edge conditions
   src/providers/openai-responses-v1/__tests__/models.test.ts: Unit tests for model capabilities and metadata functions
@@ -41,7 +43,8 @@ affectedFiles:
     NOT_IMPLEMENTED; Updated provider plugin tests to reflect actual error
     normalization implementation instead of NOT_IMPLEMENTED placeholder, added
     tests for HTTP errors, OpenAI API errors, and error normalization failure
-    handling
+    handling; Updated placeholder test to verify actual isTerminal functionality
+    instead of expecting NOT_IMPLEMENTED error
   src/providers/index.ts: Updated to export OpenAIResponsesV1Provider for registration and use
   src/providers/openai-responses-v1/translator.ts: Created core request
     translation logic converting unified ChatRequest to OpenAI Responses API v1
@@ -92,14 +95,18 @@ affectedFiles:
     Created 79 comprehensive unit tests covering all error normalization
     scenarios including HTTP status codes, OpenAI error types, network errors,
     context preservation, fallback handling, and edge cases
+  src/providers/openai-responses-v1/__tests__/termination.test.ts:
+    Created comprehensive unit tests covering terminal and non-terminal
+    StreamDeltas, UnifiedResponse handling, and edge cases with 17 test
+    scenarios
 log: []
 schema: v1.0
 childrenIds:
   - T-create-test-fixtures-and
-  - T-implement-error-normalizer
   - T-implement-termination
   - T-register-openai-responses-v1
   - T-create-openai-responses-v1
+  - T-implement-error-normalizer
   - T-implement-request-translator
   - T-implement-response-parser-for
   - T-implement-sse-streaming

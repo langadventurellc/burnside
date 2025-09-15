@@ -182,14 +182,17 @@ export class OpenAIResponsesV1Provider implements ProviderPlugin {
   /**
    * Detect if streaming response has reached termination
    *
-   * Placeholder implementation that throws "Not implemented" error.
-   * Will be implemented in subsequent task: T-implement-termination
+   * For streaming responses (StreamDelta), checks:
+   * - Primary indicator: finished flag set to true
+   * - Secondary indicator: event type is "response.completed" or "error"
    *
-   * @param _deltaOrResponse - Either a streaming delta or final response
-   * @throws {BridgeError} Always throws "Not implemented"
+   * For non-streaming responses (UnifiedResponse), always returns true.
+   *
+   * @param deltaOrResponse - Either a streaming delta or final response
+   * @returns true if the response is terminal, false otherwise
    */
   isTerminal(
-    _deltaOrResponse:
+    deltaOrResponse:
       | StreamDelta
       | {
           message: Message;
@@ -202,11 +205,26 @@ export class OpenAIResponsesV1Provider implements ProviderPlugin {
           metadata?: Record<string, unknown>;
         },
   ): boolean {
-    throw new BridgeError(
-      "Termination detection not implemented",
-      "NOT_IMPLEMENTED",
-      { method: "isTerminal" },
-    );
+    // Check if it's a non-streaming response (has message property) - always terminal
+    if ("message" in deltaOrResponse) {
+      return true;
+    }
+
+    // Check StreamDelta for termination indicators
+    const delta = deltaOrResponse;
+
+    // Primary indicator: finished flag
+    if (delta.finished) {
+      return true;
+    }
+
+    // Secondary indicator: OpenAI event types
+    const eventType = delta.metadata?.eventType;
+    if (eventType === "response.completed") {
+      return true;
+    }
+
+    return false;
   }
 
   /**

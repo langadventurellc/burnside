@@ -4,7 +4,7 @@
  * Unit tests for the main OpenAI Responses v1 provider plugin implementation.
  */
 
-import { OpenAIResponsesV1Provider } from "../index.js";
+import { OpenAIResponsesV1Provider } from "../openAIResponsesV1Provider.js";
 import type { StreamDelta } from "../../../client/streamDelta.js";
 import { BridgeError } from "../../../core/errors/bridgeError.js";
 
@@ -224,8 +224,8 @@ describe("OpenAIResponsesV1Provider", () => {
   });
 
   describe("placeholder implementations", () => {
-    it("should throw NOT_IMPLEMENTED for isTerminal", () => {
-      const mockDelta = {
+    it("should correctly detect termination for StreamDelta", () => {
+      const nonTerminalDelta = {
         id: "chunk-123",
         delta: {
           role: "assistant" as const,
@@ -236,20 +236,19 @@ describe("OpenAIResponsesV1Provider", () => {
         metadata: {},
       };
 
-      expect(() => provider.isTerminal(mockDelta)).toThrow(BridgeError);
-      expect(() => provider.isTerminal(mockDelta)).toThrow(
-        "Termination detection not implemented",
-      );
+      const terminalDelta = {
+        id: "chunk-456",
+        delta: {
+          role: "assistant" as const,
+          content: [{ type: "text" as const, text: "Goodbye" }],
+        },
+        finished: true,
+        usage: undefined,
+        metadata: {},
+      };
 
-      try {
-        provider.isTerminal(mockDelta);
-        fail("Expected BridgeError to be thrown");
-      } catch (error) {
-        expect(error).toBeInstanceOf(BridgeError);
-        const bridgeError = error as BridgeError;
-        expect(bridgeError.code).toBe("NOT_IMPLEMENTED");
-        expect(bridgeError.context?.method).toBe("isTerminal");
-      }
+      expect(provider.isTerminal(nonTerminalDelta)).toBe(false);
+      expect(provider.isTerminal(terminalDelta)).toBe(true);
     });
 
     it("should normalize OpenAI HTTP errors correctly", () => {

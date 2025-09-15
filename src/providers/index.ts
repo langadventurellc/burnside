@@ -6,4 +6,4 @@
  * throughout the LLM Bridge library.
  */
 
-export { OpenAIResponsesV1Provider } from "./openai-responses-v1/index.js";
+export { OpenAIResponsesV1Provider } from "./openai-responses-v1/openAIResponsesV1Provider.js";
