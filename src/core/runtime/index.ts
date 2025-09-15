@@ -1,15 +1,44 @@
 /**
  * Runtime Platform Adapters Module
  *
- * This module will contain platform adapters for Node.js, Electron, and
- * React Native including RuntimeAdapter interface and platform-specific
- * implementations for cross-platform compatibility.
+ * Platform abstraction layer providing runtime adapters for HTTP, timers,
+ * and file access across Node.js, Electron, and React Native environments.
+ * Includes automatic adapter detection and registry management.
  *
- * Future exports will provide platform abstraction for HTTP, storage, and timers.
+ * @example Basic usage
+ * ```typescript
+ * import { AdapterRegistry } from './runtime';
+ *
+ * const registry = AdapterRegistry.getInstance();
+ * const adapter = registry.getAdapter(); // Auto-detects platform
+ *
+ * // Use adapter for platform-agnostic operations
+ * const response = await adapter.fetch('https://api.example.com');
+ * const content = await adapter.readFile('./config.json');
+ * ```
  */
 
-// TODO: Export RuntimeAdapter interface when implemented
-// TODO: Export Node.js adapter when implemented
-// TODO: Export platform detection utilities when implemented
+// Core interfaces and types
+export type { RuntimeAdapter } from "./runtimeAdapter.js";
+export type { Platform } from "./platform.js";
+export type { PlatformInfo } from "./platformInfo.js";
+export type { PlatformCapabilities } from "./platformCapabilities.js";
+export type { TimerHandle } from "./timerHandle.js";
+export type { FileOperationOptions } from "./fileOperationOptions.js";
 
-export {};
+// Error handling
+export { RuntimeError } from "./runtimeError.js";
+
+// Platform detection utilities
+export { detectPlatform } from "./detectPlatform.js";
+export { isNodeJs } from "./isNodeJs.js";
+export { isBrowser } from "./isBrowser.js";
+export { isElectron } from "./isElectron.js";
+export { isReactNative } from "./isReactNative.js";
+export { getPlatformCapabilities } from "./getPlatformCapabilities.js";
+
+// Adapter implementations
+export { NodeRuntimeAdapter } from "./adapters/nodeRuntimeAdapter.js";
+
+// Registry system
+export { AdapterRegistry } from "./adapterRegistry.js";
