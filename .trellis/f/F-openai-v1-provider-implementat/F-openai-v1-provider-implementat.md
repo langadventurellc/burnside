@@ -24,7 +24,9 @@ affectedFiles:
     with ReadableStream body reading, added private readResponseBody method with
     proper stream handling and error management; Updated parseResponse method to
     use streaming parser instead of throwing NOT_IMPLEMENTED error for streaming
-    responses
+    responses; Updated normalizeError method to use actual error normalizer
+    implementation instead of placeholder, added import for normalizeOpenAIError
+    function and ProviderError class
   src/providers/openai-responses-v1/__tests__/configSchema.test.ts: Comprehensive unit tests for configuration schema validation
   src/providers/openai-responses-v1/__tests__/requestSchema.test.ts: Unit tests for request schema with valid/invalid cases and edge conditions
   src/providers/openai-responses-v1/__tests__/models.test.ts: Unit tests for model capabilities and metadata functions
@@ -36,7 +38,10 @@ affectedFiles:
     behavior, added tests for ValidationError on null response body and
     streaming NOT_IMPLEMENTED behavior; Updated provider tests to verify
     streaming functionality returns AsyncIterable instead of throwing
-    NOT_IMPLEMENTED
+    NOT_IMPLEMENTED; Updated provider plugin tests to reflect actual error
+    normalization implementation instead of NOT_IMPLEMENTED placeholder, added
+    tests for HTTP errors, OpenAI API errors, and error normalization failure
+    handling
   src/providers/index.ts: Updated to export OpenAIResponsesV1Provider for registration and use
   src/providers/openai-responses-v1/translator.ts: Created core request
     translation logic converting unified ChatRequest to OpenAI Responses API v1
@@ -78,17 +83,26 @@ affectedFiles:
   src/providers/openai-responses-v1/__tests__/streamingParser.test.ts:
     Created 20 comprehensive unit tests covering all event types, error
     conditions, edge cases, and state management scenarios
+  src/providers/openai-responses-v1/errorNormalizer.ts: Created comprehensive
+    error normalization logic converting OpenAI-specific errors to unified
+    BridgeError types with HTTP status code mapping, OpenAI error type
+    classification, network error patterns, context preservation, and security
+    sanitization
+  src/providers/openai-responses-v1/__tests__/errorNormalizer.test.ts:
+    Created 79 comprehensive unit tests covering all error normalization
+    scenarios including HTTP status codes, OpenAI error types, network errors,
+    context preservation, fallback handling, and edge cases
 log: []
 schema: v1.0
 childrenIds:
   - T-create-test-fixtures-and
   - T-implement-error-normalizer
-  - T-implement-sse-streaming
   - T-implement-termination
   - T-register-openai-responses-v1
   - T-create-openai-responses-v1
   - T-implement-request-translator
   - T-implement-response-parser-for
+  - T-implement-sse-streaming
   - T-update-providerplugin
 created: 2025-09-15T19:04:11.147Z
 updated: 2025-09-15T19:04:11.147Z

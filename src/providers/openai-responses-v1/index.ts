@@ -14,6 +14,7 @@ import type { ProviderHttpRequest } from "../../core/transport/providerHttpReque
 import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse.js";
 import { BridgeError } from "../../core/errors/bridgeError.js";
 import { ValidationError } from "../../core/errors/validationError.js";
+import { ProviderError } from "../../core/errors/providerError.js";
 import {
   OpenAIResponsesV1ConfigSchema,
   type OpenAIResponsesV1Config,
@@ -22,6 +23,7 @@ import { getModelCapabilities } from "./models.js";
 import { translateChatRequest } from "./translator.js";
 import { parseOpenAIResponse } from "./responseParser.js";
 import { parseOpenAIResponseStream } from "./streamingParser.js";
+import { normalizeOpenAIError } from "./errorNormalizer.js";
 
 /**
  * OpenAI Responses v1 Provider Plugin
@@ -210,17 +212,21 @@ export class OpenAIResponsesV1Provider implements ProviderPlugin {
   /**
    * Normalize provider-specific errors to unified error types
    *
-   * Placeholder implementation that throws "Not implemented" error.
-   * Will be implemented in subsequent task: T-implement-error-normalizer
+   * Converts OpenAI-specific errors to appropriate BridgeError subclasses
+   * based on HTTP status codes, OpenAI error types, and network conditions.
    *
    * @param error - Provider-specific error to normalize
-   * @throws {BridgeError} Always throws "Not implemented"
+   * @returns Appropriate BridgeError subclass based on error analysis
    */
   normalizeError(error: unknown): BridgeError {
-    throw new BridgeError(
-      "Error normalization not implemented",
-      "NOT_IMPLEMENTED",
-      { method: "normalizeError", originalError: error },
-    );
+    try {
+      return normalizeOpenAIError(error);
+    } catch (normalizationError) {
+      // Fallback to generic ProviderError if normalization fails
+      return new ProviderError("Error normalization failed", {
+        originalError: error,
+        normalizationError,
+      });
+    }
   }
 }

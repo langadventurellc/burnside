@@ -252,24 +252,50 @@ describe("OpenAIResponsesV1Provider", () => {
       }
     });
 
-    it("should throw NOT_IMPLEMENTED for normalizeError", () => {
-      const originalError = new Error("Test error");
+    it("should normalize OpenAI HTTP errors correctly", () => {
+      const httpError = {
+        status: 401,
+        statusText: "Unauthorized",
+        headers: {},
+      };
 
-      expect(() => provider.normalizeError(originalError)).toThrow(BridgeError);
-      expect(() => provider.normalizeError(originalError)).toThrow(
-        "Error normalization not implemented",
-      );
+      const result = provider.normalizeError(httpError);
 
-      try {
-        provider.normalizeError(originalError);
-        fail("Expected BridgeError to be thrown");
-      } catch (error) {
-        expect(error).toBeInstanceOf(BridgeError);
-        const bridgeError = error as BridgeError;
-        expect(bridgeError.code).toBe("NOT_IMPLEMENTED");
-        expect(bridgeError.context?.method).toBe("normalizeError");
-        expect(bridgeError.context?.originalError).toBe(originalError);
-      }
+      expect(result).toBeInstanceOf(BridgeError);
+      expect(result.code).toBe("AUTH_ERROR");
+      expect(result.message).toContain("Authentication failed");
+    });
+
+    it("should normalize OpenAI API errors correctly", () => {
+      const openaiError = {
+        error: {
+          message: "Invalid API key",
+          type: "authentication_error",
+          code: "invalid_api_key",
+        },
+      };
+
+      const result = provider.normalizeError(openaiError);
+
+      expect(result).toBeInstanceOf(BridgeError);
+      expect(result.code).toBe("AUTH_ERROR");
+      expect(result.message).toBe("Invalid API key");
+    });
+
+    it("should handle error normalization failures gracefully", () => {
+      // Create an error that might cause the normalizer to throw
+      const problematicError = {
+        get status() {
+          throw new Error("Property access failed");
+        },
+      };
+
+      const result = provider.normalizeError(problematicError);
+
+      expect(result).toBeInstanceOf(BridgeError);
+      expect(result.code).toBe("PROVIDER_ERROR");
+      expect(result.message).toBe("Error normalization failed");
+      expect(result.context?.originalError).toBe(problematicError);
     });
   });
 });
