@@ -18,6 +18,7 @@ import {
   type OpenAIResponsesV1Config,
 } from "./configSchema.js";
 import { getModelCapabilities } from "./models.js";
+import { translateChatRequest } from "./translator.js";
 
 /**
  * OpenAI Responses v1 Provider Plugin
@@ -75,20 +76,23 @@ export class OpenAIResponsesV1Provider implements ProviderPlugin {
   /**
    * Convert unified request format to provider-specific HTTP request
    *
-   * Placeholder implementation that throws "Not implemented" error.
-   * Will be implemented in subsequent task: T-implement-request-translator
+   * Translates the unified ChatRequest format to OpenAI Responses API v1 format.
    *
-   * @param _request - The unified request to translate
-   * @throws {BridgeError} Always throws "Not implemented"
+   * @param request - The unified request to translate
+   * @returns HTTP request for OpenAI Responses API v1
+   * @throws {BridgeError} When provider is not initialized
+   * @throws {ValidationError} When request translation fails
    */
   translateRequest(
-    _request: ChatRequest & { stream?: boolean },
+    request: ChatRequest & { stream?: boolean },
   ): ProviderHttpRequest {
-    throw new BridgeError(
-      "Request translation not implemented",
-      "NOT_IMPLEMENTED",
-      { method: "translateRequest" },
-    );
+    if (!this.config) {
+      throw new BridgeError("Provider not initialized", "NOT_INITIALIZED", {
+        method: "translateRequest",
+      });
+    }
+
+    return translateChatRequest(request, this.config);
   }
 
   /**

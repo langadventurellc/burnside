@@ -123,8 +123,9 @@ describe("OpenAIResponsesV1Provider", () => {
     });
   });
 
-  describe("placeholder implementations", () => {
-    it("should throw NOT_IMPLEMENTED for translateRequest", () => {
+  describe("translateRequest", () => {
+    it("should throw NOT_INITIALIZED when provider is not initialized", () => {
+      const uninitializedProvider = new OpenAIResponsesV1Provider();
       const request = {
         messages: [
           {
@@ -135,22 +136,50 @@ describe("OpenAIResponsesV1Provider", () => {
         model: "gpt-4o-2024-08-06",
       };
 
-      expect(() => provider.translateRequest(request)).toThrow(BridgeError);
-      expect(() => provider.translateRequest(request)).toThrow(
-        "Request translation not implemented",
+      expect(() => uninitializedProvider.translateRequest(request)).toThrow(
+        BridgeError,
+      );
+      expect(() => uninitializedProvider.translateRequest(request)).toThrow(
+        "Provider not initialized",
       );
 
       try {
-        provider.translateRequest(request);
+        uninitializedProvider.translateRequest(request);
         fail("Expected BridgeError to be thrown");
       } catch (error) {
         expect(error).toBeInstanceOf(BridgeError);
         const bridgeError = error as BridgeError;
-        expect(bridgeError.code).toBe("NOT_IMPLEMENTED");
+        expect(bridgeError.code).toBe("NOT_INITIALIZED");
         expect(bridgeError.context?.method).toBe("translateRequest");
       }
     });
 
+    it("should successfully translate request when initialized", async () => {
+      await provider.initialize({
+        apiKey: "sk-test-key",
+        baseUrl: "https://api.openai.com/v1",
+      });
+
+      const request = {
+        messages: [
+          {
+            role: "user" as const,
+            content: [{ type: "text" as const, text: "Hello" }],
+          },
+        ],
+        model: "gpt-4o-2024-08-06",
+      };
+
+      const result = provider.translateRequest(request);
+
+      expect(result.url).toBe("https://api.openai.com/v1/responses");
+      expect(result.method).toBe("POST");
+      expect(result.headers?.Authorization).toBe("Bearer sk-test-key");
+      expect(result.body).toBeDefined();
+    });
+  });
+
+  describe("placeholder implementations", () => {
     it("should throw NOT_IMPLEMENTED for parseResponse", () => {
       const mockResponse = {
         status: 200,
