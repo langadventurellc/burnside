@@ -8,13 +8,15 @@ prerequisites: []
 affectedFiles:
   src/index.ts: Main public API surface entry point with placeholder exports
   src/core/index.ts: Core domain module aggregator with placeholder structure
-  src/core/config/index.ts: Configuration interfaces module placeholder
-  src/core/messages/index.ts: Message and content model module placeholder
-  src/core/tools/index.ts: Tool model and execution module placeholder
+  src/core/config/index.ts: Configuration interfaces module placeholder; Updated
+    to export all configuration types
+  src/core/messages/index.ts: Message and content model module placeholder;
+    Updated to export all message types
+  src/core/tools/index.ts: Tool model and execution module placeholder; Updated to export all tool types
   src/core/agent/index.ts: Agent loop orchestrator module placeholder
   src/core/streaming/index.ts: Universal streaming interface module placeholder
   src/core/transport/index.ts: HTTP transport interfaces module placeholder
-  src/core/providers/index.ts: Provider base types module placeholder
+  src/core/providers/index.ts: Provider base types module placeholder; Updated to export all provider types
   src/core/performance/index.ts: Performance and cache interfaces module placeholder
   src/core/errors/index.ts: Error taxonomy foundation module placeholder
   src/core/observability/index.ts: Observability and logging module placeholder
@@ -22,15 +24,32 @@ affectedFiles:
   src/providers/index.ts: Provider plugins aggregator (empty placeholder)
   src/tools/index.ts: Tool implementations aggregator (empty placeholder)
   src/__tests__/index.test.ts: Basic module import test validating Jest setup
+  src/core/messages/role.ts: Created Role type for message participant roles
+  src/core/messages/contentPart.ts: Created ContentPart interface for multi-modal message content
+  src/core/messages/sourceRef.ts: Created SourceRef interface for citation tracking
+  src/core/messages/message.ts: Created Message interface for unified message representation
+  src/core/tools/toolDefinition.ts: Created ToolDefinition interface for tool metadata
+  src/core/tools/toolHandler.ts: Created ToolHandler interface for tool execution
+  src/core/tools/toolExecutionContext.ts: Created ToolExecutionContext interface for execution environment
+  src/core/providers/modelCapabilities.ts: Created ModelCapabilities interface for model feature description
+  src/core/providers/modelInfo.ts: Created ModelInfo interface for model metadata
+  src/core/providers/providerPlugin.ts: Created ProviderPlugin interface for provider implementations
+  src/core/config/bridgeConfig.ts: Created BridgeConfig interface for top-level library configuration
+  src/core/config/providerConfig.ts: Created ProviderConfig interface for provider-specific settings
+  src/core/config/modelConfig.ts: Created ModelConfig interface for model-specific parameters
+  src/core/messages/__tests__/types.test.ts: Created comprehensive tests for message type interfaces
+  src/core/tools/__tests__/types.test.ts: Created comprehensive tests for tool type interfaces
+  src/core/providers/__tests__/types.test.ts: Created comprehensive tests for provider type interfaces
+  src/core/config/__tests__/types.test.ts: Created comprehensive tests for configuration type interfaces
 log: []
 schema: v1.0
 childrenIds:
-  - T-create-base-directory
   - T-create-placeholder-test-and
   - T-create-transport-interfaces
   - T-define-core-type-interfaces
   - T-implement-basic-error
   - T-implement-runtime-adapter
+  - T-create-base-directory
 created: 2025-09-15T03:51:56.069Z
 updated: 2025-09-15T03:51:56.069Z
 ---

@@ -1,13 +1,41 @@
 ---
 id: T-define-core-type-interfaces
 title: Define core type interfaces for messages, tools, and providers
-status: open
+status: done
 priority: high
 parent: F-phase-0-repository-setup-and
 prerequisites:
   - T-create-base-directory
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/messages/role.ts: Created Role type for message participant roles
+  src/core/messages/contentPart.ts: Created ContentPart interface for multi-modal message content
+  src/core/messages/sourceRef.ts: Created SourceRef interface for citation tracking
+  src/core/messages/message.ts: Created Message interface for unified message representation
+  src/core/messages/index.ts: Updated to export all message types
+  src/core/tools/toolDefinition.ts: Created ToolDefinition interface for tool metadata
+  src/core/tools/toolHandler.ts: Created ToolHandler interface for tool execution
+  src/core/tools/toolExecutionContext.ts: Created ToolExecutionContext interface for execution environment
+  src/core/tools/index.ts: Updated to export all tool types
+  src/core/providers/modelCapabilities.ts: Created ModelCapabilities interface for model feature description
+  src/core/providers/modelInfo.ts: Created ModelInfo interface for model metadata
+  src/core/providers/providerPlugin.ts: Created ProviderPlugin interface for provider implementations
+  src/core/providers/index.ts: Updated to export all provider types
+  src/core/config/bridgeConfig.ts: Created BridgeConfig interface for top-level library configuration
+  src/core/config/providerConfig.ts: Created ProviderConfig interface for provider-specific settings
+  src/core/config/modelConfig.ts: Created ModelConfig interface for model-specific parameters
+  src/core/config/index.ts: Updated to export all configuration types
+  src/core/messages/__tests__/types.test.ts: Created comprehensive tests for message type interfaces
+  src/core/tools/__tests__/types.test.ts: Created comprehensive tests for tool type interfaces
+  src/core/providers/__tests__/types.test.ts: Created comprehensive tests for provider type interfaces
+  src/core/config/__tests__/types.test.ts: Created comprehensive tests for configuration type interfaces
+log:
+  - Successfully implemented core type interfaces for messages, tools,
+    providers, and configuration. Created separate TypeScript interface files to
+    comply with the one-export-per-file linting rule. All interfaces include
+    comprehensive TSDoc documentation and follow Phase 0 requirements for
+    minimal placeholders. Implemented comprehensive test coverage for all
+    interfaces. All quality checks pass (linting, formatting, type checking) and
+    tests pass successfully.
 schema: v1.0
 childrenIds: []
 created: 2025-09-15T04:00:59.249Z

@@ -1,16 +1,13 @@
 /**
  * Provider Base Types Module
  *
- * This module will contain provider base types and capability model including
+ * This module contains provider base types and capability model including
  * ProviderPlugin interface, ModelInfo, ModelCapabilities, and the foundation
  * for the extensible provider system.
  *
- * Future exports will provide base contracts for all provider implementations.
+ * These exports provide base contracts for all provider implementations.
  */
 
-// TODO: Export ProviderPlugin interface when implemented
-// TODO: Export ModelInfo types when implemented
-// TODO: Export ModelCapabilities interface when implemented
-// TODO: Export provider registration utilities when implemented
-
-export {};
+export type { ModelCapabilities } from "./modelCapabilities";
+export type { ModelInfo } from "./modelInfo";
+export type { ProviderPlugin } from "./providerPlugin";
