@@ -50,6 +50,16 @@ export const BridgeConfigSchema = z
 
     /** Additional global configuration options */
     options: z.record(z.string(), z.unknown()).optional(),
+
+    /** Registry initialization options for Phase 1 (empty state) */
+    registryOptions: z
+      .object({
+        /** Provider registry initialization data */
+        providers: z.record(z.string(), z.unknown()).optional(),
+        /** Model registry initialization data */
+        models: z.record(z.string(), z.unknown()).optional(),
+      })
+      .optional(),
   })
   .superRefine((config, ctx) => {
     // At least one of defaultProvider or providers must be specified

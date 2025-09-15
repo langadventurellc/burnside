@@ -87,6 +87,8 @@ describe("createClient", () => {
       expect(clientConfig.defaultModel).toBe("gpt-3.5-turbo");
       expect(clientConfig.timeout).toBe(30000);
       expect(clientConfig.options).toEqual({});
+      expect(clientConfig.registryOptions.providers).toEqual({});
+      expect(clientConfig.registryOptions.models).toEqual({});
     });
 
     it("should not override explicitly provided defaults", () => {
@@ -105,6 +107,46 @@ describe("createClient", () => {
       expect(clientConfig.defaultModel).toBe("gpt-4");
       expect(clientConfig.timeout).toBe(45000);
       expect(clientConfig.options).toEqual({ customOption: "value" });
+    });
+
+    it("should handle provided registry options", () => {
+      const config = {
+        providers: {
+          openai: { apiKey: "sk-test" },
+        },
+        registryOptions: {
+          providers: { customProvider: "config" },
+          models: { customModel: "config" },
+        },
+      };
+
+      const client = createClient(config);
+      const clientConfig = client.getConfig();
+
+      expect(clientConfig.registryOptions.providers).toEqual({
+        customProvider: "config",
+      });
+      expect(clientConfig.registryOptions.models).toEqual({
+        customModel: "config",
+      });
+    });
+
+    it("should handle partial registry options", () => {
+      const config = {
+        providers: {
+          openai: { apiKey: "sk-test" },
+        },
+        registryOptions: {
+          providers: { test: "value" },
+          // models omitted
+        },
+      };
+
+      const client = createClient(config);
+      const clientConfig = client.getConfig();
+
+      expect(clientConfig.registryOptions.providers).toEqual({ test: "value" });
+      expect(clientConfig.registryOptions.models).toEqual({});
     });
   });
 

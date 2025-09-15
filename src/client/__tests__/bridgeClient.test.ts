@@ -330,6 +330,51 @@ describe("BridgeClient", () => {
 
       expect(config.options).toEqual({});
     });
+
+    it("should include default registry options when not provided", () => {
+      const client = new BridgeClient(validConfig);
+      const config = client.getConfig();
+
+      expect(config.registryOptions).toBeDefined();
+      expect(config.registryOptions.providers).toEqual({});
+      expect(config.registryOptions.models).toEqual({});
+    });
+
+    it("should include provided registry options", () => {
+      const configWithRegistryOptions: BridgeConfig = {
+        ...validConfig,
+        registryOptions: {
+          providers: { customProvider: "config" },
+          models: { customModel: "config" },
+        },
+      };
+
+      const client = new BridgeClient(configWithRegistryOptions);
+      const config = client.getConfig();
+
+      expect(config.registryOptions.providers).toEqual({
+        customProvider: "config",
+      });
+      expect(config.registryOptions.models).toEqual({
+        customModel: "config",
+      });
+    });
+
+    it("should handle partial registry options", () => {
+      const configWithPartialRegistryOptions: BridgeConfig = {
+        ...validConfig,
+        registryOptions: {
+          providers: { test: "value" },
+          // models omitted
+        },
+      };
+
+      const client = new BridgeClient(configWithPartialRegistryOptions);
+      const config = client.getConfig();
+
+      expect(config.registryOptions.providers).toEqual({ test: "value" });
+      expect(config.registryOptions.models).toEqual({});
+    });
   });
 
   describe("error handling", () => {

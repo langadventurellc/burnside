@@ -12,6 +12,10 @@ describe("BridgeClientConfig", () => {
           ["anthropic", { apiKey: "sk-ant-test" }],
         ]),
         options: {},
+        registryOptions: {
+          providers: {},
+          models: {},
+        },
         validated: true,
       };
 
@@ -36,6 +40,10 @@ describe("BridgeClientConfig", () => {
         timeout: 60000,
         providers: providersMap,
         options: { retries: 3 },
+        registryOptions: {
+          providers: {},
+          models: {},
+        },
         validated: true,
       };
 
@@ -55,6 +63,10 @@ describe("BridgeClientConfig", () => {
         timeout: 15000,
         providers: new Map(),
         options: {},
+        registryOptions: {
+          providers: {},
+          models: {},
+        },
         validated: true,
       };
 
@@ -78,6 +90,10 @@ describe("BridgeClientConfig", () => {
         timeout: 45000,
         providers: new Map([["custom", { endpoint: "http://localhost:8080" }]]),
         options,
+        registryOptions: {
+          providers: {},
+          models: {},
+        },
         validated: true,
       };
 
@@ -95,6 +111,10 @@ describe("BridgeClientConfig", () => {
         timeout: 20000,
         providers: new Map(),
         options: {},
+        registryOptions: {
+          providers: {},
+          models: {},
+        },
         validated: true,
       };
 
@@ -137,6 +157,10 @@ describe("BridgeClientConfig", () => {
           ["anthropic", anthropicConfig],
         ]),
         options: {},
+        registryOptions: {
+          providers: {},
+          models: {},
+        },
         validated: true,
       };
 
@@ -158,6 +182,10 @@ describe("BridgeClientConfig", () => {
         timeout: 30000,
         providers: new Map(),
         options: {},
+        registryOptions: {
+          providers: {},
+          models: {},
+        },
         validated: true,
       };
 
@@ -171,6 +199,10 @@ describe("BridgeClientConfig", () => {
         timeout: 30000,
         providers: new Map([["openai", { apiKey: "test" }]]),
         options: { debug: true },
+        registryOptions: {
+          providers: {},
+          models: {},
+        },
         validated: true,
       };
 
@@ -197,6 +229,10 @@ describe("BridgeClientConfig", () => {
         timeout: 30000,
         providers: new Map(),
         options: {},
+        registryOptions: {
+          providers: {},
+          models: {},
+        },
         validated: true,
       };
 

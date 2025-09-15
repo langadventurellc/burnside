@@ -34,7 +34,11 @@ import type { BridgeConfig } from "./core/config";
  *   },
  *   defaultModel: "gpt-4",
  *   timeout: 30000,
- *   options: { retries: 3 }
+ *   options: { retries: 3 },
+ *   registryOptions: {
+ *     providers: {},
+ *     models: {}
+ *   }
  * });
  *
  * // Using environment variables
@@ -180,5 +184,9 @@ function mergeWithDefaults(config: BridgeConfig): BridgeConfig {
     defaultModel: config.defaultModel || "gpt-3.5-turbo",
     timeout: config.timeout || 30000,
     options: config.options || {},
+    registryOptions: {
+      providers: config.registryOptions?.providers || {},
+      models: config.registryOptions?.models || {},
+    },
   };
 }

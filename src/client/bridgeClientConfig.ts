@@ -13,6 +13,10 @@
  *   providers: new Map([
  *     ["openai", { apiKey: "sk-..." }]
  *   ]),
+ *   registryOptions: {
+ *     providers: {},
+ *     models: {}
+ *   },
  *   validated: true
  * };
  * ```
@@ -28,6 +32,13 @@ export interface BridgeClientConfig {
   providers: Map<string, Record<string, unknown>>;
   /** Global configuration options */
   options: Record<string, unknown>;
+  /** Registry initialization options (validated internal configuration) */
+  registryOptions: {
+    /** Provider registry initialization data */
+    providers: Record<string, unknown>;
+    /** Model registry initialization data */
+    models: Record<string, unknown>;
+  };
   /** Indicates configuration has been validated */
   validated: boolean;
 }

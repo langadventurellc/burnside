@@ -1,15 +1,52 @@
 ---
 id: T-integrate-registries-with
 title: Integrate registries with BridgeClient configuration
-status: open
+status: done
 priority: medium
 parent: F-phase-1-core-domain-and
 prerequisites:
   - T-create-bridgeclient-class
   - T-define-providerregistry
   - T-define-modelregistry
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/config/bridgeConfig.ts: Added optional registryOptions field with
+    providers and models properties for Phase 1 initialization
+  src/core/config/bridgeConfigSchema.ts: Updated Zod schema to validate registry
+    options with nested provider and model configuration objects
+  src/client/bridgeClientConfig.ts: Added registryOptions field to internal
+    configuration interface with required structure after validation
+  src/client/bridgeClient.ts: Integrated registry instances as private readonly
+    fields, added registry initialization in constructor, implemented
+    getProviderRegistry/getModelRegistry accessor methods, added convenience
+    methods listAvailableProviders/listAvailableModels/getModelCapabilities,
+    updated validateAndTransformConfig to include registry options with defaults
+  src/createClient.ts: Updated mergeWithDefaults function to handle registry
+    options, added registry options to JSDoc example
+  src/client/__tests__/bridgeClientConfig.test.ts:
+    Added registryOptions field to
+    all BridgeClientConfig test objects to fix TypeScript compilation errors
+  src/client/__tests__/bridgeClientRegistries.test.ts:
+    Created comprehensive test
+    suite with 36 test cases covering registry initialization, accessor methods,
+    convenience functions, configuration integration, error handling, and type
+    safety
+  src/client/__tests__/bridgeClient.test.ts: Added 3 test cases for registry
+    options in getConfig method covering default options, provided options, and
+    partial options scenarios
+  src/__tests__/createClient.test.ts: Added registry options tests in valid
+    configuration section covering default registry options, provided options,
+    and partial options handling
+log:
+  - Successfully integrated ProviderRegistry and ModelRegistry with BridgeClient
+    configuration system. Added registry instances as private fields,
+    implemented accessor methods (getProviderRegistry, getModelRegistry), and
+    added convenience methods (listAvailableProviders, listAvailableModels,
+    getModelCapabilities). Updated configuration system to support registry
+    initialization options. All registries initialize with empty state for Phase
+    1 as specified. Comprehensive test coverage added with 36 new test cases
+    covering registry initialization, access methods, convenience functions,
+    configuration integration, and error handling. All quality checks pass and
+    581 tests pass successfully.
 schema: v1.0
 childrenIds: []
 created: 2025-09-15T05:39:26.737Z

@@ -71,7 +71,9 @@ affectedFiles:
   src/client/streamDelta.ts: Created StreamDelta interface for incremental
     streaming response chunks with partial message content and metadata
   src/client/bridgeClientConfig.ts: Created BridgeClientConfig interface for
-    internal validated configuration with Map-based provider storage
+    internal validated configuration with Map-based provider storage; Added
+    registryOptions field to internal configuration interface with required
+    structure after validation
   src/client/featureFlagsInterface.ts: Created FeatureFlags interface defining
     CHAT_ENABLED, STREAMING_ENABLED, and TOOLS_ENABLED boolean flags
   src/client/featureFlagOverrides.ts: Created FeatureFlagOverrides interface for
@@ -83,7 +85,11 @@ affectedFiles:
   src/client/bridgeClient.ts: Implemented main BridgeClient class with
     constructor, chat(), stream(), and getConfig() methods; comprehensive
     configuration validation; feature flag integration; proper error handling
-    with BridgeError instances
+    with BridgeError instances; Integrated registry instances as private
+    readonly fields, added registry initialization in constructor, implemented
+    getProviderRegistry/getModelRegistry accessor methods, added convenience
+    methods listAvailableProviders/listAvailableModels/getModelCapabilities,
+    updated validateAndTransformConfig to include registry options with defaults
   src/client/index.ts: Created barrel export module aggregating all client
     functionality including BridgeClient class and related types
   src/client/__tests__/chatRequest.test.ts: Comprehensive test suite for
@@ -97,14 +103,17 @@ affectedFiles:
     handling
   src/client/__tests__/bridgeClientConfig.test.ts: Extensive test suite for
     BridgeClientConfig interface including Map provider storage and complex
-    configuration scenarios
+    configuration scenarios; Added registryOptions field to all
+    BridgeClientConfig test objects to fix TypeScript compilation errors
   src/client/__tests__/featureFlags.test.ts:
     Complete test suite for feature flag
     system covering all interfaces, initialization, checking utilities, and
     integration scenarios
   src/client/__tests__/bridgeClient.test.ts: Comprehensive test suite for
     BridgeClient class covering constructor validation, method signatures,
-    feature flag behavior, configuration transformation, and error handling
+    feature flag behavior, configuration transformation, and error handling;
+    Added 3 test cases for registry options in getConfig method covering default
+    options, provided options, and partial options scenarios
   src/index.ts: Updated main public API exports to include BridgeClient,
     request/response types, configuration interfaces, core message types, error
     classes, and feature flag system; Updated public API exports to include
@@ -123,7 +132,9 @@ affectedFiles:
     conditions, and type inference verification
   src/core/config/bridgeConfigSchema.ts: Created comprehensive Zod schema for
     BridgeConfig validation with strict validation rules, custom refinements for
-    provider validation, and proper TypeScript type inference
+    provider validation, and proper TypeScript type inference; Updated Zod
+    schema to validate registry options with nested provider and model
+    configuration objects
   src/core/config/__tests__/bridgeConfigSchema.test.ts:
     Implemented complete test
     suite with 39 test cases covering all validation scenarios, edge cases, and
@@ -133,10 +144,14 @@ affectedFiles:
     the library
   src/createClient.ts: Implemented main factory function with configuration
     validation, environment variable processing, default merging, and
-    comprehensive error handling with clear JSDoc documentation
+    comprehensive error handling with clear JSDoc documentation; Updated
+    mergeWithDefaults function to handle registry options, added registry
+    options to JSDoc example
   src/__tests__/createClient.test.ts: Created extensive test suite with 24 test
     cases covering all functionality including valid/invalid configurations,
-    environment variables, error handling, and integration testing
+    environment variables, error handling, and integration testing; Added
+    registry options tests in valid configuration section covering default
+    registry options, provided options, and partial options handling
   src/core/providers/modelCapabilities.ts: "Updated interface property names for
     consistency: supportsStreaming → streaming, supportsTools → toolCalls,
     supportsImages → images, added documents field, updated JSDoc examples"
@@ -188,10 +203,16 @@ affectedFiles:
     test suite with 42 test cases covering registration, resolution, validation,
     edge cases, and concurrent operations for the ProviderRegistry
     implementation
+  src/core/config/bridgeConfig.ts: Added optional registryOptions field with
+    providers and models properties for Phase 1 initialization
+  src/client/__tests__/bridgeClientRegistries.test.ts:
+    Created comprehensive test
+    suite with 36 test cases covering registry initialization, accessor methods,
+    convenience functions, configuration integration, error handling, and type
+    safety
 log: []
 schema: v1.0
 childrenIds:
-  - T-define-providerregistry
   - T-integrate-registries-with
   - T-update-public-api-exports-and
   - T-add-zod-dependency-and
@@ -199,6 +220,7 @@ childrenIds:
   - T-define-contentpart-union
   - T-define-message-zod-schema
   - T-define-modelregistry
+  - T-define-providerregistry
   - T-define-tooldefinition-schema
   - T-implement-createclient
 created: 2025-09-15T05:30:47.335Z

@@ -7,6 +7,11 @@ import type { BridgeClientConfig } from "./bridgeClientConfig";
 import type { FeatureFlags } from "./featureFlagsInterface";
 import { initializeFeatureFlags } from "./initializeFeatureFlags";
 import { isFeatureEnabled } from "./isFeatureEnabled";
+import type { ProviderRegistry } from "../core/providers/providerRegistry";
+import type { ModelRegistry } from "../core/models/modelRegistry";
+import type { ModelCapabilities } from "../core/providers/modelCapabilities";
+import { InMemoryProviderRegistry } from "../core/providers/inMemoryProviderRegistry";
+import { InMemoryModelRegistry } from "../core/models/inMemoryModelRegistry";
 
 /**
  * Bridge Client Class
@@ -45,6 +50,8 @@ import { isFeatureEnabled } from "./isFeatureEnabled";
 export class BridgeClient {
   private readonly config: BridgeClientConfig;
   private readonly featureFlags: FeatureFlags;
+  private readonly providerRegistry: ProviderRegistry;
+  private readonly modelRegistry: ModelRegistry;
 
   /**
    * Create BridgeClient Instance
@@ -58,6 +65,10 @@ export class BridgeClient {
   constructor(config: BridgeConfig) {
     this.config = this.validateAndTransformConfig(config);
     this.featureFlags = initializeFeatureFlags();
+
+    // Initialize registries with empty state for Phase 1
+    this.providerRegistry = new InMemoryProviderRegistry();
+    this.modelRegistry = new InMemoryModelRegistry();
   }
 
   /**
@@ -133,6 +144,69 @@ export class BridgeClient {
         },
       },
     );
+  }
+
+  /**
+   * Get Provider Registry
+   *
+   * Returns the provider registry instance for accessing registered providers.
+   * In Phase 1, registry starts empty and can be populated programmatically.
+   *
+   * @returns Provider registry instance
+   */
+  getProviderRegistry(): ProviderRegistry {
+    return this.providerRegistry;
+  }
+
+  /**
+   * Get Model Registry
+   *
+   * Returns the model registry instance for accessing registered models.
+   * In Phase 1, registry starts empty and can be populated programmatically.
+   *
+   * @returns Model registry instance
+   */
+  getModelRegistry(): ModelRegistry {
+    return this.modelRegistry;
+  }
+
+  /**
+   * List Available Providers
+   *
+   * Convenience method to get all currently registered provider IDs.
+   * In Phase 1, returns empty array until providers are registered.
+   *
+   * @returns Array of provider IDs
+   */
+  listAvailableProviders(): string[] {
+    return this.providerRegistry.list().map((info) => info.id);
+  }
+
+  /**
+   * List Available Models
+   *
+   * Convenience method to get all currently registered model IDs,
+   * optionally filtered by provider.
+   *
+   * @param providerId - Optional provider ID to filter models
+   * @returns Array of model IDs
+   */
+  listAvailableModels(providerId?: string): string[] {
+    return this.modelRegistry.list(providerId).map((info) => info.id);
+  }
+
+  /**
+   * Get Model Capabilities
+   *
+   * Convenience method to get capabilities for a specific model.
+   * Returns undefined if the model is not registered.
+   *
+   * @param modelId - Model ID to get capabilities for
+   * @returns Model capabilities or undefined if not found
+   */
+  getModelCapabilities(modelId: string): ModelCapabilities | undefined {
+    const model = this.modelRegistry.get(modelId);
+    return model?.capabilities;
   }
 
   /**
@@ -217,6 +291,10 @@ export class BridgeClient {
       timeout,
       providers: providersMap,
       options: config.options || {},
+      registryOptions: {
+        providers: config.registryOptions?.providers || {},
+        models: config.registryOptions?.models || {},
+      },
       validated: true,
     };
   }
