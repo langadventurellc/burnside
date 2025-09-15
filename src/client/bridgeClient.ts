@@ -8,6 +8,7 @@ import type { FeatureFlags } from "./featureFlagsInterface";
 import { initializeFeatureFlags } from "./initializeFeatureFlags";
 import { isFeatureEnabled } from "./isFeatureEnabled";
 import type { ProviderRegistry } from "../core/providers/providerRegistry";
+import type { ProviderPlugin } from "../core/providers/providerPlugin";
 import type { ModelRegistry } from "../core/models/modelRegistry";
 import type { ModelCapabilities } from "../core/providers/modelCapabilities";
 import { InMemoryProviderRegistry } from "../core/providers/inMemoryProviderRegistry";
@@ -164,6 +165,47 @@ export class BridgeClient {
    */
   getProviderRegistry(): ProviderRegistry {
     return this.providerRegistry;
+  }
+
+  /**
+   * Register Provider Plugin
+   *
+   * Registers a provider plugin with the internal provider registry.
+   * The provider will be available for use with the registered ID and version.
+   *
+   * @param plugin - Provider plugin to register
+   * @throws {ValidationError} When provider plugin structure is invalid
+   * @throws {BridgeError} When registration fails
+   *
+   * @example
+   * ```typescript
+   * import { openaiResponsesV1Provider } from "./providers";
+   *
+   * const client = new BridgeClient(config);
+   * client.registerProvider(openaiResponsesV1Provider);
+   *
+   * // Provider is now available for use
+   * const providers = client.listAvailableProviders();
+   * console.log(providers); // includes "openai"
+   * ```
+   */
+  registerProvider(plugin: ProviderPlugin): void {
+    try {
+      this.providerRegistry.register(plugin);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      throw new BridgeError(
+        `Failed to register provider ${plugin.id}:${plugin.version}`,
+        "REGISTRATION_FAILED",
+        {
+          providerId: plugin.id,
+          version: plugin.version,
+          originalError: error,
+        },
+      );
+    }
   }
 
   /**
