@@ -1,0 +1,200 @@
+---
+id: F-phase-0-repository-setup-and
+title: "Phase 0: Repository Setup and Scaffolding"
+status: in-progress
+priority: medium
+parent: none
+prerequisites: []
+affectedFiles:
+  src/index.ts: Main public API surface entry point with placeholder exports
+  src/core/index.ts: Core domain module aggregator with placeholder structure
+  src/core/config/index.ts: Configuration interfaces module placeholder
+  src/core/messages/index.ts: Message and content model module placeholder
+  src/core/tools/index.ts: Tool model and execution module placeholder
+  src/core/agent/index.ts: Agent loop orchestrator module placeholder
+  src/core/streaming/index.ts: Universal streaming interface module placeholder
+  src/core/transport/index.ts: HTTP transport interfaces module placeholder
+  src/core/providers/index.ts: Provider base types module placeholder
+  src/core/performance/index.ts: Performance and cache interfaces module placeholder
+  src/core/errors/index.ts: Error taxonomy foundation module placeholder
+  src/core/observability/index.ts: Observability and logging module placeholder
+  src/core/runtime/index.ts: Runtime platform adapters module placeholder
+  src/providers/index.ts: Provider plugins aggregator (empty placeholder)
+  src/tools/index.ts: Tool implementations aggregator (empty placeholder)
+  src/__tests__/index.test.ts: Basic module import test validating Jest setup
+log: []
+schema: v1.0
+childrenIds:
+  - T-create-base-directory
+  - T-create-placeholder-test-and
+  - T-create-transport-interfaces
+  - T-define-core-type-interfaces
+  - T-implement-basic-error
+  - T-implement-runtime-adapter
+created: 2025-09-15T03:51:56.069Z
+updated: 2025-09-15T03:51:56.069Z
+---
+
+# Phase 0: Repository Setup and Scaffolding
+
+Implement the foundational scaffolding for the LLM Bridge library as outlined in Phase 0 of the implementation plan. This feature establishes the basic module structure, minimal type placeholders, and runtime adapter foundation needed for subsequent development phases.
+
+## Purpose and Functionality
+
+Create the base architectural scaffolding for the LLM Bridge library including:
+
+- Base source directory structure under `src/`
+- Minimal type placeholders for messages, content, and tools
+- Runtime adapter interfaces and Node.js default implementation
+- Basic transport interface with fetch injection (no retries/caching)
+- Shared error taxonomy foundation
+
+## Key Components to Implement
+
+### 1. Directory Structure
+
+Create the module layout as specified in `docs/library-architecture.md`:
+
+```
+src/
+  index.ts                     # Public API surface (placeholder)
+  core/
+    config/                    # Configuration interfaces (placeholder)
+    messages/                  # Message & content model placeholders
+    tools/                     # Tool model placeholders
+    agent/                     # Agent interfaces (placeholder)
+    streaming/                 # Streaming interfaces (placeholder)
+    transport/                 # HTTP client interfaces
+    providers/                 # Provider base types (placeholder)
+    performance/               # Cache interfaces (placeholder)
+    errors/                    # Error taxonomy foundation
+    observability/             # Logging hooks (placeholder)
+    runtime/                   # Platform adapters
+  providers/                   # Provider plugins (empty)
+  tools/                       # Tool implementations (empty)
+```
+
+### 2. Minimal Type Placeholders
+
+Basic TypeScript interfaces without full implementation:
+
+- **Message Model**: Basic Role, ContentPart, SourceRef interface shapes
+- **Tool Model**: ToolDefinition and ToolHandler interface outlines
+- **Provider Model**: Basic ProviderPlugin interface shape
+- **Configuration**: Minimal BridgeConfig interface structure
+
+### 3. Error Taxonomy Foundation
+
+Basic error type hierarchy:
+
+- Base error classes: TransportError, AuthError, RateLimitError, TimeoutError
+- Error normalization interface patterns (no full implementation)
+
+### 4. Runtime Adapter System
+
+Platform abstraction foundation:
+
+- **RuntimeAdapter interface**: HTTP, timers, basic file access contracts
+- **Node.js adapter**: Default implementation using Node's built-in capabilities
+- **Adapter selection**: Basic registry pattern for adapter injection
+
+### 5. Transport Interface
+
+HTTP transport contracts with fetch injection:
+
+- **Transport interface**: fetch() and stream() method signatures
+- **Request/Response types**: Basic ProviderHttpRequest, ProviderHttpResponse interfaces
+- **Fetch injection**: Configurable HTTP client interface (no retry/cache logic)
+
+## Detailed Acceptance Criteria
+
+### Functional Requirements
+
+1. **Module Structure**: All directories created with basic index.ts files where needed
+2. **Type Placeholders**: Core interfaces defined as TypeScript shapes (no Zod schemas yet)
+3. **Error Foundation**: Basic error class hierarchy with inheritance
+4. **Node Adapter**: RuntimeAdapter implementation for Node.js platform
+5. **Transport Contracts**: HTTP transport interface with fetch injection capability
+
+### Code Quality Requirements
+
+1. **TypeScript Compilation**: All code compiles with strict TypeScript settings
+2. **No `any` Types**: Zero usage of `any` type throughout scaffolding
+3. **Minimal Exports**: Only export what's needed for Phase 0
+4. **File Organization**: Each module directory has appropriate structure
+
+### Testing Requirements
+
+1. **Trivial Test Placeholder**: Single Jest test file that passes to validate test setup
+2. **Import Resolution**: Basic import/export functionality verified
+
+### Quality Gates (Phase 0 Acceptance)
+
+1. **`npm run quality` passes**: Lint, format, and type-check with zero errors
+2. **`npm test` runs**: Test execution succeeds with trivial placeholder test
+3. **Module Loading**: All scaffolded modules can be imported without errors
+
+### Performance Requirements
+
+1. **Fast Loading**: Scaffolded modules load quickly
+2. **Minimal Dependencies**: No additional runtime dependencies introduced
+
+## Out of Scope for Phase 0
+
+To prevent scope creep, the following are explicitly **NOT** included in Phase 0:
+
+- Full Zod schema validation (Phase 1+)
+- Streaming buffer management and parsers (Phase 2+)
+- Provider plugin implementations (Phase 4+)
+- Agent loop logic (Phase 5+)
+- Retry/caching mechanisms (Phase 10+)
+- Comprehensive error handling (Phase 2+)
+- Full configuration loading (Phase 1+)
+
+## Implementation Guidance
+
+### Technical Approach
+
+1. **Scaffolding First**: Create directory structure and basic files
+2. **Interface Definitions**: Define minimal TypeScript interface shapes
+3. **Node Adapter**: Implement basic RuntimeAdapter for Node.js
+4. **Transport Contracts**: Create HTTP transport interface patterns
+5. **Error Foundation**: Establish basic error class patterns
+
+### Development Patterns
+
+1. **Placeholder Interfaces**: Define shapes without full implementation
+2. **Minimal Viable Structure**: Create just enough to support future phases
+3. **No Premature Implementation**: Avoid implementing features belonging to later phases
+4. **Clear Boundaries**: Keep Phase 0 work clearly separated from Phase 1+ requirements
+
+## Dependencies
+
+This feature has no dependencies and serves as the foundation for all subsequent development phases.
+
+## Testing Requirements
+
+### Minimal Test Coverage
+
+- Single placeholder test that validates Jest setup works
+- Basic import/export functionality verification
+- No comprehensive testing (saved for later phases)
+
+## Security Considerations
+
+- No hard-coded secrets in scaffolding
+- Basic interface patterns that support secure configuration injection
+
+## Performance Requirements
+
+- Module loading completes quickly
+- No performance optimization needed in Phase 0 scaffolding
+- Prepare foundation for future performance features
+
+## Implementation Notes
+
+1. **Keep It Simple**: Only implement what's needed for Phase 0 acceptance
+2. **Interface Shapes**: Define TypeScript interfaces as placeholders for future implementation
+3. **Node First**: Focus on Node.js adapter; other platforms in Phase 11
+4. **Foundation Only**: Create the base that subsequent phases will build upon
+5. **Avoid Over-Engineering**: Resist implementing features from later phases
