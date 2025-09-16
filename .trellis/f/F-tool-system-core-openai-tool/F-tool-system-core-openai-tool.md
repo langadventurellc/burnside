@@ -1,14 +1,43 @@
 ---
 id: F-tool-system-core-openai-tool
 title: Tool System Core + OpenAI Tool Calls
-status: open
+status: in-progress
 priority: medium
 parent: none
 prerequisites: []
-affectedFiles: {}
+affectedFiles:
+  src/core/tools/toolCall.ts: Created ToolCall interface with id, name,
+    parameters, and optional metadata fields for tracking tool execution
+    requests
+  src/core/tools/toolResult.ts: Created ToolResult interface with discriminated
+    success/error states, comprehensive metadata, and clear documentation
+  src/core/tools/toolCallSchema.ts: Implemented comprehensive Zod validation
+    schema for ToolCall with strict validation, parameter validation, and
+    metadata validation
+  src/core/tools/toolResultSchema.ts: Implemented discriminated union Zod schema
+    for ToolResult ensuring mutually exclusive success/error states with
+    comprehensive validation
+  src/core/tools/index.ts: Updated exports to include new ToolCall, ToolResult
+    interfaces and their corresponding Zod schemas
+  src/core/tools/__tests__/toolCallSchema.test.ts: Created comprehensive test
+    suite with 32 test cases covering all validation scenarios, edge cases, and
+    error conditions
+  src/core/tools/__tests__/toolResultSchema.test.ts: Created comprehensive test
+    suite with 24 test cases covering discriminated union behavior,
+    success/error state validation, and all field validation rules
 log: []
 schema: v1.0
-childrenIds: []
+childrenIds:
+  - T-add-openai-tool-format
+  - T-create-basic-agent-loop-with
+  - T-create-e2e-test-user-message
+  - T-create-echo-tool-with
+  - T-create-toolregistry-with
+  - T-implement-core-tool-types-and
+  - T-implement-openai-tool-call
+  - T-implement-toolrouter-with
+  - T-integrate-tool-system-with
+  - T-update-bridgeconfig-with-tool
 created: 2025-09-16T00:17:03.570Z
 updated: 2025-09-16T00:17:03.570Z
 ---

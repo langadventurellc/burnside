@@ -1,12 +1,37 @@
 ---
 id: T-implement-core-tool-types-and
 title: Implement core tool types and schemas
-status: open
+status: done
 priority: high
 parent: F-tool-system-core-openai-tool
 prerequisites: []
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/tools/toolCall.ts: Created ToolCall interface with id, name,
+    parameters, and optional metadata fields for tracking tool execution
+    requests
+  src/core/tools/toolResult.ts: Created ToolResult interface with discriminated
+    success/error states, comprehensive metadata, and clear documentation
+  src/core/tools/toolCallSchema.ts: Implemented comprehensive Zod validation
+    schema for ToolCall with strict validation, parameter validation, and
+    metadata validation
+  src/core/tools/toolResultSchema.ts: Implemented discriminated union Zod schema
+    for ToolResult ensuring mutually exclusive success/error states with
+    comprehensive validation
+  src/core/tools/index.ts: Updated exports to include new ToolCall, ToolResult
+    interfaces and their corresponding Zod schemas
+  src/core/tools/__tests__/toolCallSchema.test.ts: Created comprehensive test
+    suite with 32 test cases covering all validation scenarios, edge cases, and
+    error conditions
+  src/core/tools/__tests__/toolResultSchema.test.ts: Created comprehensive test
+    suite with 24 test cases covering discriminated union behavior,
+    success/error state validation, and all field validation rules
+log:
+  - Implemented comprehensive core tool types and schemas for the LLM Bridge
+    tool system, including ToolCall and ToolResult interfaces with full Zod
+    validation schemas. Created mutually exclusive success/error states using
+    discriminated unions, comprehensive test suites with 56 passing tests, and
+    integrated with existing codebase patterns. All quality checks pass
+    including TypeScript strict mode, ESLint, and Prettier formatting.
 schema: v1.0
 childrenIds: []
 created: 2025-09-16T00:27:16.073Z
