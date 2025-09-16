@@ -690,4 +690,220 @@ describe("BridgeClient", () => {
       expect(fakeTransport.fetch).not.toHaveBeenCalled();
     });
   });
+
+  describe("Provider Plugin Mapping", () => {
+    let fakeOpenAIPlugin: jest.Mocked<ProviderPlugin>;
+    let fakeAnthropicPlugin: jest.Mocked<ProviderPlugin>;
+    let fakeTransport: jest.Mocked<HttpTransport>;
+    let providerRegistry: ProviderRegistry;
+    let modelRegistry: ModelRegistry;
+    let client: BridgeClient;
+
+    const testConfig: BridgeConfig = {
+      defaultProvider: "openai",
+      providers: {
+        openai: { apiKey: "sk-test" },
+        anthropic: { apiKey: "sk-ant-test" },
+      },
+      defaultModel: "gpt-4",
+      timeout: 30000,
+    };
+
+    beforeEach(() => {
+      // Create fake OpenAI plugin
+      fakeOpenAIPlugin = {
+        id: "openai",
+        version: "responses-v1",
+        name: "OpenAI Responses V1 Provider",
+        initialize: jest.fn().mockResolvedValue(undefined),
+        supportsModel: jest.fn().mockReturnValue(true),
+        translateRequest: jest.fn().mockReturnValue({
+          url: "https://api.openai.com/v1/chat/completions",
+          method: "POST",
+          headers: { Authorization: "Bearer sk-test" },
+          body: '{"model":"gpt-4","messages":[]}',
+        }),
+        parseResponse: jest.fn(),
+        isTerminal: jest.fn().mockReturnValue(true),
+        normalizeError: jest.fn(),
+      };
+
+      // Create fake Anthropic plugin
+      fakeAnthropicPlugin = {
+        id: "anthropic",
+        version: "2023-06-01",
+        name: "Anthropic Messages Provider",
+        initialize: jest.fn().mockResolvedValue(undefined),
+        supportsModel: jest.fn().mockReturnValue(true),
+        translateRequest: jest.fn().mockReturnValue({
+          url: "https://api.anthropic.com/v1/messages",
+          method: "POST",
+          headers: {
+            "x-api-key": "sk-ant-test",
+            "anthropic-version": "2023-06-01",
+          },
+          body: '{"model":"claude-sonnet-4-20250514","messages":[]}',
+        }),
+        parseResponse: jest.fn(),
+        isTerminal: jest.fn().mockReturnValue(true),
+        normalizeError: jest.fn(),
+      };
+
+      // Create fake transport
+      fakeTransport = {
+        fetch: jest.fn().mockResolvedValue({
+          status: 200,
+          statusText: "OK",
+          headers: { "content-type": "application/json" },
+          body: new ReadableStream(),
+        } as ProviderHttpResponse),
+        stream: jest.fn().mockResolvedValue(
+          (function* () {
+            yield new Uint8Array([]);
+          })(),
+        ),
+      } as unknown as jest.Mocked<HttpTransport>;
+
+      // Create registries and register test data
+      providerRegistry = new InMemoryProviderRegistry();
+      modelRegistry = new InMemoryModelRegistry();
+
+      providerRegistry.register(fakeOpenAIPlugin);
+      providerRegistry.register(fakeAnthropicPlugin);
+
+      // Register models with provider plugin metadata
+      modelRegistry.register("openai:gpt-4", {
+        id: "openai:gpt-4",
+        name: "GPT-4",
+        provider: "openai",
+        capabilities: {
+          streaming: true,
+          toolCalls: true,
+          images: true,
+          documents: false,
+          temperature: true,
+          maxTokens: 128000,
+          supportedContentTypes: ["text", "image"],
+        },
+        metadata: { providerPlugin: "openai-responses-v1" },
+      });
+
+      modelRegistry.register("anthropic:claude-sonnet", {
+        id: "anthropic:claude-sonnet",
+        name: "Claude Sonnet",
+        provider: "anthropic",
+        capabilities: {
+          streaming: true,
+          toolCalls: true,
+          images: true,
+          documents: true,
+          temperature: true,
+          maxTokens: 200000,
+          supportedContentTypes: ["text", "image"],
+        },
+        metadata: { providerPlugin: "anthropic-2023-06-01" },
+      });
+
+      // Create client with custom registries
+      client = new BridgeClient(testConfig, {
+        transport: fakeTransport,
+        providerRegistry,
+        modelRegistry,
+      });
+    });
+
+    it("should map 'openai-responses-v1' to OpenAI provider", async () => {
+      // Arrange
+      fakeOpenAIPlugin.parseResponse.mockResolvedValue({
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "Hello from OpenAI!" }],
+        },
+        usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 },
+        model: "gpt-4",
+      });
+
+      // Act
+      await client.chat({
+        model: "openai:gpt-4",
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+      });
+
+      // Assert
+      expect(fakeOpenAIPlugin.translateRequest).toHaveBeenCalled();
+      expect(fakeAnthropicPlugin.translateRequest).not.toHaveBeenCalled();
+    });
+
+    it("should map 'anthropic-2023-06-01' to Anthropic provider", async () => {
+      // Arrange
+      fakeAnthropicPlugin.parseResponse.mockResolvedValue({
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "Hello from Claude!" }],
+        },
+        usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 },
+        model: "claude-sonnet-4-20250514",
+      });
+
+      // Act
+      await client.chat({
+        model: "anthropic:claude-sonnet",
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+      });
+
+      // Assert
+      expect(fakeAnthropicPlugin.translateRequest).toHaveBeenCalled();
+      expect(fakeOpenAIPlugin.translateRequest).not.toHaveBeenCalled();
+    });
+
+    it("should throw error for unknown provider plugin", async () => {
+      // Arrange
+      modelRegistry.register("unknown:model", {
+        id: "unknown:model",
+        name: "Unknown Model",
+        provider: "unknown",
+        capabilities: {
+          streaming: false,
+          toolCalls: false,
+          images: false,
+          documents: false,
+          supportedContentTypes: ["text"],
+        },
+        metadata: { providerPlugin: "unknown-provider-v1" },
+      });
+
+      // Act & Assert
+      await expect(
+        client.chat({
+          model: "unknown:model",
+          messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        }),
+      ).rejects.toThrow(BridgeError);
+    });
+
+    it("should throw error for model without provider plugin metadata", async () => {
+      // Arrange
+      modelRegistry.register("no-plugin:model", {
+        id: "no-plugin:model",
+        name: "No Plugin Model",
+        provider: "unknown",
+        capabilities: {
+          streaming: false,
+          toolCalls: false,
+          images: false,
+          documents: false,
+          supportedContentTypes: ["text"],
+        },
+        // Missing metadata.providerPlugin
+      });
+
+      // Act & Assert
+      await expect(
+        client.chat({
+          model: "no-plugin:model",
+          messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        }),
+      ).rejects.toThrow(BridgeError);
+    });
+  });
 });

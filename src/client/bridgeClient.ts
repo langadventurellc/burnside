@@ -583,6 +583,7 @@ export class BridgeClient {
     // Define canonical mapping from providerPlugin to provider registry keys
     const mapping: Record<string, { id: string; version: string }> = {
       "openai-responses-v1": { id: "openai", version: "responses-v1" },
+      "anthropic-2023-06-01": { id: "anthropic", version: "2023-06-01" },
     };
 
     return mapping[pluginString];
