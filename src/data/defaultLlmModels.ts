@@ -119,17 +119,6 @@ export const defaultLlmModels = DefaultLlmModelsSchema.parse({
           documents: true,
           supportedContentTypes: ["text", "image", "document"],
         },
-        {
-          id: "o3-pro-2025-06-10",
-          providerPlugin: "openai-responses-v1",
-          name: "o3 Pro",
-          contextLength: 200000,
-          streaming: true,
-          toolCalls: true,
-          images: true,
-          documents: true,
-          supportedContentTypes: ["text", "image", "document"],
-        },
       ],
     },
     {

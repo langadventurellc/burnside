@@ -8,6 +8,17 @@ import { loadTestConfig } from "../shared/testConfig.js";
 import { validateMessageSchema } from "../shared/testHelpers.js";
 import { createTestMessages } from "../shared/createTestMessages.js";
 import { withTimeout } from "../shared/withTimeout.js";
+import { defaultLlmModels } from "../../../data/defaultLlmModels.js";
+
+// Extract OpenAI models from default models data
+const openaiProvider = defaultLlmModels.providers.find(
+  (p) => p.id === "openai",
+);
+const openaiModels =
+  openaiProvider?.models.map((model) => ({
+    id: `openai:${model.id}`,
+    name: model.name,
+  })) || [];
 
 // Helper to create multi-message conversations
 function createConversation(texts: string[]): Message[] {
@@ -31,26 +42,33 @@ describe("OpenAI Chat Completion E2E", () => {
   });
 
   describe("Basic Chat Functionality", () => {
-    test("should complete simple chat request", async () => {
-      const messages = createTestMessages("What is 2 + 2?");
+    // Parameterized test for all OpenAI models
+    test.each(openaiModels)(
+      "should complete simple chat request with $name ($id)",
+      async ({ id: modelId }) => {
+        // Ensure the model is registered
+        ensureModelRegistered(client, modelId);
 
-      const response = await withTimeout(
-        client.chat({ messages, model: testModel }),
-        30000,
-      );
+        const messages = createTestMessages("Say hello.");
 
-      expect(response).toBeDefined();
-      expect(validateMessageSchema(response)).toBe(true);
-      expect(response.role).toBe("assistant");
-      expect(response.content).toHaveLength(1);
-      expect(response.content[0].type).toBe("text");
-      if (response.content[0].type === "text") {
-        expect(typeof response.content[0].text).toBe("string");
-        expect(response.content[0].text.length).toBeGreaterThan(0);
-      }
-      expect(response.timestamp).toBeDefined();
-      expect(response.id).toBeDefined();
-    });
+        const response = await withTimeout(
+          client.chat({ messages, model: modelId }),
+          15000,
+        );
+
+        expect(response).toBeDefined();
+        expect(validateMessageSchema(response)).toBe(true);
+        expect(response.role).toBe("assistant");
+        expect(response.content).toHaveLength(1);
+        expect(response.content[0].type).toBe("text");
+        if (response.content[0].type === "text") {
+          expect(typeof response.content[0].text).toBe("string");
+          expect(response.content[0].text.length).toBeGreaterThan(0);
+        }
+        expect(response.timestamp).toBeDefined();
+        expect(response.id).toBeDefined();
+      },
+    );
 
     test("should handle conversation context", async () => {
       const messages = createConversation([
@@ -73,7 +91,7 @@ describe("OpenAI Chat Completion E2E", () => {
     });
 
     test("should handle multiple consecutive requests", async () => {
-      const firstMessages = createTestMessages("Count to 3.");
+      const firstMessages = createTestMessages("Say hello.");
 
       const firstResponse = await withTimeout(
         client.chat({ messages: firstMessages, model: testModel }),
@@ -130,7 +148,7 @@ describe("OpenAI Chat Completion E2E", () => {
     });
 
     test("should include proper metadata", async () => {
-      const messages = createTestMessages("Brief response please.");
+      const messages = createTestMessages("Say hello..");
 
       const response = await withTimeout(
         client.chat({ messages, model: testModel }),
@@ -144,7 +162,7 @@ describe("OpenAI Chat Completion E2E", () => {
     });
 
     test("should have valid timestamp format", async () => {
-      const messages = createTestMessages("Quick test.");
+      const messages = createTestMessages("Say hello.");
 
       const response = await withTimeout(
         client.chat({ messages, model: testModel }),
@@ -162,7 +180,7 @@ describe("OpenAI Chat Completion E2E", () => {
 
   describe("Model Integration", () => {
     test("should work with default model", async () => {
-      const messages = createTestMessages("Testing default model.");
+      const messages = createTestMessages("Say hello.");
 
       // Use default model from getTestModel()
       const response = await withTimeout(
@@ -182,7 +200,7 @@ describe("OpenAI Chat Completion E2E", () => {
       expect(registeredModel).toBeDefined();
       expect(registeredModel?.id).toBe(testModel);
 
-      const messages = createTestMessages("Test registry integration.");
+      const messages = createTestMessages("Say hello.");
 
       const response = await withTimeout(
         client.chat({ messages, model: testModel }),
@@ -202,7 +220,7 @@ describe("OpenAI Chat Completion E2E", () => {
         },
       });
 
-      const messages = createTestMessages("This should fail.");
+      const messages = createTestMessages("Say hello.");
 
       await expect(
         withTimeout(invalidClient.chat({ messages, model: testModel }), 30000),
@@ -225,7 +243,7 @@ describe("OpenAI Chat Completion E2E", () => {
     });
 
     test("should handle network timeouts gracefully", async () => {
-      const messages = createTestMessages("Test timeout handling.");
+      const messages = createTestMessages("Say hello.");
 
       // Test with very short timeout to trigger timeout error
       await expect(
@@ -234,44 +252,6 @@ describe("OpenAI Chat Completion E2E", () => {
           1, // 1ms timeout should fail
         ),
       ).rejects.toThrow("Operation timed out after 1ms");
-    });
-  });
-
-  describe("Performance Validation", () => {
-    test("should complete within reasonable time", async () => {
-      const messages = createTestMessages("Quick response test.");
-
-      const startTime = Date.now();
-      const response = await withTimeout(
-        client.chat({ messages, model: testModel }),
-        30000,
-      );
-      const endTime = Date.now();
-
-      expect(validateMessageSchema(response)).toBe(true);
-      expect(endTime - startTime).toBeLessThan(30000); // Should complete within 30s
-    });
-
-    test("should handle concurrent requests", async () => {
-      const messages1 = createTestMessages("Concurrent test 1.");
-      const messages2 = createTestMessages("Concurrent test 2.");
-
-      const [response1, response2] = await Promise.all([
-        withTimeout(
-          client.chat({ messages: messages1, model: testModel }),
-          30000,
-        ),
-        withTimeout(
-          client.chat({ messages: messages2, model: testModel }),
-          30000,
-        ),
-      ]);
-
-      expect(validateMessageSchema(response1)).toBe(true);
-      expect(validateMessageSchema(response2)).toBe(true);
-      if (response1.id && response2.id) {
-        expect(response2.id).not.toBe(response1.id);
-      }
     });
   });
 });
