@@ -20,7 +20,8 @@ affectedFiles:
   src/core/tools/index.ts: Updated exports to include new ToolCall, ToolResult
     interfaces and their corresponding Zod schemas; Updated exports to include
     ToolRegistry interface, RegistryEntry interface, and InMemoryToolRegistry
-    implementation for public API access
+    implementation for public API access; Updated exports to include the new
+    ToolRouter class
   src/core/tools/__tests__/toolCallSchema.test.ts: Created comprehensive test
     suite with 32 test cases covering all validation scenarios, edge cases, and
     error conditions
@@ -38,6 +39,26 @@ affectedFiles:
   src/core/tools/__tests__/toolRegistry.test.ts: Created comprehensive unit test
     suite with 53 test cases covering registration, unregistration, discovery,
     validation, error handling, edge cases, and performance requirements
+  src/core/tools/toolRouter.ts: Implemented the main ToolRouter class that
+    orchestrates tool execution through the pipeline
+  src/core/tools/toolExecutionPipeline.ts: Core pipeline orchestrator that
+    coordinates all 4 execution stages with comprehensive error handling
+  src/core/tools/pipelineValidation.ts: Validation stage that validates ToolCall
+    format and parameter compatibility with tool definitions
+  src/core/tools/pipelinePreparation.ts:
+    Preparation stage that sets up execution
+    context and validates required inputs
+  src/core/tools/pipelineExecution.ts: Execution stage with Promise.race timeout
+    protection and proper AbortController handling
+  src/core/tools/pipelineNormalization.ts: Normalization stage that ensures consistent ToolResult format and metadata
+  src/core/tools/preparedContext.ts: Interface for prepared execution context
+    after validation and preparation stages
+  src/core/tools/executionContext.ts: Interface for complete execution context
+    with handler and timeout configuration
+  src/core/tools/__tests__/toolExecutionPipeline.test.ts: Comprehensive test suite for all pipeline stages with 19 passing tests
+  src/core/tools/__tests__/toolRouter.test.ts:
+    Complete test suite for ToolRouter
+    with 13 passing tests covering all functionality and error scenarios
 log: []
 schema: v1.0
 childrenIds:
@@ -45,11 +66,11 @@ childrenIds:
   - T-create-basic-agent-loop-with
   - T-create-e2e-test-user-message
   - T-create-echo-tool-with
-  - T-create-toolregistry-with
   - T-implement-openai-tool-call
   - T-implement-toolrouter-with
   - T-integrate-tool-system-with
   - T-update-bridgeconfig-with-tool
+  - T-create-toolregistry-with
   - T-implement-core-tool-types-and
 created: 2025-09-16T00:17:03.570Z
 updated: 2025-09-16T00:17:03.570Z

@@ -21,3 +21,4 @@ export { ToolDefinitionSchema } from "./toolDefinitionSchema";
 export { ToolCallSchema } from "./toolCallSchema";
 export { ToolResultSchema } from "./toolResultSchema";
 export { InMemoryToolRegistry } from "./inMemoryToolRegistry";
+export { ToolRouter } from "./toolRouter";
