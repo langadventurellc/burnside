@@ -20,7 +20,7 @@ describe("HttpErrorNormalizer", () => {
       requestId: "req_123",
       provider: "openai",
       operation: "chat_completion",
-      url: "https://api.openai.com/v1/chat/completions",
+      url: "https://api.openai.com/v1/responses",
     };
   });
 

@@ -177,9 +177,28 @@ export function parseOpenAIResponse(
     });
   }
 
-  // Convert first output to unified message format
+  // Find the message type in the output array (it might not be the first item for GPT-5 models)
+  const messageOutput = openaiResponse.output.find(
+    (item) => "type" in item && item.type === "message",
+  );
+
+  if (!messageOutput) {
+    throw new ValidationError(
+      "No message type found in OpenAI response output",
+      {
+        status: response.status,
+        statusText: response.statusText,
+        responseId: openaiResponse.id,
+        outputTypes: openaiResponse.output.map((item) =>
+          "type" in item ? item.type : "unknown",
+        ),
+      },
+    );
+  }
+
+  // Convert the message output to unified message format
   const message = convertOpenAIOutputToMessage(
-    openaiResponse.output[0],
+    messageOutput,
     openaiResponse.id,
   );
 

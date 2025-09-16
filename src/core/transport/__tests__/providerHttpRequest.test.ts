@@ -10,11 +10,11 @@ import type { HttpMethod } from "../httpMethod.js";
 describe("ProviderHttpRequest", () => {
   it("should accept minimal valid request", () => {
     const request: ProviderHttpRequest = {
-      url: "https://api.openai.com/v1/chat/completions",
+      url: "https://api.openai.com/v1/responses",
       method: "POST",
     };
 
-    expect(request.url).toBe("https://api.openai.com/v1/chat/completions");
+    expect(request.url).toBe("https://api.openai.com/v1/responses");
     expect(request.method).toBe("POST");
     expect(request.headers).toBeUndefined();
     expect(request.body).toBeUndefined();
@@ -27,14 +27,14 @@ describe("ProviderHttpRequest", () => {
     const body = JSON.stringify({ model: "gpt-4" });
 
     const request: ProviderHttpRequest = {
-      url: "https://api.openai.com/v1/chat/completions",
+      url: "https://api.openai.com/v1/responses",
       method: "POST",
       headers,
       body,
       signal: controller.signal,
     };
 
-    expect(request.url).toBe("https://api.openai.com/v1/chat/completions");
+    expect(request.url).toBe("https://api.openai.com/v1/responses");
     expect(request.method).toBe("POST");
     expect(request.headers).toBe(headers);
     expect(request.body).toBe(body);
@@ -69,7 +69,7 @@ describe("ProviderHttpRequest", () => {
 
   it("should support various URL formats", () => {
     const urls = [
-      "https://api.openai.com/v1/chat/completions",
+      "https://api.openai.com/v1/responses",
       "https://api.anthropic.com/v1/messages",
       "http://localhost:3000/api/test",
       "https://api.example.com:8080/v2/models",

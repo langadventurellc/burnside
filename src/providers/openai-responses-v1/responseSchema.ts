@@ -47,10 +47,22 @@ const OpenAIResponseOutputMessageSchema = z.object({
 });
 
 /**
- * OpenAI response output schema (Responses API format)
- * For now, we only support message outputs, but this can be extended
+ * OpenAI reasoning output schema (used in GPT-5 models)
  */
-const OpenAIResponseOutputSchema = OpenAIResponseOutputMessageSchema;
+const OpenAIResponseOutputReasoningSchema = z.object({
+  id: z.string().optional(),
+  type: z.literal("reasoning"),
+  summary: z.array(z.unknown()).optional(),
+});
+
+/**
+ * OpenAI response output schema (Responses API format)
+ * Supports both message and reasoning outputs
+ */
+const OpenAIResponseOutputSchema = z.union([
+  OpenAIResponseOutputMessageSchema,
+  OpenAIResponseOutputReasoningSchema,
+]);
 
 /**
  * OpenAI usage schema (Responses API format)

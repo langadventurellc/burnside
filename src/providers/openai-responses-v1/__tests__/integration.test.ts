@@ -383,7 +383,7 @@ describe("OpenAI Responses v1 Provider Integration", () => {
       const parsedBody = JSON.parse(bodyString);
 
       expect(parsedBody.temperature).toBe(0.8);
-      expect(parsedBody.max_tokens).toBe(150);
+      expect(parsedBody.max_output_tokens).toBe(150);
     });
   });
 

@@ -13,7 +13,7 @@ import type { ProviderHttpRequest } from "../transport/providerHttpRequest.js";
  * @example
  * ```typescript
  * const request = createHttpRequest({
- *   url: "https://api.openai.com/v1/chat/completions",
+ *   url: "https://api.openai.com/v1/responses",
  *   method: "POST",
  *   headers: { "Authorization": "Bearer sk-..." },
  *   body: { model: "gpt-4", messages: [...] }

@@ -10,7 +10,7 @@
  * @example Basic HTTP request
  * ```typescript
  * const request: ProviderHttpRequest = {
- *   url: "https://api.openai.com/v1/chat/completions",
+ *   url: "https://api.openai.com/v1/responses",
  *   method: "POST",
  *   headers: {
  *     "Content-Type": "application/json",

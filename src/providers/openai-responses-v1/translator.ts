@@ -60,7 +60,7 @@ function convertContentPart(part: ContentPart): unknown {
 }
 
 /**
- * Convert unified Message format to OpenAI message format
+ * Convert unified Message format to OpenAI Responses API message format
  */
 function convertMessage(message: Message): unknown {
   // Handle simple text-only case (text or code content treated as text)
@@ -69,6 +69,7 @@ function convertMessage(message: Message): unknown {
     (message.content[0].type === "text" || message.content[0].type === "code")
   ) {
     return {
+      type: "message",
       role: message.role,
       content: message.content[0].text,
     };
@@ -78,6 +79,7 @@ function convertMessage(message: Message): unknown {
   const convertedContent = message.content.map(convertContentPart);
 
   return {
+    type: "message",
     role: message.role,
     content: convertedContent,
   };
@@ -103,7 +105,7 @@ function buildOpenAIRequestBody(
     openaiRequest.temperature = request.temperature;
   }
   if (request.maxTokens !== undefined) {
-    openaiRequest.max_tokens = request.maxTokens;
+    openaiRequest.max_output_tokens = request.maxTokens;
   }
 
   // Add tools if provided
@@ -129,6 +131,12 @@ function buildOpenAIRequestBody(
     for (const [key, value] of Object.entries(request.options)) {
       // Skip tools if already processed above
       if (key === "tools") continue;
+
+      // Special handling for maxTokens in responses API
+      if (key === "maxTokens") {
+        openaiRequest.max_output_tokens = value;
+        continue;
+      }
 
       // Convert camelCase to snake_case for OpenAI API
       const openaiKey = key.replace(/([A-Z])/g, "_$1").toLowerCase();
@@ -181,7 +189,7 @@ export function translateChatRequest(
     // Build headers
     const headers = buildHeaders(config);
 
-    // Construct the URL - NOTE: Using /v1/responses not /v1/chat/completions
+    // Construct the URL - NOTE: Using /v1/responses not /v1/responses
     const url = `${config.baseUrl}/responses`;
 
     return createHttpRequest({

@@ -26,7 +26,10 @@ describe("Contract Validation", () => {
         expect(result.data.id).toBe("resp_01J8KRXF7QZQZQZQZQZQZQZQZQ");
         expect(result.data.object).toBe("response");
         expect(result.data.output).toHaveLength(1);
-        expect(result.data.output[0].role).toBe("assistant");
+        const output = result.data.output[0];
+        if (output.type === "message") {
+          expect(output.role).toBe("assistant");
+        }
         expect(result.data.usage).toBeDefined();
       }
     });
@@ -38,7 +41,10 @@ describe("Contract Validation", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.output[0].content[0].text).toBe("");
+        const output = result.data.output[0];
+        if (output.type === "message") {
+          expect(output.content[0].text).toBe("");
+        }
         expect(result.data.usage?.output_tokens).toBe(0);
       }
     });
@@ -62,9 +68,12 @@ describe("Contract Validation", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(Array.isArray(result.data.output[0].content)).toBe(true);
-        const content = result.data.output[0].content as Array<any>;
-        expect(content[0].type).toBe("output_text");
+        const output = result.data.output[0];
+        if (output.type === "message") {
+          expect(Array.isArray(output.content)).toBe(true);
+          const content = output.content;
+          expect(content[0].type).toBe("output_text");
+        }
       }
     });
 

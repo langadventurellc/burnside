@@ -26,7 +26,7 @@ export function loadTestConfig(): TestConfig {
   return {
     openaiApiKey,
     testEnabled,
-    testModel: process.env.E2E_OPENAI_MODEL || "openai:gpt-4o-2024-08-06",
+    testModel: process.env.E2E_OPENAI_MODEL || "openai:gpt-5-nano-2025-08-07",
     timeout: 30000,
   };
 }

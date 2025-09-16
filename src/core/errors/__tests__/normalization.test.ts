@@ -105,7 +105,7 @@ describe("ErrorContext interface", () => {
       operation: "chat_completion",
       model: "gpt-4",
       attempt: 1,
-      url: "https://api.openai.com/v1/chat/completions",
+      url: "https://api.openai.com/v1/responses",
       customProperty: "custom value",
     };
 

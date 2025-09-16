@@ -33,9 +33,10 @@ const MessageContentSchema = z.union([
 ]);
 
 /**
- * OpenAI chat message schema
+ * OpenAI Responses API message schema
  */
-const ChatMessageSchema = z.object({
+const ResponsesMessageSchema = z.object({
+  type: z.literal("message"),
   role: MessageRoleSchema,
   content: MessageContentSchema,
   name: z.string().optional(),
@@ -54,7 +55,7 @@ export const OpenAIResponsesV1RequestSchema = z.object({
 
   /** Input for the model (Responses API uses 'input' not 'messages') */
   input: z
-    .array(ChatMessageSchema)
+    .array(ResponsesMessageSchema)
     .min(1, "At least one input message is required"),
 
   /** Whether to stream the response */
@@ -64,7 +65,7 @@ export const OpenAIResponsesV1RequestSchema = z.object({
   temperature: z.number().min(0).max(2).optional(),
 
   /** Maximum tokens to generate */
-  max_tokens: z.number().int().positive().optional(),
+  max_output_tokens: z.number().int().positive().optional(),
 
   /** Top-p nucleus sampling parameter */
   top_p: z.number().min(0).max(1).optional(),

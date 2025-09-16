@@ -13,6 +13,7 @@ describe("OpenAIResponsesV1RequestSchema", () => {
         model: "gpt-4o-2024-08-06",
         input: [
           {
+            type: "message",
             role: "user",
             content: "Hello, world!",
           },
@@ -23,6 +24,7 @@ describe("OpenAIResponsesV1RequestSchema", () => {
 
       expect(result.model).toBe("gpt-4o-2024-08-06");
       expect(result.input).toHaveLength(1);
+      expect(result.input[0].type).toBe("message");
       expect(result.input[0].role).toBe("user");
       expect(result.input[0].content).toBe("Hello, world!");
     });
@@ -32,17 +34,19 @@ describe("OpenAIResponsesV1RequestSchema", () => {
         model: "gpt-4o-2024-08-06",
         input: [
           {
+            type: "message",
             role: "system",
             content: "You are a helpful assistant.",
           },
           {
+            type: "message",
             role: "user",
             content: "Hello!",
           },
         ],
         stream: true,
         temperature: 0.7,
-        max_tokens: 1000,
+        max_output_tokens: 1000,
         top_p: 0.9,
         frequency_penalty: 0.5,
         presence_penalty: 0.2,
@@ -55,9 +59,11 @@ describe("OpenAIResponsesV1RequestSchema", () => {
 
       expect(result.model).toBe("gpt-4o-2024-08-06");
       expect(result.input).toHaveLength(2);
+      expect(result.input[0].type).toBe("message");
+      expect(result.input[1].type).toBe("message");
       expect(result.stream).toBe(true);
       expect(result.temperature).toBe(0.7);
-      expect(result.max_tokens).toBe(1000);
+      expect(result.max_output_tokens).toBe(1000);
       expect(result.top_p).toBe(0.9);
       expect(result.frequency_penalty).toBe(0.5);
       expect(result.presence_penalty).toBe(0.2);
@@ -71,6 +77,7 @@ describe("OpenAIResponsesV1RequestSchema", () => {
         model: "gpt-4o-2024-08-06",
         input: [
           {
+            type: "message",
             role: "user",
             content: [
               {
