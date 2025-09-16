@@ -16,11 +16,29 @@ const OpenAIResponseContentPartSchema = z.object({
 });
 
 /**
+ * OpenAI tool call function schema
+ */
+const OpenAIToolCallFunctionSchema = z.object({
+  name: z.string(),
+  arguments: z.string(), // JSON string
+});
+
+/**
+ * OpenAI tool call schema
+ */
+const OpenAIToolCallSchema = z.object({
+  id: z.string(),
+  type: z.literal("function"),
+  function: OpenAIToolCallFunctionSchema,
+});
+
+/**
  * OpenAI response message schema
  */
 const OpenAIResponseMessageSchema = z.object({
   role: z.literal("assistant"),
   content: z.union([z.string(), z.array(OpenAIResponseContentPartSchema)]),
+  tool_calls: z.array(OpenAIToolCallSchema).optional(),
 });
 
 /**

@@ -497,4 +497,202 @@ describe("parseOpenAIResponse", () => {
       });
     });
   });
+
+  describe("Tool call parsing", () => {
+    test("should parse response with text content and tool calls", () => {
+      const responseText = JSON.stringify({
+        id: "chatcmpl-tool123",
+        object: "chat.completion",
+        created: 1699000000,
+        model: "gpt-4",
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: "assistant",
+              content: "I'll help you calculate that sum.",
+              tool_calls: [
+                {
+                  id: "call_abc123",
+                  type: "function",
+                  function: {
+                    name: "calculate_sum",
+                    arguments: '{"a": 5, "b": 3}',
+                  },
+                },
+              ],
+            },
+            finish_reason: "tool_calls",
+          },
+        ],
+        usage: {
+          prompt_tokens: 20,
+          completion_tokens: 15,
+          total_tokens: 35,
+        },
+      });
+
+      const response = createMockResponse(200, "OK");
+      const result = parseOpenAIResponse(response, responseText);
+
+      expect(result.message.content).toEqual([
+        { type: "text", text: "I'll help you calculate that sum." },
+      ]);
+      expect(result.message.toolCalls).toHaveLength(1);
+      expect(result.message.toolCalls![0]).toMatchObject({
+        id: "call_abc123",
+        name: "calculate_sum",
+        parameters: { a: 5, b: 3 },
+        metadata: {
+          providerId: "openai",
+          timestamp: expect.any(String),
+        },
+      });
+    });
+
+    test("should parse response with multiple tool calls", () => {
+      const responseText = JSON.stringify({
+        id: "chatcmpl-multi456",
+        object: "chat.completion",
+        created: 1699000000,
+        model: "gpt-4",
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: "assistant",
+              content: "I'll process both calculations.",
+              tool_calls: [
+                {
+                  id: "call_def456",
+                  type: "function",
+                  function: {
+                    name: "calculate_sum",
+                    arguments: '{"a": 10, "b": 20}',
+                  },
+                },
+                {
+                  id: "call_ghi789",
+                  type: "function",
+                  function: {
+                    name: "calculate_product",
+                    arguments: '{"x": 4, "y": 7}',
+                  },
+                },
+              ],
+            },
+            finish_reason: "tool_calls",
+          },
+        ],
+      });
+
+      const response = createMockResponse(200, "OK");
+      const result = parseOpenAIResponse(response, responseText);
+
+      expect(result.message.toolCalls).toHaveLength(2);
+      expect(result.message.toolCalls![0].name).toBe("calculate_sum");
+      expect(result.message.toolCalls![1].name).toBe("calculate_product");
+    });
+
+    test("should parse tool calls without text content", () => {
+      const responseText = JSON.stringify({
+        id: "chatcmpl-tool-only",
+        object: "chat.completion",
+        created: 1699000000,
+        model: "gpt-4",
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: "assistant",
+              content: "",
+              tool_calls: [
+                {
+                  id: "call_only123",
+                  type: "function",
+                  function: {
+                    name: "get_weather",
+                    arguments: '{"location": "San Francisco"}',
+                  },
+                },
+              ],
+            },
+            finish_reason: "tool_calls",
+          },
+        ],
+      });
+
+      const response = createMockResponse(200, "OK");
+      const result = parseOpenAIResponse(response, responseText);
+
+      expect(result.message.content).toEqual([{ type: "text", text: "" }]);
+      expect(result.message.toolCalls).toHaveLength(1);
+      expect(result.message.toolCalls![0].name).toBe("get_weather");
+    });
+
+    test("should handle responses without tool calls", () => {
+      const responseText = JSON.stringify({
+        id: "chatcmpl-no-tools",
+        object: "chat.completion",
+        created: 1699000000,
+        model: "gpt-4",
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: "assistant",
+              content: "Just a regular response.",
+            },
+            finish_reason: "stop",
+          },
+        ],
+      });
+
+      const response = createMockResponse(200, "OK");
+      const result = parseOpenAIResponse(response, responseText);
+
+      expect(result.message.content).toEqual([
+        { type: "text", text: "Just a regular response." },
+      ]);
+      expect(result.message.toolCalls).toBeUndefined();
+    });
+
+    test("should throw ValidationError for malformed tool call JSON", () => {
+      const responseText = JSON.stringify({
+        id: "chatcmpl-bad-tool",
+        object: "chat.completion",
+        created: 1699000000,
+        model: "gpt-4",
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: "assistant",
+              content: "Error case.",
+              tool_calls: [
+                {
+                  id: "call_bad123",
+                  type: "function",
+                  function: {
+                    name: "test_tool",
+                    arguments: '{"a": 5, "b":}', // Invalid JSON
+                  },
+                },
+              ],
+            },
+            finish_reason: "tool_calls",
+          },
+        ],
+      });
+
+      const response = createMockResponse(200, "OK");
+
+      expect(() => parseOpenAIResponse(response, responseText)).toThrow(
+        ValidationError,
+      );
+      expect(() => parseOpenAIResponse(response, responseText)).toThrow(
+        /Failed to parse tool calls in response/,
+      );
+    });
+  });
 });

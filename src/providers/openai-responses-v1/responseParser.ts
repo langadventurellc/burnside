@@ -8,12 +8,14 @@
 
 import type { Message } from "../../core/messages/message.js";
 import type { ContentPart } from "../../core/messages/contentPart.js";
+import type { ToolCall } from "../../core/tools/toolCall.js";
 import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse.js";
 import { ValidationError } from "../../core/errors/validationError.js";
 import {
   OpenAIResponsesV1ResponseSchema,
   type OpenAIResponsesV1Response,
 } from "./responseSchema.js";
+import { parseOpenAIToolCalls } from "./toolCallParser.js";
 
 /**
  * Convert OpenAI content to unified ContentPart array
@@ -32,21 +34,40 @@ function convertOpenAIContentToContentParts(
 }
 
 /**
- * Convert OpenAI choice to unified Message format
+ * Convert OpenAI choice to unified Message format with tool calls
  */
 function convertOpenAIChoiceToMessage(
   choice: OpenAIResponsesV1Response["choices"][0],
   responseId: string,
-): Message {
+): Message & { toolCalls?: ToolCall[] } {
   const contentParts = convertOpenAIContentToContentParts(
     choice.message.content,
   );
 
-  return {
+  const message: Message & { toolCalls?: ToolCall[] } = {
     id: responseId,
     role: "assistant",
     content: contentParts,
   };
+
+  // Parse tool calls if present
+  if (choice.message.tool_calls) {
+    try {
+      message.toolCalls = parseOpenAIToolCalls(choice.message.tool_calls);
+    } catch (error) {
+      // Add tool call parsing error to metadata but don't fail the entire response
+      if (error instanceof ValidationError) {
+        throw new ValidationError("Failed to parse tool calls in response", {
+          cause: error,
+          responseId,
+          toolCallsData: choice.message.tool_calls,
+        });
+      }
+      throw error;
+    }
+  }
+
+  return message;
 }
 
 /**
@@ -90,7 +111,7 @@ export function parseOpenAIResponse(
   response: ProviderHttpResponse,
   responseText: string,
 ): {
-  message: Message;
+  message: Message & { toolCalls?: ToolCall[] };
   usage?: {
     promptTokens: number;
     completionTokens: number;

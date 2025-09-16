@@ -104,15 +104,33 @@ affectedFiles:
   src/providers/openai-responses-v1/__tests__/toolTranslator.test.ts:
     Implemented extensive unit test suite with 20 test cases covering schema
     conversion, provider hints, error handling, and edge cases
+  src/providers/openai-responses-v1/toolCallParser.ts: Created core tool call
+    parsing logic with comprehensive Zod validation, JSON parsing, error
+    handling, and conversion to unified ToolCall format
+  src/providers/openai-responses-v1/responseSchema.ts: Extended response message
+    schema to include optional tool_calls array with OpenAI tool call format
+    validation
+  src/providers/openai-responses-v1/responseParser.ts: Integrated tool call
+    parsing into non-streaming response handling with error handling and
+    extended return type
+  src/providers/openai-responses-v1/__tests__/toolCallParser.test.ts:
+    Created comprehensive unit test suite with 20 test cases covering
+    validation, conversion, and error handling scenarios
+  src/providers/openai-responses-v1/__tests__/fixtures/toolCallResponses.ts:
+    Created extensive test fixtures covering success cases, error cases, and
+    edge cases for tool call responses
+  src/providers/openai-responses-v1/__tests__/responseParser.test.ts:
+    Added 6 test cases for tool call parsing integration in non-streaming
+    responses
 log: []
 schema: v1.0
 childrenIds:
-  - T-add-openai-tool-format
   - T-create-basic-agent-loop-with
   - T-create-e2e-test-user-message
   - T-implement-openai-tool-call
   - T-integrate-tool-system-with
   - T-update-bridgeconfig-with-tool
+  - T-add-openai-tool-format
   - T-create-echo-tool-with
   - T-create-toolregistry-with
   - T-implement-core-tool-types-and
