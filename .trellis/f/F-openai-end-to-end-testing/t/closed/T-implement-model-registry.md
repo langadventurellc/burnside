@@ -1,13 +1,42 @@
 ---
 id: T-implement-model-registry
 title: Implement model registry helpers and test configuration
-status: open
+status: done
 priority: high
 parent: F-openai-end-to-end-testing
 prerequisites:
   - T-create-e2e-test-directory
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/__tests__/e2e/shared/testConfigInterface.ts: Created TestConfig interface
+    defining structure for E2E test configuration including API keys, test
+    enablement, and timeout settings
+  src/__tests__/e2e/shared/validateApiKey.ts: Created API key validation helper
+    supporting OpenAI format validation (sk- prefix and minimum length
+    requirements)
+  src/__tests__/e2e/shared/testConfig.ts: Created test configuration loader with
+    environment variable validation and error handling for missing/invalid API
+    keys
+  src/__tests__/e2e/shared/modelHelpers.ts:
+    Created BridgeClient factory function
+    with builtin model seeding, OpenAI provider registration, and proper tools
+    configuration
+  src/__tests__/e2e/shared/ensureModelRegistered.ts:
+    Created model registry helper
+    to register custom models with complete capabilities and metadata for
+    non-seeded models
+  src/__tests__/e2e/shared/getTestModel.ts: Created test model ID helper with
+    environment variable override support (defaults to openai:gpt-4o-2024-08-06)
+  src/__tests__/e2e/shared/testHelpers.ts: Created message schema validation
+    helper for consistent response validation in E2E tests
+  src/__tests__/e2e/shared/createTestMessages.ts: Created test message factory for generating properly formatted user messages
+  src/__tests__/e2e/shared/withTimeout.ts: Created timeout wrapper utility for
+    reliable E2E test execution with configurable timeouts
+log:
+  - Implemented model registry helpers and test configuration for E2E testing
+    infrastructure. Created 7 helper modules that provide proper model seeding,
+    environment configuration, and test utilities. All modules follow the
+    project's one-export-per-file convention and pass quality checks with 100%
+    test coverage maintained.
 schema: v1.0
 childrenIds: []
 created: 2025-09-16T06:22:25.012Z

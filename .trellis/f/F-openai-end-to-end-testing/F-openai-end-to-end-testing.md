@@ -24,15 +24,39 @@ affectedFiles:
   src/__tests__/e2e/shared/:
     Created empty directory for shared E2E test utilities
     (ready for future tasks)
+  src/__tests__/e2e/shared/testConfigInterface.ts: Created TestConfig interface
+    defining structure for E2E test configuration including API keys, test
+    enablement, and timeout settings
+  src/__tests__/e2e/shared/validateApiKey.ts: Created API key validation helper
+    supporting OpenAI format validation (sk- prefix and minimum length
+    requirements)
+  src/__tests__/e2e/shared/testConfig.ts: Created test configuration loader with
+    environment variable validation and error handling for missing/invalid API
+    keys
+  src/__tests__/e2e/shared/modelHelpers.ts:
+    Created BridgeClient factory function
+    with builtin model seeding, OpenAI provider registration, and proper tools
+    configuration
+  src/__tests__/e2e/shared/ensureModelRegistered.ts:
+    Created model registry helper
+    to register custom models with complete capabilities and metadata for
+    non-seeded models
+  src/__tests__/e2e/shared/getTestModel.ts: Created test model ID helper with
+    environment variable override support (defaults to openai:gpt-4o-2024-08-06)
+  src/__tests__/e2e/shared/testHelpers.ts: Created message schema validation
+    helper for consistent response validation in E2E tests
+  src/__tests__/e2e/shared/createTestMessages.ts: Created test message factory for generating properly formatted user messages
+  src/__tests__/e2e/shared/withTimeout.ts: Created timeout wrapper utility for
+    reliable E2E test execution with configurable timeouts
 log: []
 schema: v1.0
 childrenIds:
-  - T-create-e2e-test-directory
   - T-implement-model-registry
   - T-implement-openai-chat
   - T-implement-openai-streaming
   - T-implement-openai-tool
   - T-implement-tool-call
+  - T-create-e2e-test-directory
   - T-create-jest-e2e-configuration
 created: 2025-09-16T06:13:46.927Z
 updated: 2025-09-16T06:13:46.927Z
