@@ -111,6 +111,7 @@ Create `src/providers/anthropic-2025-05-14/streamingParser.ts`
    ```
 
 3. **SseParser Usage**:
+
    ```typescript
    const chunks = convertToUint8ArrayIterable(response.body);
    for await (const sseEvent of SseParser.parse(chunks)) {
