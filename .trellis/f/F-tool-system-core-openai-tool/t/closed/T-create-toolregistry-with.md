@@ -1,13 +1,37 @@
 ---
 id: T-create-toolregistry-with
 title: Create ToolRegistry with registration and discovery
-status: open
+status: done
 priority: high
 parent: F-tool-system-core-openai-tool
 prerequisites:
   - T-implement-core-tool-types-and
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/tools/toolRegistry.ts: Created ToolRegistry interface defining the
+    contract for tool registration, discovery, and lifecycle management with
+    comprehensive documentation and examples
+  src/core/tools/registryEntry.ts: Created RegistryEntry interface for unified
+    storage of tool definitions and handlers in registry systems
+  src/core/tools/inMemoryToolRegistry.ts: Implemented InMemoryToolRegistry class
+    with Map-based storage, comprehensive validation, tool name sanitization,
+    registration metadata tracking, and defensive error handling using ToolError
+  src/core/tools/index.ts: Updated exports to include ToolRegistry interface,
+    RegistryEntry interface, and InMemoryToolRegistry implementation for public
+    API access
+  src/core/tools/__tests__/toolRegistry.test.ts: Created comprehensive unit test
+    suite with 53 test cases covering registration, unregistration, discovery,
+    validation, error handling, edge cases, and performance requirements
+log:
+  - Implemented ToolRegistry with registration and discovery functionality.
+    Created a comprehensive tool management system following established
+    registry patterns from provider and model systems. The implementation
+    includes a ToolRegistry interface defining the contract for tool management
+    operations, an InMemoryToolRegistry class providing Map-based storage with
+    O(1) lookup performance, comprehensive validation using ToolDefinitionSchema
+    and common validation patterns, defensive error handling with ToolError, and
+    extensive unit tests covering all functionality including edge cases, error
+    conditions, and performance requirements. All quality checks and 53 unit
+    tests pass successfully.
 schema: v1.0
 childrenIds: []
 created: 2025-09-16T00:27:44.430Z

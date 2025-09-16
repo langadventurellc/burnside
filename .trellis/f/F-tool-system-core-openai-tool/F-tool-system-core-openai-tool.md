@@ -18,13 +18,26 @@ affectedFiles:
     for ToolResult ensuring mutually exclusive success/error states with
     comprehensive validation
   src/core/tools/index.ts: Updated exports to include new ToolCall, ToolResult
-    interfaces and their corresponding Zod schemas
+    interfaces and their corresponding Zod schemas; Updated exports to include
+    ToolRegistry interface, RegistryEntry interface, and InMemoryToolRegistry
+    implementation for public API access
   src/core/tools/__tests__/toolCallSchema.test.ts: Created comprehensive test
     suite with 32 test cases covering all validation scenarios, edge cases, and
     error conditions
   src/core/tools/__tests__/toolResultSchema.test.ts: Created comprehensive test
     suite with 24 test cases covering discriminated union behavior,
     success/error state validation, and all field validation rules
+  src/core/tools/toolRegistry.ts: Created ToolRegistry interface defining the
+    contract for tool registration, discovery, and lifecycle management with
+    comprehensive documentation and examples
+  src/core/tools/registryEntry.ts: Created RegistryEntry interface for unified
+    storage of tool definitions and handlers in registry systems
+  src/core/tools/inMemoryToolRegistry.ts: Implemented InMemoryToolRegistry class
+    with Map-based storage, comprehensive validation, tool name sanitization,
+    registration metadata tracking, and defensive error handling using ToolError
+  src/core/tools/__tests__/toolRegistry.test.ts: Created comprehensive unit test
+    suite with 53 test cases covering registration, unregistration, discovery,
+    validation, error handling, edge cases, and performance requirements
 log: []
 schema: v1.0
 childrenIds:
@@ -33,11 +46,11 @@ childrenIds:
   - T-create-e2e-test-user-message
   - T-create-echo-tool-with
   - T-create-toolregistry-with
-  - T-implement-core-tool-types-and
   - T-implement-openai-tool-call
   - T-implement-toolrouter-with
   - T-integrate-tool-system-with
   - T-update-bridgeconfig-with-tool
+  - T-implement-core-tool-types-and
 created: 2025-09-16T00:17:03.570Z
 updated: 2025-09-16T00:17:03.570Z
 ---
