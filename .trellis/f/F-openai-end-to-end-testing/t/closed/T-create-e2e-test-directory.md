@@ -1,13 +1,31 @@
 ---
 id: T-create-e2e-test-directory
 title: Create E2E test directory structure and setup files
-status: open
+status: done
 priority: high
 parent: F-openai-end-to-end-testing
 prerequisites:
   - T-create-jest-e2e-configuration
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/__tests__/e2e/setup/globalSetup.ts: Created Jest global setup with
+    environment variable validation for OPENAI_API_KEY and E2E_TEST_ENABLED,
+    including API key format validation
+  src/__tests__/e2e/setup/setupEnv.ts: Created per-test environment setup with
+    ValidationError-based validation for API key format and E2E test enablement
+  src/__tests__/e2e/setup/globalTeardown.ts: Created Jest global teardown for post-test cleanup operations
+  src/__tests__/e2e/openai/:
+    Created empty directory for OpenAI-specific E2E tests
+    (ready for future tasks)
+  src/__tests__/e2e/shared/:
+    Created empty directory for shared E2E test utilities
+    (ready for future tasks)
+log:
+  - Successfully created E2E test directory structure and Jest setup files with
+    comprehensive environment validation. Implemented globalSetup.ts for
+    one-time initialization with API key validation, setupEnv.ts for per-test
+    environment setup using ValidationError for type-safe validation, and
+    globalTeardown.ts for cleanup. All quality checks pass and the structure is
+    ready for E2E test implementation.
 schema: v1.0
 childrenIds: []
 created: 2025-09-16T06:21:51.301Z

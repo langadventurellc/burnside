@@ -12,16 +12,28 @@ affectedFiles:
     for environment variable loading
   .env.example: Created comprehensive environment variable documentation with
     OpenAI API key setup, E2E test enablement, and usage instructions
+  src/__tests__/e2e/setup/globalSetup.ts: Created Jest global setup with
+    environment variable validation for OPENAI_API_KEY and E2E_TEST_ENABLED,
+    including API key format validation
+  src/__tests__/e2e/setup/setupEnv.ts: Created per-test environment setup with
+    ValidationError-based validation for API key format and E2E test enablement
+  src/__tests__/e2e/setup/globalTeardown.ts: Created Jest global teardown for post-test cleanup operations
+  src/__tests__/e2e/openai/:
+    Created empty directory for OpenAI-specific E2E tests
+    (ready for future tasks)
+  src/__tests__/e2e/shared/:
+    Created empty directory for shared E2E test utilities
+    (ready for future tasks)
 log: []
 schema: v1.0
 childrenIds:
   - T-create-e2e-test-directory
-  - T-create-jest-e2e-configuration
   - T-implement-model-registry
   - T-implement-openai-chat
   - T-implement-openai-streaming
   - T-implement-openai-tool
   - T-implement-tool-call
+  - T-create-jest-e2e-configuration
 created: 2025-09-16T06:13:46.927Z
 updated: 2025-09-16T06:13:46.927Z
 ---
