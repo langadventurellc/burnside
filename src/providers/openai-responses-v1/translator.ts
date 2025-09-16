@@ -12,6 +12,7 @@ import { createHttpRequest } from "../../core/providers/createHttpRequest.js";
 import { ValidationError } from "../../core/errors/validationError.js";
 import type { OpenAIResponsesV1Config } from "./configSchema.js";
 import { OpenAIResponsesV1RequestSchema } from "./requestSchema.js";
+import { translateToolsForOpenAI } from "./toolsTranslator.js";
 
 /**
  * Convert unified ContentPart to OpenAI message content format
@@ -86,7 +87,7 @@ function convertMessage(message: Message): unknown {
  * Build OpenAI request body from unified request
  */
 function buildOpenAIRequestBody(
-  request: ChatRequest & { stream?: boolean },
+  request: ChatRequest & { stream?: boolean; tools?: unknown[] },
 ): Record<string, unknown> {
   const messages = request.messages.map(convertMessage);
 
@@ -105,9 +106,30 @@ function buildOpenAIRequestBody(
     openaiRequest.max_tokens = request.maxTokens;
   }
 
+  // Add tools if provided
+  if (
+    request.tools &&
+    Array.isArray(request.tools) &&
+    request.tools.length > 0
+  ) {
+    try {
+      openaiRequest.tools = translateToolsForOpenAI(
+        request.tools as Parameters<typeof translateToolsForOpenAI>[0],
+      );
+    } catch (error) {
+      throw new ValidationError(
+        `Failed to translate tools for OpenAI request: ${error instanceof Error ? error.message : "Unknown error"}`,
+        { originalError: error, tools: request.tools },
+      );
+    }
+  }
+
   // Add options from the request if provided
   if (request.options) {
     for (const [key, value] of Object.entries(request.options)) {
+      // Skip tools if already processed above
+      if (key === "tools") continue;
+
       // Convert camelCase to snake_case for OpenAI API
       const openaiKey = key.replace(/([A-Z])/g, "_$1").toLowerCase();
       openaiRequest[openaiKey] = value;

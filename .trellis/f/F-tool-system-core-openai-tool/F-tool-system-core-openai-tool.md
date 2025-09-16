@@ -83,16 +83,37 @@ affectedFiles:
   src/tools/builtin/echo/__tests__/echoTool.test.ts: Created comprehensive test
     suite with 33 test cases covering functionality, validation, integration,
     and error handling
+  src/providers/openai-responses-v1/openAIToolSchema.ts:
+    Created comprehensive Zod
+    validation schemas for OpenAI function calling format with proper name
+    validation and parameter structure
+  src/providers/openai-responses-v1/toolTranslator.ts: Implemented main
+    translation logic converting ToolDefinition to OpenAI format with Zod schema
+    conversion and provider hints support
+  src/providers/openai-responses-v1/toolsTranslator.ts:
+    Created separate file for
+    array translation following one-export-per-file rule with comprehensive
+    error handling
+  src/providers/openai-responses-v1/requestSchema.ts: Updated request schema to
+    include tools and tool_choice fields for OpenAI function calling support
+  src/providers/openai-responses-v1/translator.ts: Integrated tool translation
+    with existing request building to include tools when provided in requests
+  src/providers/openai-responses-v1/__tests__/fixtures/toolExamples.ts:
+    Created comprehensive test fixtures with various ToolDefinition examples and
+    expected OpenAI format outputs
+  src/providers/openai-responses-v1/__tests__/toolTranslator.test.ts:
+    Implemented extensive unit test suite with 20 test cases covering schema
+    conversion, provider hints, error handling, and edge cases
 log: []
 schema: v1.0
 childrenIds:
   - T-add-openai-tool-format
   - T-create-basic-agent-loop-with
   - T-create-e2e-test-user-message
-  - T-create-echo-tool-with
   - T-implement-openai-tool-call
   - T-integrate-tool-system-with
   - T-update-bridgeconfig-with-tool
+  - T-create-echo-tool-with
   - T-create-toolregistry-with
   - T-implement-core-tool-types-and
   - T-implement-toolrouter-with

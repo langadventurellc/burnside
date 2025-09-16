@@ -3,6 +3,7 @@
  */
 
 import { z } from "zod";
+import { OpenAIToolSchema } from "./openAIToolSchema.js";
 
 /**
  * OpenAI message role schema
@@ -82,4 +83,21 @@ export const OpenAIResponsesV1RequestSchema = z.object({
 
   /** User identifier for abuse monitoring */
   user: z.string().optional(),
+
+  /** Tools available for function calling */
+  tools: z.array(OpenAIToolSchema).optional(),
+
+  /** Tool choice configuration */
+  tool_choice: z
+    .union([
+      z.literal("auto"),
+      z.literal("none"),
+      z.object({
+        type: z.literal("function"),
+        function: z.object({
+          name: z.string(),
+        }),
+      }),
+    ])
+    .optional(),
 });
