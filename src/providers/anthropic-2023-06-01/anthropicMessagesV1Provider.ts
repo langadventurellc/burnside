@@ -18,7 +18,10 @@ import {
   AnthropicMessagesConfigSchema,
   type AnthropicMessagesConfigType,
 } from "./configSchema.js";
+import { translateChatRequest } from "./translator.js";
 import { parseAnthropicResponse } from "./responseParser.js";
+import { parseAnthropicResponseStream } from "./streamingParser.js";
+import { normalizeAnthropicError } from "./errorNormalizer.js";
 
 /**
  * Anthropic Messages v1 Provider Plugin
@@ -87,17 +90,21 @@ export class AnthropicMessagesV1Provider implements ProviderPlugin {
    * @throws {BridgeError} When provider is not initialized or translation fails
    */
   translateRequest(
-    _request: ChatRequest & { stream?: boolean },
+    request: ChatRequest & { stream?: boolean },
     _modelCapabilities?: { temperature?: boolean },
   ): ProviderHttpRequest {
-    this.assertInitialized();
+    if (!this.config) {
+      throw new BridgeError("Provider not initialized", "NOT_INITIALIZED", {
+        provider: "anthropic",
+        version: "2023-06-01",
+      });
+    }
 
-    // Placeholder - will be implemented in separate translation task
-    throw new BridgeError(
-      "translateRequest not yet implemented",
-      "PROVIDER_ERROR",
-      { provider: "anthropic", version: "2023-06-01" },
-    );
+    try {
+      return translateChatRequest(request, this.config);
+    } catch (error: unknown) {
+      throw this.normalizeError(error);
+    }
   }
 
   /**
@@ -127,91 +134,34 @@ export class AnthropicMessagesV1Provider implements ProviderPlugin {
         metadata?: Record<string, unknown>;
       }>
     | AsyncIterable<StreamDelta> {
-    this.assertInitialized();
-
-    if (!response.body) {
-      throw new BridgeError("Response body is required", "PROVIDER_ERROR", {
+    if (!this.config) {
+      throw new BridgeError("Provider not initialized", "NOT_INITIALIZED", {
         provider: "anthropic",
         version: "2023-06-01",
       });
     }
 
-    if (isStreaming) {
-      // Return async iterable for streaming responses
-      return {
-        [Symbol.asyncIterator]() {
-          return {
-            next() {
-              return Promise.reject(
-                new BridgeError(
-                  "Streaming response parsing not yet implemented",
-                  "PROVIDER_ERROR",
-                  { provider: "anthropic", version: "2023-06-01" },
-                ),
-              );
-            },
-          };
-        },
-      };
-    } else {
-      // Return promise for non-streaming responses
-      return (async (): Promise<{
-        message: Message;
-        usage?: {
-          promptTokens: number;
-          completionTokens: number;
-          totalTokens?: number;
-        };
-        model: string;
-        metadata?: Record<string, unknown>;
-      }> => {
-        // Read response body
-        if (!response.body) {
-          throw new ValidationError("Response body is null", {
-            status: response.status,
-            statusText: response.statusText,
-          });
-        }
+    try {
+      if (isStreaming) {
+        return parseAnthropicResponseStream(response);
+      } else {
+        // Return promise for non-streaming responses
+        return (async () => {
+          try {
+            // Read response body first, then pass to parser
+            if (!response.body) {
+              throw new ValidationError("Response body is required");
+            }
 
-        const stream: ReadableStream<Uint8Array> = response.body;
-        const reader = stream.getReader();
-        const chunks: Uint8Array[] = [];
-
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            chunks.push(value);
+            const responseText = await this.readResponseBody(response.body);
+            return parseAnthropicResponse(response, responseText);
+          } catch (error: unknown) {
+            throw this.normalizeError(error);
           }
-        } finally {
-          reader.releaseLock();
-        }
-
-        // Combine chunks and decode as UTF-8
-        const totalLength = chunks.reduce(
-          (sum, chunk) => sum + chunk.length,
-          0,
-        );
-        const combined = new Uint8Array(totalLength);
-        let offset = 0;
-        for (const chunk of chunks) {
-          combined.set(chunk, offset);
-          offset += chunk.length;
-        }
-
-        const responseText = new TextDecoder().decode(combined);
-
-        // Parse response
-        const result = parseAnthropicResponse(response, responseText);
-
-        // Convert intersection type to match expected return type
-        return {
-          message: result.message,
-          usage: result.usage,
-          model: result.model,
-          metadata: result.metadata,
-        };
-      })();
+        })();
+      }
+    } catch (error: unknown) {
+      throw this.normalizeError(error);
     }
   }
 
@@ -238,14 +188,13 @@ export class AnthropicMessagesV1Provider implements ProviderPlugin {
           metadata?: Record<string, unknown>;
         },
   ): boolean {
-    // Check if this is a StreamDelta with terminal flag
-    if ("delta" in deltaOrResponse) {
-      // Placeholder - will be implemented with streaming parser
-      return false;
+    // Handle complete response object (non-streaming)
+    if ("message" in deltaOrResponse) {
+      return true; // Non-streaming responses are always terminal
     }
 
-    // Non-streaming responses are always terminal
-    return true;
+    // Handle StreamDelta (streaming)
+    return deltaOrResponse.finished === true;
   }
 
   /**
@@ -259,82 +208,46 @@ export class AnthropicMessagesV1Provider implements ProviderPlugin {
    */
   normalizeError(error: unknown): BridgeError {
     // Add provider context internally since interface doesn't accept context parameter
-    const context = { provider: this.id, version: this.version };
+    const enhancedContext = {
+      provider: this.id,
+      version: this.version,
+      timestamp: new Date().toISOString(),
+    };
 
-    // Placeholder - will be implemented in separate error handling task
-    if (error instanceof BridgeError) {
-      return error;
+    return normalizeAnthropicError(error, enhancedContext);
+  }
+
+  /**
+   * Read response body from ReadableStream
+   *
+   * @param body - The response body as ReadableStream
+   * @returns Promise resolving to response text
+   */
+  private async readResponseBody(
+    body: ReadableStream<Uint8Array>,
+  ): Promise<string> {
+    const reader = body.getReader();
+    const chunks: Uint8Array[] = [];
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+      }
+    } finally {
+      reader.releaseLock();
     }
 
-    return new BridgeError("Unknown provider error", "PROVIDER_ERROR", {
-      cause: error instanceof Error ? error : new Error(String(error)),
-      ...context,
-    });
-  }
-
-  /**
-   * Assert that the provider has been initialized
-   *
-   * @throws {BridgeError} When provider is not initialized
-   */
-  private assertInitialized(): asserts this is {
-    config: AnthropicMessagesConfigType;
-  } {
-    if (!this.config) {
-      throw new BridgeError("Provider not initialized", "NOT_INITIALIZED", {
-        provider: "anthropic",
-        version: "2023-06-01",
-      });
+    // Combine chunks and decode as UTF-8
+    const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+    const combined = new Uint8Array(totalLength);
+    let offset = 0;
+    for (const chunk of chunks) {
+      combined.set(chunk, offset);
+      offset += chunk.length;
     }
-  }
 
-  /**
-   * Create streaming response placeholder
-   *
-   * @returns AsyncIterable placeholder for streaming responses
-   */
-  private createStreamingResponse(): AsyncIterable<StreamDelta> {
-    const provider = { id: this.id, version: this.version };
-    return {
-      [Symbol.asyncIterator]() {
-        return {
-          next() {
-            // Placeholder - will be implemented in separate streaming parser task
-            return Promise.reject(
-              new BridgeError(
-                "Streaming response parsing not yet implemented",
-                "PROVIDER_ERROR",
-                { provider },
-              ),
-            );
-          },
-        };
-      },
-    };
-  }
-
-  /**
-   * Create non-streaming response placeholder
-   *
-   * @returns Promise placeholder for non-streaming responses
-   */
-  private createNonStreamingResponse(): Promise<{
-    message: Message;
-    usage?: {
-      promptTokens: number;
-      completionTokens: number;
-      totalTokens?: number;
-    };
-    model: string;
-    metadata?: Record<string, unknown>;
-  }> {
-    // Placeholder - will be implemented in separate response parser task
-    return Promise.reject(
-      new BridgeError(
-        "Non-streaming response parsing not yet implemented",
-        "PROVIDER_ERROR",
-        { provider: this.id, version: this.version },
-      ),
-    );
+    return new TextDecoder().decode(combined);
   }
 }

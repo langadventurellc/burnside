@@ -11,11 +11,98 @@ import type { ProviderHttpResponse } from "../../../core/transport/providerHttpR
 import { BridgeError } from "../../../core/errors/bridgeError.js";
 import { ValidationError } from "../../../core/errors/validationError.js";
 
+// Mock the imported modules
+jest.mock("../translator.js", () => ({
+  translateChatRequest: jest.fn(),
+}));
+jest.mock("../responseParser.js", () => ({
+  parseAnthropicResponse: jest.fn(),
+}));
+jest.mock("../streamingParser.js", () => ({
+  parseAnthropicResponseStream: jest.fn(),
+}));
+jest.mock("../errorNormalizer.js", () => ({
+  normalizeAnthropicError: jest.fn(),
+}));
+
+import { translateChatRequest } from "../translator.js";
+import { parseAnthropicResponse } from "../responseParser.js";
+import { parseAnthropicResponseStream } from "../streamingParser.js";
+import { normalizeAnthropicError } from "../errorNormalizer.js";
+
+const mockTranslateChatRequest = translateChatRequest as jest.MockedFunction<
+  typeof translateChatRequest
+>;
+const mockParseAnthropicResponse =
+  parseAnthropicResponse as jest.MockedFunction<typeof parseAnthropicResponse>;
+const mockParseAnthropicResponseStream =
+  parseAnthropicResponseStream as jest.MockedFunction<
+    typeof parseAnthropicResponseStream
+  >;
+const mockNormalizeAnthropicError =
+  normalizeAnthropicError as jest.MockedFunction<
+    typeof normalizeAnthropicError
+  >;
+
 describe("AnthropicMessagesV1Provider", () => {
   let provider: AnthropicMessagesV1Provider;
 
   beforeEach(() => {
     provider = new AnthropicMessagesV1Provider();
+
+    // Reset all mocks
+    jest.clearAllMocks();
+
+    // Setup default mock implementations
+    mockTranslateChatRequest.mockReturnValue({
+      url: "https://api.anthropic.com/v1/messages",
+      method: "POST",
+      headers: { "x-api-key": "test-key" },
+      body: JSON.stringify({ model: "claude-3", messages: [] }),
+    });
+
+    (mockParseAnthropicResponse as jest.Mock).mockResolvedValue({
+      message: {
+        role: "assistant",
+        content: [{ type: "text", text: "Hello" }],
+        toolCalls: [],
+      },
+      model: "claude-3",
+      usage: { promptTokens: 10, completionTokens: 5 },
+      metadata: {},
+    });
+
+    mockParseAnthropicResponseStream.mockReturnValue({
+      async *[Symbol.asyncIterator]() {
+        await Promise.resolve(); // Satisfy async requirement
+        yield {
+          id: "chunk-1",
+          delta: { content: [{ type: "text", text: "Hello" }] },
+          finished: false,
+        } as StreamDelta;
+        yield {
+          id: "chunk-2",
+          delta: {},
+          finished: true,
+        } as StreamDelta;
+      },
+    });
+
+    mockNormalizeAnthropicError.mockImplementation(
+      (error: unknown, context?: Record<string, unknown>) => {
+        if (error instanceof BridgeError) return error;
+        return new BridgeError(
+          error instanceof Error ? error.message : "Unknown provider error",
+          "PROVIDER_ERROR",
+          {
+            cause: error instanceof Error ? error : new Error(String(error)),
+            provider: "anthropic",
+            version: "2023-06-01",
+            ...(context || {}),
+          },
+        );
+      },
+    );
   });
 
   describe("metadata", () => {
@@ -221,7 +308,7 @@ describe("AnthropicMessagesV1Provider", () => {
       );
     });
 
-    it("should throw placeholder error when initialized", async () => {
+    it("should successfully translate request when initialized", async () => {
       const config = { apiKey: "sk-ant-test123" };
       await provider.initialize(config);
 
@@ -235,10 +322,21 @@ describe("AnthropicMessagesV1Provider", () => {
         model: "claude-3-5-sonnet-20241022",
       };
 
-      expect(() => provider.translateRequest(request)).toThrow(BridgeError);
-      expect(() => provider.translateRequest(request)).toThrow(
-        "translateRequest not yet implemented",
-      );
+      const result = provider.translateRequest(request);
+
+      expect(result).toEqual({
+        url: "https://api.anthropic.com/v1/messages",
+        method: "POST",
+        headers: { "x-api-key": "test-key" },
+        body: JSON.stringify({ model: "claude-3", messages: [] }),
+      });
+      expect(mockTranslateChatRequest).toHaveBeenCalledWith(request, {
+        apiKey: "sk-ant-test123",
+        baseUrl: "https://api.anthropic.com",
+        version: "2023-06-01",
+        timeout: 30000,
+        maxRetries: 3,
+      });
     });
 
     it("should accept stream parameter", async () => {
@@ -256,9 +354,15 @@ describe("AnthropicMessagesV1Provider", () => {
         stream: true,
       };
 
-      expect(() => provider.translateRequest(request)).toThrow(
-        "translateRequest not yet implemented",
-      );
+      const result = provider.translateRequest(request);
+      expect(result).toBeDefined();
+      expect(mockTranslateChatRequest).toHaveBeenCalledWith(request, {
+        apiKey: "sk-ant-test123",
+        baseUrl: "https://api.anthropic.com",
+        version: "2023-06-01",
+        timeout: 30000,
+        maxRetries: 3,
+      });
     });
 
     it("should accept modelCapabilities parameter", async () => {
@@ -277,9 +381,15 @@ describe("AnthropicMessagesV1Provider", () => {
 
       const capabilities = { temperature: true };
 
-      expect(() => provider.translateRequest(request, capabilities)).toThrow(
-        "translateRequest not yet implemented",
-      );
+      const result = provider.translateRequest(request, capabilities);
+      expect(result).toBeDefined();
+      expect(mockTranslateChatRequest).toHaveBeenCalledWith(request, {
+        apiKey: "sk-ant-test123",
+        baseUrl: "https://api.anthropic.com",
+        version: "2023-06-01",
+        timeout: 30000,
+        maxRetries: 3,
+      });
     });
   });
 
@@ -313,23 +423,25 @@ describe("AnthropicMessagesV1Provider", () => {
       );
     });
 
-    it("should throw BridgeError for missing response body", async () => {
+    it("should reject Promise for missing response body", async () => {
       const config = { apiKey: "sk-ant-test123" };
       await provider.initialize(config);
 
       const responseWithoutBody = { ...mockResponse, body: null };
 
-      expect(() => provider.parseResponse(responseWithoutBody, false)).toThrow(
-        BridgeError,
-      );
-      expect(() => provider.parseResponse(responseWithoutBody, false)).toThrow(
-        "Response body is required",
-      );
+      const result = provider.parseResponse(responseWithoutBody, false);
+      expect(result).toBeInstanceOf(Promise);
+      await expect(result).rejects.toThrow("Response body is required");
     });
 
     it("should return Promise for non-streaming response", async () => {
       const config = { apiKey: "sk-ant-test123" };
       await provider.initialize(config);
+
+      // Mock the parser to reject with a specific error for this test
+      (mockParseAnthropicResponse as jest.Mock).mockRejectedValueOnce(
+        new ValidationError("Invalid JSON in Anthropic response"),
+      );
 
       const result = provider.parseResponse(mockResponse, false);
 
@@ -354,11 +466,12 @@ describe("AnthropicMessagesV1Provider", () => {
 
       expect(typeof result[Symbol.asyncIterator]).toBe("function");
 
-      // Test that the async iterable throws placeholder error
+      // Test that the async iterable works correctly
       const iterator = result[Symbol.asyncIterator]();
-      await expect(iterator.next()).rejects.toThrow(
-        "Streaming response parsing not yet implemented",
-      );
+      const first = await iterator.next();
+      expect(first.done).toBe(false);
+      expect(first.value).toHaveProperty("delta");
+      expect(first.value).toHaveProperty("finished");
     });
   });
 
@@ -435,7 +548,7 @@ describe("AnthropicMessagesV1Provider", () => {
 
       expect(result).toBeInstanceOf(BridgeError);
       expect(result.code).toBe("PROVIDER_ERROR");
-      expect(result.message).toBe("Unknown provider error");
+      expect(result.message).toBe("Test error");
       expect(result.context?.cause).toBe(error);
     });
 
@@ -513,13 +626,13 @@ describe("AnthropicMessagesV1Provider", () => {
       const config = { apiKey: "sk-ant-test123" };
       await provider.initialize(config);
 
-      // Should throw implementation error, not initialization error
-      expect(() =>
-        provider.translateRequest({
-          messages: [],
-          model: "claude-3-5-sonnet-20241022",
-        }),
-      ).toThrow("translateRequest not yet implemented");
+      // Should work properly after initialization
+      const result = provider.translateRequest({
+        messages: [],
+        model: "claude-3-5-sonnet-20241022",
+      });
+      expect(result).toBeDefined();
+      expect(mockTranslateChatRequest).toHaveBeenCalled();
     });
 
     it("should allow multiple initializations", async () => {
