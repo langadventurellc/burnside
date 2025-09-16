@@ -214,12 +214,8 @@ describe("SseParser", () => {
 
       expect(events).toHaveLength(1);
       expect(events[0]).toEqual({ data: "test" });
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        "Unknown SSE field: unknown, ignoring",
-      );
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        "Unknown SSE field: another, ignoring",
-      );
+      // Unknown fields are now silently ignored to reduce log noise
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
     });
   });
 

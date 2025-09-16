@@ -87,9 +87,13 @@ function convertMessage(message: Message): unknown {
 
 /**
  * Build OpenAI request body from unified request
+ *
+ * @param request - The unified chat request
+ * @param modelCapabilities - Optional model capabilities to control parameter inclusion
  */
 function buildOpenAIRequestBody(
   request: ChatRequest & { stream?: boolean; tools?: unknown[] },
+  modelCapabilities?: { temperature?: boolean },
 ): Record<string, unknown> {
   const messages = request.messages.map(convertMessage);
 
@@ -101,7 +105,11 @@ function buildOpenAIRequestBody(
   // Add optional parameters
   // Always include stream field, defaulting to false for non-streaming
   openaiRequest.stream = request.stream ?? false;
-  if (request.temperature !== undefined) {
+
+  if (
+    request.temperature !== undefined &&
+    modelCapabilities?.temperature !== false
+  ) {
     openaiRequest.temperature = request.temperature;
   }
   if (request.maxTokens !== undefined) {
@@ -175,14 +183,17 @@ function buildHeaders(config: OpenAIResponsesV1Config): Record<string, string> {
  * @param config - OpenAI provider configuration
  * @returns HTTP request for OpenAI Responses API v1
  * @throws {ValidationError} When request or config is invalid
+ *
+ * @todo Pass model capabilities to buildOpenAIRequestBody for capability-aware temperature handling
  */
 export function translateChatRequest(
   request: ChatRequest & { stream?: boolean },
   config: OpenAIResponsesV1Config,
+  modelCapabilities?: { temperature?: boolean },
 ): ProviderHttpRequest {
   try {
     // Build and validate the request body
-    const openaiRequest = buildOpenAIRequestBody(request);
+    const openaiRequest = buildOpenAIRequestBody(request, modelCapabilities);
     const validatedRequest =
       OpenAIResponsesV1RequestSchema.parse(openaiRequest);
 

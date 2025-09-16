@@ -289,7 +289,7 @@ export class SseParser {
           break;
 
         default:
-          console.warn(`Unknown SSE field: ${field.name}, ignoring`);
+          // Skip unknown SSE fields silently to reduce log noise
           break;
       }
     } catch (error) {

@@ -72,6 +72,7 @@ export interface ProviderPlugin {
    */
   translateRequest(
     request: ChatRequest & { stream?: boolean },
+    modelCapabilities?: { temperature?: boolean },
   ): ProviderHttpRequest;
 
   /**

@@ -90,6 +90,7 @@ export class OpenAIResponsesV1Provider implements ProviderPlugin {
    */
   translateRequest(
     request: ChatRequest & { stream?: boolean },
+    modelCapabilities?: { temperature?: boolean },
   ): ProviderHttpRequest {
     if (!this.config) {
       throw new BridgeError("Provider not initialized", "NOT_INITIALIZED", {
@@ -97,7 +98,7 @@ export class OpenAIResponsesV1Provider implements ProviderPlugin {
       });
     }
 
-    return translateChatRequest(request, this.config);
+    return translateChatRequest(request, this.config, modelCapabilities);
   }
 
   /**

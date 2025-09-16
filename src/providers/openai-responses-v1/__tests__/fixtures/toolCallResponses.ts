@@ -321,7 +321,7 @@ export const expectedToolCallResults = {
  */
 export const streamingToolCallEvents = [
   'data: {"type":"response.created","response":{"id":"resp_streaming123"}}\n\n',
-  'data: {"type":"response.output_text.delta","delta":{"text":"I\'ll help you calculate that."}}\n\n',
+  'data: {"type":"response.output_text.delta","delta":"I\'ll help you calculate that."}\n\n',
   'data: {"type":"response.tool_calls.delta","delta":{"tool_calls":[{"id":"call_stream123","type":"function","function":{"name":"calculate_sum"}}]}}\n\n',
   'data: {"type":"response.tool_calls.delta","delta":{"tool_calls":[{"function":{"arguments":"{\\"a\\": 5"}}]}}\n\n',
   'data: {"type":"response.tool_calls.delta","delta":{"tool_calls":[{"function":{"arguments":"5, \\"b\\": 3}"}}]}}\n\n',

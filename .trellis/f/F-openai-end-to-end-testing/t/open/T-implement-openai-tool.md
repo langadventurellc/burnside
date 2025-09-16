@@ -22,6 +22,8 @@ Create comprehensive end-to-end tests for OpenAI tool execution functionality us
 
 Related to feature: F-openai-end-to-end-testing
 
+See `src/__tests__/e2e/openai/chat.e2e.test.ts` for working E2E tests.
+
 ## Specific Implementation Requirements
 
 ### 1. Create Tool Execution E2E Test File

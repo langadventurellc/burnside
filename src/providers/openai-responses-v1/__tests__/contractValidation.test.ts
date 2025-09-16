@@ -114,7 +114,7 @@ describe("Contract Validation", () => {
       );
       expect(deltaEventData.type).toBe("response.output_text.delta");
       expect(deltaEventData.delta).toBeDefined();
-      expect(typeof deltaEventData.delta.text).toBe("string");
+      expect(typeof deltaEventData.delta).toBe("string");
 
       // Test response.completed event
       const completedEventData = JSON.parse(

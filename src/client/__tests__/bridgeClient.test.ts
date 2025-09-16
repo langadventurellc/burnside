@@ -600,11 +600,14 @@ describe("BridgeClient", () => {
       });
 
       // Verify call sequence
-      expect(fakePlugin.translateRequest).toHaveBeenCalledWith({
-        model: "test-model",
-        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
-        stream: true,
-      });
+      expect(fakePlugin.translateRequest).toHaveBeenCalledWith(
+        {
+          model: "test-model",
+          messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+          stream: true,
+        },
+        { temperature: undefined },
+      );
 
       expect(fakeTransport.fetch).toHaveBeenCalledWith(
         expect.objectContaining({

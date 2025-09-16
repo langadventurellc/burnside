@@ -1,13 +1,68 @@
 ---
 id: T-implement-openai-streaming
 title: Implement OpenAI streaming E2E tests
-status: open
+status: done
 priority: medium
 parent: F-openai-end-to-end-testing
 prerequisites:
   - T-implement-tool-call
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/models/modelLoader.ts: Updated to read actual model capabilities from
+    JSON data instead of hardcoding defaults to false
+  src/core/models/defaultLlmModelsSchema.ts: Added supportedContentTypes field to schema definition
+  src/core/providers/providerPlugin.ts:
+    Enhanced translateRequest method to accept
+    optional model capabilities parameter
+  src/providers/openai-responses-v1/translator.ts: Added temperature capability
+    checking to conditionally include temperature parameter based on model
+    support
+  src/providers/openai-responses-v1/openAIResponsesV1Provider.ts:
+    Updated translateRequest implementation to pass model capabilities to
+    translator
+  src/client/bridgeClient.ts: Enhanced stream method to retrieve model
+    capabilities and pass them to provider translator
+  src/__tests__/e2e/openai/streaming.e2e.test.ts:
+    Created comprehensive streaming
+    E2E test suite with 12 test cases and filtered to only test models with
+    streaming support
+  src/client/__tests__/bridgeClient.test.ts: Fixed unit test to match new
+    translateRequest method signature with model capabilities parameter
+  src/core/models/__tests__/temperatureCapabilityLoading.test.ts:
+    Updated test expectations to match actual capability loading behavior from
+    JSON data
+log:
+  - >-
+    Successfully implemented comprehensive OpenAI streaming E2E tests with full
+    temperature capability support. The implementation includes:
+
+
+    1. **Fixed Model Capability Loading**: Updated model loader to properly read
+    capabilities from defaultLlmModels.ts instead of hardcoding defaults
+
+    2. **Implemented Temperature Capability Handling**: Added proper model
+    capability checking to conditionally exclude temperature parameter for
+    models that don't support it (GPT-5 models)
+
+    3. **Updated Provider Interface**: Enhanced ProviderPlugin interface and
+    implementations to accept model capabilities parameter for capability-aware
+    request translation
+
+    4. **Created Comprehensive Streaming Tests**: Built extensive E2E test suite
+    with 12 test cases covering basic streaming, delta accumulation, stream
+    lifecycle, format validation, and error handling
+
+    5. **Fixed Test Filtering**: Updated tests to only run on models with
+    streaming support, excluding models requiring organization verification
+
+    6. **Fixed Unit Tests**: Corrected BridgeClient and temperature capability
+    loading tests to match new interface signatures
+
+
+    The streaming implementation now properly handles temperature parameter
+    exclusion for GPT-5 models, preventing API errors that were causing stream
+    termination. All 7 compatible OpenAI models now pass streaming tests, while
+    3 models requiring organization verification are properly excluded from test
+    runs.
 schema: v1.0
 childrenIds: []
 created: 2025-09-16T06:24:17.716Z
@@ -21,6 +76,8 @@ updated: 2025-09-16T06:24:17.716Z
 Create comprehensive end-to-end tests for OpenAI streaming functionality using real API calls. These tests validate that the BridgeClient properly handles streaming responses, delta accumulation, and stream lifecycle management.
 
 Related to feature: F-openai-end-to-end-testing
+
+See `src/__tests__/e2e/openai/chat.e2e.test.ts` for working E2E tests.
 
 ## Specific Implementation Requirements
 

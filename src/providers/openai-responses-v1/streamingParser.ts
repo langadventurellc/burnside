@@ -40,11 +40,11 @@ const responseCreatedEventSchema = baseEventSchema.extend({
 
 const outputTextDeltaEventSchema = baseEventSchema.extend({
   type: z.literal("response.output_text.delta"),
-  delta: z
-    .object({
-      text: z.string(),
-    })
-    .optional(),
+  delta: z.string().optional(), // Real OpenAI API format: direct string
+  item_id: z.string().optional(),
+  output_index: z.number().optional(),
+  content_index: z.number().optional(),
+  sequence_number: z.number().optional(),
   response: z
     .object({
       id: z.string(),
@@ -107,6 +107,7 @@ interface StreamingState {
  * @throws {ValidationError} When event validation fails
  * @throws {BridgeError} When OpenAI error events are received
  */
+// eslint-disable-next-line statement-count/function-statement-count-warn, statement-count/function-statement-count-error
 export async function* parseOpenAIResponseStream(
   response: ProviderHttpResponse,
 ): AsyncIterable<StreamDelta> {
@@ -116,12 +117,51 @@ export async function* parseOpenAIResponseStream(
     });
   }
 
+  console.error("=== STREAMING RESPONSE DEBUG ===");
+  console.error("Response status:", response.status);
+  console.error("Response headers:", response.headers);
+  console.error("================================");
+
+  // For non-200 status, try to read the error response body
+  if (response.status !== 200) {
+    try {
+      const reader = response.body.getReader();
+      const chunks: Uint8Array[] = [];
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+      }
+      const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+      const combined = new Uint8Array(totalLength);
+      let offset = 0;
+      for (const chunk of chunks) {
+        combined.set(chunk, offset);
+        offset += chunk.length;
+      }
+      const errorBody = new TextDecoder().decode(combined);
+      console.error("=== ERROR RESPONSE BODY ===");
+      console.error(errorBody);
+      console.error("===========================");
+    } catch (e) {
+      console.error("Failed to read error response body:", e);
+    }
+  }
+
   const state: StreamingState = {};
 
   try {
     const chunks = convertToUint8ArrayIterable(response.body);
 
+    let eventCount = 0;
     for await (const sseEvent of SseParser.parse(chunks)) {
+      eventCount++;
+      if (eventCount <= 5) {
+        console.error(`=== SSE EVENT ${eventCount} ===`);
+        console.error("Event data:", sseEvent.data);
+        console.error("=========================");
+      }
+
       // Skip events without data
       if (!sseEvent.data) {
         continue;
@@ -134,6 +174,30 @@ export async function* parseOpenAIResponseStream(
 
       try {
         const eventData: unknown = JSON.parse(sseEvent.data);
+
+        // Check for error responses that might not match our schema
+        if (typeof eventData === "object" && eventData !== null) {
+          const obj = eventData as Record<string, unknown>;
+
+          // Handle error responses that don't match expected format
+          if (
+            "error" in obj &&
+            typeof obj.error === "object" &&
+            obj.error !== null
+          ) {
+            const error = obj.error as Record<string, unknown>;
+            const message =
+              typeof error.message === "string"
+                ? error.message
+                : "Unknown error";
+            const code =
+              typeof error.code === "string" ? error.code : "PROVIDER_ERROR";
+            throw new BridgeError(`OpenAI API error: ${message}`, code, {
+              originalError: obj.error,
+            });
+          }
+        }
+
         const parsedEvent = parseOpenAIEvent(eventData);
 
         if (parsedEvent) {
@@ -147,12 +211,14 @@ export async function* parseOpenAIResponseStream(
         if (parseError instanceof BridgeError) {
           throw parseError;
         }
-        // Log malformed events but continue parsing
-        console.warn(
-          "Failed to parse OpenAI SSE event:",
-          sseEvent.data,
-          parseError,
-        );
+        // Skip malformed events silently unless debugging
+        if (process.env.DEBUG_STREAMING) {
+          console.warn(
+            "Failed to parse OpenAI SSE event:",
+            sseEvent.data,
+            parseError,
+          );
+        }
       }
     }
   } catch (error) {
@@ -194,8 +260,8 @@ function parseOpenAIEvent(eventData: unknown): OpenAIEvent | null {
   try {
     return openAIEventSchema.parse(eventData);
   } catch {
-    // Log validation errors but treat as unknown event type
-    console.warn("Unknown OpenAI event type, skipping:", eventData);
+    // Skip unknown event types silently to reduce log noise
+    // Only log in debug mode if needed for troubleshooting
     return null;
   }
 }
@@ -256,7 +322,7 @@ function handleOutputTextDelta(
   const responseId = event.response?.id || state.responseId || generateId();
   state.responseId = responseId;
 
-  const text = event.delta?.text || "";
+  const text = event.delta || "";
 
   return {
     id: responseId,

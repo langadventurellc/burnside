@@ -90,15 +90,38 @@ affectedFiles:
     response validation, model integration, error handling, and performance
     testing
   .env: Added E2E_TEST_ENABLED=true environment variable to enable E2E testing
+  src/core/models/modelLoader.ts: Updated to read actual model capabilities from
+    JSON data instead of hardcoding defaults to false
+  src/core/models/defaultLlmModelsSchema.ts: Added supportedContentTypes field to schema definition
+  src/core/providers/providerPlugin.ts:
+    Enhanced translateRequest method to accept
+    optional model capabilities parameter
+  src/providers/openai-responses-v1/translator.ts: Added temperature capability
+    checking to conditionally include temperature parameter based on model
+    support
+  src/providers/openai-responses-v1/openAIResponsesV1Provider.ts:
+    Updated translateRequest implementation to pass model capabilities to
+    translator
+  src/client/bridgeClient.ts: Enhanced stream method to retrieve model
+    capabilities and pass them to provider translator
+  src/__tests__/e2e/openai/streaming.e2e.test.ts:
+    Created comprehensive streaming
+    E2E test suite with 12 test cases and filtered to only test models with
+    streaming support
+  src/client/__tests__/bridgeClient.test.ts: Fixed unit test to match new
+    translateRequest method signature with model capabilities parameter
+  src/core/models/__tests__/temperatureCapabilityLoading.test.ts:
+    Updated test expectations to match actual capability loading behavior from
+    JSON data
 log: []
 schema: v1.0
 childrenIds:
-  - T-implement-openai-chat
   - T-implement-openai-streaming
   - T-implement-openai-tool
   - T-create-e2e-test-directory
   - T-create-jest-e2e-configuration
   - T-implement-model-registry
+  - T-implement-openai-chat
   - T-implement-tool-call
 created: 2025-09-16T06:13:46.927Z
 updated: 2025-09-16T06:13:46.927Z

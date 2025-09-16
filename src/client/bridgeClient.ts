@@ -358,12 +358,18 @@ export class BridgeClient {
     const providerConfig = this.getProviderConfigOrThrow(id);
     await this.initializeProviderIfNeeded(plugin, providerConfig);
 
-    // Translate request
-    const httpReq = plugin.translateRequest({
-      ...request,
-      model: modelId.split(":")[1],
-      stream: true,
-    });
+    // Get model info to check capabilities
+    const modelInfo = this.modelRegistry.get(modelId);
+
+    // Translate request with model capabilities
+    const httpReq = plugin.translateRequest(
+      {
+        ...request,
+        model: modelId.split(":")[1],
+        stream: true,
+      },
+      { temperature: modelInfo?.capabilities.temperature },
+    );
 
     // Apply timeout
     const providerTimeout =
