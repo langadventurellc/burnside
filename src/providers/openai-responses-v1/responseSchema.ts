@@ -8,11 +8,13 @@
 import { z } from "zod";
 
 /**
- * OpenAI response content part schema
+ * OpenAI response content part schema (Responses API format)
  */
 const OpenAIResponseContentPartSchema = z.object({
-  type: z.literal("text"),
+  type: z.literal("output_text"),
   text: z.string(),
+  annotations: z.array(z.unknown()).optional(),
+  logprobs: z.array(z.unknown()).optional(),
 });
 
 /**
@@ -33,32 +35,30 @@ const OpenAIToolCallSchema = z.object({
 });
 
 /**
- * OpenAI response message schema
+ * OpenAI response output message schema (Responses API format)
  */
-const OpenAIResponseMessageSchema = z.object({
+const OpenAIResponseOutputMessageSchema = z.object({
+  id: z.string().optional(),
+  type: z.literal("message"),
+  status: z.string().optional(),
   role: z.literal("assistant"),
-  content: z.union([z.string(), z.array(OpenAIResponseContentPartSchema)]),
+  content: z.array(OpenAIResponseContentPartSchema),
   tool_calls: z.array(OpenAIToolCallSchema).optional(),
 });
 
 /**
- * OpenAI choice schema with message and metadata
+ * OpenAI response output schema (Responses API format)
+ * For now, we only support message outputs, but this can be extended
  */
-const OpenAIChoiceSchema = z.object({
-  index: z.number(),
-  message: OpenAIResponseMessageSchema,
-  finish_reason: z
-    .enum(["stop", "length", "content_filter", "tool_calls"])
-    .nullable(),
-});
+const OpenAIResponseOutputSchema = OpenAIResponseOutputMessageSchema;
 
 /**
- * OpenAI usage schema
+ * OpenAI usage schema (Responses API format)
  */
 const OpenAIUsageSchema = z.object({
-  prompt_tokens: z.number().min(0),
-  completion_tokens: z.number().min(0),
-  total_tokens: z.number().min(0),
+  input_tokens: z.number().min(0),
+  output_tokens: z.number().min(0),
+  total_tokens: z.number().min(0).optional(),
 });
 
 /**
@@ -66,12 +66,12 @@ const OpenAIUsageSchema = z.object({
  */
 export const OpenAIResponsesV1ResponseSchema = z.object({
   id: z.string(),
-  object: z.literal("chat.completion"),
-  created: z.number(),
+  object: z.literal("response"),
+  status: z.string(),
   model: z.string(),
-  choices: z.array(OpenAIChoiceSchema),
+  output: z.array(OpenAIResponseOutputSchema),
   usage: OpenAIUsageSchema.optional(),
-  system_fingerprint: z.string().optional(),
+  created_at: z.number().optional(),
 });
 
 /**

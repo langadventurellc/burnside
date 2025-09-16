@@ -11,7 +11,7 @@ describe("OpenAIResponsesV1RequestSchema", () => {
     it("should validate minimal valid request", () => {
       const request = {
         model: "gpt-4o-2024-08-06",
-        messages: [
+        input: [
           {
             role: "user",
             content: "Hello, world!",
@@ -22,15 +22,15 @@ describe("OpenAIResponsesV1RequestSchema", () => {
       const result = OpenAIResponsesV1RequestSchema.parse(request);
 
       expect(result.model).toBe("gpt-4o-2024-08-06");
-      expect(result.messages).toHaveLength(1);
-      expect(result.messages[0].role).toBe("user");
-      expect(result.messages[0].content).toBe("Hello, world!");
+      expect(result.input).toHaveLength(1);
+      expect(result.input[0].role).toBe("user");
+      expect(result.input[0].content).toBe("Hello, world!");
     });
 
     it("should validate request with all optional parameters", () => {
       const request = {
         model: "gpt-4o-2024-08-06",
-        messages: [
+        input: [
           {
             role: "system",
             content: "You are a helpful assistant.",
@@ -54,7 +54,7 @@ describe("OpenAIResponsesV1RequestSchema", () => {
       const result = OpenAIResponsesV1RequestSchema.parse(request);
 
       expect(result.model).toBe("gpt-4o-2024-08-06");
-      expect(result.messages).toHaveLength(2);
+      expect(result.input).toHaveLength(2);
       expect(result.stream).toBe(true);
       expect(result.temperature).toBe(0.7);
       expect(result.max_tokens).toBe(1000);
@@ -69,7 +69,7 @@ describe("OpenAIResponsesV1RequestSchema", () => {
     it("should validate message with image content", () => {
       const request = {
         model: "gpt-4o-2024-08-06",
-        messages: [
+        input: [
           {
             role: "user",
             content: [
@@ -91,8 +91,8 @@ describe("OpenAIResponsesV1RequestSchema", () => {
 
       const result = OpenAIResponsesV1RequestSchema.parse(request);
 
-      expect(result.messages[0].content).toHaveLength(2);
-      const imageContent = result.messages[0].content as Array<any>;
+      expect(result.input[0].content).toHaveLength(2);
+      const imageContent = result.input[0].content as Array<any>;
       expect(imageContent[1].type).toBe("image_url");
       expect(imageContent[1].image_url.url).toBe(
         "https://example.com/image.jpg",

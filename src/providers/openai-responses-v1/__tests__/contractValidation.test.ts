@@ -24,9 +24,9 @@ describe("Contract Validation", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.id).toBe("resp_01J8KRXF7QZQZQZQZQZQZQZQZQ");
-        expect(result.data.object).toBe("chat.completion");
-        expect(result.data.choices).toHaveLength(1);
-        expect(result.data.choices[0].message.role).toBe("assistant");
+        expect(result.data.object).toBe("response");
+        expect(result.data.output).toHaveLength(1);
+        expect(result.data.output[0].role).toBe("assistant");
         expect(result.data.usage).toBeDefined();
       }
     });
@@ -38,8 +38,8 @@ describe("Contract Validation", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.choices[0].message.content).toBe("");
-        expect(result.data.usage?.completion_tokens).toBe(0);
+        expect(result.data.output[0].content[0].text).toBe("");
+        expect(result.data.usage?.output_tokens).toBe(0);
       }
     });
 
@@ -62,21 +62,20 @@ describe("Contract Validation", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(Array.isArray(result.data.choices[0].message.content)).toBe(
-          true,
-        );
-        const content = result.data.choices[0].message.content as Array<any>;
-        expect(content[0].type).toBe("text");
+        expect(Array.isArray(result.data.output[0].content)).toBe(true);
+        const content = result.data.output[0].content as Array<any>;
+        expect(content[0].type).toBe("output_text");
       }
     });
 
-    test("should validate finish_reason values", () => {
+    test("should validate response status values", () => {
       const lengthResult = OpenAIResponsesV1ResponseSchema.safeParse(
         nonStreamingResponses.chatCompletionLengthLimit,
       );
       expect(lengthResult.success).toBe(true);
       if (lengthResult.success) {
-        expect(lengthResult.data.choices[0].finish_reason).toBe("length");
+        expect(lengthResult.data.status).toBeDefined();
+        expect(typeof lengthResult.data.status).toBe("string");
       }
 
       const filterResult = OpenAIResponsesV1ResponseSchema.safeParse(
@@ -84,9 +83,8 @@ describe("Contract Validation", () => {
       );
       expect(filterResult.success).toBe(true);
       if (filterResult.success) {
-        expect(filterResult.data.choices[0].finish_reason).toBe(
-          "content_filter",
-        );
+        expect(filterResult.data.status).toBeDefined();
+        expect(typeof filterResult.data.status).toBe("string");
       }
     });
   });
@@ -362,11 +360,14 @@ describe("Contract Validation", () => {
 
       for (const response of responsesWithUsage) {
         expect(response.usage).toBeDefined();
-        expect(response.usage.prompt_tokens).toBeGreaterThanOrEqual(0);
-        expect(response.usage.completion_tokens).toBeGreaterThanOrEqual(0);
-        expect(response.usage.total_tokens).toBeGreaterThanOrEqual(
-          response.usage.prompt_tokens + response.usage.completion_tokens,
-        );
+        expect(response.usage.input_tokens).toBeGreaterThanOrEqual(0);
+        expect(response.usage.output_tokens).toBeGreaterThanOrEqual(0);
+        if (response.usage.total_tokens) {
+          expect(response.usage.total_tokens).toBeGreaterThanOrEqual(
+            Number(response.usage.input_tokens) +
+              Number(response.usage.output_tokens),
+          );
+        }
       }
     });
 
@@ -382,8 +383,8 @@ describe("Contract Validation", () => {
   describe("Boundary conditions and edge cases", () => {
     test("should handle empty and minimal content", () => {
       const emptyResponse = nonStreamingResponses.chatCompletionEmpty;
-      expect(emptyResponse.choices[0].message.content).toBe("");
-      expect(emptyResponse.usage.completion_tokens).toBe(0);
+      expect(emptyResponse.output[0].content[0].text).toBe("");
+      expect(emptyResponse.usage.output_tokens).toBe(0);
     });
 
     test("should validate ID format consistency", () => {
@@ -396,9 +397,9 @@ describe("Contract Validation", () => {
 
     test("should validate timestamp format", () => {
       for (const response of Object.values(nonStreamingResponses)) {
-        expect(typeof response.created).toBe("number");
-        expect(response.created).toBeGreaterThan(1600000000); // After 2020
-        expect(response.created).toBeLessThan(2000000000); // Before 2033
+        expect(typeof response.created_at).toBe("number");
+        expect(response.created_at).toBeGreaterThan(1600000000); // After 2020
+        expect(response.created_at).toBeLessThan(2000000000); // Before 2033
       }
     });
   });

@@ -52,10 +52,10 @@ export const OpenAIResponsesV1RequestSchema = z.object({
   /** Model to use for completion */
   model: z.string().min(1),
 
-  /** Array of messages for the conversation */
-  messages: z
+  /** Input for the model (Responses API uses 'input' not 'messages') */
+  input: z
     .array(ChatMessageSchema)
-    .min(1, "At least one message is required"),
+    .min(1, "At least one input message is required"),
 
   /** Whether to stream the response */
   stream: z.boolean().optional(),

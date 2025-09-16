@@ -233,7 +233,7 @@ describe("OpenAI Chat Completion E2E", () => {
           client.chat({ messages, model: testModel }),
           1, // 1ms timeout should fail
         ),
-      ).rejects.toThrow(/timeout/i);
+      ).rejects.toThrow("Operation timed out after 1ms");
     });
   });
 

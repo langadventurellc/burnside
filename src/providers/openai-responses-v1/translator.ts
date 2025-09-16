@@ -93,7 +93,7 @@ function buildOpenAIRequestBody(
 
   const openaiRequest: Record<string, unknown> = {
     model: request.model,
-    messages,
+    input: messages,
   };
 
   // Add optional parameters

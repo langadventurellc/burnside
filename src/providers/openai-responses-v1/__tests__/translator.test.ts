@@ -56,7 +56,7 @@ describe("translateChatRequest", () => {
       const body = parseBody(result.body!);
       expect(body).toEqual({
         model: "gpt-4",
-        messages: [
+        input: [
           {
             role: "user",
             content: "Hello, world!",
@@ -102,7 +102,7 @@ describe("translateChatRequest", () => {
       const body = parseBody(result.body!);
       expect(body).toEqual({
         model: "gpt-4o",
-        messages: [
+        input: [
           {
             role: "system",
             content: "You are a helpful assistant.",
@@ -142,7 +142,7 @@ describe("translateChatRequest", () => {
       const result = translateChatRequest(request, mockConfig);
 
       const body = parseBody(result.body!);
-      expect(body.messages[0].content).toEqual([
+      expect(body.input[0].content).toEqual([
         {
           type: "text",
           text: "What do you see in this image?",
@@ -177,7 +177,7 @@ describe("translateChatRequest", () => {
       const result = translateChatRequest(request, mockConfig);
 
       const body = parseBody(result.body!);
-      expect(body.messages[0].content).toBe("console.log('Hello');");
+      expect(body.input[0].content).toBe("console.log('Hello');");
     });
 
     test("should handle multiple messages with different roles", () => {
@@ -204,7 +204,7 @@ describe("translateChatRequest", () => {
       const result = translateChatRequest(request, mockConfig);
 
       const body = parseBody(result.body!);
-      expect(body.messages).toEqual([
+      expect(body.input).toEqual([
         { role: "system", content: "You are helpful." },
         { role: "user", content: "Hello!" },
         { role: "assistant", content: "Hi there!" },
