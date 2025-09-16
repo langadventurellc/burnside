@@ -16,7 +16,10 @@ import { z } from "zod";
  *     models: [{
  *       id: "gpt-4o-2024-08-06",
  *       name: "GPT-4o",
- *       contextLength: 128000
+ *       contextLength: 128000,
+ *       providerPlugin: "openai-responses-v1",
+ *       streaming: true,
+ *       toolCalls: true
  *     }]
  *   }]
  * };
@@ -35,6 +38,11 @@ export const DefaultLlmModelsSchema = z.object({
           id: z.string(),
           name: z.string(),
           contextLength: z.number().positive(),
+          providerPlugin: z.string().optional(),
+          streaming: z.boolean().optional(),
+          toolCalls: z.boolean().optional(),
+          images: z.boolean().optional(),
+          documents: z.boolean().optional(),
         }),
       ),
     }),

@@ -25,13 +25,14 @@ function createMockProvider(
       headers: {},
       body: "{}",
     }),
-    parseResponse: () => ({
-      message: {
-        role: "assistant",
-        content: [{ type: "text", text: "test response" }],
-      },
-      model: "test-model",
-    }),
+    parseResponse: () =>
+      Promise.resolve({
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "test response" }],
+        },
+        model: "test-model",
+      }),
     isTerminal: () => true,
     normalizeError: (error: unknown) =>
       new BridgeError(String(error), "PROVIDER_ERROR"),
@@ -120,13 +121,14 @@ describe("InMemoryProviderRegistry", () => {
           headers: {},
           body: "{}",
         }),
-        parseResponse: () => ({
-          message: {
-            role: "assistant",
-            content: [{ type: "text", text: "test response" }],
-          },
-          model: "test-model",
-        }),
+        parseResponse: () =>
+          Promise.resolve({
+            message: {
+              role: "assistant",
+              content: [{ type: "text", text: "test response" }],
+            },
+            model: "test-model",
+          }),
         isTerminal: () => true,
         normalizeError: (error: unknown) =>
           new BridgeError(String(error), "PROVIDER_ERROR"),

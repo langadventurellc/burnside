@@ -8,6 +8,7 @@ import type { FeatureFlags } from "./featureFlagsInterface";
 import { initializeFeatureFlags } from "./initializeFeatureFlags";
 import { isFeatureEnabled } from "./isFeatureEnabled";
 import type { ProviderRegistry } from "../core/providers/providerRegistry";
+import type { ProviderPlugin } from "../core/providers/providerPlugin";
 import type { ModelRegistry } from "../core/models/modelRegistry";
 import type { ModelCapabilities } from "../core/providers/modelCapabilities";
 import { InMemoryProviderRegistry } from "../core/providers/inMemoryProviderRegistry";
@@ -167,6 +168,47 @@ export class BridgeClient {
   }
 
   /**
+   * Register Provider Plugin
+   *
+   * Registers a provider plugin with the internal provider registry.
+   * The provider will be available for use with the registered ID and version.
+   *
+   * @param plugin - Provider plugin to register
+   * @throws {ValidationError} When provider plugin structure is invalid
+   * @throws {BridgeError} When registration fails
+   *
+   * @example
+   * ```typescript
+   * import { openaiResponsesV1Provider } from "./providers";
+   *
+   * const client = new BridgeClient(config);
+   * client.registerProvider(openaiResponsesV1Provider);
+   *
+   * // Provider is now available for use
+   * const providers = client.listAvailableProviders();
+   * console.log(providers); // includes "openai"
+   * ```
+   */
+  registerProvider(plugin: ProviderPlugin): void {
+    try {
+      this.providerRegistry.register(plugin);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      throw new BridgeError(
+        `Failed to register provider ${plugin.id}:${plugin.version}`,
+        "REGISTRATION_FAILED",
+        {
+          providerId: plugin.id,
+          version: plugin.version,
+          originalError: error,
+        },
+      );
+    }
+  }
+
+  /**
    * Get Model Registry
    *
    * Returns the model registry instance for accessing registered models.
@@ -280,6 +322,54 @@ export class BridgeClient {
    */
   getConfig(): Readonly<BridgeClientConfig> {
     return Object.freeze({ ...this.config });
+  }
+
+  /**
+   * Resolve Provider Plugin from Model Configuration
+   *
+   * Looks up a model in the model registry and resolves the appropriate
+   * provider plugin based on the model's providerPlugin field.
+   *
+   * @param modelId - Model ID to resolve provider plugin for
+   * @returns Provider plugin instance or undefined if not found/mapped
+   */
+  private resolveProviderPlugin(modelId: string): ProviderPlugin | undefined {
+    // Look up model in model registry
+    const model = this.modelRegistry.get(modelId);
+    if (!model?.metadata?.providerPlugin) {
+      return undefined;
+    }
+
+    // Map providerPlugin string to provider registry key
+    const providerKey = this.getProviderKeyFromPluginString(
+      model.metadata.providerPlugin as string,
+    );
+    if (!providerKey) {
+      return undefined;
+    }
+
+    // Get provider from provider registry
+    return this.providerRegistry.get(providerKey.id, providerKey.version);
+  }
+
+  /**
+   * Map Provider Plugin String to Registry Key
+   *
+   * Defines canonical mapping from providerPlugin strings to provider registry keys.
+   * Enables dynamic provider selection based on model configuration.
+   *
+   * @param pluginString - Provider plugin string from model configuration
+   * @returns Provider registry key or undefined for unknown plugins
+   */
+  private getProviderKeyFromPluginString(
+    pluginString: string,
+  ): { id: string; version: string } | undefined {
+    // Define canonical mapping from providerPlugin to provider registry keys
+    const mapping: Record<string, { id: string; version: string }> = {
+      "openai-responses-v1": { id: "openai", version: "responses-v1" },
+    };
+
+    return mapping[pluginString];
   }
 
   /**
