@@ -335,7 +335,7 @@ describe("AnthropicMessagesV1Provider", () => {
 
       expect(result).toBeInstanceOf(Promise);
       await expect(result).rejects.toThrow(
-        "Non-streaming response parsing not yet implemented",
+        "Invalid JSON in Anthropic response",
       );
     });
 

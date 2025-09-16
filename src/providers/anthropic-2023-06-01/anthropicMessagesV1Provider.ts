@@ -18,6 +18,7 @@ import {
   AnthropicMessagesConfigSchema,
   type AnthropicMessagesConfigType,
 } from "./configSchema.js";
+import { parseAnthropicResponse } from "./responseParser.js";
 
 /**
  * Anthropic Messages v1 Provider Plugin
@@ -154,13 +155,63 @@ export class AnthropicMessagesV1Provider implements ProviderPlugin {
       };
     } else {
       // Return promise for non-streaming responses
-      return Promise.reject(
-        new BridgeError(
-          "Non-streaming response parsing not yet implemented",
-          "PROVIDER_ERROR",
-          { provider: "anthropic", version: "2023-06-01" },
-        ),
-      );
+      return (async (): Promise<{
+        message: Message;
+        usage?: {
+          promptTokens: number;
+          completionTokens: number;
+          totalTokens?: number;
+        };
+        model: string;
+        metadata?: Record<string, unknown>;
+      }> => {
+        // Read response body
+        if (!response.body) {
+          throw new ValidationError("Response body is null", {
+            status: response.status,
+            statusText: response.statusText,
+          });
+        }
+
+        const stream: ReadableStream<Uint8Array> = response.body;
+        const reader = stream.getReader();
+        const chunks: Uint8Array[] = [];
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+          }
+        } finally {
+          reader.releaseLock();
+        }
+
+        // Combine chunks and decode as UTF-8
+        const totalLength = chunks.reduce(
+          (sum, chunk) => sum + chunk.length,
+          0,
+        );
+        const combined = new Uint8Array(totalLength);
+        let offset = 0;
+        for (const chunk of chunks) {
+          combined.set(chunk, offset);
+          offset += chunk.length;
+        }
+
+        const responseText = new TextDecoder().decode(combined);
+
+        // Parse response
+        const result = parseAnthropicResponse(response, responseText);
+
+        // Convert intersection type to match expected return type
+        return {
+          message: result.message,
+          usage: result.usage,
+          model: result.model,
+          metadata: result.metadata,
+        };
+      })();
     }
   }
 

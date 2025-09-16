@@ -7,6 +7,7 @@
  */
 
 export { AnthropicMessagesV1Provider } from "./anthropicMessagesV1Provider.js";
+export { parseAnthropicResponse } from "./responseParser.js";
 export type { AnthropicMessagesConfigType as AnthropicMessagesConfig } from "./configSchema.js";
 
 // Export schemas for advanced usage

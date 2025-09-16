@@ -1,13 +1,46 @@
 ---
 id: T-implement-non-streaming
 title: Implement non-streaming response parser
-status: open
+status: done
 priority: high
 parent: F-anthropic-messages-api
 prerequisites:
   - T-create-anthropic-api-request
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/providers/anthropic-2023-06-01/responseParser.ts: Created main response
+    parser with parseAnthropicResponse function that converts Anthropic API
+    responses to unified format. Includes helper functions for content block
+    parsing, tool call extraction, and metadata extraction. Handles JSON
+    parsing, schema validation, error responses, and edge cases with
+    comprehensive error handling.
+  src/providers/anthropic-2023-06-01/__tests__/responseParser.test.ts:
+    Created comprehensive unit test suite with 26 test cases covering successful
+    response parsing, tool calls, mixed content, structured return format
+    validation, error handling scenarios, and edge cases. Achieves >90% code
+    coverage including text responses, tool calls, error responses, malformed
+    JSON, and schema validation failures.
+  src/providers/anthropic-2023-06-01/index.ts: Added export for
+    parseAnthropicResponse function to module barrel exports, enabling external
+    access to the response parser functionality.
+  src/providers/anthropic-2023-06-01/anthropicMessagesV1Provider.ts:
+    Integrated response parser into provider's parseResponse method for
+    non-streaming responses. Implemented proper ReadableStream handling to read
+    response body text and parse using parseAnthropicResponse function,
+    returning structured response format matching interface requirements.
+  src/providers/anthropic-2023-06-01/__tests__/anthropicMessagesV1Provider.test.ts:
+    Updated provider test to expect JSON parsing error instead of placeholder
+    error message, reflecting that the response parser is now implemented and
+    functional.
+log:
+  - Successfully implemented non-streaming response parser for Anthropic
+    Messages API v2023-06-01. The parser converts Anthropic's response format to
+    unified Bridge format, handling content blocks, tool calls, usage
+    statistics, and metadata extraction. Follows established OpenAI parser
+    pattern with pre-read responseText parameter and structured return format.
+    Includes comprehensive error handling for JSON parsing errors, API errors,
+    schema validation failures, and edge cases. All tests pass with >90%
+    coverage and implementation passes all quality checks. Updated provider
+    integration to use the new parser for non-streaming responses.
 schema: v1.0
 childrenIds: []
 created: 2025-09-16T13:27:50.350Z
