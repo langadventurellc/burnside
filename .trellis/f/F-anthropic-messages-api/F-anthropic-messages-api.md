@@ -38,7 +38,11 @@ affectedFiles:
     response schema supporting non-streaming responses, streaming deltas with
     all event types, tool use blocks, usage statistics, and error responses;
     Minor enhancement - removed duplicate type export to satisfy linting
-    requirements while maintaining schema functionality
+    requirements while maintaining schema functionality; Enhanced delta input
+    field schema to support both string (for streaming deltas) and object (for
+    complete inputs) using z.union([z.string(), z.record(z.unknown())]) to
+    properly handle Anthropic's tool call streaming format where input comes as
+    partial JSON strings.
   src/providers/anthropic-2023-06-01/__tests__/requestSchema.test.ts:
     Created comprehensive test suite with 31 test cases covering valid/invalid
     requests, multimodal content, boundary values, and type inference
@@ -108,10 +112,23 @@ affectedFiles:
     handling, HTTP request structure, and edge cases. Achieves >90% code
     coverage including multi-modal content, streaming support, system message
     handling, and comprehensive validation scenarios.
+  src/providers/anthropic-2023-06-01/streamingParser.ts: Created main streaming
+    parser implementing parseAnthropicResponseStream function that processes
+    Anthropic SSE events using core SseParser. Handles all event types
+    (message_start, content_block_delta, content_block_start/stop,
+    message_delta, message_stop), converts to unified StreamDelta format,
+    implements tool call streaming with partial JSON accumulation, handles
+    [DONE] sentinel and error events, provides memory-efficient async iteration.
+  src/providers/anthropic-2023-06-01/__tests__/streamingParser.test.ts:
+    Created comprehensive unit test suite with 20 test cases covering successful
+    streaming scenarios, [DONE] sentinel handling, error handling, edge cases,
+    and memory efficiency. Tests include message parsing, text deltas, tool call
+    streaming with partial JSON, multiple content blocks, ID generation, error
+    events, malformed data handling, and large stream processing. Achieves >90%
+    code coverage.
 log: []
 schema: v1.0
 childrenIds:
-  - T-implement-request-translation
   - T-implement-streaming-response
   - T-implement-tool-definition
   - T-integrate-provider-methods
@@ -122,6 +139,7 @@ childrenIds:
   - T-create-provider-module
   - T-implement-anthropic-error
   - T-implement-non-streaming
+  - T-implement-request-translation
 created: 2025-09-16T13:04:04.085Z
 updated: 2025-09-16T13:04:04.085Z
 ---

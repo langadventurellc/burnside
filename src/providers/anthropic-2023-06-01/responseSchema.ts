@@ -113,7 +113,7 @@ const AnthropicStreamingDelta = z.object({
   delta: z
     .object({
       text: z.string().optional(),
-      input: z.record(z.unknown()).optional(),
+      input: z.union([z.string(), z.record(z.unknown())]).optional(),
       stop_reason: z.string().nullable().optional(),
       stop_sequence: z.string().nullable().optional(),
     })
