@@ -1,4 +1,5 @@
 import type { Message } from "../core/messages/message";
+import type { ToolDefinition } from "../core/tools/toolDefinition";
 
 /**
  * Chat Request Interface
@@ -14,7 +15,10 @@ import type { Message } from "../core/messages/message";
  *   ],
  *   model: "gpt-4",
  *   temperature: 0.7,
- *   maxTokens: 1000
+ *   maxTokens: 1000,
+ *   tools: [
+ *     { name: "echo", description: "Echo input", inputSchema: { type: "object" } }
+ *   ]
  * };
  * ```
  */
@@ -27,6 +31,8 @@ export interface ChatRequest {
   temperature?: number;
   /** Maximum number of tokens to generate */
   maxTokens?: number;
+  /** Tool definitions for tool execution (only processed when BridgeClient has tools enabled) */
+  tools?: ToolDefinition[];
   /** Additional provider-specific options */
   options?: Record<string, unknown>;
 }

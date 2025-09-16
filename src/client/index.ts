@@ -24,5 +24,15 @@ export type { ChatRequest } from "./chatRequest";
 export type { StreamRequest } from "./streamRequest";
 export type { StreamDelta } from "./streamDelta";
 
+// Tool execution types
+export type { ToolExecutionRequest } from "./toolExecutionRequest";
+export type { ToolExecutionStreamRequest } from "./toolExecutionStreamRequest";
+
 // Configuration types
 export type { BridgeClientConfig } from "./bridgeClientConfig";
+
+// Tool integration utilities
+export { extractToolCallsFromMessage } from "./extractToolCallsFromMessage";
+export { formatToolResultsAsMessages } from "./formatToolResultsAsMessages";
+export { shouldExecuteTools } from "./shouldExecuteTools";
+export { validateToolDefinitions } from "./validateToolDefinitions";

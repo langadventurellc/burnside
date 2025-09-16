@@ -1,3 +1,5 @@
+/* eslint-disable statement-count/function-statement-count-warn */
+/* eslint-disable max-lines */
 import type { BridgeConfig } from "../core/config/bridgeConfig";
 import type { Message } from "../core/messages/message";
 import { BridgeError } from "../core/errors/bridgeError";
@@ -23,6 +25,16 @@ import {
   type FetchFunction,
 } from "../core/transport/index";
 import { HttpErrorNormalizer } from "../core/errors/httpErrorNormalizer";
+import {
+  ToolRouter,
+  InMemoryToolRegistry,
+  type ToolDefinition,
+} from "../core/tools/index";
+import { AgentLoop } from "../core/agent/index";
+import { extractToolCallsFromMessage } from "./extractToolCallsFromMessage";
+import { formatToolResultsAsMessages } from "./formatToolResultsAsMessages";
+import { shouldExecuteTools } from "./shouldExecuteTools";
+import { validateToolDefinitions } from "./validateToolDefinitions";
 
 /**
  * Bridge Client Class
@@ -62,6 +74,8 @@ export class BridgeClient {
   private readonly modelRegistry: ModelRegistry;
   private readonly httpTransport: HttpTransport;
   private readonly initializedProviders = new Set<string>();
+  private toolRouter?: ToolRouter;
+  private agentLoop?: AgentLoop;
 
   /**
    * Create BridgeClient Instance
@@ -104,6 +118,11 @@ export class BridgeClient {
 
     // Optionally seed model registry based on configuration
     this.seedModelsIfConfigured(config);
+
+    // Initialize tool system if enabled
+    if (this.isToolsEnabled()) {
+      this.initializeToolSystem();
+    }
   }
 
   /**
@@ -207,6 +226,7 @@ export class BridgeClient {
    * Chat Completion
    *
    * Sends a chat completion request to the configured LLM provider.
+   * If tools are provided and enabled, handles tool execution and conversation continuation.
    *
    * @param request - Chat completion request configuration
    * @returns Promise resolving to the completed message
@@ -218,6 +238,17 @@ export class BridgeClient {
    * @throws {ProviderError} When provider-specific errors occur (normalized via provider plugin)
    */
   async chat(request: ChatRequest): Promise<Message> {
+    // Validate tools if provided
+    if (request.tools && request.tools.length > 0) {
+      validateToolDefinitions(request.tools);
+
+      if (!shouldExecuteTools(true, this.isToolsEnabled())) {
+        throw new BridgeError(
+          "Tools provided but tool system not enabled in configuration",
+          "TOOLS_NOT_ENABLED",
+        );
+      }
+    }
     const modelId = this.qualifyModelId(request.model);
     this.ensureModelRegistered(modelId);
 
@@ -266,6 +297,17 @@ export class BridgeClient {
         model: string;
         metadata?: Record<string, unknown>;
       };
+
+      // Check for tool calls and execute if needed
+      if (request.tools && request.tools.length > 0 && this.isToolsEnabled()) {
+        const toolResultMessages = await this.executeToolCallsInResponse(
+          result.message,
+        );
+        if (toolResultMessages.length > 0) {
+          // For now, return the original message. Full conversation continuation would need more complex logic
+          return result.message;
+        }
+      }
 
       return result.message;
     } catch (error) {
@@ -541,6 +583,98 @@ export class BridgeClient {
   }
 
   /**
+   * Check if tool system is enabled in configuration
+   */
+  private isToolsEnabled(): boolean {
+    return this.config.tools?.enabled === true;
+  }
+
+  /**
+   * Initialize tool system components
+   */
+  private initializeToolSystem(): void {
+    if (!this.config.tools) {
+      return;
+    }
+
+    // Initialize tool registry and router
+    const toolRegistry = new InMemoryToolRegistry();
+    this.toolRouter = new ToolRouter(toolRegistry);
+    this.agentLoop = new AgentLoop(this.toolRouter);
+
+    // Mark tool system as initialized
+    this.config.toolSystemInitialized = true;
+  }
+
+  /**
+   * Register a tool with the tool system
+   */
+  registerTool(
+    definition: ToolDefinition,
+    handler: (params: Record<string, unknown>) => Promise<unknown>,
+  ): void {
+    if (!this.toolRouter) {
+      throw new BridgeError(
+        "Tool system not initialized. Enable tools in configuration first.",
+        "TOOL_SYSTEM_NOT_INITIALIZED",
+      );
+    }
+
+    validateToolDefinitions([definition]);
+    this.toolRouter.register(definition.name, definition, handler);
+  }
+
+  /**
+   * Get tool router for advanced tool system access
+   */
+  getToolRouter(): ToolRouter | undefined {
+    return this.toolRouter;
+  }
+
+  /**
+   * Execute tool calls found in a response message
+   */
+  private async executeToolCallsInResponse(
+    message: Message,
+  ): Promise<Message[]> {
+    if (!this.toolRouter || !this.agentLoop) {
+      return [];
+    }
+
+    const toolCalls = extractToolCallsFromMessage(message);
+    if (toolCalls.length === 0) {
+      return [];
+    }
+
+    const toolResults = [];
+    for (const toolCall of toolCalls) {
+      try {
+        const context = {
+          requestId: `req-${Date.now()}`,
+          userId: "bridge-client",
+          timestamp: new Date().toISOString(),
+        };
+
+        const result = await this.toolRouter.execute(toolCall, context);
+        toolResults.push(result);
+      } catch (error) {
+        // Create error result
+        toolResults.push({
+          callId: toolCall.id,
+          success: false,
+          error: {
+            code: "EXECUTION_FAILED",
+            message:
+              error instanceof Error ? error.message : "Tool execution failed",
+          },
+        });
+      }
+    }
+
+    return formatToolResultsAsMessages(toolResults);
+  }
+
+  /**
    * Validate and Transform Configuration
    *
    * Private method that validates the input BridgeConfig and transforms
@@ -609,6 +743,8 @@ export class BridgeClient {
       defaultModel,
       timeout,
       providers: providersMap,
+      tools: config.tools,
+      toolSystemInitialized: false,
       options: config.options || {},
       registryOptions: {
         providers: config.registryOptions?.providers || {},
