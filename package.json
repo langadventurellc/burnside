@@ -15,7 +15,7 @@
   "scripts": {
     "test": "jest",
     "test:e2e": "NODE_OPTIONS='--import=dotenv/config' jest --config jest.e2e.config.mjs",
-    "test:e2e:openai": "NODE_OPTIONS='--import=dotenv/config' jest --config jest.e2e.config.mjs --testPathPattern=openai",
+    "test:e2e:openai": "NODE_OPTIONS='--import=dotenv/config' jest --config jest.e2e.config.mjs --testPathPatterns=openai",
     "type-check": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,md,json}\" --log-level silent",
@@ -30,6 +30,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.15",
     "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "dotenv": "^17.2.2",
     "eslint": "^9.31.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-sonarjs": "^3.0.4",

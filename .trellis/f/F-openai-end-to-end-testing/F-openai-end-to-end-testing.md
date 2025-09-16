@@ -9,7 +9,8 @@ affectedFiles:
   jest.e2e.config.mjs: Created dedicated Jest configuration for E2E tests with
     ESM/TS settings, 30s timeout, and test pattern targeting *.e2e.test.ts files
   package.json: Added test:e2e and test:e2e:openai NPM scripts with NODE_OPTIONS
-    for environment variable loading
+    for environment variable loading; Fixed Jest testPathPatterns parameter for
+    OpenAI-specific E2E test execution
   .env.example: Created comprehensive environment variable documentation with
     OpenAI API key setup, E2E test enablement, and usage instructions
   src/__tests__/e2e/setup/globalSetup.ts: Created Jest global setup with
@@ -84,16 +85,21 @@ affectedFiles:
   src/__tests__/e2e/shared/__tests__/createToolCall.test.ts: Unit tests for tool
     call creation covering ID generation, timestamp handling, message
     processing, and consistency (18 tests)
+  src/__tests__/e2e/openai/chat.e2e.test.ts: Comprehensive E2E test suite for
+    OpenAI chat completion functionality with 14 test cases covering basic chat,
+    response validation, model integration, error handling, and performance
+    testing
+  .env: Added E2E_TEST_ENABLED=true environment variable to enable E2E testing
 log: []
 schema: v1.0
 childrenIds:
   - T-implement-openai-chat
   - T-implement-openai-streaming
   - T-implement-openai-tool
-  - T-implement-tool-call
   - T-create-e2e-test-directory
   - T-create-jest-e2e-configuration
   - T-implement-model-registry
+  - T-implement-tool-call
 created: 2025-09-16T06:13:46.927Z
 updated: 2025-09-16T06:13:46.927Z
 ---
