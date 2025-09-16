@@ -108,6 +108,8 @@ describe("ToolRouter", () => {
     });
 
     it("should respect custom timeout settings", async () => {
+      jest.useFakeTimers();
+
       // Register tool with slow handler
       const slowHandler = jest
         .fn()
@@ -116,14 +118,18 @@ describe("ToolRouter", () => {
         );
       registry.register("test_tool", mockToolDefinition, slowHandler);
 
-      const startTime = Date.now();
-      const result = await router.execute(mockToolCall, mockContext, 100); // 100ms timeout
+      const executePromise = router.execute(mockToolCall, mockContext, 100); // 100ms timeout
 
-      const executionTime = Date.now() - startTime;
-      expect(executionTime).toBeLessThan(300); // Should timeout well before 300ms (was 100ms timeout)
+      // Fast-forward timers to trigger timeout
+      jest.advanceTimersByTime(100);
+
+      const result = await executePromise;
+
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe("timeout_error");
       expect(result.error?.message).toContain("timed out after 100ms");
+
+      jest.useRealTimers();
     });
 
     it("should handle router-level errors gracefully", async () => {

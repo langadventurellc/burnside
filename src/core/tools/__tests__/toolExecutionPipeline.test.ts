@@ -134,13 +134,15 @@ describe("ExecutionPipeline", () => {
     });
 
     it("should handle timeout errors", async () => {
+      jest.useFakeTimers();
+
       const slowHandler = jest
         .fn()
         .mockImplementation(
           () => new Promise((resolve) => setTimeout(resolve, 1000)),
         );
 
-      const result = await pipeline.execute(
+      const executePromise = pipeline.execute(
         mockToolCall,
         mockToolDefinition,
         slowHandler,
@@ -148,9 +150,16 @@ describe("ExecutionPipeline", () => {
         100, // Short timeout
       );
 
+      // Fast-forward timers to trigger timeout
+      jest.advanceTimersByTime(100);
+
+      const result = await executePromise;
+
       expect(result.success).toBe(false);
       expect(result.error?.code).toBe("timeout_error");
       expect(result.error?.message).toContain("timed out after 100ms");
+
+      jest.useRealTimers();
     });
 
     it("should handle pipeline-level errors", async () => {
@@ -353,6 +362,8 @@ describe("executeToolHandler", () => {
   });
 
   it("should handle timeout errors", async () => {
+    jest.useFakeTimers();
+
     mockExecutionContext.toolHandler = jest
       .fn()
       .mockImplementation(
@@ -360,13 +371,20 @@ describe("executeToolHandler", () => {
       );
     mockExecutionContext.timeoutMs = 100;
 
-    const result = await executeToolHandler(
+    const executePromise = executeToolHandler(
       mockExecutionContext as import("../executionContext.js").ExecutionContext,
     );
+
+    // Fast-forward timers to trigger timeout
+    jest.advanceTimersByTime(100);
+
+    const result = await executePromise;
 
     expect(result.success).toBe(false);
     expect(result.error?.code).toBe("timeout_error");
     expect(result.error?.message).toContain("timed out after 100ms");
+
+    jest.useRealTimers();
   });
 });
 
