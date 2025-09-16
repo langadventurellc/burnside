@@ -95,10 +95,22 @@ affectedFiles:
     validation, error handling scenarios, and edge cases. Achieves >90% code
     coverage including text responses, tool calls, error responses, malformed
     JSON, and schema validation failures.
+  src/providers/anthropic-2023-06-01/translator.ts: Created main request
+    translator implementing translateChatRequest function that converts unified
+    Bridge ChatRequest format to Anthropic Messages API v2023-06-01 format.
+    Includes content type conversion (text, image, code), system message
+    extraction, parameter mapping (temperature, stream, topP, stopSequences),
+    tool placeholder support, comprehensive validation, and proper HTTP request
+    construction with headers.
+  src/providers/anthropic-2023-06-01/__tests__/translator.test.ts:
+    Created comprehensive unit test suite with 25 test cases covering successful
+    translation scenarios, content type mapping, parameter validation, error
+    handling, HTTP request structure, and edge cases. Achieves >90% code
+    coverage including multi-modal content, streaming support, system message
+    handling, and comprehensive validation scenarios.
 log: []
 schema: v1.0
 childrenIds:
-  - T-implement-non-streaming
   - T-implement-request-translation
   - T-implement-streaming-response
   - T-implement-tool-definition
@@ -109,6 +121,7 @@ childrenIds:
   - T-create-anthropic-provider
   - T-create-provider-module
   - T-implement-anthropic-error
+  - T-implement-non-streaming
 created: 2025-09-16T13:04:04.085Z
 updated: 2025-09-16T13:04:04.085Z
 ---
