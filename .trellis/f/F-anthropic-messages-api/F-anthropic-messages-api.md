@@ -19,15 +19,29 @@ affectedFiles:
     inference, defaults, and security edge cases. Achieves >90% code coverage.
   src/providers/anthropic-2023-06-01/index.ts: Created barrel export file
     providing clean public API for the Anthropic provider configuration module,
-    exporting the main schema and inferred TypeScript types.
+    exporting the main schema and inferred TypeScript types.; Updated barrel
+    export to include request and response schemas with proper TypeScript type
+    exports
   src/providers/anthropic-2023-06-01/: Created complete directory structure for
     Anthropic Messages API provider following established project patterns.
+  src/providers/anthropic-2023-06-01/requestSchema.ts: Created comprehensive
+    request schema with Zod validation for Anthropic Messages API v2023-06-01,
+    including text/image content types, tool definitions, and parameter
+    constraints (temperature, top_p, max_tokens)
+  src/providers/anthropic-2023-06-01/responseSchema.ts: Created comprehensive
+    response schema supporting non-streaming responses, streaming deltas with
+    all event types, tool use blocks, usage statistics, and error responses
+  src/providers/anthropic-2023-06-01/__tests__/requestSchema.test.ts:
+    Created comprehensive test suite with 31 test cases covering valid/invalid
+    requests, multimodal content, boundary values, and type inference
+  src/providers/anthropic-2023-06-01/__tests__/responseSchema.test.ts:
+    Created comprehensive test suite with 26 test cases covering response
+    validation, streaming events, error responses, and edge cases
 log: []
 schema: v1.0
 childrenIds:
   - T-create-anthropic-api-request
   - T-create-anthropic-provider-1
-  - T-create-anthropic-provider
   - T-create-provider-module
   - T-implement-anthropic-error
   - T-implement-non-streaming
@@ -36,6 +50,7 @@ childrenIds:
   - T-implement-tool-definition
   - T-integrate-provider-methods
   - T-update-model-registry-to-use
+  - T-create-anthropic-provider
 created: 2025-09-16T13:04:04.085Z
 updated: 2025-09-16T13:04:04.085Z
 ---
