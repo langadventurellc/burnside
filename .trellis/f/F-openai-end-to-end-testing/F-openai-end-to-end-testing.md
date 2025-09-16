@@ -1,7 +1,7 @@
 ---
 id: F-openai-end-to-end-testing
 title: OpenAI End-to-End Testing Infrastructure
-status: in-progress
+status: done
 priority: medium
 parent: none
 prerequisites: []
@@ -113,15 +113,21 @@ affectedFiles:
   src/core/models/__tests__/temperatureCapabilityLoading.test.ts:
     Updated test expectations to match actual capability loading behavior from
     JSON data
-log: []
+  src/__tests__/e2e/openai/tools.e2e.test.ts:
+    Created comprehensive E2E test suite
+    for OpenAI tool execution with 18 test cases covering tool registration,
+    function calling, integration, error handling, and behavior validation using
+    real OpenAI API calls
+log:
+  - "Auto-completed: All child tasks are complete"
 schema: v1.0
 childrenIds:
-  - T-implement-openai-streaming
-  - T-implement-openai-tool
   - T-create-e2e-test-directory
   - T-create-jest-e2e-configuration
   - T-implement-model-registry
   - T-implement-openai-chat
+  - T-implement-openai-streaming
+  - T-implement-openai-tool
   - T-implement-tool-call
 created: 2025-09-16T06:13:46.927Z
 updated: 2025-09-16T06:13:46.927Z
