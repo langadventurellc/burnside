@@ -18,3 +18,5 @@ export {
   AnthropicErrorResponseSchema,
 } from "./responseSchema.js";
 export type { AnthropicMessagesResponseType } from "./responseSchema.js";
+
+export { AnthropicMessagesV1Provider } from "./anthropicMessagesV1Provider.js";
