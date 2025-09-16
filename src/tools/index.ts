@@ -2,14 +2,16 @@
  * Tool Implementations Aggregator
  *
  * This module serves as the entry point for built-in tool registration
- * and discovery. It will contain exports for all available built-in
- * tools once they are implemented.
- *
- * Currently empty as no tool implementations exist yet.
- * Future built-in tools will be exported from this module.
+ * and discovery. Provides access to all available built-in tools and
+ * tool registration utilities.
  */
 
-// TODO: Export built-in tools when implemented
-// TODO: Export tool registration utilities when implemented
+// Export all built-in tools
+export {
+  echoToolDefinition,
+  echoToolHandler,
+  EchoInputSchema,
+  EchoOutputSchema,
+} from "./builtin/index.js";
 
-export {};
+export type { EchoInput, EchoOutput } from "./builtin/index.js";
