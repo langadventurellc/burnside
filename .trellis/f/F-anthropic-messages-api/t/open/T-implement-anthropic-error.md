@@ -32,7 +32,7 @@ This task implements error handling and normalization for the Anthropic Messages
 
 ### File Location
 
-Create `src/providers/anthropic-2025-05-14/errorNormalizer.ts`
+Create `src/providers/anthropic-2023-06-01/errorNormalizer.ts`
 
 ### Core Error Handling Functions
 
@@ -296,7 +296,7 @@ function enhanceErrorContext(
   return {
     ...baseContext,
     provider: "anthropic",
-    version: "2025-05-14",
+    version: "2023-06-01",
     timestamp: new Date().toISOString(),
     errorType: error?.constructor?.name || typeof error,
   };
@@ -382,7 +382,7 @@ function extractRetryAfter(
 
 ## Testing Requirements
 
-Create `src/providers/anthropic-2025-05-14/__tests__/errorNormalizer.test.ts` with:
+Create `src/providers/anthropic-2023-06-01/__tests__/errorNormalizer.test.ts` with:
 
 - HTTP status code mapping tests
 - API error response handling tests

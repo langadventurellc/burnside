@@ -34,7 +34,7 @@ This task completes the provider plugin by implementing the actual method bodies
 
 ### File to Update
 
-Update `src/providers/anthropic-2025-05-14/anthropicMessagesV1Provider.ts`
+Update `src/providers/anthropic-2023-06-01/anthropicMessagesV1Provider.ts`
 
 ### Method Implementations with Correct Interface Signatures
 
@@ -138,7 +138,7 @@ import { normalizeAnthropicError } from "./errorNormalizer.js";
 export class AnthropicMessagesV1Provider implements ProviderPlugin {
   readonly id = "anthropic";
   readonly name = "Anthropic Messages Provider";
-  readonly version = "2025-05-14";
+  readonly version = "2023-06-01";
 
   private config?: AnthropicMessagesConfig;
 
@@ -321,7 +321,7 @@ export class AnthropicMessagesV1Provider implements ProviderPlugin {
 
 ## Testing Requirements
 
-Update `src/providers/anthropic-2025-05-14/__tests__/anthropicMessagesV1Provider.test.ts` with:
+Update `src/providers/anthropic-2023-06-01/__tests__/anthropicMessagesV1Provider.test.ts` with:
 
 - Integration tests for all implemented methods
 - **Interface compliance verification with exact signatures**

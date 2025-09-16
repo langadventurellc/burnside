@@ -24,7 +24,7 @@ This task implements the core request translation logic that converts the Bridge
 
 **Reference Implementation**: Follow patterns from `src/providers/openai-responses-v1/translator.ts`
 
-**API Documentation**: Anthropic Messages API v2025-05-14 specification
+**API Documentation**: Anthropic Messages API v2023-06-01 specification
 
 **Feature Reference**: F-anthropic-messages-api - Anthropic Messages API Provider Implementation
 
@@ -32,7 +32,7 @@ This task implements the core request translation logic that converts the Bridge
 
 ### File Location
 
-Create `src/providers/anthropic-2025-05-14/translator.ts`
+Create `src/providers/anthropic-2023-06-01/translator.ts`
 
 ### Core Translation Functions
 
@@ -242,7 +242,7 @@ export function translateChatRequest(
 
 ## Testing Requirements
 
-Create `src/providers/anthropic-2025-05-14/__tests__/translator.test.ts` with:
+Create `src/providers/anthropic-2023-06-01/__tests__/translator.test.ts` with:
 
 - Basic translation scenarios
 - Multi-modal content tests

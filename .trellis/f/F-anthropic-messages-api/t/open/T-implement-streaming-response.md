@@ -24,7 +24,7 @@ This task implements streaming response parsing for Anthropic's Messages API. Th
 
 **Reference Implementation**: Follow patterns from `src/providers/openai-responses-v1/streamingParser.ts` and use SseParser from core streaming
 
-**API Documentation**: Anthropic Messages API v2025-05-14 streaming format
+**API Documentation**: Anthropic Messages API v2023-06-01 streaming format
 
 **Feature Reference**: F-anthropic-messages-api - Anthropic Messages API Provider Implementation
 
@@ -32,7 +32,7 @@ This task implements streaming response parsing for Anthropic's Messages API. Th
 
 ### File Location
 
-Create `src/providers/anthropic-2025-05-14/streamingParser.ts`
+Create `src/providers/anthropic-2023-06-01/streamingParser.ts`
 
 ### Core Streaming Functions
 
@@ -346,7 +346,7 @@ async function* convertToUint8ArrayIterable(
 
 ## Testing Requirements
 
-Create `src/providers/anthropic-2025-05-14/__tests__/streamingParser.test.ts` with:
+Create `src/providers/anthropic-2023-06-01/__tests__/streamingParser.test.ts` with:
 
 - Successful streaming scenarios using SseParser
 - Various event type processing

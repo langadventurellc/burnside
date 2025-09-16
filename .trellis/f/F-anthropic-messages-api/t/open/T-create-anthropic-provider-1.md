@@ -33,7 +33,7 @@ This task creates the core provider plugin class that implements the `ProviderPl
 
 ### File Location
 
-Create `src/providers/anthropic-2025-05-14/anthropicMessagesV1Provider.ts`
+Create `src/providers/anthropic-2023-06-01/anthropicMessagesV1Provider.ts`
 
 ### Class Structure
 
@@ -41,7 +41,7 @@ Create `src/providers/anthropic-2025-05-14/anthropicMessagesV1Provider.ts`
 export class AnthropicMessagesV1Provider implements ProviderPlugin {
   readonly id = "anthropic";
   readonly name = "Anthropic Messages Provider";
-  readonly version = "2025-05-14";
+  readonly version = "2023-06-01";
 
   private config?: AnthropicMessagesConfig;
 
@@ -123,7 +123,7 @@ import {
 export class AnthropicMessagesV1Provider implements ProviderPlugin {
   readonly id = "anthropic";
   readonly name = "Anthropic Messages Provider";
-  readonly version = "2025-05-14";
+  readonly version = "2023-06-01";
 
   private config?: AnthropicMessagesConfig;
 
@@ -199,7 +199,7 @@ export class AnthropicMessagesV1Provider implements ProviderPlugin {
 1. **Interface Implementation**:
    - ✅ Implements all required `ProviderPlugin` interface methods
    - ✅ **Uses EXACT method signatures from ProviderPlugin interface**
-   - ✅ Proper provider identification (id: "anthropic", version: "2025-05-14")
+   - ✅ Proper provider identification (id: "anthropic", version: "2023-06-01")
    - ✅ Type-safe implementation with no `any` types
 
 2. **Configuration Management**:
@@ -250,7 +250,7 @@ export class AnthropicMessagesV1Provider implements ProviderPlugin {
 
 ## Testing Requirements
 
-Create `src/providers/anthropic-2025-05-14/__tests__/anthropicMessagesV1Provider.test.ts` with:
+Create `src/providers/anthropic-2023-06-01/__tests__/anthropicMessagesV1Provider.test.ts` with:
 
 - Configuration initialization tests
 - **Interface compliance verification with exact signatures**

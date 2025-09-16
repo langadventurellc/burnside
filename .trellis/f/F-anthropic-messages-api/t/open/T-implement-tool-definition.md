@@ -24,7 +24,7 @@ This task implements the tool system integration for Anthropic's Messages API. T
 
 **Reference Implementation**: Follow patterns from `src/providers/openai-responses-v1/toolTranslator.ts` and OpenAI tool handling
 
-**API Documentation**: Anthropic Messages API v2025-05-14 tools format
+**API Documentation**: Anthropic Messages API v2023-06-01 tools format
 
 **Feature Reference**: F-anthropic-messages-api - Anthropic Messages API Provider Implementation
 
@@ -32,7 +32,7 @@ This task implements the tool system integration for Anthropic's Messages API. T
 
 ### File Location
 
-Create `src/providers/anthropic-2025-05-14/toolTranslator.ts`
+Create `src/providers/anthropic-2023-06-01/toolTranslator.ts`
 
 ### Core Translation Functions
 
@@ -320,7 +320,7 @@ export function formatToolResultMessage(
 
 ## Testing Requirements
 
-Create `src/providers/anthropic-2025-05-14/__tests__/toolTranslator.test.ts` with:
+Create `src/providers/anthropic-2023-06-01/__tests__/toolTranslator.test.ts` with:
 
 - Basic tool translation tests
 - **Complex schema conversion tests with proper optional field detection**

@@ -30,7 +30,7 @@ App (Electron / RN / Node)
   ▼
 LLM Bridge (public API)
   ├── Core Domain (messages, tools, agent, streaming, config)
-  ├── Provider Registry + Plugins (openai-responses-v1, anthropic-2025-05-14, ...)
+  ├── Provider Registry + Plugins (openai-responses-v1, anthropic-2023-06-01, ...)
   ├── Tool Router (native ↔ built‑in ↔ MCP)
   ├── Transport (HTTP, streaming) + Policies (retry, rate, cache)
   └── Runtime Adapters (platform I/O, storage, timers)
@@ -58,7 +58,7 @@ src/
       schema.ts                # Zod config for this provider version
       translator.ts            # Messages/tools → OpenAI payloads; responses → unified
       http.ts                  # Endpoints, headers, SSE parsing specifics
-    anthropic-2025-05-14/
+    anthropic-2023-06-01/
       ...
     google-gemini-v1/
       ...
@@ -278,7 +278,7 @@ const BridgeConfig = z.object({
 - Model Selection: The `BridgeClient` uses the centralized model registry to route requests to appropriate provider plugins based on each model's `providerPlugin` field.
 - Examples:
   - `openai-responses-v1`: function/tool calls, chunks via SSE or chunked transfer.
-  - `anthropic-2025-05-14`: tools array, stop reasons, cache points.
+  - `anthropic-2023-06-01`: tools array, stop reasons, cache points.
   - `google-gemini-v1`: function declarations, grounding/citations mapping.
   - `ollama-v*`: local models, non‑SSE streaming, image embeddings. (out of scope for V1)
 
@@ -408,7 +408,7 @@ const client = createClient({
     },
     {
       id: "anthropic",
-      version: "2025-05-14",
+      version: "2023-06-01",
       config: { apiKey: "env:ANTHROPIC_API_KEY" },
     },
   ],
@@ -423,7 +423,7 @@ const client = createClient({
       },
     },
     "anthropic:claude-3-5-sonnet": {
-      providerPlugin: "anthropic-2025-05-14",
+      providerPlugin: "anthropic-2023-06-01",
       capabilities: {
         toolCalls: true,
         streaming: true,
@@ -440,7 +440,7 @@ const client = createClient({
 });
 
 const stream = client.stream({
-  provider: { id: "anthropic", version: "2025-05-14" },
+  provider: { id: "anthropic", version: "2023-06-01" },
   model: "claude-3-5-sonnet",
   messages: [
     { role: "system", content: [{ type: "text", text: "Be concise." }] },

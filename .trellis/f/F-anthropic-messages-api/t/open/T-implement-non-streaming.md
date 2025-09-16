@@ -24,7 +24,7 @@ This task implements the response parsing logic for non-streaming Anthropic API 
 
 **Reference Implementation**: Follow patterns from `src/providers/openai-responses-v1/responseParser.ts`
 
-**API Documentation**: Anthropic Messages API v2025-05-14 response format
+**API Documentation**: Anthropic Messages API v2023-06-01 response format
 
 **Feature Reference**: F-anthropic-messages-api - Anthropic Messages API Provider Implementation
 
@@ -32,7 +32,7 @@ This task implements the response parsing logic for non-streaming Anthropic API 
 
 ### File Location
 
-Create `src/providers/anthropic-2025-05-14/responseParser.ts`
+Create `src/providers/anthropic-2023-06-01/responseParser.ts`
 
 ### Core Parsing Functions
 
@@ -280,7 +280,7 @@ export function parseAnthropicResponse(
 
 ## Testing Requirements
 
-Create `src/providers/anthropic-2025-05-14/__tests__/responseParser.test.ts` with:
+Create `src/providers/anthropic-2023-06-01/__tests__/responseParser.test.ts` with:
 
 - Valid response parsing tests with responseText input
 - Content block processing tests
