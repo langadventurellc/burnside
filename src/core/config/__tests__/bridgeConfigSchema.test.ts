@@ -259,4 +259,317 @@ describe("BridgeConfigSchema", () => {
       expect(options).toEqual({ retries: 3 });
     });
   });
+
+  describe("tools configuration", () => {
+    describe("valid tools configurations", () => {
+      it("should accept minimal tools configuration with enabled=false", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: false,
+            builtinTools: [],
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools).toEqual({
+          enabled: false,
+          builtinTools: [],
+        });
+      });
+
+      it("should accept tools configuration with enabled=true and builtinTools", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools).toEqual({
+          enabled: true,
+          builtinTools: ["echo"],
+        });
+      });
+
+      it("should accept complete tools configuration with all fields", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+            executionTimeoutMs: 5000,
+            maxConcurrentTools: 1,
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools).toEqual({
+          enabled: true,
+          builtinTools: ["echo"],
+          executionTimeoutMs: 5000,
+          maxConcurrentTools: 1,
+        });
+      });
+
+      it("should accept tools configuration with multiple builtin tools", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo", "calculator", "weather"],
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools?.builtinTools).toEqual([
+          "echo",
+          "calculator",
+          "weather",
+        ]);
+      });
+
+      it("should accept tools configuration with valid timeout boundaries", () => {
+        const configs = [
+          {
+            providers: { test: {} },
+            tools: {
+              enabled: true,
+              builtinTools: [],
+              executionTimeoutMs: 1000,
+            },
+          }, // minimum
+          {
+            providers: { test: {} },
+            tools: {
+              enabled: true,
+              builtinTools: [],
+              executionTimeoutMs: 30000,
+            },
+          }, // typical
+          {
+            providers: { test: {} },
+            tools: {
+              enabled: true,
+              builtinTools: [],
+              executionTimeoutMs: 300000,
+            },
+          }, // maximum
+        ];
+
+        configs.forEach((config) => {
+          expect(() => BridgeConfigSchema.parse(config)).not.toThrow();
+        });
+      });
+
+      it("should accept tools configuration with valid concurrent tool boundaries", () => {
+        const configs = [
+          {
+            providers: { test: {} },
+            tools: { enabled: true, builtinTools: [], maxConcurrentTools: 1 },
+          }, // minimum
+          {
+            providers: { test: {} },
+            tools: { enabled: true, builtinTools: [], maxConcurrentTools: 5 },
+          }, // typical
+          {
+            providers: { test: {} },
+            tools: { enabled: true, builtinTools: [], maxConcurrentTools: 10 },
+          }, // maximum
+        ];
+
+        configs.forEach((config) => {
+          expect(() => BridgeConfigSchema.parse(config)).not.toThrow();
+        });
+      });
+    });
+
+    describe("invalid tools configurations", () => {
+      it("should reject tools configuration with non-boolean enabled", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: "true" as any,
+            builtinTools: [],
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(config)).toThrow();
+      });
+
+      it("should reject tools configuration with non-array builtinTools", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: "echo" as any,
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(config)).toThrow();
+      });
+
+      it("should reject tools configuration with empty builtin tool names", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo", "", "calculator"],
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(config)).toThrow(
+          /Builtin tool name cannot be empty/,
+        );
+      });
+
+      it("should reject tools configuration with invalid executionTimeoutMs values", () => {
+        const invalidTimeouts = [
+          { value: 999, error: /at least 1000ms/ },
+          { value: 300001, error: /not exceed 300000ms/ },
+          { value: -5000, error: /at least 1000ms/ },
+          { value: 0, error: /at least 1000ms/ },
+          { value: 2.5, error: /integer/ },
+        ];
+
+        invalidTimeouts.forEach(({ value, error }) => {
+          const config = {
+            providers: { test: {} },
+            tools: {
+              enabled: true,
+              builtinTools: [],
+              executionTimeoutMs: value,
+            },
+          };
+
+          expect(() => BridgeConfigSchema.parse(config)).toThrow(error);
+        });
+      });
+
+      it("should reject tools configuration with invalid maxConcurrentTools values", () => {
+        const invalidValues = [
+          { value: 0, error: /at least 1/ },
+          { value: 11, error: /not exceed 10/ },
+          { value: -1, error: /at least 1/ },
+          { value: 1.5, error: /integer/ },
+        ];
+
+        invalidValues.forEach(({ value, error }) => {
+          const config = {
+            providers: { test: {} },
+            tools: {
+              enabled: true,
+              builtinTools: [],
+              maxConcurrentTools: value,
+            },
+          };
+
+          expect(() => BridgeConfigSchema.parse(config)).toThrow(error);
+        });
+      });
+
+      it("should reject tools configuration with non-number timeout values", () => {
+        const config = {
+          providers: { test: {} },
+          tools: {
+            enabled: true,
+            builtinTools: [],
+            executionTimeoutMs: "5000" as any,
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(config)).toThrow();
+      });
+    });
+
+    describe("tools configuration integration", () => {
+      it("should accept complete BridgeConfig with tools section", () => {
+        const config = {
+          defaultProvider: "openai",
+          providers: {
+            openai: { apiKey: "sk-test" },
+            anthropic: { apiKey: "sk-ant-test" },
+          },
+          defaultModel: "gpt-4",
+          timeout: 30000,
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+            executionTimeoutMs: 5000,
+            maxConcurrentTools: 1,
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result).toEqual(config);
+      });
+
+      it("should accept existing configurations without tools section (backward compatibility)", () => {
+        const config = {
+          defaultProvider: "openai",
+          providers: {
+            openai: { apiKey: "sk-test" },
+          },
+          defaultModel: "gpt-4",
+          timeout: 30000,
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools).toBeUndefined();
+        expect(result.defaultProvider).toBe("openai");
+      });
+
+      it("should handle tools configuration with optional fields omitted", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: false,
+            builtinTools: ["echo"],
+            // executionTimeoutMs and maxConcurrentTools omitted
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools).toEqual({
+          enabled: false,
+          builtinTools: ["echo"],
+        });
+        expect(result.tools?.executionTimeoutMs).toBeUndefined();
+        expect(result.tools?.maxConcurrentTools).toBeUndefined();
+      });
+    });
+
+    describe("tools configuration type inference", () => {
+      it("should infer correct types for tools configuration", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+            executionTimeoutMs: 5000,
+            maxConcurrentTools: 1,
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+
+        // TypeScript compilation test
+        const toolsConfig = result.tools;
+        if (toolsConfig) {
+          const enabled: boolean = toolsConfig.enabled;
+          const builtinTools: string[] = toolsConfig.builtinTools;
+          const timeout: number | undefined = toolsConfig.executionTimeoutMs;
+          const maxConcurrent: number | undefined =
+            toolsConfig.maxConcurrentTools;
+
+          expect(enabled).toBe(true);
+          expect(builtinTools).toEqual(["echo"]);
+          expect(timeout).toBe(5000);
+          expect(maxConcurrent).toBe(1);
+        }
+      });
+    });
+  });
 });

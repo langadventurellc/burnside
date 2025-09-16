@@ -140,14 +140,28 @@ affectedFiles:
   src/core/agent/index.ts:
     Updated module exports to include all agent loop types
     and functionality following project patterns
+  src/core/config/bridgeConfigSchema.ts: Added comprehensive tools configuration
+    schema with enabled toggle, builtinTools array validation,
+    executionTimeoutMs (1000-300000ms), and maxConcurrentTools (1-10) fields
+    with detailed error messages
+  src/core/config/toolsConfig.ts: Created separate ToolsConfig type definition
+    following one-export-per-file rule with proper JSDoc documentation and
+    example usage
+  src/core/config/bridgeConfig.ts: Extended BridgeConfig interface to include
+    optional tools configuration field with updated example showing tool system
+    usage
+  src/core/config/index.ts: Added ToolsConfig type export to public API for external consumption
+  src/core/config/__tests__/bridgeConfigSchema.test.ts: Added 13 comprehensive
+    test cases covering valid/invalid configurations, integration with existing
+    BridgeConfig, backward compatibility, and type inference validation
 log: []
 schema: v1.0
 childrenIds:
-  - T-create-basic-agent-loop-with
   - T-create-e2e-test-user-message
   - T-integrate-tool-system-with
   - T-update-bridgeconfig-with-tool
   - T-add-openai-tool-format
+  - T-create-basic-agent-loop-with
   - T-create-echo-tool-with
   - T-create-toolregistry-with
   - T-implement-core-tool-types-and

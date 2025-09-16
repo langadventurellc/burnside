@@ -1,13 +1,34 @@
 ---
 id: T-update-bridgeconfig-with-tool
 title: Update BridgeConfig with tool system configuration
-status: open
+status: done
 priority: medium
 parent: F-tool-system-core-openai-tool
 prerequisites:
   - T-create-basic-agent-loop-with
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/config/bridgeConfigSchema.ts: Added comprehensive tools configuration
+    schema with enabled toggle, builtinTools array validation,
+    executionTimeoutMs (1000-300000ms), and maxConcurrentTools (1-10) fields
+    with detailed error messages
+  src/core/config/toolsConfig.ts: Created separate ToolsConfig type definition
+    following one-export-per-file rule with proper JSDoc documentation and
+    example usage
+  src/core/config/bridgeConfig.ts: Extended BridgeConfig interface to include
+    optional tools configuration field with updated example showing tool system
+    usage
+  src/core/config/index.ts: Added ToolsConfig type export to public API for external consumption
+  src/core/config/__tests__/bridgeConfigSchema.test.ts: Added 13 comprehensive
+    test cases covering valid/invalid configurations, integration with existing
+    BridgeConfig, backward compatibility, and type inference validation
+log:
+  - Successfully extended BridgeConfig interface with comprehensive tool system
+    configuration support. Added optional tools configuration section with
+    enabled/disabled toggle, builtin tools array, execution timeout, and
+    concurrent tool limits. Implemented full Zod schema validation with helpful
+    error messages and comprehensive test coverage. All 35 tests pass including
+    13 new tools configuration tests covering validation, integration, type
+    safety, and backward compatibility.
 schema: v1.0
 childrenIds: []
 created: 2025-09-16T00:31:14.666Z
