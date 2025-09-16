@@ -3,7 +3,7 @@
  *
  * This module provides the primary public API for the LLM Bridge Library,
  * including the BridgeClient class and related types for chat and streaming
- * functionality with feature flag controls.
+ * functionality.
  *
  * @example
  * ```typescript
@@ -26,9 +26,3 @@ export type { StreamDelta } from "./streamDelta";
 
 // Configuration types
 export type { BridgeClientConfig } from "./bridgeClientConfig";
-
-// Feature flag system
-export type { FeatureFlags } from "./featureFlagsInterface";
-export type { FeatureFlagOverrides } from "./featureFlagOverrides";
-export { initializeFeatureFlags } from "./initializeFeatureFlags";
-export { isFeatureEnabled } from "./isFeatureEnabled";

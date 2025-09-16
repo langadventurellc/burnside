@@ -78,10 +78,6 @@ describe("BridgeClientConfig", () => {
         logging: { level: "debug", enabled: true },
         retries: { count: 3, backoff: "exponential" },
         cache: { enabled: false, ttl: 300 },
-        customSettings: {
-          feature1: true,
-          feature2: { config: "value" },
-        },
       };
 
       const config: BridgeClientConfig = {

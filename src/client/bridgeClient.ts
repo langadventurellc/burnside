@@ -4,9 +4,6 @@ import { BridgeError } from "../core/errors/bridgeError";
 import type { ChatRequest } from "./chatRequest";
 import type { StreamRequest } from "./streamRequest";
 import type { BridgeClientConfig } from "./bridgeClientConfig";
-import type { FeatureFlags } from "./featureFlagsInterface";
-import { initializeFeatureFlags } from "./initializeFeatureFlags";
-import { isFeatureEnabled } from "./isFeatureEnabled";
 import type { ProviderRegistry } from "../core/providers/providerRegistry";
 import type { ProviderPlugin } from "../core/providers/providerPlugin";
 import type { ModelRegistry } from "../core/models/modelRegistry";
@@ -23,8 +20,6 @@ import type { ModelInfo } from "../core/providers/modelInfo";
  * Bridge Client Class
  *
  * Primary public API class for the LLM Bridge Library.
- * Provides chat and streaming functionality with feature flag controls
- * for progressive enablement during development phases.
  *
  * @example
  * ```typescript
@@ -55,22 +50,19 @@ import type { ModelInfo } from "../core/providers/modelInfo";
  */
 export class BridgeClient {
   private readonly config: BridgeClientConfig;
-  private readonly featureFlags: FeatureFlags;
   private readonly providerRegistry: ProviderRegistry;
   private readonly modelRegistry: ModelRegistry;
 
   /**
    * Create BridgeClient Instance
    *
-   * Validates the provided configuration and initializes the client
-   * with appropriate feature flags for the current phase.
+   * Validates the provided configuration and initializes the client.
    *
    * @param config - Bridge configuration object
    * @throws {BridgeError} When configuration validation fails
    */
   constructor(config: BridgeConfig) {
     this.config = this.validateAndTransformConfig(config);
-    this.featureFlags = initializeFeatureFlags();
 
     // Initialize registries with empty state for Phase 1
     this.providerRegistry = new InMemoryProviderRegistry();
@@ -84,26 +76,12 @@ export class BridgeClient {
    * Chat Completion
    *
    * Sends a chat completion request to the configured LLM provider.
-   * Currently disabled in Phase 1 - will be implemented in Phase 2.
    *
    * @param request - Chat completion request configuration
    * @returns Promise resolving to the completed message
    * @throws {BridgeError} When feature is disabled or not implemented
    */
   chat(request: ChatRequest): Promise<Message> {
-    if (!isFeatureEnabled(this.featureFlags, "CHAT_ENABLED")) {
-      throw new BridgeError(
-        "Chat functionality is not yet implemented",
-        "FEATURE_DISABLED",
-        {
-          feature: "chat",
-          phase: "Phase 1",
-          availableInPhase: "Phase 2",
-        },
-      );
-    }
-
-    // No-op implementation for Phase 1
     throw new BridgeError(
       "Chat implementation coming in Phase 2",
       "NOT_IMPLEMENTED",
@@ -121,26 +99,12 @@ export class BridgeClient {
    * Streaming Chat Completion
    *
    * Sends a streaming chat completion request to the configured LLM provider.
-   * Currently disabled in Phase 1 - will be implemented in Phase 2.
    *
    * @param request - Streaming chat completion request configuration
    * @returns AsyncIterable of streaming response deltas
    * @throws {BridgeError} When feature is disabled or not implemented
    */
   stream(request: StreamRequest): AsyncIterable<never> {
-    if (!isFeatureEnabled(this.featureFlags, "STREAMING_ENABLED")) {
-      throw new BridgeError(
-        "Streaming functionality is not yet implemented",
-        "FEATURE_DISABLED",
-        {
-          feature: "streaming",
-          phase: "Phase 1",
-          availableInPhase: "Phase 2",
-        },
-      );
-    }
-
-    // No-op implementation for Phase 1
     throw new BridgeError(
       "Streaming implementation coming in Phase 2",
       "NOT_IMPLEMENTED",

@@ -1,7 +1,5 @@
 import { BridgeClient } from "../bridgeClient";
 import type { BridgeConfig } from "../../core/config/bridgeConfig";
-import type { ChatRequest } from "../chatRequest";
-import type { StreamRequest } from "../streamRequest";
 import { BridgeError } from "../../core/errors/bridgeError";
 
 describe("BridgeClient", () => {
@@ -12,17 +10,6 @@ describe("BridgeClient", () => {
     },
     defaultModel: "gpt-4",
     timeout: 30000,
-  };
-
-  const validChatRequest: ChatRequest = {
-    messages: [{ role: "user", content: [{ type: "text", text: "Hello!" }] }],
-    model: "gpt-4",
-  };
-
-  const validStreamRequest: StreamRequest = {
-    messages: [{ role: "user", content: [{ type: "text", text: "Hello!" }] }],
-    model: "gpt-4",
-    stream: true,
   };
 
   describe("constructor", () => {
@@ -98,132 +85,6 @@ describe("BridgeClient", () => {
 
       expect(clientConfig.defaultProvider).toBeTruthy();
       expect(["openai", "anthropic"]).toContain(clientConfig.defaultProvider);
-    });
-  });
-
-  describe("chat method", () => {
-    let client: BridgeClient;
-
-    beforeEach(() => {
-      client = new BridgeClient(validConfig);
-    });
-
-    it("should throw FEATURE_DISABLED error by default", () => {
-      expect(() => client.chat(validChatRequest)).toThrow(BridgeError);
-
-      try {
-        client.chat(validChatRequest);
-      } catch (error) {
-        expect(error).toBeInstanceOf(BridgeError);
-        expect((error as BridgeError).code).toBe("FEATURE_DISABLED");
-        expect((error as BridgeError).message).toContain(
-          "Chat functionality is not yet implemented",
-        );
-        expect((error as BridgeError).context?.feature).toBe("chat");
-        expect((error as BridgeError).context?.phase).toBe("Phase 1");
-      }
-    });
-
-    it("should return Promise<Message> type", () => {
-      // This test ensures the method signature is correct
-      try {
-        const result = client.chat(validChatRequest);
-        expect(result).toBeInstanceOf(Promise);
-      } catch (error) {
-        // Expected to throw in Phase 1
-        expect(error).toBeInstanceOf(BridgeError);
-      }
-    });
-
-    it("should accept valid ChatRequest parameters", () => {
-      const complexRequest: ChatRequest = {
-        messages: [
-          { role: "user", content: [{ type: "text", text: "Hello!" }] },
-          { role: "assistant", content: [{ type: "text", text: "Hi there!" }] },
-        ],
-        model: "gpt-3.5-turbo",
-        temperature: 0.7,
-        maxTokens: 1000,
-        options: { customParam: "value" },
-      };
-
-      // Should throw FEATURE_DISABLED error in Phase 1
-      try {
-        client.chat(complexRequest);
-      } catch (error) {
-        expect(error).toBeInstanceOf(BridgeError);
-        const bridgeError = error as BridgeError;
-        expect(bridgeError.code).toBe("FEATURE_DISABLED");
-        expect(bridgeError.context?.feature).toBe("chat");
-
-        // The request context is not included in FEATURE_DISABLED errors
-        // This is expected behavior - detailed request info only in NOT_IMPLEMENTED
-      }
-    });
-  });
-
-  describe("stream method", () => {
-    let client: BridgeClient;
-
-    beforeEach(() => {
-      client = new BridgeClient(validConfig);
-    });
-
-    it("should throw FEATURE_DISABLED error by default", () => {
-      expect(() => {
-        client.stream(validStreamRequest);
-      }).toThrow(BridgeError);
-
-      try {
-        client.stream(validStreamRequest);
-      } catch (error) {
-        expect(error).toBeInstanceOf(BridgeError);
-        expect((error as BridgeError).code).toBe("FEATURE_DISABLED");
-        expect((error as BridgeError).message).toContain(
-          "Streaming functionality is not yet implemented",
-        );
-        expect((error as BridgeError).context?.feature).toBe("streaming");
-        expect((error as BridgeError).context?.phase).toBe("Phase 1");
-      }
-    });
-
-    it("should return AsyncIterable type", () => {
-      // This test ensures the method signature is correct
-      try {
-        const result = client.stream(validStreamRequest);
-        expect(typeof result[Symbol.asyncIterator]).toBe("function");
-      } catch (error) {
-        // Expected to throw in Phase 1
-        expect(error).toBeInstanceOf(BridgeError);
-      }
-    });
-
-    it("should accept valid StreamRequest parameters", () => {
-      const complexRequest: StreamRequest = {
-        messages: [
-          { role: "user", content: [{ type: "text", text: "Hello!" }] },
-        ],
-        model: "gpt-4",
-        temperature: 0.5,
-        stream: true,
-        streamOptions: {
-          includeUsage: true,
-          bufferSize: 1024,
-        },
-      };
-
-      // Should throw FEATURE_DISABLED error in Phase 1
-      try {
-        client.stream(complexRequest);
-      } catch (error) {
-        expect(error).toBeInstanceOf(BridgeError);
-        const bridgeError = error as BridgeError;
-        expect(bridgeError.code).toBe("FEATURE_DISABLED");
-        expect(bridgeError.context?.feature).toBe("streaming");
-
-        // The request context is not included in FEATURE_DISABLED errors
-        // This is expected behavior - detailed request info only in NOT_IMPLEMENTED
-      }
     });
   });
 

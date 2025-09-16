@@ -213,19 +213,6 @@ export {
   parseModelId,
 } from "./core/models";
 
-// ============================================================================
-// FEATURE FLAGS AND ERROR HANDLING
-// ============================================================================
-
-/**
- * Feature flag system for progressive feature enablement.
- * Used internally for phased rollout, exposed for advanced usage and testing.
- *
- * @since 0.1.0 (Phase 1)
- */
-export type { FeatureFlags, FeatureFlagOverrides } from "./client";
-export { initializeFeatureFlags, isFeatureEnabled } from "./client";
-
 /**
  * Error types and utilities for comprehensive error handling.
  * All library errors extend BridgeError for consistent error handling patterns.

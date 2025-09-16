@@ -38,12 +38,6 @@ const providerPluginSchema = z.object({
  * plugin management. Providers are stored by composite keys (id:version)
  * and can be queried efficiently by ID, version, or capability.
  *
- * Features:
- * - Thread-safe operations using synchronous Map operations
- * - Zod-based validation of provider plugin structure
- * - Semantic version sorting for latest version resolution
- * - Efficient storage and retrieval with composite keys
- *
  * @example
  * ```typescript
  * const registry = new InMemoryProviderRegistry();
