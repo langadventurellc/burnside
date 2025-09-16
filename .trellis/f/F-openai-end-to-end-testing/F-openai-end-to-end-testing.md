@@ -1,14 +1,27 @@
 ---
 id: F-openai-end-to-end-testing
 title: OpenAI End-to-End Testing Infrastructure
-status: open
+status: in-progress
 priority: medium
 parent: none
 prerequisites: []
-affectedFiles: {}
+affectedFiles:
+  jest.e2e.config.mjs: Created dedicated Jest configuration for E2E tests with
+    ESM/TS settings, 30s timeout, and test pattern targeting *.e2e.test.ts files
+  package.json: Added test:e2e and test:e2e:openai NPM scripts with NODE_OPTIONS
+    for environment variable loading
+  .env.example: Created comprehensive environment variable documentation with
+    OpenAI API key setup, E2E test enablement, and usage instructions
 log: []
 schema: v1.0
-childrenIds: []
+childrenIds:
+  - T-create-e2e-test-directory
+  - T-create-jest-e2e-configuration
+  - T-implement-model-registry
+  - T-implement-openai-chat
+  - T-implement-openai-streaming
+  - T-implement-openai-tool
+  - T-implement-tool-call
 created: 2025-09-16T06:13:46.927Z
 updated: 2025-09-16T06:13:46.927Z
 ---

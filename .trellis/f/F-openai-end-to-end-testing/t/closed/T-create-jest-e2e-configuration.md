@@ -1,12 +1,23 @@
 ---
 id: T-create-jest-e2e-configuration
 title: Create Jest E2E configuration and NPM scripts
-status: open
+status: done
 priority: high
 parent: F-openai-end-to-end-testing
 prerequisites: []
-affectedFiles: {}
-log: []
+affectedFiles:
+  jest.e2e.config.mjs: Created dedicated Jest configuration for E2E tests with
+    ESM/TS settings, 30s timeout, and test pattern targeting *.e2e.test.ts files
+  package.json: Added test:e2e and test:e2e:openai NPM scripts with NODE_OPTIONS
+    for environment variable loading
+  .env.example: Created comprehensive environment variable documentation with
+    OpenAI API key setup, E2E test enablement, and usage instructions
+log:
+  - Successfully implemented Jest E2E configuration and NPM scripts with
+    complete environment variable documentation. Created isolated E2E testing
+    infrastructure that mirrors existing Jest ESM/TypeScript settings while
+    ensuring proper separation from unit tests. All quality checks pass and E2E
+    scripts are functional.
 schema: v1.0
 childrenIds: []
 created: 2025-09-16T06:21:26.951Z
