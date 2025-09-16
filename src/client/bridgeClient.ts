@@ -3,6 +3,7 @@ import type { Message } from "../core/messages/message";
 import { BridgeError } from "../core/errors/bridgeError";
 import type { ChatRequest } from "./chatRequest";
 import type { StreamRequest } from "./streamRequest";
+import type { StreamDelta } from "./streamDelta";
 import type { BridgeClientConfig } from "./bridgeClientConfig";
 import type { ProviderRegistry } from "../core/providers/providerRegistry";
 import type { ProviderPlugin } from "../core/providers/providerPlugin";
@@ -15,6 +16,13 @@ import { DefaultLlmModelsSchema } from "../core/models/defaultLlmModelsSchema";
 import { defaultLlmModels } from "../data/defaultLlmModels";
 import { ValidationError } from "../core/errors/validationError";
 import type { ModelInfo } from "../core/providers/modelInfo";
+import {
+  HttpTransport,
+  InterceptorChain,
+  type HttpClientConfig,
+  type FetchFunction,
+} from "../core/transport/index";
+import { HttpErrorNormalizer } from "../core/errors/httpErrorNormalizer";
 
 /**
  * Bridge Client Class
@@ -33,14 +41,14 @@ import type { ModelInfo } from "../core/providers/modelInfo";
  *
  * const client = new BridgeClient(config);
  *
- * // Chat completion (Phase 2+)
+ * // Chat completion
  * const response = await client.chat({
  *   messages: [{ role: "user", content: [{ type: "text", text: "Hello!" }] }],
  *   model: "gpt-4"
  * });
  *
- * // Streaming chat (Phase 2+)
- * for await (const delta of client.stream({
+ * // Streaming chat
+ * for await (const delta of await client.stream({
  *   messages: [{ role: "user", content: [{ type: "text", text: "Hello!" }] }],
  *   model: "gpt-4"
  * })) {
@@ -52,6 +60,8 @@ export class BridgeClient {
   private readonly config: BridgeClientConfig;
   private readonly providerRegistry: ProviderRegistry;
   private readonly modelRegistry: ModelRegistry;
+  private readonly httpTransport: HttpTransport;
+  private readonly initializedProviders = new Set<string>();
 
   /**
    * Create BridgeClient Instance
@@ -61,15 +71,136 @@ export class BridgeClient {
    * @param config - Bridge configuration object
    * @throws {BridgeError} When configuration validation fails
    */
-  constructor(config: BridgeConfig) {
+  constructor(
+    config: BridgeConfig,
+    deps?: {
+      transport?: HttpTransport;
+      providerRegistry?: ProviderRegistry;
+      modelRegistry?: ModelRegistry;
+    },
+  ) {
     this.config = this.validateAndTransformConfig(config);
 
-    // Initialize registries with empty state for Phase 1
-    this.providerRegistry = new InMemoryProviderRegistry();
-    this.modelRegistry = new InMemoryModelRegistry();
+    // Initialize registries
+    this.providerRegistry =
+      deps?.providerRegistry ?? new InMemoryProviderRegistry();
+    this.modelRegistry = deps?.modelRegistry ?? new InMemoryModelRegistry();
+
+    // Build default transport or use injected one
+    if (deps?.transport) {
+      this.httpTransport = deps.transport;
+    } else {
+      const httpClientConfig: HttpClientConfig = {
+        fetch: globalThis.fetch as FetchFunction,
+      };
+      const interceptors = new InterceptorChain();
+      const errorNormalizer = new HttpErrorNormalizer();
+      this.httpTransport = new HttpTransport(
+        httpClientConfig,
+        interceptors,
+        errorNormalizer,
+      );
+    }
 
     // Optionally seed model registry based on configuration
     this.seedModelsIfConfigured(config);
+  }
+
+  /**
+   * Qualify model ID with provider prefix if needed
+   */
+  private qualifyModelId(model: string): string {
+    if (model.includes(":")) {
+      return model;
+    }
+    return `${this.config.defaultProvider}:${model}`;
+  }
+
+  /**
+   * Ensure model is registered, throw if not
+   */
+  private ensureModelRegistered(modelId: string): void {
+    if (!this.modelRegistry.get(modelId)) {
+      throw new BridgeError("Model not registered", "MODEL_NOT_REGISTERED", {
+        modelId,
+      });
+    }
+  }
+
+  /**
+   * Get provider key from model configuration
+   */
+  private getProviderKeyFromModel(modelId: string): {
+    id: string;
+    version: string;
+  } {
+    const model = this.modelRegistry.get(modelId);
+    if (!model?.metadata?.providerPlugin) {
+      throw new BridgeError(
+        "Provider plugin mapping not found",
+        "PROVIDER_PLUGIN_UNMAPPED",
+        { modelId, providerPlugin: model?.metadata?.providerPlugin },
+      );
+    }
+
+    const providerKey = this.getProviderKeyFromPluginString(
+      model.metadata.providerPlugin as string,
+    );
+    if (!providerKey) {
+      throw new BridgeError(
+        "Provider plugin mapping not found",
+        "PROVIDER_PLUGIN_UNMAPPED",
+        { modelId, providerPlugin: model.metadata.providerPlugin },
+      );
+    }
+
+    return providerKey;
+  }
+
+  /**
+   * Get provider config or throw if missing
+   */
+  private getProviderConfigOrThrow(
+    providerId: string,
+  ): Record<string, unknown> {
+    const config = this.config.providers.get(providerId);
+    if (!config) {
+      throw new BridgeError(
+        "Provider configuration not found",
+        "PROVIDER_CONFIG_MISSING",
+        { providerId },
+      );
+    }
+    return config;
+  }
+
+  /**
+   * Initialize provider if not already initialized
+   */
+  private async initializeProviderIfNeeded(
+    plugin: ProviderPlugin,
+    providerConfig: Record<string, unknown>,
+  ): Promise<void> {
+    const key = `${plugin.id}:${plugin.version}`;
+    if (!this.initializedProviders.has(key)) {
+      await plugin.initialize?.(providerConfig);
+      this.initializedProviders.add(key);
+    }
+  }
+
+  /**
+   * Create timeout signal with cancellation
+   */
+  private createTimeoutSignal(timeoutMs: number): {
+    signal: AbortSignal;
+    cancel: () => void;
+  } {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    return {
+      signal: controller.signal,
+      cancel: () => clearTimeout(timer),
+    };
   }
 
   /**
@@ -79,20 +210,76 @@ export class BridgeClient {
    *
    * @param request - Chat completion request configuration
    * @returns Promise resolving to the completed message
-   * @throws {BridgeError} When feature is disabled or not implemented
+   * @throws {BridgeError} When model is not registered, provider is not registered, or provider configuration is missing
+   * @throws {TransportError} When network failures occur (normalized via provider plugin)
+   * @throws {AuthError} When authentication fails (normalized via provider plugin)
+   * @throws {RateLimitError} When rate limits are exceeded (normalized via provider plugin)
+   * @throws {ValidationError} When request validation fails (normalized via provider plugin)
+   * @throws {ProviderError} When provider-specific errors occur (normalized via provider plugin)
    */
-  chat(request: ChatRequest): Promise<Message> {
-    throw new BridgeError(
-      "Chat implementation coming in Phase 2",
-      "NOT_IMPLEMENTED",
-      {
-        feature: "chat",
-        request: {
-          model: request.model,
-          messageCount: request.messages.length,
-        },
-      },
-    );
+  async chat(request: ChatRequest): Promise<Message> {
+    const modelId = this.qualifyModelId(request.model);
+    this.ensureModelRegistered(modelId);
+
+    // Resolve provider
+    const { id, version } = this.getProviderKeyFromModel(modelId);
+    const plugin = this.providerRegistry.get(id, version);
+    if (!plugin) {
+      throw new BridgeError(
+        "Provider not registered",
+        "PROVIDER_NOT_REGISTERED",
+        { id, version },
+      );
+    }
+
+    // Initialize provider once with config
+    const providerConfig = this.getProviderConfigOrThrow(id);
+    await this.initializeProviderIfNeeded(plugin, providerConfig);
+
+    // Translate request
+    const httpReq = plugin.translateRequest({
+      ...request,
+      model: modelId.split(":")[1],
+      stream: false,
+    });
+
+    // Apply timeout
+    const providerTimeout =
+      typeof providerConfig.timeout === "number"
+        ? providerConfig.timeout
+        : undefined;
+    const timeoutMs = providerTimeout ?? this.config.timeout;
+    const { signal, cancel } = this.createTimeoutSignal(timeoutMs);
+
+    try {
+      // Execute fetch
+      const httpRes = await this.httpTransport.fetch({ ...httpReq, signal });
+
+      // Parse response
+      const result = (await plugin.parseResponse(httpRes, false)) as {
+        message: Message;
+        usage?: {
+          promptTokens: number;
+          completionTokens: number;
+          totalTokens?: number;
+        };
+        model: string;
+        metadata?: Record<string, unknown>;
+      };
+
+      return result.message;
+    } catch (error) {
+      let normalized;
+      try {
+        normalized = plugin.normalizeError(error);
+      } catch {
+        // If normalization itself throws, fall back to original error
+        throw error instanceof Error ? error : new Error(String(error));
+      }
+      throw normalized;
+    } finally {
+      cancel();
+    }
   }
 
   /**
@@ -101,29 +288,74 @@ export class BridgeClient {
    * Sends a streaming chat completion request to the configured LLM provider.
    *
    * @param request - Streaming chat completion request configuration
-   * @returns AsyncIterable of streaming response deltas
-   * @throws {BridgeError} When feature is disabled or not implemented
+   * @returns Promise resolving to AsyncIterable of streaming response deltas
+   * @throws {BridgeError} When model is not registered, provider is not registered, or provider configuration is missing
+   * @throws {TransportError} When network failures occur (normalized via provider plugin)
+   * @throws {AuthError} When authentication fails (normalized via provider plugin)
+   * @throws {RateLimitError} When rate limits are exceeded (normalized via provider plugin)
+   * @throws {ValidationError} When request validation fails (normalized via provider plugin)
+   * @throws {ProviderError} When provider-specific errors occur (normalized via provider plugin)
+   * @note Errors during stream iteration are normalized at the provider layer and may surface as BridgeError subclasses
    */
-  stream(request: StreamRequest): AsyncIterable<never> {
-    throw new BridgeError(
-      "Streaming implementation coming in Phase 2",
-      "NOT_IMPLEMENTED",
-      {
-        feature: "streaming",
-        request: {
-          model: request.model,
-          messageCount: request.messages.length,
-          streamEnabled: request.stream,
-        },
-      },
-    );
+  async stream(request: StreamRequest): Promise<AsyncIterable<StreamDelta>> {
+    const modelId = this.qualifyModelId(request.model);
+    this.ensureModelRegistered(modelId);
+
+    // Resolve provider
+    const { id, version } = this.getProviderKeyFromModel(modelId);
+    const plugin = this.providerRegistry.get(id, version);
+    if (!plugin) {
+      throw new BridgeError(
+        "Provider not registered",
+        "PROVIDER_NOT_REGISTERED",
+        { id, version },
+      );
+    }
+
+    // Initialize provider once with config
+    const providerConfig = this.getProviderConfigOrThrow(id);
+    await this.initializeProviderIfNeeded(plugin, providerConfig);
+
+    // Translate request
+    const httpReq = plugin.translateRequest({
+      ...request,
+      model: modelId.split(":")[1],
+      stream: true,
+    });
+
+    // Apply timeout
+    const providerTimeout =
+      typeof providerConfig.timeout === "number"
+        ? providerConfig.timeout
+        : undefined;
+    const timeoutMs = providerTimeout ?? this.config.timeout;
+    const { signal, cancel } = this.createTimeoutSignal(timeoutMs);
+
+    try {
+      // Execute fetch
+      const httpRes = await this.httpTransport.fetch({ ...httpReq, signal });
+
+      // Parse response - must be AsyncIterable<StreamDelta>
+      return plugin.parseResponse(httpRes, true) as AsyncIterable<StreamDelta>;
+    } catch (error) {
+      let normalized;
+      try {
+        normalized = plugin.normalizeError(error);
+      } catch {
+        // If normalization itself throws, fall back to original error
+        throw error instanceof Error ? error : new Error(String(error));
+      }
+      throw normalized;
+    } finally {
+      cancel();
+    }
   }
 
   /**
    * Get Provider Registry
    *
    * Returns the provider registry instance for accessing registered providers.
-   * In Phase 1, registry starts empty and can be populated programmatically.
+   * Registry starts empty and can be populated programmatically.
    *
    * @returns Provider registry instance
    */
@@ -176,7 +408,7 @@ export class BridgeClient {
    * Get Model Registry
    *
    * Returns the model registry instance for accessing registered models.
-   * In Phase 1, registry starts empty and can be populated programmatically.
+   * Registry starts empty and can be populated programmatically.
    *
    * @returns Model registry instance
    */
@@ -241,7 +473,7 @@ export class BridgeClient {
    * List Available Providers
    *
    * Convenience method to get all currently registered provider IDs.
-   * In Phase 1, returns empty array until providers are registered.
+   * Returns empty array until providers are registered.
    *
    * @returns Array of provider IDs
    */
@@ -286,34 +518,6 @@ export class BridgeClient {
    */
   getConfig(): Readonly<BridgeClientConfig> {
     return Object.freeze({ ...this.config });
-  }
-
-  /**
-   * Resolve Provider Plugin from Model Configuration
-   *
-   * Looks up a model in the model registry and resolves the appropriate
-   * provider plugin based on the model's providerPlugin field.
-   *
-   * @param modelId - Model ID to resolve provider plugin for
-   * @returns Provider plugin instance or undefined if not found/mapped
-   */
-  private resolveProviderPlugin(modelId: string): ProviderPlugin | undefined {
-    // Look up model in model registry
-    const model = this.modelRegistry.get(modelId);
-    if (!model?.metadata?.providerPlugin) {
-      return undefined;
-    }
-
-    // Map providerPlugin string to provider registry key
-    const providerKey = this.getProviderKeyFromPluginString(
-      model.metadata.providerPlugin as string,
-    );
-    if (!providerKey) {
-      return undefined;
-    }
-
-    // Get provider from provider registry
-    return this.providerRegistry.get(providerKey.id, providerKey.version);
   }
 
   /**
