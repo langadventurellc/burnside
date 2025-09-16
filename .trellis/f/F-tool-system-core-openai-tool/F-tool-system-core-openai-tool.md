@@ -1,7 +1,7 @@
 ---
 id: F-tool-system-core-openai-tool
 title: Tool System Core + OpenAI Tool Calls
-status: in-progress
+status: done
 priority: medium
 parent: none
 prerequisites: []
