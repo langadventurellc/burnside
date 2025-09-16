@@ -48,16 +48,52 @@ affectedFiles:
   src/__tests__/e2e/shared/createTestMessages.ts: Created test message factory for generating properly formatted user messages
   src/__tests__/e2e/shared/withTimeout.ts: Created timeout wrapper utility for
     reliable E2E test execution with configurable timeouts
+  src/__tests__/e2e/shared/prepareToolCallMessage.ts:
+    Core function that converts
+    unified tool calls to OpenAI raw format for extraction compatibility -
+    handles the mismatch between message.toolCalls and
+    message.metadata.tool_calls
+  src/__tests__/e2e/shared/createTestTool.ts:
+    Creates ToolDefinition for E2E echo
+    tool with Zod input/output schemas for predictable testing
+  src/__tests__/e2e/shared/testToolHandler.ts:
+    ToolHandler implementation for E2E
+    echo tool that returns predictable results with proper async error handling
+  src/__tests__/e2e/shared/validateToolExecution.ts: Validates tool execution
+    results have expected test structure (echoed, timestamp, testSuccess
+    properties)
+  src/__tests__/e2e/shared/createToolCall.ts:
+    Creates ToolCall objects for testing
+    with unique IDs and consistent test tool configuration
+  src/__tests__/e2e/shared/toolHelpers.ts: Main export file providing access to prepareToolCallMessage for direct import
+  src/__tests__/e2e/shared/index.ts: Barrel export file providing access to all
+    helper functions while maintaining single-export rule compliance
+  src/__tests__/e2e/shared/__tests__/prepareToolCallMessage.test.ts:
+    Comprehensive unit tests for tool call message preparation (15 tests
+    covering format conversion, metadata preservation, edge cases)
+  src/__tests__/e2e/shared/__tests__/createTestTool.test.ts: Unit tests for test
+    tool creation covering ToolDefinition structure and Zod schema validation (7
+    tests)
+  src/__tests__/e2e/shared/__tests__/testToolHandler.test.ts:
+    Unit tests for test
+    tool handler covering successful execution, error handling, parameter
+    validation, and timing (17 tests)
+  src/__tests__/e2e/shared/__tests__/validateToolExecution.test.ts:
+    Unit tests for tool execution validation covering valid/invalid results,
+    edge cases, and type safety (22 tests)
+  src/__tests__/e2e/shared/__tests__/createToolCall.test.ts: Unit tests for tool
+    call creation covering ID generation, timestamp handling, message
+    processing, and consistency (18 tests)
 log: []
 schema: v1.0
 childrenIds:
-  - T-implement-model-registry
   - T-implement-openai-chat
   - T-implement-openai-streaming
   - T-implement-openai-tool
   - T-implement-tool-call
   - T-create-e2e-test-directory
   - T-create-jest-e2e-configuration
+  - T-implement-model-registry
 created: 2025-09-16T06:13:46.927Z
 updated: 2025-09-16T06:13:46.927Z
 ---
