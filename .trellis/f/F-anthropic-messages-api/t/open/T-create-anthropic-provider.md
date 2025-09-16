@@ -1,82 +1,12 @@
 ---
 id: T-create-anthropic-provider
 title: Create Anthropic provider configuration schema and validation
-status: done
+status: in-progress
 priority: high
 parent: F-anthropic-messages-api
 prerequisites: []
-affectedFiles:
-  src/providers/anthropic-2025-05-14/configSchema.ts: Core configuration schema
-    with Zod validation for API key (sk-ant- prefix), base URL (HTTPS-only),
-    version (YYYY-MM-DD format), timeout (max 300000ms), and retry limits (0-5)
-  src/providers/anthropic-2025-05-14/constants.ts:
-    Default configuration constants
-    for base URL, API version, timeout, and retry settings
-  src/providers/anthropic-2025-05-14/isValidAnthropicApiKey.ts:
-    Type guard function for validating Anthropic API key format with sk-ant-
-    prefix requirement
-  src/providers/anthropic-2025-05-14/validateAnthropicConfig.ts: Configuration validation utility function with comprehensive error handling
-  src/providers/anthropic-2025-05-14/index.ts:
-    Barrel export file providing clean
-    public API surface for the Anthropic provider configuration
-  src/providers/anthropic-2025-05-14/__tests__/configSchema.test.ts:
-    Comprehensive test suite with 38 tests achieving 100% code coverage across
-    all validation scenarios, edge cases, and utility functions
-log:
-  - >-
-    Successfully implemented Anthropic provider configuration schema and
-    validation with comprehensive Zod validation, TypeScript type safety, and
-    extensive unit tests achieving 100% code coverage.
-
-
-    **Implementation Highlights:**
-
-    - Created complete configuration schema for Anthropic Messages API provider
-    following established patterns
-
-    - Implemented strict security validations including HTTPS enforcement and
-    API key format validation (sk-ant- prefix)
-
-    - Added comprehensive boundary testing for all validation rules (timeout max
-    300000ms, retries 0-5, version date format)
-
-    - Achieved 100% code coverage with 38 passing tests covering all
-    valid/invalid scenarios and edge cases
-
-    - Followed project conventions with one-export-per-file rule and proper
-    barrel exports
-
-    - All quality checks pass (lint, format, type-check) with no errors or
-    warnings
-
-
-    **Security Features Implemented:**
-
-    - API key validation prevents injection attacks with strict sk-ant- prefix
-    requirement
-
-    - Base URL validation enforces HTTPS protocol to prevent HTTP downgrade
-    attacks
-
-    - Timeout validation prevents excessive values that could cause resource
-    exhaustion
-
-    - Comprehensive input validation with detailed error messages that don't
-    expose sensitive data
-
-
-    **Testing Coverage:**
-
-    - Valid configuration scenarios with minimal and complete configs
-
-    - Invalid configuration scenarios for all field types and boundary
-    conditions  
-
-    - Type guard and utility function testing with edge cases
-
-    - Default value assignment and optional field handling
-
-    - Type inference verification ensuring proper TypeScript integration
+affectedFiles: {}
+log: []
 schema: v1.0
 childrenIds: []
 created: 2025-09-16T13:24:18.377Z
@@ -89,7 +19,7 @@ Implement the configuration schema for the Anthropic Messages API provider plugi
 
 ## Context
 
-This task creates the foundational configuration infrastructure for the `anthropic-2025-05-14` provider plugin. The configuration schema defines how users configure API keys, base URLs, and other provider-specific settings.
+This task creates the foundational configuration infrastructure for the `anthropic-2023-06-01` provider plugin. The configuration schema defines how users configure API keys, base URLs, and other provider-specific settings.
 
 **Reference Implementation**: Follow the pattern established in `src/providers/openai-responses-v1/configSchema.ts`
 
@@ -99,7 +29,7 @@ This task creates the foundational configuration infrastructure for the `anthrop
 
 ### File Location
 
-Create `src/providers/anthropic-2025-05-14/configSchema.ts`
+Create `src/providers/anthropic-2023-06-01/configSchema.ts`
 
 ### Configuration Schema Design
 
@@ -108,7 +38,7 @@ Define and export the following components:
 1. **AnthropicMessagesConfig Interface**:
    - `apiKey: string` - Anthropic API key (required)
    - `baseUrl?: string` - API base URL (default: "https://api.anthropic.com")
-   - `version?: string` - API version (default: "2025-05-14")
+   - `version?: string` - API version (default: "2023-06-01")
    - `timeout?: number` - Request timeout in milliseconds
    - `maxRetries?: number` - Maximum retry attempts
 
@@ -153,7 +83,7 @@ export const AnthropicMessagesConfigSchema = z.object({
   version: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .default("2025-05-14"),
+    .default("2023-06-01"),
   timeout: z.number().positive().max(300000).default(30000),
   maxRetries: z.number().min(0).max(5).default(3),
 });
@@ -211,7 +141,7 @@ export const AnthropicMessagesConfigSchema = z.object({
 
 ## Testing Requirements
 
-Create `src/providers/anthropic-2025-05-14/__tests__/configSchema.test.ts` with:
+Create `src/providers/anthropic-2023-06-01/__tests__/configSchema.test.ts` with:
 
 - Valid configuration scenarios
 - Invalid configuration scenarios with proper error messages

@@ -32,15 +32,15 @@ This task creates the module's main export file and ensures the provider can be 
 
 Create and update:
 
-- `src/providers/anthropic-2025-05-14/index.ts` (new)
+- `src/providers/anthropic-2023-06-01/index.ts` (new)
 - `src/providers/index.ts` (update to export new provider)
-- Update BridgeClient provider plugin mapping for "anthropic-2025-05-14"
+- Update BridgeClient provider plugin mapping for "anthropic-2023-06-01"
 
-### Provider Module Exports (`src/providers/anthropic-2025-05-14/index.ts`)
+### Provider Module Exports (`src/providers/anthropic-2023-06-01/index.ts`)
 
 ```typescript
 /**
- * Anthropic Messages API v2025-05-14 Provider Module
+ * Anthropic Messages API v2023-06-01 Provider Module
  *
  * Main export module for the Anthropic Messages API provider plugin.
  * Provides the complete provider implementation and related types
@@ -61,7 +61,7 @@ export { AnthropicMessagesV1Provider as default } from "./anthropicMessagesV1Pro
  */
 export const ANTHROPIC_PROVIDER_INFO = {
   id: "anthropic",
-  version: "2025-05-14",
+  version: "2023-06-01",
   name: "Anthropic Messages Provider",
 } as const;
 ```
@@ -75,21 +75,21 @@ Add Anthropic provider to the main providers export:
 export * from "./openai-responses-v1/index.js";
 
 // Add new Anthropic provider export
-export * from "./anthropic-2025-05-14/index.js";
+export * from "./anthropic-2023-06-01/index.js";
 
 // Update provider registry exports if applicable
 export {
   // existing providers...
   ANTHROPIC_PROVIDER_INFO,
-} from "./anthropic-2025-05-14/index.js";
+} from "./anthropic-2023-06-01/index.js";
 ```
 
 ### BridgeClient Provider Plugin Mapping Update
 
-**Critical Integration Requirement**: Update the BridgeClient to handle the "anthropic-2025-05-14" provider plugin mapping.
+**Critical Integration Requirement**: Update the BridgeClient to handle the "anthropic-2023-06-01" provider plugin mapping.
 
 1. **Locate BridgeClient mapping function**: Find `getProviderKeyFromPluginString` or similar mapping logic
-2. **Add Anthropic mapping**: Add entry for "anthropic-2025-05-14" → `{ id: "anthropic", version: "2025-05-14" }`
+2. **Add Anthropic mapping**: Add entry for "anthropic-2023-06-01" → `{ id: "anthropic", version: "2023-06-01" }`
 3. **Ensure consistency**: Verify mapping aligns with provider plugin identifier used in model configurations
 
 ### Registration Helper (optional utility)
@@ -142,7 +142,7 @@ Include comprehensive JSDoc comments:
    - ✅ Provider metadata available for tooling/introspection
 
 4. **BridgeClient Mapping**:
-   - ✅ **BridgeClient maps 'anthropic-2025-05-14' to { id: 'anthropic', version: '2025-05-14' } in getProviderKeyFromPluginString**
+   - ✅ **BridgeClient maps 'anthropic-2023-06-01' to { id: 'anthropic', version: '2023-06-01' } in getProviderKeyFromPluginString**
    - ✅ **Provider plugin mapping works correctly for model routing**
    - ✅ **Integration with Bridge client provider discovery**
 
@@ -180,7 +180,7 @@ Include comprehensive JSDoc comments:
 
 ## Testing Requirements
 
-Create `src/providers/anthropic-2025-05-14/__tests__/index.test.ts` with:
+Create `src/providers/anthropic-2023-06-01/__tests__/index.test.ts` with:
 
 - Export accessibility tests
 - Module structure validation
@@ -198,13 +198,13 @@ After this task, users will be able to:
 import {
   AnthropicMessagesV1Provider,
   type AnthropicMessagesConfig,
-} from "llm-bridge/providers/anthropic-2025-05-14";
+} from "llm-bridge/providers/anthropic-2023-06-01";
 
 // Default import
-import AnthropicProvider from "llm-bridge/providers/anthropic-2025-05-14";
+import AnthropicProvider from "llm-bridge/providers/anthropic-2023-06-01";
 
 // From main providers module
 import { AnthropicMessagesV1Provider } from "llm-bridge/providers";
 ```
 
-And the BridgeClient will properly route models with `providerPlugin: "anthropic-2025-05-14"` to the Anthropic provider.
+And the BridgeClient will properly route models with `providerPlugin: "anthropic-2023-06-01"` to the Anthropic provider.

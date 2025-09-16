@@ -5,23 +5,7 @@ status: in-progress
 priority: medium
 parent: none
 prerequisites: []
-affectedFiles:
-  src/providers/anthropic-2025-05-14/configSchema.ts: Core configuration schema
-    with Zod validation for API key (sk-ant- prefix), base URL (HTTPS-only),
-    version (YYYY-MM-DD format), timeout (max 300000ms), and retry limits (0-5)
-  src/providers/anthropic-2025-05-14/constants.ts:
-    Default configuration constants
-    for base URL, API version, timeout, and retry settings
-  src/providers/anthropic-2025-05-14/isValidAnthropicApiKey.ts:
-    Type guard function for validating Anthropic API key format with sk-ant-
-    prefix requirement
-  src/providers/anthropic-2025-05-14/validateAnthropicConfig.ts: Configuration validation utility function with comprehensive error handling
-  src/providers/anthropic-2025-05-14/index.ts:
-    Barrel export file providing clean
-    public API surface for the Anthropic provider configuration
-  src/providers/anthropic-2025-05-14/__tests__/configSchema.test.ts:
-    Comprehensive test suite with 38 tests achieving 100% code coverage across
-    all validation scenarios, edge cases, and utility functions
+affectedFiles: {}
 log: []
 schema: v1.0
 childrenIds:
@@ -46,7 +30,7 @@ Implement a complete provider plugin for Anthropic's Messages API following Phas
 
 ## Purpose and Functionality
 
-Create a fully functional `anthropic-2025-05-14` provider plugin that:
+Create a fully functional `anthropic-2023-06-01` provider plugin that:
 
 - Translates unified Bridge requests to Anthropic Messages API format
 - Handles streaming responses with proper delta parsing
@@ -59,7 +43,7 @@ Create a fully functional `anthropic-2025-05-14` provider plugin that:
 
 ### 1. Provider Plugin Structure
 
-- `AnthropicMessagesV1Provider` class implementing `ProviderPlugin` interface with `version: "2025-05-14"`
+- `AnthropicMessagesV1Provider` class implementing `ProviderPlugin` interface with `version: "2023-06-01"`
 - Configuration schema with API key, base URL, and version handling
 - Model-agnostic operation accepting any model ID routed to it
 
@@ -105,7 +89,7 @@ Create a fully functional `anthropic-2025-05-14` provider plugin that:
 
 ### Functional Behavior
 
-- **Request Translation**: Successfully convert Bridge `ChatRequest` to valid Anthropic Messages API requests with proper headers (`x-api-key`, `anthropic-version: 2025-05-14`, `anthropic-beta` when needed)
+- **Request Translation**: Successfully convert Bridge `ChatRequest` to valid Anthropic Messages API requests with proper headers (`x-api-key`, `anthropic-version: 2023-06-01`, `anthropic-beta` when needed)
 - **Response Processing**: Parse Anthropic responses back to unified `Message` format with correct content types, roles, and metadata
 - **Streaming Support**: Handle streaming responses with proper delta accumulation and real-time updates
 - **Tool Integration**: Execute tool calls seamlessly with proper argument parsing and result integration (when tool system is enabled in config), skip tool execution when disabled
@@ -114,10 +98,18 @@ Create a fully functional `anthropic-2025-05-14` provider plugin that:
 
 ### API Compatibility
 
+- **Base URL**: Use `https://api.anthropic.com/v1/messages` for all API requests
 - **Model Support**: Work with all Claude models (Haiku, Sonnet, Opus variants) as defined in `defaultLlmModels.ts`
-- **Version Handling**: Support Anthropic API version 2025-05-14 with appropriate headers
+- **Version Handling**: Support Anthropic API version 2023-06-01 with appropriate headers
 - **Parameter Mapping**: Correctly map temperature, max_tokens, stop sequences, and other parameters
 - **Content Types**: Handle all supported content types: text, images (base64), documents (PDF, text files)
+
+### Required HTTP Headers
+
+- **x-api-key**: API key authentication header
+- **anthropic-version**: Must be set to `2023-06-01`
+- **content-type**: Must be `application/json`
+- **anthropic-beta**: For beta features like tool calling (e.g., `anthropic-beta: computer-use-2025-01-24`)
 
 ### Tool Calling Requirements
 
@@ -137,10 +129,10 @@ Create a fully functional `anthropic-2025-05-14` provider plugin that:
 ### Integration Points
 
 - **Provider Registry**: Register correctly with `ProviderRegistry` using `providerRegistry.register(plugin)` or `client.registerProvider(plugin)`
-- **Model Registry**: Work seamlessly with models configured with `providerPlugin: "anthropic-2025-05-14"`
+- **Model Registry**: Work seamlessly with models configured with `providerPlugin: "anthropic-2023-06-01"`
 - **Transport Layer**: Integrate with existing `HttpTransport` infrastructure
 - **Tool Router**: Coordinate with `ToolRouter` for tool execution workflow when enabled
-- **Provider Plugin Mapping**: BridgeClient maps 'anthropic-2025-05-14' to { id: 'anthropic', version: '2025-05-14' } in getProviderKeyFromPluginString
+- **Provider Plugin Mapping**: BridgeClient maps 'anthropic-2023-06-01' to { id: 'anthropic', version: '2023-06-01' } in getProviderKeyFromPluginString
 
 ### Security & Data Protection
 
@@ -173,6 +165,47 @@ Create a fully functional `anthropic-2025-05-14` provider plugin that:
 - Strict TypeScript types with no `any` usage
 - Runtime validation of API responses
 - Comprehensive error type definitions
+
+### API Request/Response Structure
+
+#### Request Format
+
+```json
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 1024,
+  "messages": [{ "role": "user", "content": "Hello, world" }]
+}
+```
+
+#### Response Format (Non-streaming)
+
+```json
+{
+  "id": "msg_013Zva2CMHLNnXjNJJKqJ2EF",
+  "model": "claude-sonnet-4-20250514",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "Hi My name is Claude."
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 2095,
+    "output_tokens": 503
+  },
+  "type": "message"
+}
+```
+
+#### Streaming Response
+
+- Uses Server-Sent Events (SSE) format
+- Each SSE data event contains JSON structure with message deltas
+- Final event marks completion
 
 ### Prompt Caching Support
 
@@ -207,14 +240,14 @@ Create a fully functional `anthropic-2025-05-14` provider plugin that:
 
 ### Prerequisites
 
-- Update Anthropic entries in `src/data/defaultLlmModels.ts` to use `providerPlugin: "anthropic-2025-05-14"` (can be tracked as separate task if needed)
+- Update Anthropic entries in `src/data/defaultLlmModels.ts` to use `providerPlugin: "anthropic-2023-06-01"` (can be tracked as separate task if needed)
 
 ## Implementation Guidance
 
 ### File Structure
 
 ```
-src/providers/anthropic-2025-05-14/
+src/providers/anthropic-2023-06-01/
 ├── index.ts                    # Main exports
 ├── anthropicMessagesV1Provider.ts  # Provider class
 ├── configSchema.ts            # Configuration schema
@@ -241,8 +274,8 @@ src/providers/anthropic-2025-05-14/
 
 - Register with provider registry: `client.registerProvider(plugin)` or `providerRegistry.register(plugin)`
 - Configure in bridge config with provider ID "anthropic"
-- Route models via `providerPlugin: "anthropic-2025-05-14"` in model definitions
-- Provider plugin exports: `id: "anthropic"`, `version: "2025-05-14"`
+- Route models via `providerPlugin: "anthropic-2023-06-01"` in model definitions
+- Provider plugin exports: `id: "anthropic"`, `version: "2023-06-01"`
 
 ## Testing Strategy
 

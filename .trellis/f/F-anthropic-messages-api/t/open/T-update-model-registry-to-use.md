@@ -1,6 +1,6 @@
 ---
 id: T-update-model-registry-to-use
-title: Update model registry to use anthropic-2025-05-14 provider plugin
+title: Update model registry to use anthropic-2023-06-01 provider plugin
 status: open
 priority: medium
 parent: F-anthropic-messages-api
@@ -14,7 +14,7 @@ created: 2025-09-16T13:33:44.935Z
 updated: 2025-09-16T13:33:44.935Z
 ---
 
-# Update Model Registry to Use anthropic-2025-05-14 Provider Plugin
+# Update Model Registry to Use anthropic-2023-06-01 Provider Plugin
 
 Update the Anthropic model configurations in `defaultLlmModels.ts` to use the correct date-based provider plugin identifier and ensure proper integration with the new provider, including BridgeClient mapping requirements.
 
@@ -24,7 +24,7 @@ This task updates the model configuration to use the correct provider plugin ide
 
 **Current State**: Models use `providerPlugin: "anthropic-messages-v1"`
 
-**Target State**: Models use `providerPlugin: "anthropic-2025-05-14"`
+**Target State**: Models use `providerPlugin: "anthropic-2023-06-01"`
 
 **Feature Reference**: F-anthropic-messages-api - Anthropic Messages API Provider Implementation
 
@@ -46,7 +46,7 @@ Update `src/data/defaultLlmModels.ts`
    To:
 
    ```typescript
-   providerPlugin: "anthropic-2025-05-14";
+   providerPlugin: "anthropic-2023-06-01";
    ```
 
 2. **Affected Models**:
@@ -68,12 +68,12 @@ Update `src/data/defaultLlmModels.ts`
 1. **Verify BridgeClient Mapping**: Confirm that `getProviderKeyFromPluginString` (or equivalent mapping function) includes:
 
    ```typescript
-   "anthropic-2025-05-14": { id: "anthropic", version: "2025-05-14" }
+   "anthropic-2023-06-01": { id: "anthropic", version: "2023-06-01" }
    ```
 
 2. **Add BridgeClient Mapping** (if not done in T-create-provider-module):
    - Locate the provider plugin mapping logic in BridgeClient
-   - Add entry for "anthropic-2025-05-14"
+   - Add entry for "anthropic-2023-06-01"
    - Test that mapping works correctly
 
 ### Implementation Details
@@ -91,7 +91,7 @@ Update `src/data/defaultLlmModels.ts`
 // After (updated)
 {
   id: "claude-sonnet-4-20250514",
-  providerPlugin: "anthropic-2025-05-14",
+  providerPlugin: "anthropic-2023-06-01",
   name: "Claude Sonnet 4",
   contextLength: 1000000, // Only update if confirmed supported
   // ... other properties
@@ -134,7 +134,7 @@ Update `src/data/defaultLlmModels.ts`
        )?.models;
 
        anthropicModels?.forEach((model) => {
-         expect(model.providerPlugin).toBe("anthropic-2025-05-14");
+         expect(model.providerPlugin).toBe("anthropic-2023-06-01");
        });
      });
 
@@ -156,7 +156,7 @@ Update `src/data/defaultLlmModels.ts`
 ## Acceptance Criteria
 
 1. **Provider Plugin Update**:
-   - ✅ All Anthropic models use `providerPlugin: "anthropic-2025-05-14"`
+   - ✅ All Anthropic models use `providerPlugin: "anthropic-2023-06-01"`
    - ✅ No models left with old identifier
    - ✅ Provider plugin identifier matches implementation
 
@@ -172,7 +172,7 @@ Update `src/data/defaultLlmModels.ts`
    - ✅ Schema parsing succeeds for all models
 
 4. **BridgeClient Integration**:
-   - ✅ **Provider plugin mapping exists in BridgeClient for "anthropic-2025-05-14"**
+   - ✅ **Provider plugin mapping exists in BridgeClient for "anthropic-2023-06-01"**
    - ✅ **Models route to correct provider implementation**
    - ✅ **Bridge client can instantiate models successfully**
    - ✅ **No runtime errors during provider resolution**

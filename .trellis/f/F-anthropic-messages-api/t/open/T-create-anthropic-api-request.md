@@ -20,11 +20,11 @@ Implement Zod schemas for validating Anthropic Messages API requests and respons
 
 ## Context
 
-This task creates the API boundary validation schemas for the Anthropic Messages API v2025-05-14. These schemas validate outgoing requests to Anthropic and incoming responses, providing type safety and runtime validation.
+This task creates the API boundary validation schemas for the Anthropic Messages API v2023-06-01. These schemas validate outgoing requests to Anthropic and incoming responses, providing type safety and runtime validation.
 
 **Reference Implementation**: Follow patterns from `src/providers/openai-responses-v1/requestSchema.ts` and `src/providers/openai-responses-v1/responseSchema.ts`
 
-**API Documentation**: Anthropic Messages API v2025-05-14 specification
+**API Documentation**: Anthropic Messages API v2023-06-01 specification
 
 **Feature Reference**: F-anthropic-messages-api - Anthropic Messages API Provider Implementation
 
@@ -34,8 +34,8 @@ This task creates the API boundary validation schemas for the Anthropic Messages
 
 Create both:
 
-- `src/providers/anthropic-2025-05-14/requestSchema.ts`
-- `src/providers/anthropic-2025-05-14/responseSchema.ts`
+- `src/providers/anthropic-2023-06-01/requestSchema.ts`
+- `src/providers/anthropic-2023-06-01/responseSchema.ts`
 
 ### Request Schema (`requestSchema.ts`)
 
@@ -91,7 +91,7 @@ Define schemas for Anthropic API requests:
 
 ### Response Schema (`responseSchema.ts`)
 
-Define schemas for Anthropic API responses:
+Define schemas for Anthropic API responses based on the current 2023-06-01 API format:
 
 1. **Content Block Types**:
 
@@ -219,7 +219,7 @@ Define schemas for Anthropic API responses:
 
 ## Testing Requirements
 
-Create `src/providers/anthropic-2025-05-14/__tests__/requestSchema.test.ts` and `responseSchema.test.ts` with:
+Create `src/providers/anthropic-2023-06-01/__tests__/requestSchema.test.ts` and `responseSchema.test.ts` with:
 
 - Valid schema parsing tests
 - Invalid schema rejection tests
