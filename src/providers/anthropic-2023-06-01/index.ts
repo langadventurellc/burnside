@@ -8,6 +8,9 @@
 
 export { AnthropicMessagesV1Provider } from "./anthropicMessagesV1Provider.js";
 export { parseAnthropicResponse } from "./responseParser.js";
+export { translateToolDefinitions } from "./toolTranslator.js";
+export { parseAnthropicToolCalls } from "./toolCallParser.js";
+export { formatToolResultMessage } from "./toolResultFormatter.js";
 export type { AnthropicMessagesConfigType as AnthropicMessagesConfig } from "./configSchema.js";
 
 // Export schemas for advanced usage

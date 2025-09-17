@@ -27,7 +27,10 @@ affectedFiles:
     constants (ANTHROPIC_PROVIDER_INFO), clean import/export patterns, and JSDoc
     documentation following OpenAI provider conventions; Added export for
     parseAnthropicResponse function to module barrel exports, enabling external
-    access to the response parser functionality.
+    access to the response parser functionality.; Updated barrel exports to
+    include translateToolDefinitions, parseAnthropicToolCalls, and
+    formatToolResultMessage functions, enabling external access to tool
+    translation functionality.
   src/providers/anthropic-2023-06-01/: Created complete directory structure for
     Anthropic Messages API provider following established project patterns.
   src/providers/anthropic-2023-06-01/requestSchema.ts: Created comprehensive
@@ -133,11 +136,42 @@ affectedFiles:
     streaming with partial JSON, multiple content blocks, ID generation, error
     events, malformed data handling, and large stream processing. Achieves >90%
     code coverage.
+  src/providers/anthropic-2023-06-01/toolTranslator.ts: Created main tool
+    definition translator with translateToolDefinitions() function that converts
+    Bridge ToolDefinition objects to Anthropic tool format. Implements
+    comprehensive zodToJsonSchema() conversion supporting all major Zod types
+    including objects, primitives, arrays, enums, literals, unions, optionals,
+    defaults, and nested structures. Handles provider hints and includes proper
+    error handling with ValidationError.
+  src/providers/anthropic-2023-06-01/toolCallParser.ts: Created tool call parser
+    with parseAnthropicToolCalls() function that extracts tool calls from
+    Anthropic response content blocks and converts them to unified ToolCall
+    format. Handles filtering of tool_use blocks, ID generation for missing IDs,
+    and proper metadata assignment.
+  src/providers/anthropic-2023-06-01/toolResultFormatter.ts: Created tool result
+    formatter with formatToolResultMessage() function that converts tool
+    execution results to Anthropic message format with role 'user' and type
+    'tool_result'. Handles string results directly and JSON stringifies other
+    types including proper undefined handling.
+  src/providers/anthropic-2023-06-01/__tests__/toolTranslator.test.ts:
+    Created comprehensive test suite with 47 test cases covering basic
+    translation, complex Zod schema conversion, provider hints, JSON schema
+    input, edge cases, and error handling. Tests primitive types, optional
+    fields, arrays, enums, literals, unions, nested objects, default values, and
+    mixed complex schemas.
+  src/providers/anthropic-2023-06-01/__tests__/toolCallParser.test.ts:
+    Created comprehensive test suite with 10 test cases covering single and
+    multiple tool call parsing, content block filtering, empty arrays, missing
+    IDs, complex input structures, metadata validation, and performance with
+    large datasets.
+  src/providers/anthropic-2023-06-01/__tests__/toolResultFormatter.test.ts:
+    Created comprehensive test suite with 14 test cases covering string, object,
+    number, boolean, array, null, undefined results, complex nested objects,
+    error objects, large objects, and proper message structure validation.
 log: []
 schema: v1.0
 childrenIds:
   - T-implement-tool-definition
-  - T-integrate-provider-methods
   - T-update-model-registry-to-use
   - T-create-anthropic-api-request
   - T-create-anthropic-provider-1
@@ -147,6 +181,7 @@ childrenIds:
   - T-implement-non-streaming
   - T-implement-request-translation
   - T-implement-streaming-response
+  - T-integrate-provider-methods
 created: 2025-09-16T13:04:04.085Z
 updated: 2025-09-16T13:04:04.085Z
 ---
