@@ -131,6 +131,51 @@ describe("globalSetup", () => {
     });
   });
 
+  describe("Google tests", () => {
+    beforeEach(() => {
+      process.env.E2E_TEST_ENABLED = "true";
+      process.argv = ["node", "jest", "google"];
+    });
+
+    it("should validate Google API key when running Google tests", () => {
+      process.env.GOOGLE_API_KEY = "AIzatest-key-39-characters-exactly-12345";
+
+      globalSetup();
+
+      expect(mockValidateApiKey).toHaveBeenCalledWith(
+        "AIzatest-key-39-characters-exactly-12345",
+        "google",
+      );
+    });
+
+    it("should throw error when GOOGLE_API_KEY is missing for Google tests", () => {
+      delete process.env.GOOGLE_API_KEY;
+
+      expect(() => globalSetup()).toThrow(
+        "GOOGLE_API_KEY environment variable is required for Google E2E tests",
+      );
+    });
+
+    it("should throw error when GOOGLE_API_KEY is invalid for Google tests", () => {
+      process.env.GOOGLE_API_KEY = "invalid-key";
+      mockValidateApiKey.mockReturnValue(false);
+
+      expect(() => globalSetup()).toThrow(
+        "GOOGLE_API_KEY must be a valid Google API key",
+      );
+    });
+
+    it("should succeed with valid Google credentials", () => {
+      process.env.GOOGLE_API_KEY = "AIzavalid-google-key-exactly-39-chars-12";
+
+      expect(() => globalSetup()).not.toThrow();
+      expect(mockValidateApiKey).toHaveBeenCalledWith(
+        "AIzavalid-google-key-exactly-39-chars-12",
+        "google",
+      );
+    });
+  });
+
   describe("test pattern detection", () => {
     beforeEach(() => {
       process.env.E2E_TEST_ENABLED = "true";
@@ -157,6 +202,18 @@ describe("globalSetup", () => {
       expect(mockValidateApiKey).toHaveBeenCalledWith(
         "sk-ant-test-key",
         "anthropic",
+      );
+    });
+
+    it("should use Google provider when pattern includes google", () => {
+      process.env.JEST_TEST_PATH_PATTERN = "google";
+      process.env.GOOGLE_API_KEY = "AIzatest-google-key-exactly-39-chars-123";
+      process.argv = ["node", "jest"];
+
+      expect(() => globalSetup()).not.toThrow();
+      expect(mockValidateApiKey).toHaveBeenCalledWith(
+        "AIzatest-google-key-exactly-39-chars-123",
+        "google",
       );
     });
 
@@ -204,6 +261,59 @@ describe("globalSetup", () => {
       expect(mockValidateApiKey).not.toHaveBeenCalledWith(
         expect.anything(),
         "openai",
+      );
+    });
+
+    it("should not require Google credentials when running OpenAI tests", () => {
+      process.argv = ["node", "jest", "openai"];
+      process.env.OPENAI_API_KEY = "sk-valid-openai-key";
+      delete process.env.GOOGLE_API_KEY;
+
+      expect(() => globalSetup()).not.toThrow();
+      expect(mockValidateApiKey).toHaveBeenCalledWith(
+        "sk-valid-openai-key",
+        "openai",
+      );
+      expect(mockValidateApiKey).not.toHaveBeenCalledWith(
+        expect.anything(),
+        "google",
+      );
+    });
+
+    it("should not require Google credentials when running Anthropic tests", () => {
+      process.argv = ["node", "jest", "anthropic"];
+      process.env.ANTHROPIC_API_KEY = "sk-ant-valid-anthropic-key";
+      delete process.env.GOOGLE_API_KEY;
+
+      expect(() => globalSetup()).not.toThrow();
+      expect(mockValidateApiKey).toHaveBeenCalledWith(
+        "sk-ant-valid-anthropic-key",
+        "anthropic",
+      );
+      expect(mockValidateApiKey).not.toHaveBeenCalledWith(
+        expect.anything(),
+        "google",
+      );
+    });
+
+    it("should not require OpenAI or Anthropic credentials when running Google tests", () => {
+      process.argv = ["node", "jest", "google"];
+      process.env.GOOGLE_API_KEY = "AIzavalid-google-key-exactly-39-chars-12";
+      delete process.env.OPENAI_API_KEY;
+      delete process.env.ANTHROPIC_API_KEY;
+
+      expect(() => globalSetup()).not.toThrow();
+      expect(mockValidateApiKey).toHaveBeenCalledWith(
+        "AIzavalid-google-key-exactly-39-chars-12",
+        "google",
+      );
+      expect(mockValidateApiKey).not.toHaveBeenCalledWith(
+        expect.anything(),
+        "openai",
+      );
+      expect(mockValidateApiKey).not.toHaveBeenCalledWith(
+        expect.anything(),
+        "anthropic",
       );
     });
   });

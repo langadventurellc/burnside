@@ -36,15 +36,28 @@ affectedFiles:
     Added comprehensive unit test suite with 7 test cases covering client
     creation, provider registration verification, configuration overrides, error
     handling, and integration testing
+  src/__tests__/e2e/setup/globalSetup.ts: Added Google provider detection logic
+    and Google API key validation that triggers when test pattern includes
+    'google'. Extended isRunningOpenAITests logic to exclude Google tests as
+    well as Anthropic tests.
+  src/__tests__/e2e/setup/setupEnv.ts: Added Google provider validation to
+    validateProviderEnvironment function with else if condition for
+    testPath.includes('google'). Includes Google API key presence check and
+    format validation using validateApiKey function.
+  src/__tests__/e2e/setup/__tests__/globalSetup.test.ts: Added comprehensive
+    Google provider test coverage including Google API key validation tests,
+    test pattern detection for Google provider, and provider credential
+    isolation tests ensuring Google tests don't require other provider
+    credentials and vice versa.
 log: []
 schema: v1.0
 childrenIds:
   - T-add-google-e2e-npm-script-and
   - T-create-google-chat-completion
-  - T-create-google-model-helpers
   - T-create-google-streaming-e2e
   - T-create-google-tool-execution
   - T-update-jest-setup-files-for-1
+  - T-create-google-model-helpers
   - T-create-google-test-configurati
   - T-extend-api-key-validation-for
 created: 2025-09-17T06:52:49.815Z

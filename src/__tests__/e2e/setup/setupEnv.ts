@@ -53,6 +53,31 @@ function validateProviderEnvironment(testPath: string): void {
         },
       );
     }
+  } else if (testPath.includes("google")) {
+    // Validate Google environment
+    const googleApiKey = process.env.GOOGLE_API_KEY;
+    if (!googleApiKey) {
+      throw new ValidationError(
+        "GOOGLE_API_KEY environment variable is required for Google E2E tests",
+        {
+          variable: "GOOGLE_API_KEY",
+          context: "E2E test environment setup",
+          provider: "google",
+        },
+      );
+    }
+
+    if (!validateApiKey(googleApiKey, "google")) {
+      throw new ValidationError(
+        "GOOGLE_API_KEY must be a valid Google API key format",
+        {
+          variable: "GOOGLE_API_KEY",
+          expectedFormat: "AIza* with exactly 39 characters",
+          context: "E2E test environment setup",
+          provider: "google",
+        },
+      );
+    }
   } else {
     // Default to OpenAI validation for non-Anthropic tests
     const openaiApiKey = process.env.OPENAI_API_KEY;

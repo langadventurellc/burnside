@@ -14,8 +14,10 @@ export default function globalSetup(): void {
   const testPattern =
     process.env.JEST_TEST_PATH_PATTERN || process.argv.join(" ");
   const isRunningAnthropicTests = testPattern.includes("anthropic");
+  const isRunningGoogleTests = testPattern.includes("google");
   const isRunningOpenAITests =
-    testPattern.includes("openai") || !isRunningAnthropicTests;
+    testPattern.includes("openai") ||
+    (!isRunningAnthropicTests && !isRunningGoogleTests);
 
   // Validate E2E test enablement (required for all providers)
   if (process.env.E2E_TEST_ENABLED !== "true") {
@@ -59,6 +61,24 @@ export default function globalSetup(): void {
       );
     }
     console.log("✅ Anthropic Environment Validated");
+  }
+
+  // Validate Google environment when running Google tests
+  if (isRunningGoogleTests) {
+    const googleApiKey = process.env.GOOGLE_API_KEY;
+    if (!googleApiKey) {
+      throw new Error(
+        "GOOGLE_API_KEY environment variable is required for Google E2E tests. " +
+          "Please check your .env file or environment configuration.",
+      );
+    }
+    if (!validateApiKey(googleApiKey, "google")) {
+      throw new Error(
+        "GOOGLE_API_KEY must be a valid Google API key (starts with AIza and exactly 39 characters). " +
+          "Please verify your API key format.",
+      );
+    }
+    console.log("✅ Google Environment Validated");
   }
 
   console.log("✅ E2E Test Environment Initialized Successfully");
