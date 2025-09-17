@@ -55,13 +55,21 @@ affectedFiles:
     conversation context handling, response validation, model integration tests,
     and error handling scenarios. Uses Google-specific test helpers and follows
     exact same test structure and validation logic as existing providers.
+  src/__tests__/e2e/google/streaming.e2e.test.ts: "Created comprehensive Google
+    streaming E2E test suite with 12 test cases mirroring OpenAI/Anthropic
+    patterns. Includes parameterized tests across all 5 Google models
+    (gemini-2.0-flash-lite, gemini-2.5-flash-lite, gemini-2.0-flash,
+    gemini-2.5-flash, gemini-2.5-pro), helper functions for delta collection and
+    accumulation, stream lifecycle management, format validation, and error
+    handling. Uses 45s timeouts, maxTokens: 100, and Google-specific test
+    helpers."
 log: []
 schema: v1.0
 childrenIds:
   - T-add-google-e2e-npm-script-and
-  - T-create-google-chat-completion
   - T-create-google-streaming-e2e
   - T-create-google-tool-execution
+  - T-create-google-chat-completion
   - T-create-google-model-helpers
   - T-create-google-test-configurati
   - T-extend-api-key-validation-for

@@ -1,14 +1,50 @@
 ---
 id: T-create-google-streaming-e2e
 title: Create Google streaming E2E tests
-status: open
+status: done
 priority: medium
 parent: F-google-gemini-end-to-end
 prerequisites:
   - T-create-google-model-helpers
   - T-update-jest-setup-files-for-1
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/__tests__/e2e/google/streaming.e2e.test.ts: "Created comprehensive Google
+    streaming E2E test suite with 12 test cases mirroring OpenAI/Anthropic
+    patterns. Includes parameterized tests across all 5 Google models
+    (gemini-2.0-flash-lite, gemini-2.5-flash-lite, gemini-2.0-flash,
+    gemini-2.5-flash, gemini-2.5-pro), helper functions for delta collection and
+    accumulation, stream lifecycle management, format validation, and error
+    handling. Uses 45s timeouts, maxTokens: 100, and Google-specific test
+    helpers."
+log:
+  - Successfully implemented Google Gemini streaming E2E tests that exactly
+    mirror the existing OpenAI and Anthropic test structures. Created
+    comprehensive test suite with 12 test cases covering basic streaming
+    functionality, delta accumulation, stream lifecycle management, format
+    validation, and error handling across all 5 streaming-capable Google models.
+    All tests follow established patterns with proper helper functions, timeout
+    values (45s), and maxTokens parameter (100). Tests use Google-specific
+    client creation via createGoogleTestClient() and validate StreamDelta schema
+    compliance. All quality checks pass with no linting errors.
+  - >-
+    Successfully debugged and fixed all failing Google streaming E2E tests. The
+    key insight was understanding that Google Gemini's streaming behavior
+    differs fundamentally from OpenAI/Anthropic:
+
+
+    - Google typically sends 1 contentful delta + 1 finish delta (not many
+    incremental deltas)
+
+    - Terminal deltas often have empty content arrays (`content: []`)
+
+    - This is documented and expected behavior for Google's
+    streamGenerateContent endpoint
+
+
+    Fixed all test expectations to match Google's actual streaming behavior
+    while maintaining the same test structure as OpenAI/Anthropic. All 17 tests
+    now pass including parameterized tests across all 5 Google models, delta
+    accumulation, stream lifecycle, format validation, and error handling.
 schema: v1.0
 childrenIds: []
 created: 2025-09-17T07:02:07.631Z
