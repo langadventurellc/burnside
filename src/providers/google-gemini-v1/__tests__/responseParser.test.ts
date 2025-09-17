@@ -59,6 +59,15 @@ describe("parseGeminiResponse", () => {
             text: "Hello, how can I help you today?",
           },
         ],
+        timestamp: expect.stringMatching(
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
+        ),
+        metadata: {
+          candidateIndex: 0,
+          finishReason: "STOP",
+          modelVersion: "gemini-2.0-flash",
+          provider: "google",
+        },
         sources: undefined,
         toolCalls: undefined,
       });
@@ -71,7 +80,7 @@ describe("parseGeminiResponse", () => {
 
       expect(result.model).toBe("gemini-2.0-flash");
       expect(result.metadata).toEqual({
-        provider: "google-gemini-v1",
+        provider: "google",
         modelVersion: "gemini-2.0-flash",
         finishReason: "STOP",
         candidateIndex: 0,
@@ -259,7 +268,7 @@ describe("parseGeminiResponse", () => {
           startIndex: 0,
           endIndex: 25,
           license: "CC BY 4.0",
-          provider: "google-gemini-v1",
+          provider: "google",
         },
       });
       expect(result.message.sources![1]).toEqual({
@@ -270,7 +279,7 @@ describe("parseGeminiResponse", () => {
           startIndex: 26,
           endIndex: 50,
           license: undefined,
-          provider: "google-gemini-v1",
+          provider: "google",
         },
       });
     });
@@ -305,7 +314,7 @@ describe("parseGeminiResponse", () => {
           startIndex: 0,
           endIndex: 20,
           license: undefined,
-          provider: "google-gemini-v1",
+          provider: "google",
         },
       });
     });
@@ -576,7 +585,7 @@ describe("parseGeminiResponse", () => {
       expect(result.usage?.totalTokens).toBe(8);
       expect(result.message.sources).toHaveLength(1);
       expect(result.metadata).toEqual({
-        provider: "google-gemini-v1",
+        provider: "google",
         modelVersion: "gemini-2.5-flash",
         promptFeedback: { safetyRatings: [] },
         finishReason: "STOP",

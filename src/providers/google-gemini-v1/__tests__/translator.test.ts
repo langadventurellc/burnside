@@ -30,7 +30,7 @@ function parseBody(
  */
 const mockConfig: GoogleGeminiV1Config = {
   apiKey: "test-api-key-123",
-  baseUrl: "https://generativelanguage.googleapis.com/v1/",
+  baseUrl: "https://generativelanguage.googleapis.com/v1beta/",
   timeout: 30000,
   maxRetries: 3,
 };
@@ -62,7 +62,7 @@ describe("translateChatRequest", () => {
       const body = parseBody(result.body);
 
       expect(result.url).toBe(
-        "https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent",
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
       );
       expect(result.method).toBe("POST");
       expect(result.headers).toEqual({
@@ -101,7 +101,7 @@ describe("translateChatRequest", () => {
       const body = parseBody(result.body);
 
       expect(result.url).toBe(
-        "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:streamGenerateContent",
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:streamGenerateContent",
       );
 
       expect(body.generationConfig).toEqual({
@@ -110,6 +110,9 @@ describe("translateChatRequest", () => {
         topK: 40,
         topP: 0.9,
         stopSequences: ["END", "STOP"],
+        thinkingConfig: {
+          thinkingBudget: 512,
+        },
       });
     });
 
@@ -403,7 +406,7 @@ describe("translateChatRequest", () => {
       const result = translateChatRequest(request, mockConfig);
 
       expect(result.url).toBe(
-        "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent",
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
       );
     });
 
@@ -422,7 +425,7 @@ describe("translateChatRequest", () => {
       const result = translateChatRequest(request, mockConfig);
 
       expect(result.url).toBe(
-        "https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash-lite:streamGenerateContent",
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:streamGenerateContent",
       );
     });
 
@@ -447,7 +450,7 @@ describe("translateChatRequest", () => {
     test("handles base URL with trailing slash", () => {
       const configWithSlash: GoogleGeminiV1Config = {
         ...mockConfig,
-        baseUrl: "https://generativelanguage.googleapis.com/v1/",
+        baseUrl: "https://generativelanguage.googleapis.com/v1beta/",
       };
 
       const request: ChatRequest = {
@@ -463,7 +466,7 @@ describe("translateChatRequest", () => {
       const result = translateChatRequest(request, configWithSlash);
 
       expect(result.url).toBe(
-        "https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent",
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
       );
     });
   });
@@ -545,10 +548,13 @@ describe("translateChatRequest", () => {
       expect(body.generationConfig).toEqual({
         temperature: 1.5,
         maxOutputTokens: 2000,
+        thinkingConfig: {
+          thinkingBudget: 512,
+        },
       });
     });
 
-    test("omits generation config when no parameters provided", () => {
+    test("includes thinking config even when no other parameters provided", () => {
       const request: ChatRequest = {
         model: "gemini-2.0-flash",
         messages: [
@@ -562,7 +568,10 @@ describe("translateChatRequest", () => {
       const result = translateChatRequest(request, mockConfig);
       const body = parseBody(result.body);
 
-      expect(body.generationConfig).toBeUndefined();
+      expect(body.generationConfig).toBeDefined();
+      expect((body.generationConfig as any).thinkingConfig).toEqual({
+        thinkingBudget: 512,
+      });
     });
   });
 

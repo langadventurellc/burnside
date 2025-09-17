@@ -1,14 +1,14 @@
 import { describe, test, expect, beforeAll } from "@jest/globals";
-import type { BridgeClient } from "../../../client/bridgeClient.js";
-import type { StreamDelta } from "../../../client/streamDelta.js";
-import type { Message } from "../../../core/messages/message.js";
-import { createAnthropicTestClient } from "../shared/anthropicModelHelpers.js";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered.js";
-import { getAnthropicTestModel } from "../shared/getAnthropicTestModel.js";
-import { loadAnthropicTestConfig } from "../shared/anthropicTestConfig.js";
-import { createTestMessages } from "../shared/createTestMessages.js";
-import { withTimeout } from "../shared/withTimeout.js";
-import { defaultLlmModels } from "../../../data/defaultLlmModels.js";
+import type { BridgeClient } from "../../../client/bridgeClient";
+import type { StreamDelta } from "../../../client/streamDelta";
+import type { Message } from "../../../core/messages/message";
+import { createAnthropicTestClient } from "../shared/anthropicModelHelpers";
+import { ensureModelRegistered } from "../shared/ensureModelRegistered";
+import { getAnthropicTestModel } from "../shared/getAnthropicTestModel";
+import { loadAnthropicTestConfig } from "../shared/anthropicTestConfig";
+import { createTestMessages } from "../shared/createTestMessages";
+import { withTimeout } from "../shared/withTimeout";
+import { defaultLlmModels } from "../../../data/defaultLlmModels";
 
 // Extract Anthropic models from default models data, filtering for streaming support
 const anthropicProvider = defaultLlmModels.providers.find(

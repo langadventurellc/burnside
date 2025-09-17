@@ -67,6 +67,11 @@ const GeminiGenerationConfigSchema = z.object({
   topK: z.number().positive().max(100).optional(),
   topP: z.number().min(0).max(1).optional(),
   stopSequences: z.array(z.string()).max(5).optional(),
+  thinkingConfig: z
+    .object({
+      thinkingBudget: z.number().optional(),
+    })
+    .optional(),
 });
 
 /**

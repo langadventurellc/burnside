@@ -49,6 +49,12 @@ affectedFiles:
     test pattern detection for Google provider, and provider credential
     isolation tests ensuring Google tests don't require other provider
     credentials and vice versa.
+  src/__tests__/e2e/google/chat.e2e.test.ts: Created comprehensive Google chat
+    completion E2E test suite with 14 test cases mirroring OpenAI/Anthropic
+    patterns. Includes parameterized tests across all 5 Google models,
+    conversation context handling, response validation, model integration tests,
+    and error handling scenarios. Uses Google-specific test helpers and follows
+    exact same test structure and validation logic as existing providers.
 log: []
 schema: v1.0
 childrenIds:
@@ -56,10 +62,10 @@ childrenIds:
   - T-create-google-chat-completion
   - T-create-google-streaming-e2e
   - T-create-google-tool-execution
-  - T-update-jest-setup-files-for-1
   - T-create-google-model-helpers
   - T-create-google-test-configurati
   - T-extend-api-key-validation-for
+  - T-update-jest-setup-files-for-1
 created: 2025-09-17T06:52:49.815Z
 updated: 2025-09-17T06:52:49.815Z
 ---

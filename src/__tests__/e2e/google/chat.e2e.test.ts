@@ -1,22 +1,22 @@
 import { describe, test, expect, beforeAll } from "@jest/globals";
 import type { BridgeClient } from "../../../client/bridgeClient";
 import type { Message } from "../../../core/messages/message";
-import { createAnthropicTestClient } from "../shared/anthropicModelHelpers";
+import { createGoogleTestClient } from "../shared/googleModelHelpers";
 import { ensureModelRegistered } from "../shared/ensureModelRegistered";
-import { getAnthropicTestModel } from "../shared/getAnthropicTestModel";
-import { loadAnthropicTestConfig } from "../shared/anthropicTestConfig";
+import { getGoogleTestModel } from "../shared/getGoogleTestModel";
+import { loadGoogleTestConfig } from "../shared/googleTestConfig";
 import { validateMessageSchema } from "../shared/testHelpers";
 import { createTestMessages } from "../shared/createTestMessages";
 import { withTimeout } from "../shared/withTimeout";
 import { defaultLlmModels } from "../../../data/defaultLlmModels";
 
-// Extract Anthropic models from default models data
-const anthropicProvider = defaultLlmModels.providers.find(
-  (p) => p.id === "anthropic",
+// Extract Google models from default models data
+const googleProvider = defaultLlmModels.providers.find(
+  (p) => p.id === "google",
 );
-const anthropicModels =
-  anthropicProvider?.models.map((model) => ({
-    id: `anthropic:${model.id}`,
+const googleModels =
+  googleProvider?.models.map((model) => ({
+    id: `google:${model.id}`,
     name: model.name,
   })) || [];
 
@@ -30,20 +30,20 @@ function createConversation(texts: string[]): Message[] {
   }));
 }
 
-describe("Anthropic Chat Completion E2E", () => {
+describe("Google Gemini Chat Completion E2E", () => {
   let client: BridgeClient;
   let testModel: string;
 
   beforeAll(() => {
-    loadAnthropicTestConfig(); // Validate environment configuration
-    client = createAnthropicTestClient();
-    testModel = getAnthropicTestModel();
+    loadGoogleTestConfig(); // Validate environment configuration
+    client = createGoogleTestClient();
+    testModel = getGoogleTestModel();
     ensureModelRegistered(client, testModel);
   });
 
   describe("Basic Chat Functionality", () => {
-    // Parameterized test for all Anthropic models
-    test.each(anthropicModels)(
+    // Parameterized test for all Google models
+    test.each(googleModels)(
       "should complete simple chat request with $name ($id)",
       async ({ id: modelId }) => {
         // Ensure the model is registered
@@ -52,7 +52,7 @@ describe("Anthropic Chat Completion E2E", () => {
         const messages = createTestMessages("Say hello.");
 
         const response = await withTimeout(
-          client.chat({ messages, model: modelId, maxTokens: 100 }),
+          client.chat({ messages, model: modelId, maxTokens: 1000 }),
           15000,
         );
 
@@ -190,7 +190,7 @@ describe("Anthropic Chat Completion E2E", () => {
     test("should work with default model", async () => {
       const messages = createTestMessages("Say hello.");
 
-      // Use default model from getAnthropicTestModel()
+      // Use default model from getGoogleTestModel()
       const response = await withTimeout(
         client.chat({ messages, model: testModel, maxTokens: 100 }),
         30000,
@@ -222,9 +222,9 @@ describe("Anthropic Chat Completion E2E", () => {
   describe("Error Handling", () => {
     test("should handle authentication errors", async () => {
       // Create client with invalid API key
-      const invalidClient = createAnthropicTestClient({
+      const invalidClient = createGoogleTestClient({
         providers: {
-          anthropic: { apiKey: "invalid-key" },
+          google: { apiKey: "invalid-key" },
         },
       });
 

@@ -19,7 +19,7 @@ describe("GoogleGeminiV1ConfigSchema", () => {
 
       expect(result.apiKey).toBe("AIzaSyTest123");
       expect(result.baseUrl).toBe(
-        "https://generativelanguage.googleapis.com/v1/",
+        "https://generativelanguage.googleapis.com/v1beta/",
       );
       expect(result.timeout).toBe(30000);
       expect(result.maxRetries).toBe(3);
@@ -49,7 +49,7 @@ describe("GoogleGeminiV1ConfigSchema", () => {
       const result = GoogleGeminiV1ConfigSchema.parse(config);
 
       expect(result.baseUrl).toBe(
-        "https://generativelanguage.googleapis.com/v1/",
+        "https://generativelanguage.googleapis.com/v1beta/",
       );
       expect(result.timeout).toBe(30000);
       expect(result.maxRetries).toBe(3);
@@ -124,7 +124,7 @@ describe("GoogleGeminiV1ConfigSchema", () => {
     it("should reject HTTP baseUrl (security vulnerability)", () => {
       const config = {
         apiKey: "AIzaSyTest123",
-        baseUrl: "http://generativelanguage.googleapis.com/v1/",
+        baseUrl: "http://generativelanguage.googleapis.com/v1beta/",
       };
 
       expect(() => GoogleGeminiV1ConfigSchema.parse(config)).toThrow(
@@ -146,7 +146,7 @@ describe("GoogleGeminiV1ConfigSchema", () => {
     it("should reject baseUrl without protocol", () => {
       const config = {
         apiKey: "AIzaSyTest123",
-        baseUrl: "generativelanguage.googleapis.com/v1/",
+        baseUrl: "generativelanguage.googleapis.com/v1beta/",
       };
 
       expect(() => GoogleGeminiV1ConfigSchema.parse(config)).toThrow(
@@ -270,7 +270,7 @@ describe("GoogleGeminiV1ConfigSchema", () => {
       expect(result.apiKey).toBe("AIzaSyTest123");
       expect(result.timeout).toBe(45000);
       expect(result.baseUrl).toBe(
-        "https://generativelanguage.googleapis.com/v1/",
+        "https://generativelanguage.googleapis.com/v1beta/",
       );
       expect(result.maxRetries).toBe(3);
     });
@@ -302,7 +302,7 @@ describe("GoogleGeminiV1ConfigSchema", () => {
     it("should accept HTTPS baseUrl with valid path", () => {
       const config = {
         apiKey: "AIzaSyTest123",
-        baseUrl: "https://generativelanguage.googleapis.com/v1/models/",
+        baseUrl: "https://generativelanguage.googleapis.com/v1beta/models/",
       };
 
       expect(() => GoogleGeminiV1ConfigSchema.parse(config)).not.toThrow();

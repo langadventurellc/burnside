@@ -145,10 +145,11 @@ export class GoogleGeminiV1Provider implements ProviderPlugin {
       return parseGeminiResponseStream(response);
     }
 
-    // Return Promise for non-streaming responses
-    return this.readResponseBody(response).then((responseText) =>
-      parseGeminiResponse(response, responseText),
-    );
+    // Use async wrapper to ensure proper Promise chaining
+    return (async () => {
+      const responseText = await this.readResponseBody(response);
+      return parseGeminiResponse(response, responseText);
+    })();
   }
 
   /**

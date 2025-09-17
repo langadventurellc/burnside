@@ -584,6 +584,7 @@ export class BridgeClient {
     const mapping: Record<string, { id: string; version: string }> = {
       "openai-responses-v1": { id: "openai", version: "responses-v1" },
       "anthropic-2023-06-01": { id: "anthropic", version: "2023-06-01" },
+      "google-gemini-v1": { id: "google", version: "gemini-v1" },
     };
 
     return mapping[pluginString];

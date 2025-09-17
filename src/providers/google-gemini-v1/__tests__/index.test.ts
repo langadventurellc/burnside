@@ -101,7 +101,7 @@ describe("Google Gemini v1 Provider Module Exports", () => {
       // Test basic type structure with all required fields
       const validConfig: GoogleGeminiV1Config = {
         apiKey: "test-api-key",
-        baseUrl: "https://generativelanguage.googleapis.com/v1/",
+        baseUrl: "https://generativelanguage.googleapis.com/v1beta/",
         timeout: 30000,
         maxRetries: 3,
       };

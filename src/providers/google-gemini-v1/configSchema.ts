@@ -31,7 +31,7 @@ export const GoogleGeminiV1ConfigSchema = z.object({
       (url) => url.startsWith("https://"),
       "Base URL must use HTTPS protocol",
     )
-    .default("https://generativelanguage.googleapis.com/v1/"),
+    .default("https://generativelanguage.googleapis.com/v1beta/"),
 
   /** Timeout validation with reasonable limits */
   timeout: z

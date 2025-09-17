@@ -104,6 +104,11 @@ export function parseGeminiResponse(
     id: `gemini-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
     role: "assistant",
     content: contentParts,
+    timestamp: new Date().toISOString(),
+    metadata: {
+      ...metadata,
+      provider: "google",
+    },
     sources: sourceRefs.length > 0 ? sourceRefs : undefined,
     toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
   };
@@ -112,7 +117,10 @@ export function parseGeminiResponse(
     message,
     usage,
     model: validatedResponse.modelVersion || "gemini-unknown",
-    metadata,
+    metadata: {
+      ...metadata,
+      provider: "google",
+    },
   };
 }
 
@@ -177,7 +185,7 @@ function extractSourceRefs(candidate: GeminiCandidate): SourceRef[] {
         startIndex: citation.startIndex,
         endIndex: citation.endIndex,
         license: citation.license,
-        provider: "google-gemini-v1",
+        provider: "google",
       },
     };
 

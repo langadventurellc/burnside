@@ -41,7 +41,7 @@ const GeminiResponsePartSchema = z.union([
  * Gemini response content schema
  */
 const GeminiResponseContentSchema = z.object({
-  parts: z.array(GeminiResponsePartSchema),
+  parts: z.array(GeminiResponsePartSchema).optional(), // Optional to handle cases where thinking consumes all tokens
   role: z.enum(["user", "model"]).optional(),
 });
 

@@ -153,34 +153,31 @@ function buildGeminiRequestBody(
     contents,
   };
 
-  // Add generation config if parameters are provided
-  if (
-    request.temperature !== undefined ||
-    request.maxTokens !== undefined ||
-    request.options?.topK !== undefined ||
-    request.options?.topP !== undefined ||
-    request.options?.stopSequences !== undefined
-  ) {
-    const generationConfig: Record<string, unknown> = {};
+  // Add generation config - always include thinkingConfig to limit reasoning tokens
+  const generationConfig: Record<string, unknown> = {
+    // Set thinkingBudget to minimum for gemini-2.5-pro (128) to leave more tokens for response
+    thinkingConfig: {
+      thinkingBudget: 512,
+    },
+  };
 
-    if (request.temperature !== undefined) {
-      generationConfig.temperature = request.temperature;
-    }
-    if (request.maxTokens !== undefined) {
-      generationConfig.maxOutputTokens = request.maxTokens;
-    }
-    if (request.options?.topK !== undefined) {
-      generationConfig.topK = request.options.topK;
-    }
-    if (request.options?.topP !== undefined) {
-      generationConfig.topP = request.options.topP;
-    }
-    if (request.options?.stopSequences !== undefined) {
-      generationConfig.stopSequences = request.options.stopSequences;
-    }
-
-    geminiRequest.generationConfig = generationConfig;
+  if (request.temperature !== undefined) {
+    generationConfig.temperature = request.temperature;
   }
+  if (request.maxTokens !== undefined) {
+    generationConfig.maxOutputTokens = request.maxTokens;
+  }
+  if (request.options?.topK !== undefined) {
+    generationConfig.topK = request.options.topK;
+  }
+  if (request.options?.topP !== undefined) {
+    generationConfig.topP = request.options.topP;
+  }
+  if (request.options?.stopSequences !== undefined) {
+    generationConfig.stopSequences = request.options.stopSequences;
+  }
+
+  geminiRequest.generationConfig = generationConfig;
 
   // Tools will be handled by separate tool translator when implemented
   // For now, leave empty if tools are provided

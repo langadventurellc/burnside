@@ -26,7 +26,7 @@ export function loadGoogleTestConfig(): GoogleTestConfig {
   return {
     googleApiKey,
     testEnabled,
-    testModel: process.env.E2E_GOOGLE_MODEL || "google:gemini-2.5-flash",
+    testModel: process.env.E2E_GOOGLE_MODEL || "google:gemini-2.0-flash-lite",
     timeout: 30000,
   };
 }

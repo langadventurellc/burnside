@@ -117,11 +117,6 @@ export async function* parseOpenAIResponseStream(
     });
   }
 
-  console.error("=== STREAMING RESPONSE DEBUG ===");
-  console.error("Response status:", response.status);
-  console.error("Response headers:", response.headers);
-  console.error("================================");
-
   // For non-200 status, try to read the error response body
   if (response.status !== 200) {
     try {
@@ -140,9 +135,7 @@ export async function* parseOpenAIResponseStream(
         offset += chunk.length;
       }
       const errorBody = new TextDecoder().decode(combined);
-      console.error("=== ERROR RESPONSE BODY ===");
       console.error(errorBody);
-      console.error("===========================");
     } catch (e) {
       console.error("Failed to read error response body:", e);
     }
@@ -153,15 +146,7 @@ export async function* parseOpenAIResponseStream(
   try {
     const chunks = convertToUint8ArrayIterable(response.body);
 
-    let eventCount = 0;
     for await (const sseEvent of SseParser.parse(chunks)) {
-      eventCount++;
-      if (eventCount <= 5) {
-        console.error(`=== SSE EVENT ${eventCount} ===`);
-        console.error("Event data:", sseEvent.data);
-        console.error("=========================");
-      }
-
       // Skip events without data
       if (!sseEvent.data) {
         continue;

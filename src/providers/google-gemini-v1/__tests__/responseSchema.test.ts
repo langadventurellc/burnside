@@ -30,7 +30,7 @@ describe("GoogleGeminiV1ResponseSchema", () => {
 
       expect(result.candidates).toHaveLength(1);
       expect(result.candidates![0].content?.parts).toHaveLength(1);
-      expect(result.candidates![0].content?.parts[0]).toEqual({
+      expect(result.candidates![0].content?.parts?.[0]).toEqual({
         text: "Hello! How can I help you today?",
       });
       expect(result.candidates![0].content?.role).toBe("model");
@@ -136,7 +136,7 @@ describe("GoogleGeminiV1ResponseSchema", () => {
       const result = GoogleGeminiV1ResponseSchema.parse(response);
 
       expect(result.candidates![0].content?.parts).toHaveLength(1);
-      const functionCall = result.candidates![0].content?.parts[0];
+      const functionCall = result.candidates![0].content?.parts?.[0];
       expect(functionCall).toHaveProperty("functionCall");
       if ("functionCall" in functionCall!) {
         expect(functionCall.functionCall.name).toBe("get_current_weather");
