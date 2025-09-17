@@ -1,7 +1,7 @@
 ---
 id: F-google-gemini-v1-provider
 title: Google Gemini v1 Provider Implementation
-status: in-progress
+status: done
 priority: medium
 parent: none
 prerequisites: []
