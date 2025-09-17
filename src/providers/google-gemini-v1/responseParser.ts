@@ -256,7 +256,7 @@ function extractUsageMetadata(response: GoogleGeminiV1Response):
   }
 
   return {
-    promptTokens: usageMetadata.promptTokenCount,
+    promptTokens: usageMetadata.promptTokenCount || 0,
     completionTokens: usageMetadata.candidatesTokenCount || 0,
     totalTokens: usageMetadata.totalTokenCount,
   };

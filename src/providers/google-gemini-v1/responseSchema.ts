@@ -117,9 +117,9 @@ const GeminiCandidateSchema = z.object({
  * Gemini usage metadata schema
  */
 const GeminiUsageMetadataSchema = z.object({
-  promptTokenCount: z.number().int().nonnegative(),
+  promptTokenCount: z.number().int().nonnegative().optional(),
   candidatesTokenCount: z.number().int().nonnegative().optional(),
-  totalTokenCount: z.number().int().nonnegative(),
+  totalTokenCount: z.number().int().nonnegative().optional(),
 });
 
 /**
@@ -182,7 +182,7 @@ export const GoogleGeminiV1StreamingResponseSchema = z.object({
 
   /** Model version information */
   modelVersion: z.string().optional(),
-});
+}); // Allow unknown properties for future Google API extensions
 
 /**
  * TypeScript type inferred from the Gemini response schema

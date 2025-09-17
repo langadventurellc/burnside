@@ -30,7 +30,9 @@ affectedFiles:
     array with content parts, function calls, finish reasons, safety ratings,
     citation metadata with sources, usage metadata for token counting, prompt
     feedback, and both streaming and non-streaming response formats. Includes
-    proper enum validation and optional field handling.
+    proper enum validation and optional field handling.; Updated usage metadata
+    schema to handle optional fields for streaming responses and removed strict
+    validation to allow future Google API extensions
   src/providers/google-gemini-v1/__tests__/requestSchema.test.ts:
     Created comprehensive unit test suite with 31 tests covering valid requests
     (minimal, full parameter, multimodal, conversation, function calling),
@@ -78,12 +80,24 @@ affectedFiles:
     parser with parseGeminiResponse() main function and helper functions for
     extracting content parts, source references, tool calls, usage metadata, and
     response metadata. Handles text content, function calls, citations, and
-    error scenarios with proper TypeScript typing.
+    error scenarios with proper TypeScript typing.; Updated to handle optional
+    usage metadata fields in line with schema changes
   src/providers/google-gemini-v1/__tests__/responseParser.test.ts:
     Created comprehensive unit test suite with 20+ test cases covering all
     parsing scenarios including successful responses, function call parsing,
     citation processing, usage metadata extraction, error handling, and edge
     cases. All tests passing with full coverage.
+  src/providers/google-gemini-v1/streamingParser.ts: Created comprehensive
+    streaming parser with parseGeminiResponseStream() function that handles SSE
+    parsing, delta accumulation, stream termination, function calls, usage
+    metadata, and robust error handling
+  src/providers/google-gemini-v1/__tests__/streamingParser.test.ts:
+    Created comprehensive unit test suite with 21 tests covering successful
+    parsing scenarios, error handling, and edge cases including tool calls,
+    metadata, and stream termination
+  src/providers/google-gemini-v1/index.ts:
+    Created provider exports file exposing
+    all necessary streaming parser functions and schemas
 log: []
 schema: v1.0
 childrenIds:
@@ -91,10 +105,10 @@ childrenIds:
   - T-create-provider-exports-and
   - T-implement-error-normalization
   - T-implement-googlegeminiv1provid
-  - T-implement-non-streaming-1
   - T-implement-streaming-response-1
   - T-create-gemini-api-request-and
   - T-create-provider-configuration-1
+  - T-implement-non-streaming-1
   - T-implement-request-translator-1
   - T-implement-tool-definition-1
 created: 2025-09-17T03:05:49.808Z
