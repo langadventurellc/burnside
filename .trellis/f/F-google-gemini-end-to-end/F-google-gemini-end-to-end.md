@@ -63,14 +63,27 @@ affectedFiles:
     accumulation, stream lifecycle management, format validation, and error
     handling. Uses 45s timeouts, maxTokens: 100, and Google-specific test
     helpers."
+  src/__tests__/e2e/google/tools.e2e.test.ts: "Created comprehensive Google tool
+    execution E2E test suite with 18 test cases exactly mirroring
+    OpenAI/Anthropic patterns. Includes all required test categories: Tool
+    Registration (2 tests for successful registration and definition
+    validation), Function Calling (2 tests for basic execution and parameterized
+    model testing), Tool System Integration (2 tests for BridgeClient
+    integration and unused tool handling), Tool Error Handling (4 tests for
+    registration errors, execution failures, disabled systems, and invalid
+    configurations), and Tool Behavior Validation (8 tests for message format
+    consistency, complex requests, multiple calls, context preservation,
+    argument validation, response formatting, metadata preservation, and
+    execution timing). Uses Google-specific imports, real Google Gemini APIs,
+    25s/30s timeouts, and e2e_echo_tool for predictable testing results."
 log: []
 schema: v1.0
 childrenIds:
   - T-add-google-e2e-npm-script-and
-  - T-create-google-streaming-e2e
   - T-create-google-tool-execution
   - T-create-google-chat-completion
   - T-create-google-model-helpers
+  - T-create-google-streaming-e2e
   - T-create-google-test-configurati
   - T-extend-api-key-validation-for
   - T-update-jest-setup-files-for-1
