@@ -18,12 +18,37 @@ affectedFiles:
     timeout and maxRetries validation, type inference and defaults, and security
     edge cases. Tests ensure proper validation behavior and error messages for
     all scenarios.
+  src/providers/google-gemini-v1/requestSchema.ts: Created comprehensive Zod
+    schema for Google Gemini API v1 request validation with support for contents
+    array (user/model roles), multimodal content parts (text and inline_data),
+    function calling tools with declarations, generation config (temperature,
+    tokens, topK/topP), safety settings with categories and thresholds, and
+    system instructions. Includes proper validation constraints, error messages,
+    and TypeScript type inference.
+  src/providers/google-gemini-v1/responseSchema.ts: Created comprehensive Zod
+    schema for Google Gemini API v1 response validation supporting candidates
+    array with content parts, function calls, finish reasons, safety ratings,
+    citation metadata with sources, usage metadata for token counting, prompt
+    feedback, and both streaming and non-streaming response formats. Includes
+    proper enum validation and optional field handling.
+  src/providers/google-gemini-v1/__tests__/requestSchema.test.ts:
+    Created comprehensive unit test suite with 31 tests covering valid requests
+    (minimal, full parameter, multimodal, conversation, function calling),
+    invalid requests (missing/empty contents, invalid roles, out-of-range
+    parameters), boundary cases (edge values), and type inference verification.
+    Tests ensure proper Zod validation behavior and error messages.
+  src/providers/google-gemini-v1/__tests__/responseSchema.test.ts:
+    Created comprehensive unit test suite with 26 tests covering valid responses
+    (minimal, metadata, function calling, safety filtering), invalid responses
+    (negative tokens, malformed data), boundary cases (zero/large values,
+    optional fields), streaming response validation, and type inference
+    verification. Tests ensure proper schema validation for all response
+    scenarios.
 log: []
 schema: v1.0
 childrenIds:
   - T-create-api-response-fixtures
   - T-create-gemini-api-request-and
-  - T-create-provider-configuration-1
   - T-create-provider-exports-and
   - T-implement-error-normalization
   - T-implement-googlegeminiv1provid
@@ -31,6 +56,7 @@ childrenIds:
   - T-implement-request-translator-1
   - T-implement-streaming-response-1
   - T-implement-tool-definition-1
+  - T-create-provider-configuration-1
 created: 2025-09-17T03:05:49.808Z
 updated: 2025-09-17T03:05:49.808Z
 ---
