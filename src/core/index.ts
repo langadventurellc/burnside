@@ -11,10 +11,10 @@
  */
 
 // Validation infrastructure
-export * from "./validation/index.js";
+export * from "./validation/index";
 
 // Model management
-export * from "./models/index.js";
+export * from "./models/index";
 
 // TODO: Export configuration interfaces when implemented
 // TODO: Export message and content model types when implemented

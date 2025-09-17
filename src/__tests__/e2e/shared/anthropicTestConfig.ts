@@ -1,6 +1,6 @@
-import { ValidationError } from "../../../core/errors/validationError.js";
-import { validateApiKey } from "./validateApiKey.js";
-import type { AnthropicTestConfig } from "./anthropicTestConfigInterface.js";
+import { ValidationError } from "../../../core/errors/validationError";
+import { validateApiKey } from "./validateApiKey";
+import type { AnthropicTestConfig } from "./anthropicTestConfigInterface";
 
 export function loadAnthropicTestConfig(): AnthropicTestConfig {
   const anthropicApiKey = process.env.ANTHROPIC_API_KEY;

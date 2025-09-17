@@ -12,6 +12,6 @@ export {
   echoToolHandler,
   EchoInputSchema,
   EchoOutputSchema,
-} from "./echo/index.js";
+} from "./echo/index";
 
-export type { EchoInput, EchoOutput } from "./echo/index.js";
+export type { EchoInput, EchoOutput } from "./echo/index";

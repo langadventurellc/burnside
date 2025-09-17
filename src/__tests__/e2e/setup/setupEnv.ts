@@ -5,44 +5,84 @@
  * and provide test-specific environment configuration.
  */
 
-import { ValidationError } from "../../../core/errors/validationError.js";
+import { ValidationError } from "../../../core/errors/validationError";
+import { validateApiKey } from "../shared/validateApiKey";
 
 // This file runs via setupFilesAfterEnv for each test file
 // Global setup runs once before all tests
 // setupEnv runs once per test file
 // Use this for test-specific environment configuration
 
-// Validate environment is properly configured for each test file
-const apiKey = process.env.OPENAI_API_KEY;
-if (!apiKey) {
-  throw new ValidationError(
-    "OPENAI_API_KEY environment variable is required for E2E tests",
-    {
-      variable: "OPENAI_API_KEY",
-      context: "E2E test environment setup",
-    },
-  );
+function validateProviderEnvironment(testPath: string): void {
+  // Validate E2E test enablement (required for all providers)
+  if (process.env.E2E_TEST_ENABLED !== "true") {
+    throw new ValidationError(
+      "E2E_TEST_ENABLED must be set to 'true' to run E2E tests",
+      {
+        variable: "E2E_TEST_ENABLED",
+        expectedValue: "true",
+        actualValue: process.env.E2E_TEST_ENABLED,
+        context: "E2E test environment setup",
+      },
+    );
+  }
+
+  // Determine provider based on test path
+  if (testPath.includes("anthropic")) {
+    // Validate Anthropic environment
+    const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+    if (!anthropicApiKey) {
+      throw new ValidationError(
+        "ANTHROPIC_API_KEY environment variable is required for Anthropic E2E tests",
+        {
+          variable: "ANTHROPIC_API_KEY",
+          context: "E2E test environment setup",
+          provider: "anthropic",
+        },
+      );
+    }
+
+    if (!validateApiKey(anthropicApiKey, "anthropic")) {
+      throw new ValidationError(
+        "ANTHROPIC_API_KEY must be a valid Anthropic API key format",
+        {
+          variable: "ANTHROPIC_API_KEY",
+          expectedFormat: "sk-ant-* with minimum 20 characters",
+          context: "E2E test environment setup",
+          provider: "anthropic",
+        },
+      );
+    }
+  } else {
+    // Default to OpenAI validation for non-Anthropic tests
+    const openaiApiKey = process.env.OPENAI_API_KEY;
+    if (!openaiApiKey) {
+      throw new ValidationError(
+        "OPENAI_API_KEY environment variable is required for OpenAI E2E tests",
+        {
+          variable: "OPENAI_API_KEY",
+          context: "E2E test environment setup",
+          provider: "openai",
+        },
+      );
+    }
+
+    if (!validateApiKey(openaiApiKey, "openai")) {
+      throw new ValidationError(
+        "OPENAI_API_KEY must be a valid OpenAI API key format",
+        {
+          variable: "OPENAI_API_KEY",
+          expectedFormat: "sk-* with minimum 20 characters",
+          context: "E2E test environment setup",
+          provider: "openai",
+        },
+      );
+    }
+  }
 }
 
-if (!apiKey.startsWith("sk-") || apiKey.length < 20) {
-  throw new ValidationError(
-    "OPENAI_API_KEY must be a valid OpenAI API key format",
-    {
-      variable: "OPENAI_API_KEY",
-      expectedFormat: "sk-* with minimum 20 characters",
-      context: "E2E test environment setup",
-    },
-  );
-}
-
-if (process.env.E2E_TEST_ENABLED !== "true") {
-  throw new ValidationError(
-    "E2E_TEST_ENABLED must be set to 'true' to run E2E tests",
-    {
-      variable: "E2E_TEST_ENABLED",
-      expectedValue: "true",
-      actualValue: process.env.E2E_TEST_ENABLED,
-      context: "E2E test environment setup",
-    },
-  );
-}
+// Validate environment for each test file
+beforeEach(() => {
+  const testPath = expect.getState().testPath || "";
+  validateProviderEnvironment(testPath);
+});

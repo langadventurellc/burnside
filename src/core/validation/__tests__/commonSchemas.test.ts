@@ -4,7 +4,7 @@
  * Tests for common validation schemas including email, URL, and timestamp validation.
  */
 
-import { commonSchemas } from "../commonSchemas.js";
+import { commonSchemas } from "../commonSchemas";
 
 describe("commonSchemas", () => {
   describe("email schema", () => {
@@ -334,7 +334,7 @@ describe("commonSchemas", () => {
         "document.pdf",
         "image_file.png",
         "test-file.txt",
-        "file123.json",
+        "file123on",
         "simple.md",
         "file.name.with.dots.txt",
         "underscore_file.csv",

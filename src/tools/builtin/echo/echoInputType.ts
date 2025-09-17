@@ -5,7 +5,7 @@
  */
 
 import type { z } from "zod";
-import type { EchoInputSchema } from "./echoInputSchema.js";
+import type { EchoInputSchema } from "./echoInputSchema";
 
 /**
  * TypeScript type for Echo tool input parameters

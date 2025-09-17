@@ -8,8 +8,8 @@
  * Provides streaming abstractions for all LLM providers.
  */
 
-export { ChunkParser } from "./chunkParser.js";
-export { SseParser } from "./sseParser.js";
-export type { ParsedChunk } from "./parsedChunk.js";
-export type { ChunkParserOptions } from "./chunkParserOptions.js";
-export type { SseEvent } from "./sseEvent.js";
+export { ChunkParser } from "./chunkParser";
+export { SseParser } from "./sseParser";
+export type { ParsedChunk } from "./parsedChunk";
+export type { ChunkParserOptions } from "./chunkParserOptions";
+export type { SseEvent } from "./sseEvent";

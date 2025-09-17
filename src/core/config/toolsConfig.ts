@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import type { BridgeConfigSchema } from "./bridgeConfigSchema.js";
+import type { BridgeConfigSchema } from "./bridgeConfigSchema";
 
 /**
  * Type for tool system configuration

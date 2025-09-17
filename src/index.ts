@@ -2,7 +2,7 @@
  * LLM Bridge Library - Main Public API
  *
  * A unified TypeScript library that acts as a bridge to multiple LLM provider APIs
- * for use across Desktop (Electron), Mobile (React Native), and Web (Node.js) platforms.
+ * for use across Desktop (Electron), Mobile (React Native), and Web (Node) platforms.
  *
  * The library provides an extensible architecture for integrating various LLM providers
  * and tools while maintaining a consistent interface across all platforms with comprehensive

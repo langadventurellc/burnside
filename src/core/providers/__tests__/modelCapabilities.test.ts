@@ -2,7 +2,7 @@
  * @file Tests for ModelCapabilities interface
  */
 
-import type { ModelCapabilities } from "../modelCapabilities.js";
+import type { ModelCapabilities } from "../modelCapabilities";
 
 describe("ModelCapabilities Interface", () => {
   describe("temperature capability", () => {

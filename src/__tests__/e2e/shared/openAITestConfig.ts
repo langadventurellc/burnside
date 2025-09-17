@@ -1,6 +1,6 @@
-import { ValidationError } from "../../../core/errors/validationError.js";
-import { validateApiKey } from "./validateApiKey.js";
-import type { TestConfig } from "./openAITestConfigInterface.js";
+import { ValidationError } from "../../../core/errors/validationError";
+import { validateApiKey } from "./validateApiKey";
+import type { TestConfig } from "./openAITestConfigInterface";
 
 export function loadTestConfig(): TestConfig {
   const openaiApiKey = process.env.OPENAI_API_KEY;

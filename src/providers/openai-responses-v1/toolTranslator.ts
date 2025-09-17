@@ -9,7 +9,7 @@
  *
  * @example
  * ```typescript
- * import { translateToolDefinitionToOpenAI } from "./toolTranslator.js";
+ * import { translateToolDefinitionToOpenAI } from "./toolTranslator";
  *
  * const openaiTool = translateToolDefinitionToOpenAI(toolDefinition);
  * // Use in OpenAI request: { tools: [openaiTool] }
@@ -17,8 +17,8 @@
  */
 
 import { z } from "zod";
-import { ValidationError } from "../../core/errors/validationError.js";
-import { OpenAIToolSchema, type OpenAITool } from "./openAIToolSchema.js";
+import { ValidationError } from "../../core/errors/validationError";
+import { OpenAIToolSchema, type OpenAITool } from "./openAIToolSchema";
 
 // Temporary type definition - will be replaced with actual import once resolved
 type ToolDefinition = {

@@ -31,8 +31,8 @@
  * }
  * ```
  */
-import type { ProviderHttpRequest } from "./providerHttpRequest.js";
-import type { ProviderHttpResponse } from "./providerHttpResponse.js";
+import type { ProviderHttpRequest } from "./providerHttpRequest";
+import type { ProviderHttpResponse } from "./providerHttpResponse";
 
 /**
  * Main transport interface for HTTP operations with LLM providers.

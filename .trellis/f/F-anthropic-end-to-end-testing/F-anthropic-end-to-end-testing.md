@@ -34,6 +34,15 @@ affectedFiles:
   src/__tests__/e2e/shared/__tests__/getAnthropicTestModel.test.ts:
     Unit tests for Anthropic model selection covering environment variables and
     default values
+  src/__tests__/e2e/setup/globalSetup.ts: Updated to add Anthropic validation
+    alongside existing OpenAI validation using test pattern detection via
+    process.argv and JEST_TEST_PATH_PATTERN
+  src/__tests__/e2e/setup/setupEnv.ts: Refactored to provider-aware validation
+    with validateProviderEnvironment function that handles both OpenAI and
+    Anthropic credentials based on test path
+  src/__tests__/e2e/setup/__tests__/globalSetup.test.ts: Created comprehensive
+    unit tests for global setup validation logic covering provider credential
+    isolation, test pattern detection, and error handling scenarios
 log: []
 schema: v1.0
 childrenIds:
@@ -41,8 +50,8 @@ childrenIds:
   - T-create-anthropic-chat
   - T-create-anthropic-streaming
   - T-create-anthropic-tool
-  - T-extend-shared-helpers-for
   - T-update-jest-setup-files-for
+  - T-extend-shared-helpers-for
 created: 2025-09-17T00:40:55.311Z
 updated: 2025-09-17T00:40:55.311Z
 ---

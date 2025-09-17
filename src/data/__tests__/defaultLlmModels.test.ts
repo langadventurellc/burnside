@@ -1,5 +1,5 @@
-import { defaultLlmModels } from "../defaultLlmModels.js";
-import { DefaultLlmModelsSchema } from "../../core/models/defaultLlmModelsSchema.js";
+import { defaultLlmModels } from "../defaultLlmModels";
+import { DefaultLlmModelsSchema } from "../../core/models/defaultLlmModelsSchema";
 
 describe("defaultLlmModels", () => {
   describe("Anthropic Models Configuration", () => {

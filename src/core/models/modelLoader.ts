@@ -1,16 +1,16 @@
 import { z } from "zod";
-import type { ModelInfo } from "../providers/modelInfo.js";
-import type { ModelCapabilities } from "../providers/modelCapabilities.js";
-import { ValidationError } from "../errors/validationError.js";
-import { DefaultLlmModelsSchema } from "./defaultLlmModelsSchema.js";
+import type { ModelInfo } from "../providers/modelInfo";
+import type { ModelCapabilities } from "../providers/modelCapabilities";
+import { ValidationError } from "../errors/validationError";
+import { DefaultLlmModelsSchema } from "./defaultLlmModelsSchema";
 
 /**
- * Type definition for the validated defaultLlmModels.json structure
+ * Type definition for the validated defaultLlmModelson structure
  */
 type DefaultLlmModelsJson = z.infer<typeof DefaultLlmModelsSchema>;
 
 /**
- * Platform-agnostic function to convert defaultLlmModels.json structure
+ * Platform-agnostic function to convert defaultLlmModelson structure
  * to ModelInfo array with default capabilities
  *
  * Maps the nested provider/model JSON structure to ModelInfo objects,
@@ -18,7 +18,7 @@ type DefaultLlmModelsJson = z.infer<typeof DefaultLlmModelsSchema>;
  * for all models. Temperature capability defaults to true if not specified.
  * Providers can later enrich capabilities as needed.
  *
- * @param jsonData - Validated JSON data from defaultLlmModels.json
+ * @param jsonData - Validated JSON data from defaultLlmModelson
  * @returns Array of ModelInfo objects with default capabilities
  *
  * @example
@@ -86,7 +86,7 @@ export function mapJsonToModelInfo(
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
-      throw new ValidationError("Invalid defaultLlmModels.json structure", {
+      throw new ValidationError("Invalid defaultLlmModelson structure", {
         zodErrors: error.errors,
         receivedData: jsonData,
       });

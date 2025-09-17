@@ -5,7 +5,7 @@
  */
 
 import { z } from "zod";
-import type { ValidationOptions } from "./validationOptions.js";
+import type { ValidationOptions } from "./validationOptions";
 
 /**
  * Format validation error messages with context and field information.

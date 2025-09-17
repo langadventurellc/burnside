@@ -1,4 +1,4 @@
-import { DefaultLlmModelsSchema } from "../core/models/defaultLlmModelsSchema.js";
+import { DefaultLlmModelsSchema } from "../core/models/defaultLlmModelsSchema";
 
 // Packaged default LLM models seed used for optional registry seeding.
 // This is a convenience seed; capabilities are determined by provider plugins/config.

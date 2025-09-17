@@ -9,8 +9,8 @@
  *
  * @example
  * ```typescript
- * import { InMemoryToolRegistry } from "./inMemoryToolRegistry.js";
- * import { ToolDefinition, ToolHandler } from "./index.js";
+ * import { InMemoryToolRegistry } from "./inMemoryToolRegistry";
+ * import { ToolDefinition, ToolHandler } from "./index";
  *
  * const registry = new InMemoryToolRegistry();
  *
@@ -35,9 +35,9 @@
  * ```
  */
 
-import type { ToolDefinition } from "./toolDefinition.js";
-import type { ToolHandler } from "./toolHandler.js";
-import type { RegistryEntry } from "./registryEntry.js";
+import type { ToolDefinition } from "./toolDefinition";
+import type { ToolHandler } from "./toolHandler";
+import type { RegistryEntry } from "./registryEntry";
 
 /**
  * Tool Registry interface for managing tool registration, discovery, and lifecycle.

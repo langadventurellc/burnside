@@ -9,7 +9,7 @@
  *
  * @example
  * ```typescript
- * import { OpenAIToolSchema } from "./openAIToolSchema.js";
+ * import { OpenAIToolSchema } from "./openAIToolSchema";
  *
  * const tool = {
  *   type: "function",

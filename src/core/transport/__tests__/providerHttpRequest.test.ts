@@ -4,8 +4,8 @@
  * Tests for the ProviderHttpRequest interface to ensure proper
  * type compatibility and structure validation.
  */
-import type { ProviderHttpRequest } from "../providerHttpRequest.js";
-import type { HttpMethod } from "../httpMethod.js";
+import type { ProviderHttpRequest } from "../providerHttpRequest";
+import type { HttpMethod } from "../httpMethod";
 
 describe("ProviderHttpRequest", () => {
   it("should accept minimal valid request", () => {

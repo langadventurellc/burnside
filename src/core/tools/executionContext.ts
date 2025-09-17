@@ -4,8 +4,8 @@
  * Defines the complete execution context with handler and timeout for tool execution.
  */
 
-import type { ToolHandler } from "./toolHandler.js";
-import type { PreparedContext } from "./preparedContext.js";
+import type { ToolHandler } from "./toolHandler";
+import type { PreparedContext } from "./preparedContext";
 
 /**
  * Complete pipeline context with handler and timeout

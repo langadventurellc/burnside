@@ -8,7 +8,7 @@
 
 import { describe, it, expect } from "@jest/globals";
 import { ZodError } from "zod";
-import { ToolResultSchema } from "../toolResultSchema.js";
+import { ToolResultSchema } from "../toolResultSchema";
 
 describe("ToolResultSchema", () => {
   describe("Success Results", () => {

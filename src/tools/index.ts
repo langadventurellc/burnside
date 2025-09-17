@@ -12,6 +12,6 @@ export {
   echoToolHandler,
   EchoInputSchema,
   EchoOutputSchema,
-} from "./builtin/index.js";
+} from "./builtin/index";
 
-export type { EchoInput, EchoOutput } from "./builtin/index.js";
+export type { EchoInput, EchoOutput } from "./builtin/index";

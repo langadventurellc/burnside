@@ -1,7 +1,7 @@
-import { BridgeClient } from "../../../client/bridgeClient.js";
-import type { BridgeConfig } from "../../../core/config/bridgeConfig.js";
-import { OpenAIResponsesV1Provider } from "../../../providers/openai-responses-v1/openAIResponsesV1Provider.js";
-import { loadTestConfig } from "./openAITestConfig.js";
+import { BridgeClient } from "../../../client/bridgeClient";
+import type { BridgeConfig } from "../../../core/config/bridgeConfig";
+import { OpenAIResponsesV1Provider } from "../../../providers/openai-responses-v1/openAIResponsesV1Provider";
+import { loadTestConfig } from "./openAITestConfig";
 
 export function createTestClient(
   overrides?: Partial<BridgeConfig>,

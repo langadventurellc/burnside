@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { ERROR_CODES } from "./errorCodes.js";
+ * import { ERROR_CODES } from "./errorCodes";
  *
  * if (error.code === ERROR_CODES.AUTH_ERROR) {
  *   // Handle authentication error

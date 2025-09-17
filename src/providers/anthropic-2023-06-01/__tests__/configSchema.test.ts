@@ -6,7 +6,7 @@
  * security validations including HTTPS enforcement and API key format validation.
  */
 
-import { AnthropicMessagesConfigSchema } from "../configSchema.js";
+import { AnthropicMessagesConfigSchema } from "../configSchema";
 
 describe("AnthropicMessagesConfigSchema", () => {
   describe("valid configurations", () => {

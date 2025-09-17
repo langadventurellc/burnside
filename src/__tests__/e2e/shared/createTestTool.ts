@@ -5,7 +5,7 @@
  * testable results that can be used across multiple test cases.
  */
 
-import type { ToolDefinition } from "../../../core/tools/toolDefinition.js";
+import type { ToolDefinition } from "../../../core/tools/toolDefinition";
 import { z } from "zod";
 
 /**

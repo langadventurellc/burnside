@@ -4,13 +4,13 @@
  * Converts unified ChatRequest format to Anthropic Messages API v2023-06-01 format.
  */
 
-import type { ChatRequest } from "../../client/chatRequest.js";
-import type { Message } from "../../core/messages/message.js";
-import type { ContentPart } from "../../core/messages/contentPart.js";
-import type { ProviderHttpRequest } from "../../core/transport/providerHttpRequest.js";
-import { createHttpRequest } from "../../core/providers/createHttpRequest.js";
-import { ValidationError } from "../../core/errors/validationError.js";
-import type { AnthropicMessagesConfigType } from "./configSchema.js";
+import type { ChatRequest } from "../../client/chatRequest";
+import type { Message } from "../../core/messages/message";
+import type { ContentPart } from "../../core/messages/contentPart";
+import type { ProviderHttpRequest } from "../../core/transport/providerHttpRequest";
+import { createHttpRequest } from "../../core/providers/createHttpRequest";
+import { ValidationError } from "../../core/errors/validationError";
+import type { AnthropicMessagesConfigType } from "./configSchema";
 
 /**
  * Convert unified ContentPart to Anthropic message content format

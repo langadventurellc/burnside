@@ -4,9 +4,9 @@
  * Comprehensive tests for provider configuration schemas and validation utilities.
  */
 
-import { providerSchemas } from "../providerSchemas.js";
-import { providerValidation } from "../providerValidation.js";
-import { ValidationError } from "../../errors/validationError.js";
+import { providerSchemas } from "../providerSchemas";
+import { providerValidation } from "../providerValidation";
+import { ValidationError } from "../../errors/validationError";
 
 describe("providerSchemas", () => {
   describe("BaseProviderConfigSchema", () => {

@@ -4,8 +4,8 @@
  * Context object passed through the interceptor chain containing request,
  * optional response, metadata, and abort signal for request cancellation.
  */
-import type { ProviderHttpRequest } from "./providerHttpRequest.js";
-import type { ProviderHttpResponse } from "./providerHttpResponse.js";
+import type { ProviderHttpRequest } from "./providerHttpRequest";
+import type { ProviderHttpResponse } from "./providerHttpResponse";
 
 /**
  * Context object passed through the interceptor chain.

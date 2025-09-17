@@ -5,7 +5,7 @@
  * Provides fallback error handling if normalization itself fails.
  */
 
-import type { ToolResult } from "./toolResult.js";
+import type { ToolResult } from "./toolResult";
 
 /**
  * Normalization stage - ensures result is in proper ToolResult format

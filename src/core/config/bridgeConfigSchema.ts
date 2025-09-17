@@ -9,7 +9,7 @@ import { z } from "zod";
  *
  * @example
  * ```typescript
- * import { BridgeConfigSchema } from "./bridgeConfigSchema.js";
+ * import { BridgeConfigSchema } from "./bridgeConfigSchema";
  *
  * const config = {
  *   defaultProvider: "openai",

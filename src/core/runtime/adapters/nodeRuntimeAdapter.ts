@@ -1,25 +1,25 @@
 /**
- * Node.js Runtime Adapter
+ * Node Runtime Adapter
  *
- * Implementation of the RuntimeAdapter interface for Node.js environments.
+ * Implementation of the RuntimeAdapter interface for Node environments.
  * Provides platform-specific implementations for HTTP, timers, and file operations
- * using Node.js built-in APIs.
+ * using Node built-in APIs.
  */
 
 import { promises as fs } from "node:fs";
-import type { RuntimeAdapter } from "../runtimeAdapter.js";
-import type { PlatformInfo } from "../platformInfo.js";
-import type { TimerHandle } from "../timerHandle.js";
-import type { FileOperationOptions } from "../fileOperationOptions.js";
-import { RuntimeError } from "../runtimeError.js";
-import { getPlatformCapabilities } from "../getPlatformCapabilities.js";
+import type { RuntimeAdapter } from "../runtimeAdapter";
+import type { PlatformInfo } from "../platformInfo";
+import type { TimerHandle } from "../timerHandle";
+import type { FileOperationOptions } from "../fileOperationOptions";
+import { RuntimeError } from "../runtimeError";
+import { getPlatformCapabilities } from "../getPlatformCapabilities";
 
 /**
- * Node.js implementation of the RuntimeAdapter interface.
+ * Node implementation of the RuntimeAdapter interface.
  *
- * Uses Node.js built-in modules for HTTP (global fetch), timers (built-in timers),
+ * Uses Node built-in modules for HTTP (global fetch), timers (built-in timers),
  * and file operations (fs/promises). Provides full platform capabilities for
- * Node.js environments.
+ * Node environments.
  */
 export class NodeRuntimeAdapter implements RuntimeAdapter {
   readonly platformInfo: PlatformInfo;
@@ -36,7 +36,7 @@ export class NodeRuntimeAdapter implements RuntimeAdapter {
   // HTTP Operations
   async fetch(input: string | URL, init?: RequestInit): Promise<Response> {
     try {
-      // Use global fetch (available in Node.js 18+)
+      // Use global fetch (available in Node 18+)
       return await globalThis.fetch(input, init);
     } catch (error) {
       throw new RuntimeError(

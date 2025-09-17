@@ -4,9 +4,9 @@
  * Unit tests for the isTerminal method in OpenAI Responses v1 provider plugin.
  */
 
-import { OpenAIResponsesV1Provider } from "../openAIResponsesV1Provider.js";
-import type { StreamDelta } from "../../../client/streamDelta.js";
-import type { Message } from "../../../core/messages/message.js";
+import { OpenAIResponsesV1Provider } from "../openAIResponsesV1Provider";
+import type { StreamDelta } from "../../../client/streamDelta";
+import type { Message } from "../../../core/messages/message";
 
 describe("OpenAIResponsesV1Provider.isTerminal", () => {
   let provider: OpenAIResponsesV1Provider;

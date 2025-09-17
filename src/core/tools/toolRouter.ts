@@ -9,13 +9,13 @@
  * comprehensive execution pipeline with error boundaries.
  */
 
-import type { ToolCall } from "./toolCall.js";
-import type { ToolResult } from "./toolResult.js";
-import type { ToolExecutionContext } from "./toolExecutionContext.js";
-import type { ToolDefinition } from "./toolDefinition.js";
-import type { ToolHandler } from "./toolHandler.js";
-import type { ToolRegistry } from "./toolRegistry.js";
-import { ExecutionPipeline } from "./toolExecutionPipeline.js";
+import type { ToolCall } from "./toolCall";
+import type { ToolResult } from "./toolResult";
+import type { ToolExecutionContext } from "./toolExecutionContext";
+import type { ToolDefinition } from "./toolDefinition";
+import type { ToolHandler } from "./toolHandler";
+import type { ToolRegistry } from "./toolRegistry";
+import { ExecutionPipeline } from "./toolExecutionPipeline";
 
 /**
  * Central ToolRouter class that orchestrates tool execution

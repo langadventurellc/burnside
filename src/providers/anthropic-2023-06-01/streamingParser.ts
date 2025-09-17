@@ -15,13 +15,13 @@
  */
 
 import { z } from "zod";
-import { SseParser } from "../../core/streaming/sseParser.js";
-import type { StreamDelta } from "../../client/streamDelta.js";
-import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse.js";
-import { BridgeError } from "../../core/errors/bridgeError.js";
-import { StreamingError } from "../../core/errors/streamingError.js";
-import { ValidationError } from "../../core/errors/validationError.js";
-import { AnthropicStreamingResponseSchema } from "./responseSchema.js";
+import { SseParser } from "../../core/streaming/sseParser";
+import type { StreamDelta } from "../../client/streamDelta";
+import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse";
+import { BridgeError } from "../../core/errors/bridgeError";
+import { StreamingError } from "../../core/errors/streamingError";
+import { ValidationError } from "../../core/errors/validationError";
+import { AnthropicStreamingResponseSchema } from "./responseSchema";
 
 type AnthropicStreamingEvent = z.infer<typeof AnthropicStreamingResponseSchema>;
 

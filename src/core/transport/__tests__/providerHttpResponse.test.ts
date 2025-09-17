@@ -4,7 +4,7 @@
  * Tests for the ProviderHttpResponse interface to ensure proper
  * type compatibility and structure validation.
  */
-import type { ProviderHttpResponse } from "../providerHttpResponse.js";
+import type { ProviderHttpResponse } from "../providerHttpResponse";
 
 describe("ProviderHttpResponse", () => {
   it("should accept response with null body", () => {

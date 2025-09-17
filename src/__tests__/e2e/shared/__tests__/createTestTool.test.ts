@@ -2,7 +2,7 @@
  * Unit tests for createTestTool helper
  */
 
-import { createTestTool } from "../createTestTool.js";
+import { createTestTool } from "../createTestTool";
 import { z } from "zod";
 
 describe("createTestTool", () => {

@@ -13,8 +13,8 @@
  * - createToolCall: Creates ToolCall objects for testing
  */
 
-export { prepareToolCallMessage } from "./prepareToolCallMessage.js";
-export { createTestTool } from "./createTestTool.js";
-export { testToolHandler } from "./testToolHandler.js";
-export { validateToolExecution } from "./validateToolExecution.js";
-export { createToolCall } from "./createToolCall.js";
+export { prepareToolCallMessage } from "./prepareToolCallMessage";
+export { createTestTool } from "./createTestTool";
+export { testToolHandler } from "./testToolHandler";
+export { validateToolExecution } from "./validateToolExecution";
+export { createToolCall } from "./createToolCall";

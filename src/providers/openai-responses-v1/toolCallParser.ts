@@ -7,8 +7,8 @@
  */
 
 import { z } from "zod";
-import type { ToolCall } from "../../core/tools/toolCall.js";
-import { ValidationError } from "../../core/errors/validationError.js";
+import type { ToolCall } from "../../core/tools/toolCall";
+import { ValidationError } from "../../core/errors/validationError";
 
 /**
  * OpenAI tool call function schema

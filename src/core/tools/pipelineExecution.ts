@@ -5,8 +5,8 @@
  * Handles all execution errors and converts them to ToolResult format.
  */
 
-import type { ToolResult } from "./toolResult.js";
-import type { ExecutionContext } from "./executionContext.js";
+import type { ToolResult } from "./toolResult";
+import type { ExecutionContext } from "./executionContext";
 
 /**
  * Execution stage - executes tool handler with timeout protection using AbortController

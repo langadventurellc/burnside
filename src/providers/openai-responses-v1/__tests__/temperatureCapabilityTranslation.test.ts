@@ -2,9 +2,9 @@
  * @file Tests for temperature capability-aware request translation
  */
 
-import { translateChatRequest } from "../translator.js";
-import type { ChatRequest } from "../../../client/chatRequest.js";
-import type { OpenAIResponsesV1Config } from "../configSchema.js";
+import { translateChatRequest } from "../translator";
+import type { ChatRequest } from "../../../client/chatRequest";
+import type { OpenAIResponsesV1Config } from "../configSchema";
 
 describe("Temperature Capability Translation", () => {
   const mockConfig: OpenAIResponsesV1Config = {

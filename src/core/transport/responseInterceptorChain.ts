@@ -4,7 +4,7 @@
  * Response interceptor function type for the interceptor chain system.
  * Receives context and returns potentially modified context.
  */
-import type { InterceptorContext } from "./interceptorContext.js";
+import type { InterceptorContext } from "./interceptorContext";
 
 /**
  * Response interceptor function type.

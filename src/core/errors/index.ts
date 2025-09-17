@@ -7,7 +7,7 @@
  *
  * @example
  * ```typescript
- * import { TransportError, ERROR_CODES, serializeError } from "./errors/index.js";
+ * import { TransportError, ERROR_CODES, serializeError } from "./errors/index";
  *
  * try {
  *   // some operation
@@ -24,27 +24,27 @@
  */
 
 // Error Classes
-export { BridgeError } from "./bridgeError.js";
-export { TransportError } from "./transportError.js";
-export { AuthError } from "./authError.js";
-export { RateLimitError } from "./rateLimitError.js";
-export { TimeoutError } from "./timeoutError.js";
-export { ValidationError } from "./validationError.js";
-export { ProviderError } from "./providerError.js";
-export { StreamingError } from "./streamingError.js";
-export { ToolError } from "./toolError.js";
+export { BridgeError } from "./bridgeError";
+export { TransportError } from "./transportError";
+export { AuthError } from "./authError";
+export { RateLimitError } from "./rateLimitError";
+export { TimeoutError } from "./timeoutError";
+export { ValidationError } from "./validationError";
+export { ProviderError } from "./providerError";
+export { StreamingError } from "./streamingError";
+export { ToolError } from "./toolError";
 
 // Error Normalization
-export { HttpErrorNormalizer } from "./httpErrorNormalizer.js";
-export type { ErrorNormalizer } from "./errorNormalizer.js";
-export type { ErrorContext } from "./errorContext.js";
-export type { NormalizedError } from "./normalizedError.js";
-export type { ErrorNormalizationConfig } from "./errorNormalizationConfig.js";
-export type { ErrorCodeMapping } from "./errorCodeMapping.js";
-export type { ErrorFactory } from "./errorFactory.js";
+export { HttpErrorNormalizer } from "./httpErrorNormalizer";
+export type { ErrorNormalizer } from "./errorNormalizer";
+export type { ErrorContext } from "./errorContext";
+export type { NormalizedError } from "./normalizedError";
+export type { ErrorNormalizationConfig } from "./errorNormalizationConfig";
+export type { ErrorCodeMapping } from "./errorCodeMapping";
+export type { ErrorFactory } from "./errorFactory";
 
 // Utility Functions and Constants
-export { ERROR_CODES } from "./errorCodes.js";
-export type { SerializedError } from "./serializedError.js";
-export { serializeError } from "./serializeError.js";
-export { isBridgeError } from "./isBridgeError.js";
+export { ERROR_CODES } from "./errorCodes";
+export type { SerializedError } from "./serializedError";
+export { serializeError } from "./serializeError";
+export { isBridgeError } from "./isBridgeError";

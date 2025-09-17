@@ -4,7 +4,7 @@
  * Tests for parsing Anthropic tool calls from response content blocks
  */
 
-import { parseAnthropicToolCalls } from "../toolCallParser.js";
+import { parseAnthropicToolCalls } from "../toolCallParser";
 
 describe("parseAnthropicToolCalls", () => {
   it("should parse single tool call", () => {

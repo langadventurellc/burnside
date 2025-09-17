@@ -6,4 +6,4 @@
  * other utilities are available through individual imports.
  */
 
-export { prepareToolCallMessage } from "./prepareToolCallMessage.js";
+export { prepareToolCallMessage } from "./prepareToolCallMessage";

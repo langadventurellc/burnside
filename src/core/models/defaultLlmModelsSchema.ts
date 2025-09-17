@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * JSON schema validation for defaultLlmModels.json structure
+ * JSON schema validation for defaultLlmModelson structure
  *
  * Validates the expected nested structure with providers containing
  * arrays of models with required metadata fields.

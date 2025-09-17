@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { ToolCallSchema } from "./toolCallSchema.js";
+ * import { ToolCallSchema } from "./toolCallSchema";
  *
  * const result = ToolCallSchema.parse({
  *   id: "call_abc123",
@@ -21,8 +21,8 @@
  */
 
 import { z } from "zod";
-import { commonSchemas } from "../validation/commonSchemas.js";
-import type { ToolCall } from "./toolCall.js";
+import { commonSchemas } from "../validation/commonSchemas";
+import type { ToolCall } from "./toolCall";
 
 /**
  * UUID validation schema for tool call identifiers.

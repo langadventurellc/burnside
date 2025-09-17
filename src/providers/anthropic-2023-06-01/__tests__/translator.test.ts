@@ -5,10 +5,10 @@
  */
 
 import { describe, test, expect } from "@jest/globals";
-import type { ChatRequest } from "../../../client/chatRequest.js";
-import { ValidationError } from "../../../core/errors/validationError.js";
-import { translateChatRequest } from "../translator.js";
-import type { AnthropicMessagesConfigType } from "../configSchema.js";
+import type { ChatRequest } from "../../../client/chatRequest";
+import { ValidationError } from "../../../core/errors/validationError";
+import { translateChatRequest } from "../translator";
+import type { AnthropicMessagesConfigType } from "../configSchema";
 
 /**
  * Helper function to parse request body from ProviderHttpRequest

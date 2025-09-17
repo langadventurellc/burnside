@@ -5,7 +5,7 @@
  */
 
 import { z } from "zod";
-import type { ValidationResult } from "../validationResult.js";
+import type { ValidationResult } from "../validationResult";
 
 describe("ValidationResult", () => {
   describe("success result", () => {

@@ -5,13 +5,13 @@
  * without complex mocking that was causing test execution issues.
  */
 
-import { AnthropicMessagesV1Provider } from "../anthropicMessagesV1Provider.js";
-import type { StreamDelta } from "../../../client/streamDelta.js";
-import type { ProviderHttpResponse } from "../../../core/transport/providerHttpResponse.js";
-import { BridgeError } from "../../../core/errors/bridgeError.js";
+import { AnthropicMessagesV1Provider } from "../anthropicMessagesV1Provider";
+import type { StreamDelta } from "../../../client/streamDelta";
+import type { ProviderHttpResponse } from "../../../core/transport/providerHttpResponse";
+import { BridgeError } from "../../../core/errors/bridgeError";
 
 // Mock the imported modules with simple implementations
-jest.mock("../translator.js", () => ({
+jest.mock("../translator", () => ({
   translateChatRequest: jest.fn().mockReturnValue({
     url: "https://api.anthropic.com/v1/messages",
     method: "POST",
@@ -20,7 +20,7 @@ jest.mock("../translator.js", () => ({
   }),
 }));
 
-jest.mock("../responseParser.js", () => ({
+jest.mock("../responseParser", () => ({
   parseAnthropicResponse: jest.fn().mockReturnValue({
     message: { role: "assistant", content: [{ type: "text", text: "Hello" }] },
     model: "claude-3",
@@ -28,7 +28,7 @@ jest.mock("../responseParser.js", () => ({
   }),
 }));
 
-jest.mock("../streamingParser.js", () => ({
+jest.mock("../streamingParser", () => ({
   parseAnthropicResponseStream: jest.fn().mockReturnValue({
     async *[Symbol.asyncIterator]() {
       await Promise.resolve();
@@ -46,17 +46,17 @@ jest.mock("../streamingParser.js", () => ({
   }),
 }));
 
-jest.mock("../errorNormalizer.js", () => ({
+jest.mock("../errorNormalizer", () => ({
   normalizeAnthropicError: jest.fn().mockImplementation((error: unknown) => {
     if (error instanceof BridgeError) return error;
     return new BridgeError("Normalized error", "PROVIDER_ERROR");
   }),
 }));
 
-import { translateChatRequest } from "../translator.js";
-import { parseAnthropicResponse } from "../responseParser.js";
-import { parseAnthropicResponseStream } from "../streamingParser.js";
-import { normalizeAnthropicError } from "../errorNormalizer.js";
+import { translateChatRequest } from "../translator";
+import { parseAnthropicResponse } from "../responseParser";
+import { parseAnthropicResponseStream } from "../streamingParser";
+import { normalizeAnthropicError } from "../errorNormalizer";
 
 const mockTranslateChatRequest = translateChatRequest as jest.MockedFunction<
   typeof translateChatRequest

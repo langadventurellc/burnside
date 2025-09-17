@@ -6,12 +6,12 @@
  */
 
 import { z } from "zod";
-import { ToolRouter } from "../toolRouter.js";
-import { InMemoryToolRegistry } from "../inMemoryToolRegistry.js";
-import type { ToolCall } from "../toolCall.js";
-import type { ToolDefinition } from "../toolDefinition.js";
-import type { ToolExecutionContext } from "../toolExecutionContext.js";
-import type { ToolHandler } from "../toolHandler.js";
+import { ToolRouter } from "../toolRouter";
+import { InMemoryToolRegistry } from "../inMemoryToolRegistry";
+import type { ToolCall } from "../toolCall";
+import type { ToolDefinition } from "../toolDefinition";
+import type { ToolExecutionContext } from "../toolExecutionContext";
+import type { ToolHandler } from "../toolHandler";
 
 describe("ToolRouter", () => {
   let router: ToolRouter;

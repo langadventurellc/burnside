@@ -2,7 +2,7 @@
  * @file Tests for temperature capability loading in model loader
  */
 
-import { mapJsonToModelInfo } from "../modelLoader.js";
+import { mapJsonToModelInfo } from "../modelLoader";
 
 describe("Temperature Capability Loading", () => {
   describe("temperature capability mapping from JSON", () => {

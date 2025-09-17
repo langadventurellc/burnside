@@ -6,13 +6,13 @@
  * Serves as both a test tool and reference implementation for the tool system.
  */
 
-import type { ToolDefinition } from "../../../core/tools/toolDefinition.js";
-import type { ToolHandler } from "../../../core/tools/toolHandler.js";
-import type { ToolExecutionContext } from "../../../core/tools/toolExecutionContext.js";
-import { EchoInputSchema } from "./echoInputSchema.js";
-import { EchoOutputSchema } from "./echoOutputSchema.js";
-import type { EchoInput } from "./echoInputType.js";
-import type { EchoOutput } from "./echoOutputType.js";
+import type { ToolDefinition } from "../../../core/tools/toolDefinition";
+import type { ToolHandler } from "../../../core/tools/toolHandler";
+import type { ToolExecutionContext } from "../../../core/tools/toolExecutionContext";
+import { EchoInputSchema } from "./echoInputSchema";
+import { EchoOutputSchema } from "./echoOutputSchema";
+import type { EchoInput } from "./echoInputType";
+import type { EchoOutput } from "./echoOutputType";
 
 /**
  * Echo tool definition for registration with the tool system.

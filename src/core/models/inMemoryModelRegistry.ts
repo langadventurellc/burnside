@@ -1,9 +1,9 @@
 import { z } from "zod";
-import type { ModelInfo } from "../providers/modelInfo.js";
-import type { ModelCapabilities } from "../providers/modelCapabilities.js";
-import type { ModelRegistry } from "./modelRegistry.js";
-import { validateOrThrow } from "../validation/validateOrThrow.js";
-import { ValidationError } from "../errors/validationError.js";
+import type { ModelInfo } from "../providers/modelInfo";
+import type { ModelCapabilities } from "../providers/modelCapabilities";
+import type { ModelRegistry } from "./modelRegistry";
+import { validateOrThrow } from "../validation/validateOrThrow";
+import { ValidationError } from "../errors/validationError";
 
 /**
  * Zod schema for validating ModelInfo during registration

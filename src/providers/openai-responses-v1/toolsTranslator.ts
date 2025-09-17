@@ -6,9 +6,9 @@
  */
 
 import { z } from "zod";
-import { ValidationError } from "../../core/errors/validationError.js";
-import { translateToolDefinitionToOpenAI } from "./toolTranslator.js";
-import type { OpenAITool } from "./openAIToolSchema.js";
+import { ValidationError } from "../../core/errors/validationError";
+import { translateToolDefinitionToOpenAI } from "./toolTranslator";
+import type { OpenAITool } from "./openAIToolSchema";
 
 // Temporary type definition - will be replaced with actual import once resolved
 type ToolDefinition = {

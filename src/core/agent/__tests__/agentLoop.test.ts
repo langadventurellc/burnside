@@ -6,14 +6,14 @@
  */
 
 import { z } from "zod";
-import { AgentLoop } from "../agentLoop.js";
-import { ToolRouter } from "../../tools/toolRouter.js";
-import { InMemoryToolRegistry } from "../../tools/inMemoryToolRegistry.js";
-import type { Message } from "../../messages/message.js";
-import type { ToolCall } from "../../tools/toolCall.js";
-import type { ToolResult } from "../../tools/toolResult.js";
-import type { ToolDefinition } from "../../tools/toolDefinition.js";
-import type { ToolHandler } from "../../tools/toolHandler.js";
+import { AgentLoop } from "../agentLoop";
+import { ToolRouter } from "../../tools/toolRouter";
+import { InMemoryToolRegistry } from "../../tools/inMemoryToolRegistry";
+import type { Message } from "../../messages/message";
+import type { ToolCall } from "../../tools/toolCall";
+import type { ToolResult } from "../../tools/toolResult";
+import type { ToolDefinition } from "../../tools/toolDefinition";
+import type { ToolHandler } from "../../tools/toolHandler";
 
 describe("AgentLoop", () => {
   let agentLoop: AgentLoop;

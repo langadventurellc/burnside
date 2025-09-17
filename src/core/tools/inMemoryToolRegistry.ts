@@ -14,7 +14,7 @@
  *
  * @example
  * ```typescript
- * import { InMemoryToolRegistry } from "./inMemoryToolRegistry.js";
+ * import { InMemoryToolRegistry } from "./inMemoryToolRegistry";
  * import { z } from "zod";
  *
  * const registry = new InMemoryToolRegistry();
@@ -38,14 +38,14 @@
  * ```
  */
 
-import type { ToolRegistry } from "./toolRegistry.js";
-import type { ToolDefinition } from "./toolDefinition.js";
-import type { ToolHandler } from "./toolHandler.js";
-import type { RegistryEntry } from "./registryEntry.js";
-import { ToolDefinitionSchema } from "./toolDefinitionSchema.js";
-import { validateOrThrow } from "../validation/validateOrThrow.js";
-import { ToolError } from "../errors/toolError.js";
-import { commonSchemas } from "../validation/commonSchemas.js";
+import type { ToolRegistry } from "./toolRegistry";
+import type { ToolDefinition } from "./toolDefinition";
+import type { ToolHandler } from "./toolHandler";
+import type { RegistryEntry } from "./registryEntry";
+import { ToolDefinitionSchema } from "./toolDefinitionSchema";
+import { validateOrThrow } from "../validation/validateOrThrow";
+import { ToolError } from "../errors/toolError";
+import { commonSchemas } from "../validation/commonSchemas";
 
 /**
  * In-memory implementation of ToolRegistry interface

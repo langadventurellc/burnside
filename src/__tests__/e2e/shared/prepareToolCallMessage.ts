@@ -6,8 +6,8 @@
  * message.metadata.tool_calls (OpenAI raw format expected by extractToolCallsFromMessage).
  */
 
-import type { Message } from "../../../core/messages/message.js";
-import type { ToolCall } from "../../../core/tools/toolCall.js";
+import type { Message } from "../../../core/messages/message";
+import type { ToolCall } from "../../../core/tools/toolCall";
 
 /**
  * Extended Message type that includes toolCalls property from OpenAI responses

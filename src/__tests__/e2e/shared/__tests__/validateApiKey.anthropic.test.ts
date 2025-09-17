@@ -1,5 +1,5 @@
-import { ValidationError } from "../../../../core/errors/validationError.js";
-import { validateApiKey } from "../validateApiKey.js";
+import { ValidationError } from "../../../../core/errors/validationError";
+import { validateApiKey } from "../validateApiKey";
 
 describe("validateApiKey - Anthropic provider", () => {
   describe("valid Anthropic API keys", () => {

@@ -2,7 +2,7 @@
  * Unit tests for testToolHandler helper
  */
 
-import { testToolHandler } from "../testToolHandler.js";
+import { testToolHandler } from "../testToolHandler";
 
 describe("testToolHandler", () => {
   const mockContext = {}; // Mock execution context

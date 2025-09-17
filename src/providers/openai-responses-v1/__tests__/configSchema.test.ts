@@ -5,7 +5,7 @@
  * validation, testing both valid and invalid configurations.
  */
 
-import { OpenAIResponsesV1ConfigSchema } from "../configSchema.js";
+import { OpenAIResponsesV1ConfigSchema } from "../configSchema";
 
 describe("OpenAIResponsesV1ConfigSchema", () => {
   describe("valid configurations", () => {

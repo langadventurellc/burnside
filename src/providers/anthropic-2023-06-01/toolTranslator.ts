@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { translateToolDefinitions } from "./toolTranslator.js";
+ * import { translateToolDefinitions } from "./toolTranslator";
  *
  * const anthropicTools = translateToolDefinitions(toolDefinitions);
  * // Use in Anthropic request: { tools: anthropicTools }
@@ -14,8 +14,8 @@
  */
 
 import { z } from "zod";
-import type { ToolDefinition } from "../../core/tools/toolDefinition.js";
-import { ValidationError } from "../../core/errors/validationError.js";
+import type { ToolDefinition } from "../../core/tools/toolDefinition";
+import { ValidationError } from "../../core/errors/validationError";
 
 /**
  * Anthropic tool definition type

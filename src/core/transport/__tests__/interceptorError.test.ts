@@ -1,8 +1,8 @@
 /**
  * @jest-environment node
  */
-import { InterceptorError } from "../interceptorError.js";
-import type { InterceptorErrorContext } from "../interceptorErrorContext.js";
+import { InterceptorError } from "../interceptorError";
+import type { InterceptorErrorContext } from "../interceptorErrorContext";
 
 describe("InterceptorError", () => {
   describe("constructor", () => {

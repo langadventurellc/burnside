@@ -4,8 +4,8 @@
  * Interface for consistent schema validation patterns across the library.
  */
 
-import type { ValidationResult } from "./validationResult.js";
-import type { TypeGuard } from "./typeGuard.js";
+import type { ValidationResult } from "./validationResult";
+import type { TypeGuard } from "./typeGuard";
 
 /**
  * Interface for consistent schema validation patterns across the library.

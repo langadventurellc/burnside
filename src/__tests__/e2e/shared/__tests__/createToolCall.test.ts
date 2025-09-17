@@ -2,7 +2,7 @@
  * Unit tests for createToolCall helper
  */
 
-import { createToolCall } from "../createToolCall.js";
+import { createToolCall } from "../createToolCall";
 
 describe("createToolCall", () => {
   describe("basic functionality", () => {

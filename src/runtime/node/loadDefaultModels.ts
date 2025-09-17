@@ -3,14 +3,14 @@ import { z } from "zod";
 import {
   mapJsonToModelInfo,
   DefaultLlmModelsSchema,
-} from "../../core/models/index.js";
-import { ValidationError } from "../../core/errors/validationError.js";
-import type { ModelInfo } from "../../core/providers/modelInfo.js";
+} from "../../core/models/index";
+import { ValidationError } from "../../core/errors/validationError";
+import type { ModelInfo } from "../../core/providers/modelInfo";
 
 /**
- * Node.js-specific utility to load and parse defaultLlmModels.json from file system
+ * Node-specific utility to load and parse defaultLlmModelson from file system
  *
- * @param filePath - Path to the defaultLlmModels.json file
+ * @param filePath - Path to the defaultLlmModelson file
  * @returns Array of ModelInfo objects with default capabilities
  * @throws ValidationError if file contains invalid JSON structure
  * @throws Error if file cannot be read
@@ -18,7 +18,7 @@ import type { ModelInfo } from "../../core/providers/modelInfo.js";
  * @example
  * ```typescript
  * // Load default models for testing
- * const models = loadDefaultModels('./docs/defaultLlmModels.json');
+ * const models = loadDefaultModels('./docs/defaultLlmModelson');
  * console.log(`Loaded ${models.length} models`);
  * ```
  */
@@ -44,7 +44,7 @@ export function loadDefaultModels(filePath: string): ModelInfo[] {
     }
     if (error instanceof z.ZodError) {
       throw new ValidationError(
-        `Invalid defaultLlmModels.json structure in ${filePath}`,
+        `Invalid defaultLlmModelson structure in ${filePath}`,
         {
           zodErrors: error.errors,
           receivedData: jsonData,

@@ -1,17 +1,17 @@
-import { BridgeClient } from "../../../../client/bridgeClient.js";
-import { AnthropicMessagesV1Provider } from "../../../../providers/anthropic-2023-06-01/anthropicMessagesV1Provider.js";
-import { createAnthropicTestClient } from "../anthropicModelHelpers.js";
+import { BridgeClient } from "../../../../client/bridgeClient";
+import { AnthropicMessagesV1Provider } from "../../../../providers/anthropic-2023-06-01/anthropicMessagesV1Provider";
+import { createAnthropicTestClient } from "../anthropicModelHelpers";
 
 // Mock dependencies
-jest.mock("../../../../client/bridgeClient.js");
+jest.mock("../../../../client/bridgeClient");
 jest.mock(
-  "../../../../providers/anthropic-2023-06-01/anthropicMessagesV1Provider.js",
+  "../../../../providers/anthropic-2023-06-01/anthropicMessagesV1Provider",
 );
-jest.mock("../anthropicTestConfig.js", () => ({
+jest.mock("../anthropicTestConfig", () => ({
   loadAnthropicTestConfig: jest.fn(),
 }));
 
-import { loadAnthropicTestConfig } from "../anthropicTestConfig.js";
+import { loadAnthropicTestConfig } from "../anthropicTestConfig";
 const mockLoadAnthropicTestConfig =
   loadAnthropicTestConfig as jest.MockedFunction<
     typeof loadAnthropicTestConfig

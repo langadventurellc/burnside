@@ -5,10 +5,10 @@
  * HTTP status code mapping, network error handling, context preservation,
  * rate limit parsing, and provider-specific error formats.
  */
-import { HttpErrorNormalizer } from "../httpErrorNormalizer.js";
-import { ErrorNormalizationConfig } from "../errorNormalizationConfig.js";
-import { ErrorContext } from "../errorContext.js";
-import { ProviderHttpResponse } from "../../transport/providerHttpResponse.js";
+import { HttpErrorNormalizer } from "../httpErrorNormalizer";
+import { ErrorNormalizationConfig } from "../errorNormalizationConfig";
+import { ErrorContext } from "../errorContext";
+import { ProviderHttpResponse } from "../../transport/providerHttpResponse";
 
 describe("HttpErrorNormalizer", () => {
   let normalizer: HttpErrorNormalizer;

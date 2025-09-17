@@ -1,4 +1,4 @@
-import type { BridgeClient } from "../../../client/bridgeClient.js";
+import type { BridgeClient } from "../../../client/bridgeClient";
 
 export function ensureModelRegistered(
   client: BridgeClient,

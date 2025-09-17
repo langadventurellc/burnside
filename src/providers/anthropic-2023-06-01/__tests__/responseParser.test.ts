@@ -6,10 +6,10 @@
  * error handling, and edge cases.
  */
 
-import { parseAnthropicResponse } from "../responseParser.js";
-import type { ProviderHttpResponse } from "../../../core/transport/providerHttpResponse.js";
-import { ProviderError } from "../../../core/errors/providerError.js";
-import { ValidationError } from "../../../core/errors/validationError.js";
+import { parseAnthropicResponse } from "../responseParser";
+import type { ProviderHttpResponse } from "../../../core/transport/providerHttpResponse";
+import { ProviderError } from "../../../core/errors/providerError";
+import { ValidationError } from "../../../core/errors/validationError";
 
 /**
  * Create a mock ProviderHttpResponse for testing

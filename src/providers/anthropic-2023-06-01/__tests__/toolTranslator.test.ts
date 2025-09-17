@@ -5,8 +5,8 @@
  */
 
 import { z } from "zod";
-import { translateToolDefinitions } from "../toolTranslator.js";
-import type { ToolDefinition } from "../../../core/tools/toolDefinition.js";
+import { translateToolDefinitions } from "../toolTranslator";
+import type { ToolDefinition } from "../../../core/tools/toolDefinition";
 
 describe("translateToolDefinitions", () => {
   describe("basic tool translation", () => {

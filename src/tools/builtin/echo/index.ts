@@ -6,12 +6,12 @@
  */
 
 // Tool definition and handler
-export { echoToolDefinition, echoToolHandler } from "./echoTool.js";
+export { echoToolDefinition, echoToolHandler } from "./echoTool";
 
 // Validation schemas
-export { EchoInputSchema } from "./echoInputSchema.js";
-export { EchoOutputSchema } from "./echoOutputSchema.js";
+export { EchoInputSchema } from "./echoInputSchema";
+export { EchoOutputSchema } from "./echoOutputSchema";
 
 // TypeScript types
-export type { EchoInput } from "./echoInputType.js";
-export type { EchoOutput } from "./echoOutputType.js";
+export type { EchoInput } from "./echoInputType";
+export type { EchoOutput } from "./echoOutputType";

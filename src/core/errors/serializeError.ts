@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { serializeError } from "./serializeError.js";
+ * import { serializeError } from "./serializeError";
  *
  * const error = new TransportError("Connection failed", {
  *   url: "https://api.openai.com",
@@ -17,7 +17,7 @@
  * console.log(JSON.stringify(serialized, null, 2));
  * ```
  */
-import type { SerializedError } from "./serializedError.js";
+import type { SerializedError } from "./serializedError";
 
 /**
  * Safely converts a non-Error object to a string representation.

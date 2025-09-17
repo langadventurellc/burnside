@@ -6,22 +6,22 @@
  * for core methods that will be implemented in subsequent tasks.
  */
 
-import type { ProviderPlugin } from "../../core/providers/providerPlugin.js";
-import type { ChatRequest } from "../../client/chatRequest.js";
-import type { StreamDelta } from "../../client/streamDelta.js";
-import type { Message } from "../../core/messages/message.js";
-import type { ProviderHttpRequest } from "../../core/transport/providerHttpRequest.js";
-import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse.js";
-import { BridgeError } from "../../core/errors/bridgeError.js";
-import { ValidationError } from "../../core/errors/validationError.js";
+import type { ProviderPlugin } from "../../core/providers/providerPlugin";
+import type { ChatRequest } from "../../client/chatRequest";
+import type { StreamDelta } from "../../client/streamDelta";
+import type { Message } from "../../core/messages/message";
+import type { ProviderHttpRequest } from "../../core/transport/providerHttpRequest";
+import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse";
+import { BridgeError } from "../../core/errors/bridgeError";
+import { ValidationError } from "../../core/errors/validationError";
 import {
   AnthropicMessagesConfigSchema,
   type AnthropicMessagesConfigType,
-} from "./configSchema.js";
-import { translateChatRequest } from "./translator.js";
-import { parseAnthropicResponse } from "./responseParser.js";
-import { parseAnthropicResponseStream } from "./streamingParser.js";
-import { normalizeAnthropicError } from "./errorNormalizer.js";
+} from "./configSchema";
+import { translateChatRequest } from "./translator";
+import { parseAnthropicResponse } from "./responseParser";
+import { parseAnthropicResponseStream } from "./streamingParser";
+import { normalizeAnthropicError } from "./errorNormalizer";
 
 /**
  * Anthropic Messages v1 Provider Plugin

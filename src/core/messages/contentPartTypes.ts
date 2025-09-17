@@ -6,7 +6,7 @@
  */
 
 import { z } from "zod";
-import { ContentPartSchema } from "./contentPartSchema.js";
+import { ContentPartSchema } from "./contentPartSchema";
 
 /**
  * TypeScript type for the ContentPart union derived from the schema.

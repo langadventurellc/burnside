@@ -6,16 +6,16 @@
  */
 
 import { z } from "zod";
-import { ExecutionPipeline } from "../toolExecutionPipeline.js";
-import { validateToolCall } from "../pipelineValidation.js";
-import { prepareExecution } from "../pipelinePreparation.js";
-import { executeToolHandler } from "../pipelineExecution.js";
-import { normalizeResult } from "../pipelineNormalization.js";
-import type { ToolCall } from "../toolCall.js";
-import type { ToolDefinition } from "../toolDefinition.js";
-import type { ToolExecutionContext } from "../toolExecutionContext.js";
-import type { ToolHandler } from "../toolHandler.js";
-import type { ToolResult } from "../toolResult.js";
+import { ExecutionPipeline } from "../toolExecutionPipeline";
+import { validateToolCall } from "../pipelineValidation";
+import { prepareExecution } from "../pipelinePreparation";
+import { executeToolHandler } from "../pipelineExecution";
+import { normalizeResult } from "../pipelineNormalization";
+import type { ToolCall } from "../toolCall";
+import type { ToolDefinition } from "../toolDefinition";
+import type { ToolExecutionContext } from "../toolExecutionContext";
+import type { ToolHandler } from "../toolHandler";
+import type { ToolResult } from "../toolResult";
 
 describe("ExecutionPipeline", () => {
   let pipeline: ExecutionPipeline;
@@ -338,7 +338,7 @@ describe("executeToolHandler", () => {
 
   it("should execute handler successfully", async () => {
     const result = await executeToolHandler(
-      mockExecutionContext as import("../executionContext.js").ExecutionContext,
+      mockExecutionContext as import("../executionContext").ExecutionContext,
     );
 
     expect(result.success).toBe(true);
@@ -353,7 +353,7 @@ describe("executeToolHandler", () => {
       .mockRejectedValue(new Error("Handler error"));
 
     const result = await executeToolHandler(
-      mockExecutionContext as import("../executionContext.js").ExecutionContext,
+      mockExecutionContext as import("../executionContext").ExecutionContext,
     );
 
     expect(result.success).toBe(false);
@@ -372,7 +372,7 @@ describe("executeToolHandler", () => {
     mockExecutionContext.timeoutMs = 100;
 
     const executePromise = executeToolHandler(
-      mockExecutionContext as import("../executionContext.js").ExecutionContext,
+      mockExecutionContext as import("../executionContext").ExecutionContext,
     );
 
     // Fast-forward timers to trigger timeout

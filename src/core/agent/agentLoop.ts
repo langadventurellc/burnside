@@ -6,13 +6,13 @@
  * handling tool execution, result formatting, and flow control.
  */
 
-import type { Message } from "../messages/message.js";
-import type { ContentPart } from "../messages/contentPart.js";
-import type { ToolCall } from "../tools/toolCall.js";
-import type { ToolResult } from "../tools/toolResult.js";
-import type { ToolRouter } from "../tools/toolRouter.js";
-import type { AgentExecutionOptions } from "./agentExecutionOptions.js";
-import { createExecutionContext } from "./agentExecutionContext.js";
+import type { Message } from "../messages/message";
+import type { ContentPart } from "../messages/contentPart";
+import type { ToolCall } from "../tools/toolCall";
+import type { ToolResult } from "../tools/toolResult";
+import type { ToolRouter } from "../tools/toolRouter";
+import type { AgentExecutionOptions } from "./agentExecutionOptions";
+import { createExecutionContext } from "./agentExecutionContext";
 
 /**
  * Agent Loop class for single-turn tool execution and conversation flow

@@ -54,38 +54,35 @@
  */
 
 // Core HTTP types
-export type { HttpMethod } from "./httpMethod.js";
-export type { ProviderHttpRequest } from "./providerHttpRequest.js";
-export type { ProviderHttpResponse } from "./providerHttpResponse.js";
+export type { HttpMethod } from "./httpMethod";
+export type { ProviderHttpRequest } from "./providerHttpRequest";
+export type { ProviderHttpResponse } from "./providerHttpResponse";
 
 // Transport interfaces
-export type { Transport } from "./transport.js";
-export { HttpTransport } from "./httpTransport.js";
-export type { HttpClient } from "./httpClient.js";
+export type { Transport } from "./transport";
+export { HttpTransport } from "./httpTransport";
+export type { HttpClient } from "./httpClient";
 
 // Interceptor chain system
-export { InterceptorChain } from "./interceptorChain.js";
-export { InterceptorError } from "./interceptorError.js";
-export type { InterceptorContext } from "./interceptorContext.js";
-export type { InterceptorErrorContext } from "./interceptorErrorContext.js";
-export type { RequestInterceptor } from "./requestInterceptorChain.js";
-export type { ResponseInterceptor } from "./responseInterceptorChain.js";
+export { InterceptorChain } from "./interceptorChain";
+export { InterceptorError } from "./interceptorError";
+export type { InterceptorContext } from "./interceptorContext";
+export type { InterceptorErrorContext } from "./interceptorErrorContext";
+export type { RequestInterceptor } from "./requestInterceptorChain";
+export type { ResponseInterceptor } from "./responseInterceptorChain";
 
 // Streaming support
-export type { StreamingResponse } from "./streamingResponse.js";
-export type { StreamChunk } from "./streamChunk.js";
-export type { StreamingOptions } from "./streamingOptions.js";
+export type { StreamingResponse } from "./streamingResponse";
+export type { StreamChunk } from "./streamChunk";
+export type { StreamingOptions } from "./streamingOptions";
 
 // Request/Response redaction system
-export {
-  RedactionProcessor,
-  DEFAULT_REDACTION_CONFIG,
-} from "./redactionHooks.js";
+export { RedactionProcessor, DEFAULT_REDACTION_CONFIG } from "./redactionHooks";
 
 // Fetch injection and configuration
-export type { FetchFunction } from "./fetchFunction.js";
-export type { HttpClientConfig } from "./httpClientConfig.js";
+export type { FetchFunction } from "./fetchFunction";
+export type { HttpClientConfig } from "./httpClientConfig";
 
 // Legacy interceptor types (for backward compatibility)
-export type { RequestInterceptor as LegacyRequestInterceptor } from "./requestInterceptor.js";
-export type { ResponseInterceptor as LegacyResponseInterceptor } from "./responseInterceptor.js";
+export type { RequestInterceptor as LegacyRequestInterceptor } from "./requestInterceptor";
+export type { ResponseInterceptor as LegacyResponseInterceptor } from "./responseInterceptor";

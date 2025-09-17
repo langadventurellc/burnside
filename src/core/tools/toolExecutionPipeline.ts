@@ -6,17 +6,17 @@
  * comprehensive error handling that converts failures to ToolResult format.
  */
 
-import type { ToolCall } from "./toolCall.js";
-import type { ToolResult } from "./toolResult.js";
-import type { ToolExecutionContext } from "./toolExecutionContext.js";
-import type { ToolDefinition } from "./toolDefinition.js";
-import type { ToolHandler } from "./toolHandler.js";
-import type { PreparedContext } from "./preparedContext.js";
-import type { ExecutionContext } from "./executionContext.js";
-import { validateToolCall } from "./pipelineValidation.js";
-import { prepareExecution } from "./pipelinePreparation.js";
-import { executeToolHandler } from "./pipelineExecution.js";
-import { normalizeResult } from "./pipelineNormalization.js";
+import type { ToolCall } from "./toolCall";
+import type { ToolResult } from "./toolResult";
+import type { ToolExecutionContext } from "./toolExecutionContext";
+import type { ToolDefinition } from "./toolDefinition";
+import type { ToolHandler } from "./toolHandler";
+import type { PreparedContext } from "./preparedContext";
+import type { ExecutionContext } from "./executionContext";
+import { validateToolCall } from "./pipelineValidation";
+import { prepareExecution } from "./pipelinePreparation";
+import { executeToolHandler } from "./pipelineExecution";
+import { normalizeResult } from "./pipelineNormalization";
 
 /**
  * Complete execution pipeline orchestrator

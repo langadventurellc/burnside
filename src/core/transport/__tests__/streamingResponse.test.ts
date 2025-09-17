@@ -4,7 +4,7 @@
  * Tests for the StreamingResponse interface to ensure proper
  * type compatibility and structure validation.
  */
-import type { StreamingResponse } from "../streamingResponse.js";
+import type { StreamingResponse } from "../streamingResponse";
 
 describe("StreamingResponse", () => {
   it("should accept streaming response with all properties", () => {

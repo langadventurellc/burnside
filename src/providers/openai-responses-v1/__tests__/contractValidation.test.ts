@@ -6,13 +6,13 @@
  */
 
 import { describe, test, expect } from "@jest/globals";
-import { OpenAIResponsesV1ResponseSchema } from "../responseSchema.js";
+import { OpenAIResponsesV1ResponseSchema } from "../responseSchema";
 import {
   nonStreamingResponses,
   streamingEvents,
   errorResponses,
   requestResponsePairs,
-} from "./fixtures/index.js";
+} from "./fixtures/index";
 
 describe("Contract Validation", () => {
   describe("Non-streaming response fixtures validation", () => {

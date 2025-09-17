@@ -20,8 +20,8 @@
  * }
  * ```
  */
-import type { Transport } from "./transport.js";
-import type { HttpClientConfig } from "./httpClientConfig.js";
+import type { Transport } from "./transport";
+import type { HttpClientConfig } from "./httpClientConfig";
 
 /**
  * HTTP client interface with configuration support.

@@ -23,8 +23,8 @@
  * ```
  */
 
-import { StreamingError } from "../errors/streamingError.js";
-import type { SseEvent } from "./sseEvent.js";
+import { StreamingError } from "../errors/streamingError";
+import type { SseEvent } from "./sseEvent";
 
 /**
  * Default configuration for SSE parsing.

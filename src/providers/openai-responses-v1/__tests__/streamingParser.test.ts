@@ -5,12 +5,12 @@
  * and edge cases for the SSE streaming parser implementation.
  */
 
-import { parseOpenAIResponseStream } from "../streamingParser.js";
-import type { ProviderHttpResponse } from "../../../core/transport/providerHttpResponse.js";
-import type { StreamDelta } from "../../../client/streamDelta.js";
-import { StreamingError } from "../../../core/errors/streamingError.js";
-import { ValidationError } from "../../../core/errors/validationError.js";
-import { BridgeError } from "../../../core/errors/bridgeError.js";
+import { parseOpenAIResponseStream } from "../streamingParser";
+import type { ProviderHttpResponse } from "../../../core/transport/providerHttpResponse";
+import type { StreamDelta } from "../../../client/streamDelta";
+import { StreamingError } from "../../../core/errors/streamingError";
+import { ValidationError } from "../../../core/errors/validationError";
+import { BridgeError } from "../../../core/errors/bridgeError";
 
 /**
  * Helper function to create mock SSE stream from events

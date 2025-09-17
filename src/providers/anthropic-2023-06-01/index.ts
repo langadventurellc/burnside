@@ -6,29 +6,29 @@
  * for integration with the LLM Bridge library.
  */
 
-export { AnthropicMessagesV1Provider } from "./anthropicMessagesV1Provider.js";
-export { parseAnthropicResponse } from "./responseParser.js";
-export { translateToolDefinitions } from "./toolTranslator.js";
-export { parseAnthropicToolCalls } from "./toolCallParser.js";
-export { formatToolResultMessage } from "./toolResultFormatter.js";
-export type { AnthropicMessagesConfigType as AnthropicMessagesConfig } from "./configSchema.js";
+export { AnthropicMessagesV1Provider } from "./anthropicMessagesV1Provider";
+export { parseAnthropicResponse } from "./responseParser";
+export { translateToolDefinitions } from "./toolTranslator";
+export { parseAnthropicToolCalls } from "./toolCallParser";
+export { formatToolResultMessage } from "./toolResultFormatter";
+export type { AnthropicMessagesConfigType as AnthropicMessagesConfig } from "./configSchema";
 
 // Export schemas for advanced usage
-export { AnthropicMessagesConfigSchema } from "./configSchema.js";
-export type { AnthropicMessagesConfigType } from "./configSchema.js";
+export { AnthropicMessagesConfigSchema } from "./configSchema";
+export type { AnthropicMessagesConfigType } from "./configSchema";
 
-export { AnthropicMessagesRequestSchema } from "./requestSchema.js";
-export type { AnthropicMessagesRequestType } from "./requestSchema.js";
+export { AnthropicMessagesRequestSchema } from "./requestSchema";
+export type { AnthropicMessagesRequestType } from "./requestSchema";
 
 export {
   AnthropicMessagesResponseSchema,
   AnthropicStreamingResponseSchema,
   AnthropicErrorResponseSchema,
-} from "./responseSchema.js";
-export type { AnthropicMessagesResponseType } from "./responseSchema.js";
+} from "./responseSchema";
+export type { AnthropicMessagesResponseType } from "./responseSchema";
 
 // Default export for easy registration
-export { AnthropicMessagesV1Provider as default } from "./anthropicMessagesV1Provider.js";
+export { AnthropicMessagesV1Provider as default } from "./anthropicMessagesV1Provider";
 
 /**
  * Provider plugin metadata for identification

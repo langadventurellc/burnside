@@ -2,7 +2,7 @@
  * Unit tests for validateToolExecution helper
  */
 
-import { validateToolExecution } from "../validateToolExecution.js";
+import { validateToolExecution } from "../validateToolExecution";
 
 describe("validateToolExecution", () => {
   describe("valid results", () => {

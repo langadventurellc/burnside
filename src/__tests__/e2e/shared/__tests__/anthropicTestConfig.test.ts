@@ -1,12 +1,12 @@
-import { ValidationError } from "../../../../core/errors/validationError.js";
-import { loadAnthropicTestConfig } from "../anthropicTestConfig.js";
+import { ValidationError } from "../../../../core/errors/validationError";
+import { loadAnthropicTestConfig } from "../anthropicTestConfig";
 
 // Mock the validateApiKey function
-jest.mock("../validateApiKey.js", () => ({
+jest.mock("../validateApiKey", () => ({
   validateApiKey: jest.fn(),
 }));
 
-import { validateApiKey } from "../validateApiKey.js";
+import { validateApiKey } from "../validateApiKey";
 const mockValidateApiKey = validateApiKey as jest.MockedFunction<
   typeof validateApiKey
 >;

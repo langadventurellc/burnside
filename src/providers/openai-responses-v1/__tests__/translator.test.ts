@@ -3,11 +3,11 @@
  */
 
 import { describe, test, expect } from "@jest/globals";
-import type { ChatRequest } from "../../../client/chatRequest.js";
-import type { Message } from "../../../core/messages/message.js";
-import { ValidationError } from "../../../core/errors/validationError.js";
-import { translateChatRequest } from "../translator.js";
-import type { OpenAIResponsesV1Config } from "../configSchema.js";
+import type { ChatRequest } from "../../../client/chatRequest";
+import type { Message } from "../../../core/messages/message";
+import { ValidationError } from "../../../core/errors/validationError";
+import { translateChatRequest } from "../translator";
+import type { OpenAIResponsesV1Config } from "../configSchema";
 
 const mockConfig: OpenAIResponsesV1Config = {
   apiKey: "sk-test-key-123",

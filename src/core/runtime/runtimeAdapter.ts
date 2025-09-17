@@ -2,7 +2,7 @@
  * Runtime Adapter Interface
  *
  * Main interface defining platform abstraction contracts for HTTP, timers,
- * and file operations. Enables consistent runtime operations across Node.js,
+ * and file operations. Enables consistent runtime operations across Node,
  * Electron, and React Native platforms.
  *
  * @example Basic usage
@@ -22,9 +22,9 @@
  * ```
  */
 
-import type { PlatformInfo } from "./platformInfo.js";
-import type { TimerHandle } from "./timerHandle.js";
-import type { FileOperationOptions } from "./fileOperationOptions.js";
+import type { PlatformInfo } from "./platformInfo";
+import type { TimerHandle } from "./timerHandle";
+import type { FileOperationOptions } from "./fileOperationOptions";
 
 /**
  * Runtime adapter interface defining platform abstraction contracts.

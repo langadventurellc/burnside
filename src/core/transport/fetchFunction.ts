@@ -2,10 +2,10 @@
  * Fetch Function Type
  *
  * Type alias for fetch implementations that can be injected into HTTP clients.
- * Compatible with both Node.js fetch and browser fetch APIs, enabling
+ * Compatible with both Node fetch and browser fetch APIs, enabling
  * platform-agnostic HTTP operations with custom fetch implementations.
  *
- * @example Using Node.js fetch
+ * @example Using Node fetch
  * ```typescript
  * import { fetch } from 'node-fetch';
  * const fetchFn: FetchFunction = fetch;

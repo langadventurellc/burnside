@@ -1,5 +1,5 @@
-import { parseModelId } from "../parseModelId.js";
-import { createModelId } from "../createModelId.js";
+import { parseModelId } from "../parseModelId";
+import { createModelId } from "../createModelId";
 
 describe("parseModelId", () => {
   it("parses valid model ID correctly", () => {
@@ -34,26 +34,24 @@ describe("parseModelId", () => {
 
   it("throws error for malformed model ID without colon", () => {
     // We need to cast to ModelId for testing invalid format
-    const invalidId =
-      "openaigpt-4" as unknown as import("../modelId.js").ModelId;
+    const invalidId = "openaigpt-4" as unknown as import("../modelId").ModelId;
     expect(() => parseModelId(invalidId)).toThrow("Invalid model ID format");
   });
 
   it("throws error for model ID with too many colons", () => {
     // We need to cast to ModelId for testing invalid format
-    const invalidId =
-      "openai:gpt:4" as unknown as import("../modelId.js").ModelId;
+    const invalidId = "openai:gpt:4" as unknown as import("../modelId").ModelId;
     expect(() => parseModelId(invalidId)).toThrow("Invalid model ID format");
   });
 
   it("throws error for empty model ID", () => {
-    const invalidId = "" as unknown as import("../modelId.js").ModelId;
+    const invalidId = "" as unknown as import("../modelId").ModelId;
     expect(() => parseModelId(invalidId)).toThrow("Invalid model ID format");
   });
 
   it("handles edge case with empty provider", () => {
     // This would be caught by createModelId, but testing parser directly
-    const invalidId = ":gpt-4" as unknown as import("../modelId.js").ModelId;
+    const invalidId = ":gpt-4" as unknown as import("../modelId").ModelId;
     const result = parseModelId(invalidId);
 
     expect(result).toEqual({
@@ -64,7 +62,7 @@ describe("parseModelId", () => {
 
   it("handles edge case with empty model", () => {
     // This would be caught by createModelId, but testing parser directly
-    const invalidId = "openai:" as unknown as import("../modelId.js").ModelId;
+    const invalidId = "openai:" as unknown as import("../modelId").ModelId;
     const result = parseModelId(invalidId);
 
     expect(result).toEqual({

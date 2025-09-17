@@ -3,7 +3,7 @@
  */
 
 import { z } from "zod";
-import { OpenAIToolSchema } from "./openAIToolSchema.js";
+import { OpenAIToolSchema } from "./openAIToolSchema";
 
 /**
  * OpenAI message role schema

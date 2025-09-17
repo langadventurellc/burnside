@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { describe, it, expect, beforeEach } from "@jest/globals";
 import { z } from "zod";
-import { InMemoryToolRegistry } from "../inMemoryToolRegistry.js";
-import type { ToolRegistry, ToolDefinition, ToolHandler } from "../index.js";
-import { ToolError } from "../../errors/toolError.js";
+import { InMemoryToolRegistry } from "../inMemoryToolRegistry";
+import type { ToolRegistry, ToolDefinition, ToolHandler } from "../index";
+import { ToolError } from "../../errors/toolError";
 
 /**
  * Creates a mock ToolDefinition for testing purposes

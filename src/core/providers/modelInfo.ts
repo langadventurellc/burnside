@@ -1,4 +1,4 @@
-import type { ModelCapabilities } from "./modelCapabilities.js";
+import type { ModelCapabilities } from "./modelCapabilities";
 
 /**
  * Model Info Interface

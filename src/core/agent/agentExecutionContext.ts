@@ -6,8 +6,8 @@
  * environment data for tool execution within agent loops.
  */
 
-import type { Message } from "../messages/message.js";
-import type { ToolExecutionContext } from "../tools/toolExecutionContext.js";
+import type { Message } from "../messages/message";
+import type { ToolExecutionContext } from "../tools/toolExecutionContext";
 
 /**
  * Creates a ToolExecutionContext from message history and execution metadata

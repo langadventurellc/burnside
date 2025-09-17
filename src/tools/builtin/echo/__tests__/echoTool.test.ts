@@ -12,10 +12,10 @@ import {
   echoToolHandler,
   EchoInputSchema,
   EchoOutputSchema,
-} from "../index.js";
-import type { EchoOutput } from "../index.js";
-import type { ToolExecutionContext } from "../../../../core/tools/toolExecutionContext.js";
-import { InMemoryToolRegistry } from "../../../../core/tools/inMemoryToolRegistry.js";
+} from "../index";
+import type { EchoOutput } from "../index";
+import type { ToolExecutionContext } from "../../../../core/tools/toolExecutionContext";
+import { InMemoryToolRegistry } from "../../../../core/tools/inMemoryToolRegistry";
 
 describe("Echo Tool", () => {
   describe("echoToolDefinition", () => {

@@ -5,8 +5,8 @@
  * covering validation for text, image, document, and code content types.
  */
 
-import { ContentPartSchema } from "../contentPartSchema.js";
-import { validateContentPart } from "../contentPartValidation.js";
+import { ContentPartSchema } from "../contentPartSchema";
+import { validateContentPart } from "../contentPartValidation";
 
 describe("ContentPartSchema", () => {
   describe("TextContent validation", () => {
@@ -304,7 +304,7 @@ describe("ContentPartSchema", () => {
         {
           type: "code",
           text: "console.log('test');",
-          filename: "invalid file name.js",
+          filename: "invalid file name",
         }, // Invalid filename
       ];
 

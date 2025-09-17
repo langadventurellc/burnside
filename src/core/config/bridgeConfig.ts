@@ -1,4 +1,4 @@
-import type { ToolsConfig } from "./toolsConfig.js";
+import type { ToolsConfig } from "./toolsConfig";
 
 /**
  * Bridge Config Interface

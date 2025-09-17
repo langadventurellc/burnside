@@ -36,16 +36,16 @@
  * }
  * ```
  */
-import type { Transport } from "./transport.js";
-import type { HttpClientConfig } from "./httpClientConfig.js";
-import type { ProviderHttpRequest } from "./providerHttpRequest.js";
-import type { ProviderHttpResponse } from "./providerHttpResponse.js";
-import type { InterceptorContext } from "./interceptorContext.js";
-import { InterceptorChain } from "./interceptorChain.js";
-import { HttpErrorNormalizer } from "../errors/httpErrorNormalizer.js";
-import { SseParser } from "../streaming/sseParser.js";
-import { ChunkParser } from "../streaming/chunkParser.js";
-import { TransportError } from "../errors/transportError.js";
+import type { Transport } from "./transport";
+import type { HttpClientConfig } from "./httpClientConfig";
+import type { ProviderHttpRequest } from "./providerHttpRequest";
+import type { ProviderHttpResponse } from "./providerHttpResponse";
+import type { InterceptorContext } from "./interceptorContext";
+import { InterceptorChain } from "./interceptorChain";
+import { HttpErrorNormalizer } from "../errors/httpErrorNormalizer";
+import { SseParser } from "../streaming/sseParser";
+import { ChunkParser } from "../streaming/chunkParser";
+import { TransportError } from "../errors/transportError";
 
 /**
  * Content types that indicate streaming responses
@@ -322,10 +322,6 @@ export class HttpTransport implements Transport {
     // Apply appropriate parser based on content type
     if (contentType.includes(STREAMING_CONTENT_TYPES.SSE)) {
       return this.createSseStream(rawStream);
-    }
-
-    if (contentType.includes(STREAMING_CONTENT_TYPES.JSON_STREAM)) {
-      return this.createJsonStream(rawStream);
     }
 
     // For other content types, try JSON parsing with fallback to raw

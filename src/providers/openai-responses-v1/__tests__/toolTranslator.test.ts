@@ -6,9 +6,9 @@
  */
 
 import { z } from "zod";
-import { translateToolDefinitionToOpenAI } from "../toolTranslator.js";
-import { translateToolsForOpenAI } from "../toolsTranslator.js";
-import { ValidationError } from "../../../core/errors/validationError.js";
+import { translateToolDefinitionToOpenAI } from "../toolTranslator";
+import { translateToolsForOpenAI } from "../toolsTranslator";
+import { ValidationError } from "../../../core/errors/validationError";
 import {
   simpleEchoToolDefinition,
   complexWeatherToolDefinition,
@@ -16,7 +16,7 @@ import {
   expectedOpenAIEchoTool,
   expectedOpenAIWeatherTool,
   expectedOpenAIHintsTool,
-} from "./fixtures/toolExamples.js";
+} from "./fixtures/toolExamples";
 
 // Type definition for tests - matches the one in translators
 type ToolDefinition = {

@@ -6,8 +6,8 @@
  * for integration with the LLM Bridge library.
  */
 
-export { OpenAIResponsesV1Provider } from "./openAIResponsesV1Provider.js";
-export type { OpenAIResponsesV1Config } from "./configSchema.js";
+export { OpenAIResponsesV1Provider } from "./openAIResponsesV1Provider";
+export type { OpenAIResponsesV1Config } from "./configSchema";
 
 // Default export for easy registration
-export { OpenAIResponsesV1Provider as default } from "./openAIResponsesV1Provider.js";
+export { OpenAIResponsesV1Provider as default } from "./openAIResponsesV1Provider";

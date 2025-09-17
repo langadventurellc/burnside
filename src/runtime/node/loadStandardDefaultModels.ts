@@ -1,6 +1,6 @@
-import type { ModelInfo } from "../../core/providers/modelInfo.js";
-import { mapJsonToModelInfo } from "../../core/models/modelLoader.js";
-import { defaultLlmModels } from "../../data/defaultLlmModels.js";
+import type { ModelInfo } from "../../core/providers/modelInfo";
+import { mapJsonToModelInfo } from "../../core/models/modelLoader";
+import { defaultLlmModels } from "../../data/defaultLlmModels";
 
 /**
  * Convenience function to load default models from standard location

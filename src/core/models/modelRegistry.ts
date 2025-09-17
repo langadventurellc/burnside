@@ -1,5 +1,5 @@
-import type { ModelInfo } from "../providers/modelInfo.js";
-import type { ModelCapabilities } from "../providers/modelCapabilities.js";
+import type { ModelInfo } from "../providers/modelInfo";
+import type { ModelCapabilities } from "../providers/modelCapabilities";
 
 /**
  * ModelRegistry interface for managing model capability and configuration metadata

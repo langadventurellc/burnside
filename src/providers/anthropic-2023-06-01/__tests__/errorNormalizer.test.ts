@@ -4,7 +4,7 @@
  * Comprehensive test coverage for Anthropic error normalization including
  * HTTP status codes, Anthropic error types, network errors, and edge cases.
  */
-import { normalizeAnthropicError } from "../errorNormalizer.js";
+import { normalizeAnthropicError } from "../errorNormalizer";
 import {
   AuthError,
   RateLimitError,
@@ -12,7 +12,7 @@ import {
   ProviderError,
   TransportError,
   TimeoutError,
-} from "../../../core/errors/index.js";
+} from "../../../core/errors/index";
 
 describe("Anthropic Error Normalizer", () => {
   describe("HTTP Status Code Mapping", () => {

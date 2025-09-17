@@ -5,26 +5,26 @@
  * detection across different JavaScript runtime environments.
  */
 
-import { getPlatformCapabilities } from "../getPlatformCapabilities.js";
+import { getPlatformCapabilities } from "../getPlatformCapabilities";
 
 // Mock detectPlatform
-jest.mock("../detectPlatform.js", () => ({
+jest.mock("../detectPlatform", () => ({
   detectPlatform: jest.fn(),
 }));
 
 // Mock platform detection functions
-jest.mock("../isNodeJs.js", () => ({
+jest.mock("../isNodeJs", () => ({
   isNodeJs: jest.fn(),
 }));
 
-jest.mock("../isElectron.js", () => ({
+jest.mock("../isElectron", () => ({
   isElectron: jest.fn(),
 }));
 
 describe("getPlatformCapabilities", () => {
-  const { detectPlatform } = require("../detectPlatform.js");
-  const { isNodeJs } = require("../isNodeJs.js");
-  const { isElectron } = require("../isElectron.js");
+  const { detectPlatform } = require("../detectPlatform");
+  const { isNodeJs } = require("../isNodeJs");
+  const { isElectron } = require("../isElectron");
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -82,7 +82,7 @@ describe("getPlatformCapabilities", () => {
       expect(capabilities.hasTimers).toBe(false);
     });
 
-    it("should detect file system capability in Node.js", () => {
+    it("should detect file system capability in Node", () => {
       detectPlatform.mockReturnValue("node");
       isNodeJs.mockReturnValue(true);
       isElectron.mockReturnValue(false);
@@ -114,7 +114,7 @@ describe("getPlatformCapabilities", () => {
   });
 
   describe("Platform-Specific Features", () => {
-    it("should detect Node.js specific features", () => {
+    it("should detect Node specific features", () => {
       detectPlatform.mockReturnValue("node");
       isNodeJs.mockReturnValue(true);
       isElectron.mockReturnValue(false);

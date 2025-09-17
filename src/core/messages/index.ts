@@ -9,14 +9,14 @@
  * messages across different LLM providers with type-safe validation.
  */
 
-export type { Role } from "./role.js";
-export type { ContentPart } from "./contentPart.js";
-export type { SourceRef } from "./sourceRef.js";
-export type { Message } from "./message.js";
-export type { ValidatedMessage } from "./messageTypes.js";
+export type { Role } from "./role";
+export type { ContentPart } from "./contentPart";
+export type { SourceRef } from "./sourceRef";
+export type { Message } from "./message";
+export type { ValidatedMessage } from "./messageTypes";
 
 // Zod schemas and validation utilities
-export { ContentPartSchema } from "./contentPartSchema.js";
-export { validateContentPart } from "./contentPartValidation.js";
-export { MessageSchema } from "./messageSchema.js";
-export { validateMessage } from "./messageValidation.js";
+export { ContentPartSchema } from "./contentPartSchema";
+export { validateContentPart } from "./contentPartValidation";
+export { MessageSchema } from "./messageSchema";
+export { validateMessage } from "./messageValidation";

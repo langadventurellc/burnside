@@ -1,14 +1,14 @@
 /**
- * Node.js Environment Detection
+ * Node Environment Detection
  *
- * Utility function to detect if the current environment is Node.js.
+ * Utility function to detect if the current environment is Node.
  * Used by platform detection and adapter selection logic.
  */
 
 /**
- * Check if running in Node.js environment.
+ * Check if running in Node environment.
  *
- * @returns True if running in Node.js
+ * @returns True if running in Node
  */
 export function isNodeJs(): boolean {
   try {

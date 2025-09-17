@@ -20,7 +20,7 @@
  * });
  * ```
  */
-import type { NormalizedError } from "./normalizedError.js";
+import type { NormalizedError } from "./normalizedError";
 
 export type ErrorFactory = (
   message: string,

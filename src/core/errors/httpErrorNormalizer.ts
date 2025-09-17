@@ -17,11 +17,11 @@
  * const networkError = HttpErrorNormalizer.fromNetworkError(error, context);
  * ```
  */
-import { ErrorNormalizer } from "./errorNormalizer.js";
-import { ErrorContext } from "./errorContext.js";
-import { NormalizedError } from "./normalizedError.js";
-import { ProviderHttpResponse } from "../transport/providerHttpResponse.js";
-import { ErrorNormalizationConfig } from "./errorNormalizationConfig.js";
+import { ErrorNormalizer } from "./errorNormalizer";
+import { ErrorContext } from "./errorContext";
+import { NormalizedError } from "./normalizedError";
+import { ProviderHttpResponse } from "../transport/providerHttpResponse";
+import { ErrorNormalizationConfig } from "./errorNormalizationConfig";
 
 /**
  * Default status code to error type mapping

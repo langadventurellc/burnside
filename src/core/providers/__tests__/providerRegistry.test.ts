@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from "@jest/globals";
-import { InMemoryProviderRegistry } from "../inMemoryProviderRegistry.js";
-import type { ProviderRegistry, ProviderPlugin } from "../index.js";
-import { ValidationError } from "../../errors/validationError.js";
-import { BridgeError } from "../../errors/bridgeError.js";
+import { InMemoryProviderRegistry } from "../inMemoryProviderRegistry";
+import type { ProviderRegistry, ProviderPlugin } from "../index";
+import { ValidationError } from "../../errors/validationError";
+import { BridgeError } from "../../errors/bridgeError";
 
 /**
  * Creates a mock ProviderPlugin for testing purposes

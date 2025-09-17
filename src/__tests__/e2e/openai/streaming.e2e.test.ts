@@ -1,14 +1,14 @@
 import { describe, test, expect, beforeAll } from "@jest/globals";
-import type { BridgeClient } from "../../../client/bridgeClient.js";
-import type { StreamDelta } from "../../../client/streamDelta.js";
-import type { Message } from "../../../core/messages/message.js";
-import { createTestClient } from "../shared/openAIModelHelpers.js";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered.js";
-import { getTestModel } from "../shared/getTestModel.js";
-import { loadTestConfig } from "../shared/openAITestConfig.js";
-import { createTestMessages } from "../shared/createTestMessages.js";
-import { withTimeout } from "../shared/withTimeout.js";
-import { defaultLlmModels } from "../../../data/defaultLlmModels.js";
+import type { BridgeClient } from "../../../client/bridgeClient";
+import type { StreamDelta } from "../../../client/streamDelta";
+import type { Message } from "../../../core/messages/message";
+import { createTestClient } from "../shared/openAIModelHelpers";
+import { ensureModelRegistered } from "../shared/ensureModelRegistered";
+import { getTestModel } from "../shared/getTestModel";
+import { loadTestConfig } from "../shared/openAITestConfig";
+import { createTestMessages } from "../shared/createTestMessages";
+import { withTimeout } from "../shared/withTimeout";
+import { defaultLlmModels } from "../../../data/defaultLlmModels";
 
 // Extract OpenAI models from default models data, filtering for streaming support
 const openaiProvider = defaultLlmModels.providers.find(

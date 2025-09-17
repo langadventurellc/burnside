@@ -1,7 +1,7 @@
-import type { BridgeError } from "../errors/bridgeError.js";
-import { AuthError } from "../errors/authError.js";
-import { RateLimitError } from "../errors/rateLimitError.js";
-import { ProviderError } from "../errors/providerError.js";
+import type { BridgeError } from "../errors/bridgeError";
+import { AuthError } from "../errors/authError";
+import { RateLimitError } from "../errors/rateLimitError";
+import { ProviderError } from "../errors/providerError";
 
 /**
  * Default error normalization for HTTP status codes and common error patterns.

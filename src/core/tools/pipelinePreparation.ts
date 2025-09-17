@@ -5,11 +5,11 @@
  * Returns pipeline context on success or ToolResult on preparation failure.
  */
 
-import type { ToolCall } from "./toolCall.js";
-import type { ToolResult } from "./toolResult.js";
-import type { ToolExecutionContext } from "./toolExecutionContext.js";
-import type { ToolDefinition } from "./toolDefinition.js";
-import type { PreparedContext } from "./preparedContext.js";
+import type { ToolCall } from "./toolCall";
+import type { ToolResult } from "./toolResult";
+import type { ToolExecutionContext } from "./toolExecutionContext";
+import type { ToolDefinition } from "./toolDefinition";
+import type { PreparedContext } from "./preparedContext";
 
 /**
  * Preparation stage - prepares execution context and validated parameters

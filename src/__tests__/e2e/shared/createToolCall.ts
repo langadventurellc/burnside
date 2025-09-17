@@ -5,7 +5,7 @@
  * IDs and test tool configuration.
  */
 
-import type { ToolCall } from "../../../core/tools/toolCall.js";
+import type { ToolCall } from "../../../core/tools/toolCall";
 
 /**
  * Creates a ToolCall object for testing purposes.

@@ -2,9 +2,9 @@
  * Unit tests for prepareToolCallMessage helper
  */
 
-import { prepareToolCallMessage } from "../prepareToolCallMessage.js";
-import type { Message } from "../../../../core/messages/message.js";
-import type { ToolCall } from "../../../../core/tools/toolCall.js";
+import { prepareToolCallMessage } from "../prepareToolCallMessage";
+import type { Message } from "../../../../core/messages/message";
+import type { ToolCall } from "../../../../core/tools/toolCall";
 
 describe("prepareToolCallMessage", () => {
   const mockToolCall: ToolCall = {

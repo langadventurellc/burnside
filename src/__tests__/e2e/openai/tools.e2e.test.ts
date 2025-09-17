@@ -1,15 +1,15 @@
 import { describe, test, expect, beforeAll } from "@jest/globals";
-import type { BridgeClient } from "../../../client/bridgeClient.js";
-import { createTestClient } from "../shared/openAIModelHelpers.js";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered.js";
-import { getTestModel } from "../shared/getTestModel.js";
-import { loadTestConfig } from "../shared/openAITestConfig.js";
-import { validateMessageSchema } from "../shared/testHelpers.js";
-import { createTestMessages } from "../shared/createTestMessages.js";
-import { withTimeout } from "../shared/withTimeout.js";
-import { createTestTool } from "../shared/createTestTool.js";
-import { testToolHandler } from "../shared/testToolHandler.js";
-import { defaultLlmModels } from "../../../data/defaultLlmModels.js";
+import type { BridgeClient } from "../../../client/bridgeClient";
+import { createTestClient } from "../shared/openAIModelHelpers";
+import { ensureModelRegistered } from "../shared/ensureModelRegistered";
+import { getTestModel } from "../shared/getTestModel";
+import { loadTestConfig } from "../shared/openAITestConfig";
+import { validateMessageSchema } from "../shared/testHelpers";
+import { createTestMessages } from "../shared/createTestMessages";
+import { withTimeout } from "../shared/withTimeout";
+import { createTestTool } from "../shared/createTestTool";
+import { testToolHandler } from "../shared/testToolHandler";
+import { defaultLlmModels } from "../../../data/defaultLlmModels";
 
 // Extract OpenAI models that support tool calls
 const openaiProvider = defaultLlmModels.providers.find(

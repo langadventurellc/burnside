@@ -17,16 +17,16 @@ import {
   AnthropicErrorResponseSchema,
   type AnthropicMessagesResponseType,
   ANTHROPIC_PROVIDER_INFO,
-} from "../index.js";
+} from "../index";
 
 // Test default export
-import AnthropicProviderDefault from "../index.js";
+import AnthropicProviderDefault from "../index";
 
 // Test import from main providers module
 import {
   AnthropicMessagesV1Provider as MainAnthropicProvider,
   ANTHROPIC_PROVIDER_INFO as MainAnthropicInfo,
-} from "../../index.js";
+} from "../../index";
 
 describe("Anthropic Provider Module Exports", () => {
   describe("Named Exports", () => {

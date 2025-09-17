@@ -1,4 +1,4 @@
-import { OpenAIResponsesV1ResponseSchema } from "../responseSchema.js";
+import { OpenAIResponsesV1ResponseSchema } from "../responseSchema";
 
 describe("OpenAI Responses v1 Response Schema", () => {
   describe("Valid responses", () => {

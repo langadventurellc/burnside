@@ -5,7 +5,7 @@
  */
 
 import type { z } from "zod";
-import type { EchoOutputSchema } from "./echoOutputSchema.js";
+import type { EchoOutputSchema } from "./echoOutputSchema";
 
 /**
  * TypeScript type for Echo tool output structure

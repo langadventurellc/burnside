@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { normalizeAnthropicError } from "./errorNormalizer.js";
+ * import { normalizeAnthropicError } from "./errorNormalizer";
  *
  * try {
  *   // Anthropic API call
@@ -24,7 +24,7 @@ import {
   ProviderError,
   TransportError,
   TimeoutError,
-} from "../../core/errors/index.js";
+} from "../../core/errors/index";
 
 /**
  * Anthropic error response structure

@@ -10,7 +10,7 @@ import type {
   PlatformInfo,
   TimerHandle,
   FileOperationOptions,
-} from "../index.js";
+} from "../index";
 
 describe("RuntimeAdapter Interface", () => {
   // Mock implementation for testing interface compliance

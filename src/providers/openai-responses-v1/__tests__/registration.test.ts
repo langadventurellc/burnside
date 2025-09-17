@@ -5,10 +5,10 @@
  * error handling, and registry integration.
  */
 
-import { InMemoryProviderRegistry } from "../../../core/providers/inMemoryProviderRegistry.js";
-import { OpenAIResponsesV1Provider } from "../index.js";
-import { ValidationError } from "../../../core/errors/validationError.js";
-import { BridgeError } from "../../../core/errors/bridgeError.js";
+import { InMemoryProviderRegistry } from "../../../core/providers/inMemoryProviderRegistry";
+import { OpenAIResponsesV1Provider } from "../index";
+import { ValidationError } from "../../../core/errors/validationError";
+import { BridgeError } from "../../../core/errors/bridgeError";
 
 describe("OpenAI Responses v1 Provider Registration", () => {
   let registry: InMemoryProviderRegistry;

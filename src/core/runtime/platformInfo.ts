@@ -5,8 +5,8 @@
  * Provides comprehensive information about the current execution environment.
  */
 
-import type { Platform } from "./platform.js";
-import type { PlatformCapabilities } from "./platformCapabilities.js";
+import type { Platform } from "./platform";
+import type { PlatformCapabilities } from "./platformCapabilities";
 
 /**
  * Platform information including type and capabilities.

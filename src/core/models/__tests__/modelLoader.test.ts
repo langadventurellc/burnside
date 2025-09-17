@@ -1,7 +1,7 @@
-import { mapJsonToModelInfo } from "../modelLoader.js";
-import { DefaultLlmModelsSchema } from "../defaultLlmModelsSchema.js";
-import { ValidationError } from "../../errors/validationError.js";
-import type { ModelInfo } from "../../providers/modelInfo.js";
+import { mapJsonToModelInfo } from "../modelLoader";
+import { DefaultLlmModelsSchema } from "../defaultLlmModelsSchema";
+import { ValidationError } from "../../errors/validationError";
+import type { ModelInfo } from "../../providers/modelInfo";
 
 describe("modelLoader", () => {
   // Helper function to create valid JSON structure for testing
@@ -314,7 +314,7 @@ describe("modelLoader", () => {
         mapJsonToModelInfo(
           invalidJson as unknown as Parameters<typeof mapJsonToModelInfo>[0],
         ),
-      ).toThrow("Invalid defaultLlmModels.json structure");
+      ).toThrow("Invalid defaultLlmModelson structure");
     });
 
     it("should preserve error context for debugging", () => {
@@ -423,8 +423,8 @@ describe("modelLoader", () => {
   });
 
   describe("Integration with Real JSON Data", () => {
-    it("should handle actual defaultLlmModels.json structure", () => {
-      // Simulate the actual JSON structure from docs/defaultLlmModels.json
+    it("should handle actual defaultLlmModelson structure", () => {
+      // Simulate the actual JSON structure from docs/defaultLlmModelson
       const realJsonStructure = {
         schemaVersion: "1.0.0",
         providers: [

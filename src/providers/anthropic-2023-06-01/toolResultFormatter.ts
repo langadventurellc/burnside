@@ -4,7 +4,7 @@
  * Formats tool execution results for inclusion in Anthropic message format.
  */
 
-import type { ToolCall } from "../../core/tools/toolCall.js";
+import type { ToolCall } from "../../core/tools/toolCall";
 
 /**
  * Anthropic message type

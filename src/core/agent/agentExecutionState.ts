@@ -7,9 +7,9 @@
  * during tool execution and conversation flow.
  */
 
-import type { Message } from "../messages/message.js";
-import type { ToolCall } from "../tools/toolCall.js";
-import type { ToolResult } from "../tools/toolResult.js";
+import type { Message } from "../messages/message";
+import type { ToolCall } from "../tools/toolCall";
+import type { ToolResult } from "../tools/toolResult";
 
 /**
  * Represents the execution state during agent loop processing

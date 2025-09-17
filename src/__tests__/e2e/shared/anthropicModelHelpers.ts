@@ -1,7 +1,7 @@
-import { BridgeClient } from "../../../client/bridgeClient.js";
-import type { BridgeConfig } from "../../../core/config/bridgeConfig.js";
-import { AnthropicMessagesV1Provider } from "../../../providers/anthropic-2023-06-01/anthropicMessagesV1Provider.js";
-import { loadAnthropicTestConfig } from "./anthropicTestConfig.js";
+import { BridgeClient } from "../../../client/bridgeClient";
+import type { BridgeConfig } from "../../../core/config/bridgeConfig";
+import { AnthropicMessagesV1Provider } from "../../../providers/anthropic-2023-06-01/anthropicMessagesV1Provider";
+import { loadAnthropicTestConfig } from "./anthropicTestConfig";
 
 export function createAnthropicTestClient(
   overrides?: Partial<BridgeConfig>,

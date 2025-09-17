@@ -10,10 +10,10 @@
  * and registry management functionality.
  */
 
-export type { ModelCapabilities } from "./modelCapabilities.js";
-export type { ModelInfo } from "./modelInfo.js";
-export type { ProviderPlugin } from "./providerPlugin.js";
-export type { ProviderRegistry } from "./providerRegistry.js";
-export type { ProviderInfo } from "./providerInfo.js";
-export type { ProviderKey } from "./providerKey.js";
-export { InMemoryProviderRegistry } from "./inMemoryProviderRegistry.js";
+export type { ModelCapabilities } from "./modelCapabilities";
+export type { ModelInfo } from "./modelInfo";
+export type { ProviderPlugin } from "./providerPlugin";
+export type { ProviderRegistry } from "./providerRegistry";
+export type { ProviderInfo } from "./providerInfo";
+export type { ProviderKey } from "./providerKey";
+export { InMemoryProviderRegistry } from "./inMemoryProviderRegistry";

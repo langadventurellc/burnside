@@ -5,7 +5,7 @@
  * to the unified ToolCall format.
  */
 
-import type { ToolCall } from "../../core/tools/toolCall.js";
+import type { ToolCall } from "../../core/tools/toolCall";
 
 /**
  * Anthropic tool use content block type

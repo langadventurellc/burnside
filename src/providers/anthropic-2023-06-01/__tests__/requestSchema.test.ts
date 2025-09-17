@@ -5,7 +5,7 @@
 import {
   AnthropicMessagesRequestSchema,
   type AnthropicMessagesRequestType,
-} from "../requestSchema.js";
+} from "../requestSchema";
 
 describe("AnthropicMessagesRequestSchema", () => {
   describe("valid requests", () => {

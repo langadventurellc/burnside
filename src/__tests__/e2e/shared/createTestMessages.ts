@@ -1,4 +1,4 @@
-import type { Message } from "../../../core/messages/message.js";
+import type { Message } from "../../../core/messages/message";
 
 export function createTestMessages(content: string): Message[] {
   return [

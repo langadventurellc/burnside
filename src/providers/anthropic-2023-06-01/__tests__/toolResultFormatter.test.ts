@@ -4,8 +4,8 @@
  * Tests for formatting tool execution results as Anthropic messages
  */
 
-import { formatToolResultMessage } from "../toolResultFormatter.js";
-import type { ToolCall } from "../../../core/tools/toolCall.js";
+import { formatToolResultMessage } from "../toolResultFormatter";
+import type { ToolCall } from "../../../core/tools/toolCall";
 
 describe("formatToolResultMessage", () => {
   const mockToolCall: ToolCall = {

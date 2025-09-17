@@ -1,4 +1,4 @@
-import { ValidationError } from "../../../core/errors/validationError.js";
+import { ValidationError } from "../../../core/errors/validationError";
 
 export function validateApiKey(apiKey: string, provider: string): boolean {
   switch (provider) {

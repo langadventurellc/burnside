@@ -6,7 +6,7 @@
  */
 
 import { z } from "zod";
-import type { OpenAITool } from "../../openAIToolSchema.js";
+import type { OpenAITool } from "../../openAIToolSchema";
 
 // Temporary type definition to avoid import issues - will be replaced with actual import
 type ToolDefinition = {

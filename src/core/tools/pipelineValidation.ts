@@ -5,11 +5,11 @@
  * Returns ToolResult with error if validation fails, null if valid.
  */
 
-import type { ToolCall } from "./toolCall.js";
-import type { ToolResult } from "./toolResult.js";
-import type { ToolDefinition } from "./toolDefinition.js";
-import { ToolCallSchema } from "./toolCallSchema.js";
-import { safeValidate } from "../validation/safeValidate.js";
+import type { ToolCall } from "./toolCall";
+import type { ToolResult } from "./toolResult";
+import type { ToolDefinition } from "./toolDefinition";
+import { ToolCallSchema } from "./toolCallSchema";
+import { safeValidate } from "../validation/safeValidate";
 
 /**
  * Validation stage - validates ToolCall format and tool definition compatibility

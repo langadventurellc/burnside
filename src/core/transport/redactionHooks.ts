@@ -27,8 +27,8 @@
  */
 
 import { z } from "zod";
-import type { ProviderHttpRequest } from "./providerHttpRequest.js";
-import type { ProviderHttpResponse } from "./providerHttpResponse.js";
+import type { ProviderHttpRequest } from "./providerHttpRequest";
+import type { ProviderHttpResponse } from "./providerHttpResponse";
 
 /**
  * Validation schema for redaction rule configuration.

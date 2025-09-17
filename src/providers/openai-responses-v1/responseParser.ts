@@ -6,16 +6,16 @@
  * information and metadata extraction.
  */
 
-import type { Message } from "../../core/messages/message.js";
-import type { ContentPart } from "../../core/messages/contentPart.js";
-import type { ToolCall } from "../../core/tools/toolCall.js";
-import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse.js";
-import { ValidationError } from "../../core/errors/validationError.js";
+import type { Message } from "../../core/messages/message";
+import type { ContentPart } from "../../core/messages/contentPart";
+import type { ToolCall } from "../../core/tools/toolCall";
+import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse";
+import { ValidationError } from "../../core/errors/validationError";
 import {
   OpenAIResponsesV1ResponseSchema,
   type OpenAIResponsesV1Response,
-} from "./responseSchema.js";
-import { parseOpenAIToolCalls } from "./toolCallParser.js";
+} from "./responseSchema";
+import { parseOpenAIToolCalls } from "./toolCallParser";
 
 /**
  * Convert OpenAI content to unified ContentPart array (Responses API format)

@@ -4,9 +4,9 @@
  * Defines the prepared context structure after validation and preparation stages.
  */
 
-import type { ToolCall } from "./toolCall.js";
-import type { ToolExecutionContext } from "./toolExecutionContext.js";
-import type { ToolDefinition } from "./toolDefinition.js";
+import type { ToolCall } from "./toolCall";
+import type { ToolExecutionContext } from "./toolExecutionContext";
+import type { ToolDefinition } from "./toolDefinition";
 
 /**
  * Pipeline execution context containing all data needed for execution

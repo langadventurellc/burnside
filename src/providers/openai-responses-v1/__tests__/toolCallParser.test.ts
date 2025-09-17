@@ -6,8 +6,8 @@
  */
 
 import { describe, it, expect } from "@jest/globals";
-import { parseOpenAIToolCalls } from "../toolCallParser.js";
-import { ValidationError } from "../../../core/errors/validationError.js";
+import { parseOpenAIToolCalls } from "../toolCallParser";
+import { ValidationError } from "../../../core/errors/validationError";
 import {
   nonStreamingToolCallSuccess,
   nonStreamingMultipleToolCalls,
@@ -16,7 +16,7 @@ import {
   complexToolCallParameters,
   emptyToolCallArguments,
   toolCallErrorScenarios,
-} from "./fixtures/toolCallResponses.js";
+} from "./fixtures/toolCallResponses";
 
 describe("parseOpenAIToolCalls", () => {
   describe("Valid tool call parsing", () => {

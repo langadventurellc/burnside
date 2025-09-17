@@ -4,7 +4,7 @@
  * Unit tests for the OpenAI Responses v1 request schema validation.
  */
 
-import { OpenAIResponsesV1RequestSchema } from "../requestSchema.js";
+import { OpenAIResponsesV1RequestSchema } from "../requestSchema";
 
 describe("OpenAIResponsesV1RequestSchema", () => {
   describe("valid requests", () => {

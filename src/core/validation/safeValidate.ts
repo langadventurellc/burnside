@@ -5,9 +5,9 @@
  */
 
 import { z } from "zod";
-import type { ValidationResult } from "./validationResult.js";
-import type { ValidationOptions } from "./validationOptions.js";
-import { formatValidationError } from "./formatValidationError.js";
+import type { ValidationResult } from "./validationResult";
+import type { ValidationOptions } from "./validationOptions";
+import { formatValidationError } from "./formatValidationError";
 
 /**
  * Safe parsing wrapper that returns ValidationResult instead of throwing.

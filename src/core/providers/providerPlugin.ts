@@ -1,10 +1,10 @@
-import type { Message } from "../messages/message.js";
-import type { BridgeError } from "../errors/bridgeError.js";
-import type { ProviderHttpRequest } from "../transport/providerHttpRequest.js";
-import type { ProviderHttpResponse } from "../transport/providerHttpResponse.js";
-import type { ChatRequest } from "../../client/chatRequest.js";
-import type { StreamDelta } from "../../client/streamDelta.js";
-import type { ModelCapabilities } from "./modelCapabilities.js";
+import type { Message } from "../messages/message";
+import type { BridgeError } from "../errors/bridgeError";
+import type { ProviderHttpRequest } from "../transport/providerHttpRequest";
+import type { ProviderHttpResponse } from "../transport/providerHttpResponse";
+import type { ChatRequest } from "../../client/chatRequest";
+import type { StreamDelta } from "../../client/streamDelta";
+import type { ModelCapabilities } from "./modelCapabilities";
 
 /**
  * Provider Plugin Interface

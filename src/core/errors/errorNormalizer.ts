@@ -21,8 +21,8 @@
  * }
  * ```
  */
-import type { ErrorContext } from "./errorContext.js";
-import type { NormalizedError } from "./normalizedError.js";
+import type { ErrorContext } from "./errorContext";
+import type { NormalizedError } from "./normalizedError";
 
 export interface ErrorNormalizer {
   /**

@@ -3,8 +3,8 @@
  */
 
 import { describe, expect, test } from "@jest/globals";
-import type { SseEvent } from "../sseEvent.js";
-import { sseEventSchema } from "../sseEvent.js";
+import type { SseEvent } from "../sseEvent";
+import { sseEventSchema } from "../sseEvent";
 
 describe("SseEvent", () => {
   describe("interface validation", () => {

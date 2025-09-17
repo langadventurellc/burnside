@@ -4,15 +4,15 @@
  * Converts unified ChatRequest format to OpenAI Responses API v1 format.
  */
 
-import type { ChatRequest } from "../../client/chatRequest.js";
-import type { Message } from "../../core/messages/message.js";
-import type { ContentPart } from "../../core/messages/contentPart.js";
-import type { ProviderHttpRequest } from "../../core/transport/providerHttpRequest.js";
-import { createHttpRequest } from "../../core/providers/createHttpRequest.js";
-import { ValidationError } from "../../core/errors/validationError.js";
-import type { OpenAIResponsesV1Config } from "./configSchema.js";
-import { OpenAIResponsesV1RequestSchema } from "./requestSchema.js";
-import { translateToolsForOpenAI } from "./toolsTranslator.js";
+import type { ChatRequest } from "../../client/chatRequest";
+import type { Message } from "../../core/messages/message";
+import type { ContentPart } from "../../core/messages/contentPart";
+import type { ProviderHttpRequest } from "../../core/transport/providerHttpRequest";
+import { createHttpRequest } from "../../core/providers/createHttpRequest";
+import { ValidationError } from "../../core/errors/validationError";
+import type { OpenAIResponsesV1Config } from "./configSchema";
+import { OpenAIResponsesV1RequestSchema } from "./requestSchema";
+import { translateToolsForOpenAI } from "./toolsTranslator";
 
 /**
  * Convert unified ContentPart to OpenAI message content format

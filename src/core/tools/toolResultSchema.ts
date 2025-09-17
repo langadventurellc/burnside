@@ -7,7 +7,7 @@
  *
  * @example Success Validation
  * ```typescript
- * import { ToolResultSchema } from "./toolResultSchema.js";
+ * import { ToolResultSchema } from "./toolResultSchema";
  *
  * const successResult = ToolResultSchema.parse({
  *   callId: "call_abc123",

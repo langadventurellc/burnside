@@ -5,30 +5,30 @@
  * Tests all ProviderPlugin interface methods and error handling scenarios.
  */
 
-import { AnthropicMessagesV1Provider } from "../anthropicMessagesV1Provider.js";
-import type { StreamDelta } from "../../../client/streamDelta.js";
-import type { ProviderHttpResponse } from "../../../core/transport/providerHttpResponse.js";
-import { BridgeError } from "../../../core/errors/bridgeError.js";
-import { ValidationError } from "../../../core/errors/validationError.js";
+import { AnthropicMessagesV1Provider } from "../anthropicMessagesV1Provider";
+import type { StreamDelta } from "../../../client/streamDelta";
+import type { ProviderHttpResponse } from "../../../core/transport/providerHttpResponse";
+import { BridgeError } from "../../../core/errors/bridgeError";
+import { ValidationError } from "../../../core/errors/validationError";
 
 // Mock the imported modules
-jest.mock("../translator.js", () => ({
+jest.mock("../translator", () => ({
   translateChatRequest: jest.fn(),
 }));
-jest.mock("../responseParser.js", () => ({
+jest.mock("../responseParser", () => ({
   parseAnthropicResponse: jest.fn(),
 }));
-jest.mock("../streamingParser.js", () => ({
+jest.mock("../streamingParser", () => ({
   parseAnthropicResponseStream: jest.fn(),
 }));
-jest.mock("../errorNormalizer.js", () => ({
+jest.mock("../errorNormalizer", () => ({
   normalizeAnthropicError: jest.fn(),
 }));
 
-import { translateChatRequest } from "../translator.js";
-import { parseAnthropicResponse } from "../responseParser.js";
-import { parseAnthropicResponseStream } from "../streamingParser.js";
-import { normalizeAnthropicError } from "../errorNormalizer.js";
+import { translateChatRequest } from "../translator";
+import { parseAnthropicResponse } from "../responseParser";
+import { parseAnthropicResponseStream } from "../streamingParser";
+import { normalizeAnthropicError } from "../errorNormalizer";
 
 const mockTranslateChatRequest = translateChatRequest as jest.MockedFunction<
   typeof translateChatRequest

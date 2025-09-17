@@ -1,5 +1,5 @@
-import type { HttpMethod } from "../transport/httpMethod.js";
-import type { ProviderHttpRequest } from "../transport/providerHttpRequest.js";
+import type { HttpMethod } from "../transport/httpMethod";
+import type { ProviderHttpRequest } from "../transport/providerHttpRequest";
 
 /**
  * Create a basic HTTP request object for provider APIs.

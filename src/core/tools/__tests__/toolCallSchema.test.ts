@@ -7,8 +7,8 @@
 
 import { describe, it, expect } from "@jest/globals";
 import { ZodError } from "zod";
-import { ToolCallSchema } from "../toolCallSchema.js";
-import type { ToolCall } from "../toolCall.js";
+import { ToolCallSchema } from "../toolCallSchema";
+import type { ToolCall } from "../toolCall";
 
 describe("ToolCallSchema", () => {
   describe("Valid ToolCall Objects", () => {

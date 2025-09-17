@@ -4,9 +4,9 @@
  * Unit tests for the main OpenAI Responses v1 provider plugin implementation.
  */
 
-import { OpenAIResponsesV1Provider } from "../openAIResponsesV1Provider.js";
-import type { StreamDelta } from "../../../client/streamDelta.js";
-import { BridgeError } from "../../../core/errors/bridgeError.js";
+import { OpenAIResponsesV1Provider } from "../openAIResponsesV1Provider";
+import type { StreamDelta } from "../../../client/streamDelta";
+import { BridgeError } from "../../../core/errors/bridgeError";
 
 describe("OpenAIResponsesV1Provider", () => {
   let provider: OpenAIResponsesV1Provider;

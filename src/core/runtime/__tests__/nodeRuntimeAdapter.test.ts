@@ -1,12 +1,12 @@
 /**
- * Node.js Runtime Adapter Tests
+ * Node Runtime Adapter Tests
  *
- * Unit tests for Node.js runtime adapter implementation covering all adapter
+ * Unit tests for Node runtime adapter implementation covering all adapter
  * methods with mocked dependencies and error handling scenarios.
  */
 
-import { NodeRuntimeAdapter } from "../adapters/nodeRuntimeAdapter.js";
-import { RuntimeError } from "../runtimeError.js";
+import { NodeRuntimeAdapter } from "../adapters/nodeRuntimeAdapter";
+import { RuntimeError } from "../runtimeError";
 
 // Mock fs/promises
 jest.mock("node:fs", () => ({
@@ -32,7 +32,7 @@ describe("NodeRuntimeAdapter", () => {
   });
 
   describe("Constructor", () => {
-    it("should initialize with Node.js platform info", () => {
+    it("should initialize with Node platform info", () => {
       expect(adapter.platformInfo.platform).toBe("node");
       expect(adapter.platformInfo.version).toBe(process.version);
       expect(adapter.platformInfo.capabilities.hasHttp).toBe(true);

@@ -6,16 +6,16 @@
  */
 
 import { describe, test, expect, beforeEach } from "@jest/globals";
-import type { ChatRequest } from "../../../client/chatRequest.js";
-import type { ProviderHttpResponse } from "../../../core/transport/providerHttpResponse.js";
-import type { StreamDelta } from "../../../client/streamDelta.js";
-import { OpenAIResponsesV1Provider } from "../index.js";
+import type { ChatRequest } from "../../../client/chatRequest";
+import type { ProviderHttpResponse } from "../../../core/transport/providerHttpResponse";
+import type { StreamDelta } from "../../../client/streamDelta";
+import { OpenAIResponsesV1Provider } from "../index";
 import {
   nonStreamingResponses,
   streamingEvents,
   errorResponses,
   requestExamples,
-} from "./fixtures/index.js";
+} from "./fixtures/index";
 
 /**
  * Helper to create mock HTTP response from fixture

@@ -6,11 +6,11 @@
  * throughout the LLM Bridge library.
  */
 
-export { OpenAIResponsesV1Provider } from "./openai-responses-v1/index.js";
-export { default as openaiResponsesV1Provider } from "./openai-responses-v1/index.js";
+export { OpenAIResponsesV1Provider } from "./openai-responses-v1/index";
+export { default as openaiResponsesV1Provider } from "./openai-responses-v1/index";
 
 export {
   AnthropicMessagesV1Provider,
   ANTHROPIC_PROVIDER_INFO,
-} from "./anthropic-2023-06-01/index.js";
-export { default as anthropicMessagesV1Provider } from "./anthropic-2023-06-01/index.js";
+} from "./anthropic-2023-06-01/index";
+export { default as anthropicMessagesV1Provider } from "./anthropic-2023-06-01/index";

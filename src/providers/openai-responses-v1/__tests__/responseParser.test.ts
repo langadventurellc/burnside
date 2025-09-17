@@ -1,7 +1,7 @@
 import { describe, test, expect } from "@jest/globals";
-import { parseOpenAIResponse } from "../responseParser.js";
-import { ValidationError } from "../../../core/errors/validationError.js";
-import type { ProviderHttpResponse } from "../../../core/transport/providerHttpResponse.js";
+import { parseOpenAIResponse } from "../responseParser";
+import { ValidationError } from "../../../core/errors/validationError";
+import type { ProviderHttpResponse } from "../../../core/transport/providerHttpResponse";
 
 // Mock ProviderHttpResponse for testing
 function createMockResponse(

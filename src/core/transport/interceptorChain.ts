@@ -24,11 +24,11 @@
  * const result = await chain.executeRequest(context);
  * ```
  */
-import { InterceptorError } from "./interceptorError.js";
-import type { InterceptorErrorContext } from "./interceptorErrorContext.js";
-import type { InterceptorContext } from "./interceptorContext.js";
-import type { RequestInterceptor } from "./requestInterceptorChain.js";
-import type { ResponseInterceptor } from "./responseInterceptorChain.js";
+import { InterceptorError } from "./interceptorError";
+import type { InterceptorErrorContext } from "./interceptorErrorContext";
+import type { InterceptorContext } from "./interceptorContext";
+import type { RequestInterceptor } from "./requestInterceptorChain";
+import type { ResponseInterceptor } from "./responseInterceptorChain";
 
 /**
  * Internal interceptor wrapper with priority and registration order.

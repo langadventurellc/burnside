@@ -5,18 +5,18 @@
  * selection, and automatic detection with comprehensive error scenarios.
  */
 
-import { AdapterRegistry } from "../adapterRegistry.js";
-import { NodeRuntimeAdapter } from "../adapters/nodeRuntimeAdapter.js";
-import { RuntimeError } from "../runtimeError.js";
-import type { RuntimeAdapter, Platform } from "../index.js";
+import { AdapterRegistry } from "../adapterRegistry";
+import { NodeRuntimeAdapter } from "../adapters/nodeRuntimeAdapter";
+import { RuntimeError } from "../runtimeError";
+import type { RuntimeAdapter, Platform } from "../index";
 
 // Mock detectPlatform
-jest.mock("../detectPlatform.js", () => ({
+jest.mock("../detectPlatform", () => ({
   detectPlatform: jest.fn(),
 }));
 
-// Mock NodeRuntimeAdapter to avoid actual Node.js dependencies in tests
-jest.mock("../adapters/nodeRuntimeAdapter.js", () => ({
+// Mock NodeRuntimeAdapter to avoid actual Node dependencies in tests
+jest.mock("../adapters/nodeRuntimeAdapter", () => ({
   NodeRuntimeAdapter: jest.fn().mockImplementation(() => ({
     platformInfo: {
       platform: "node",
@@ -34,7 +34,7 @@ jest.mock("../adapters/nodeRuntimeAdapter.js", () => ({
 }));
 
 describe("AdapterRegistry", () => {
-  const { detectPlatform } = require("../detectPlatform.js");
+  const { detectPlatform } = require("../detectPlatform");
   let registry: AdapterRegistry;
 
   // Mock adapter for testing
@@ -145,7 +145,7 @@ describe("AdapterRegistry", () => {
       const nodeAdapter = new NodeRuntimeAdapter();
       registry.registerAdapter("node", nodeAdapter);
 
-      // Electron should fallback to Node.js adapter
+      // Electron should fallback to Node adapter
       const adapter = registry.getAdapter("electron");
       expect(adapter).toBe(nodeAdapter);
     });
@@ -207,7 +207,7 @@ describe("AdapterRegistry", () => {
   });
 
   describe("Fallback Logic", () => {
-    it("should provide Node.js fallback for Electron", () => {
+    it("should provide Node fallback for Electron", () => {
       const nodeAdapter = new NodeRuntimeAdapter();
       registry.registerAdapter("node", nodeAdapter);
 
@@ -226,7 +226,7 @@ describe("AdapterRegistry", () => {
       expect(() => registry.getAdapter("browser")).toThrow(RuntimeError);
     });
 
-    it("should not provide fallback for Node.js platform", () => {
+    it("should not provide fallback for Node platform", () => {
       // Clear any auto-registered Node adapter
       (AdapterRegistry as unknown as { instance: undefined }).instance =
         undefined;

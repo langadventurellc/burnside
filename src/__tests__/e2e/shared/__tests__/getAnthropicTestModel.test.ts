@@ -1,4 +1,4 @@
-import { getAnthropicTestModel } from "../getAnthropicTestModel.js";
+import { getAnthropicTestModel } from "../getAnthropicTestModel";
 
 describe("getAnthropicTestModel", () => {
   const originalEnv = process.env;

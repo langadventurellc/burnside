@@ -5,7 +5,7 @@
  */
 
 import type { z } from "zod";
-import { providerSchemas } from "./providerSchemas.js";
+import { providerSchemas } from "./providerSchemas";
 
 // Individual types
 type BaseProviderConfig = z.infer<

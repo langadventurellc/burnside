@@ -7,7 +7,7 @@ import {
   AnthropicStreamingResponseSchema,
   AnthropicErrorResponseSchema,
   type AnthropicMessagesResponseType,
-} from "../responseSchema.js";
+} from "../responseSchema";
 
 describe("AnthropicMessagesResponseSchema", () => {
   describe("valid responses", () => {

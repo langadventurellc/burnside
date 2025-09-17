@@ -6,17 +6,17 @@
  * and metadata extraction.
  */
 
-import type { Message } from "../../core/messages/message.js";
-import type { ContentPart } from "../../core/messages/contentPart.js";
-import type { ToolCall } from "../../core/tools/toolCall.js";
-import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse.js";
-import { ProviderError } from "../../core/errors/providerError.js";
-import { ValidationError } from "../../core/errors/validationError.js";
+import type { Message } from "../../core/messages/message";
+import type { ContentPart } from "../../core/messages/contentPart";
+import type { ToolCall } from "../../core/tools/toolCall";
+import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse";
+import { ProviderError } from "../../core/errors/providerError";
+import { ValidationError } from "../../core/errors/validationError";
 import {
   AnthropicMessagesResponseSchema,
   AnthropicErrorResponseSchema,
   type AnthropicMessagesResponseType,
-} from "./responseSchema.js";
+} from "./responseSchema";
 
 /**
  * Convert Anthropic content blocks to unified ContentPart array

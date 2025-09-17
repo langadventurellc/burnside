@@ -10,9 +10,9 @@ import {
   beforeEach,
   afterEach,
 } from "@jest/globals";
-import { SseParser } from "../sseParser.js";
-import type { SseEvent } from "../sseEvent.js";
-import { StreamingError } from "../../errors/streamingError.js";
+import { SseParser } from "../sseParser";
+import type { SseEvent } from "../sseEvent";
+import { StreamingError } from "../../errors/streamingError";
 
 // Helper function to create async iterable from chunks
 async function* createStream(chunks: string[]): AsyncIterable<Uint8Array> {

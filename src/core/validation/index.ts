@@ -11,25 +11,25 @@
  */
 
 // Type utilities
-export type { ValidationResult } from "./validationResult.js";
-export type { SchemaInput } from "./schemaInput.js";
-export type { SchemaOutput } from "./schemaOutput.js";
-export type { TypeGuard } from "./typeGuard.js";
-export type { SchemaValidator } from "./schemaValidator.js";
-export type { ValidationOptions } from "./validationOptions.js";
-export type { SchemaCompositionOptions } from "./schemaCompositionOptions.js";
+export type { ValidationResult } from "./validationResult";
+export type { SchemaInput } from "./schemaInput";
+export type { SchemaOutput } from "./schemaOutput";
+export type { TypeGuard } from "./typeGuard";
+export type { SchemaValidator } from "./schemaValidator";
+export type { ValidationOptions } from "./validationOptions";
+export type { SchemaCompositionOptions } from "./schemaCompositionOptions";
 
 // Common validation schemas
-export { commonSchemas } from "./commonSchemas.js";
+export { commonSchemas } from "./commonSchemas";
 
 // Provider validation
-export { providerSchemas } from "./providerSchemas.js";
-export { providerValidation } from "./providerValidation.js";
-export type { ProviderSchemaTypes } from "./providerSchemaTypes.js";
+export { providerSchemas } from "./providerSchemas";
+export { providerValidation } from "./providerValidation";
+export type { ProviderSchemaTypes } from "./providerSchemaTypes";
 
 // Validation utilities
-export { formatValidationError } from "./formatValidationError.js";
-export { safeValidate } from "./safeValidate.js";
-export { validateOrThrow } from "./validateOrThrow.js";
-export { createTypeGuard } from "./createTypeGuard.js";
-export { schemaComposition } from "./schemaComposition.js";
+export { formatValidationError } from "./formatValidationError";
+export { safeValidate } from "./safeValidate";
+export { validateOrThrow } from "./validateOrThrow";
+export { createTypeGuard } from "./createTypeGuard";
+export { schemaComposition } from "./schemaComposition";

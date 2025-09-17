@@ -5,7 +5,7 @@
  * results for E2E testing scenarios.
  */
 
-import type { ToolHandler } from "../../../core/tools/toolHandler.js";
+import type { ToolHandler } from "../../../core/tools/toolHandler";
 
 /**
  * Test tool handler for the E2E echo tool.

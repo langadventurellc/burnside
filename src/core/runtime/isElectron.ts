@@ -5,7 +5,7 @@
  * Used by platform detection and adapter selection logic.
  */
 
-import { isNodeJs } from "./isNodeJs.js";
+import { isNodeJs } from "./isNodeJs";
 
 /**
  * Check if running in Electron environment.
@@ -14,7 +14,7 @@ import { isNodeJs } from "./isNodeJs.js";
  */
 export function isElectron(): boolean {
   try {
-    // Electron has both Node.js APIs and browser-like environment
+    // Electron has both Node APIs and browser-like environment
     return (
       isNodeJs() &&
       (typeof process.versions.electron !== "undefined" ||

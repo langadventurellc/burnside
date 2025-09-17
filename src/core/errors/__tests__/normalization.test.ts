@@ -10,7 +10,7 @@ import type {
   NormalizedError,
   ErrorCodeMapping,
   ErrorFactory,
-} from "../index.js";
+} from "../index";
 
 describe("ErrorNormalizer interface", () => {
   it("should be implementable", () => {

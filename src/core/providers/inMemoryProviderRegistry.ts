@@ -1,10 +1,10 @@
 import { z } from "zod";
-import type { ProviderPlugin } from "./providerPlugin.js";
-import type { ProviderRegistry } from "./providerRegistry.js";
-import type { ProviderInfo } from "./providerInfo.js";
-import type { ProviderKey } from "./providerKey.js";
-import { validateOrThrow } from "../validation/validateOrThrow.js";
-import { ValidationError } from "../errors/validationError.js";
+import type { ProviderPlugin } from "./providerPlugin";
+import type { ProviderRegistry } from "./providerRegistry";
+import type { ProviderInfo } from "./providerInfo";
+import type { ProviderKey } from "./providerKey";
+import { validateOrThrow } from "../validation/validateOrThrow";
+import { ValidationError } from "../errors/validationError";
 
 /**
  * Zod schema for validating ProviderPlugin during registration

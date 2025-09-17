@@ -5,8 +5,8 @@
  * for unified storage and retrieval in tool registries.
  */
 
-import type { ToolDefinition } from "./toolDefinition.js";
-import type { ToolHandler } from "./toolHandler.js";
+import type { ToolDefinition } from "./toolDefinition";
+import type { ToolHandler } from "./toolHandler";
 
 /**
  * Registry entry containing both tool definition and execution handler
