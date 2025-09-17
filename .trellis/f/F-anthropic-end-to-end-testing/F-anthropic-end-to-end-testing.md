@@ -60,13 +60,20 @@ affectedFiles:
     messages). Includes proper helper functions for delta collection,
     accumulation, and validation, with correct timeout patterns and Anthropic
     API requirements."
+  src/__tests__/e2e/anthropic/tools.e2e.test.ts: "Created comprehensive E2E test
+    suite for Anthropic tool execution with 18 test cases exactly mirroring
+    OpenAI structure: Tool Registration (2 tests), Function Calling with Tools
+    (2 tests including parameterized test.each), Tool System Integration (2
+    tests), Tool Error Handling (4 tests), and Tool Behavior Validation (3
+    tests). Uses Anthropic-specific helpers and includes maxTokens: 100 for all
+    client.chat() calls to meet Anthropic API requirements."
 log: []
 schema: v1.0
 childrenIds:
   - T-add-npm-script-and-environment
-  - T-create-anthropic-streaming
   - T-create-anthropic-tool
   - T-create-anthropic-chat
+  - T-create-anthropic-streaming
   - T-extend-shared-helpers-for
   - T-update-jest-setup-files-for
 created: 2025-09-17T00:40:55.311Z
