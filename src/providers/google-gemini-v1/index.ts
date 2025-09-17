@@ -23,3 +23,4 @@ export {
   GoogleGeminiV1ConfigSchema,
   type GoogleGeminiV1Config,
 } from "./configSchema";
+export { normalizeGeminiError } from "./errorNormalizer";

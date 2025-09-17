@@ -97,7 +97,26 @@ affectedFiles:
     metadata, and stream termination
   src/providers/google-gemini-v1/index.ts:
     Created provider exports file exposing
-    all necessary streaming parser functions and schemas
+    all necessary streaming parser functions and schemas; Added export for
+    normalizeGeminiError function to make error normalizer available for
+    provider integration and external usage
+  src/providers/google-gemini-v1/errorNormalizer.ts: Created comprehensive error
+    normalizer with normalizeGeminiError() main function, HTTP status code
+    mapping (400→ValidationError, 401/403→AuthError, 429→RateLimitError,
+    500+→ProviderError), Google Gemini error status mapping
+    (INVALID_ARGUMENT→ValidationError,
+    UNAUTHENTICATED/PERMISSION_DENIED→AuthError,
+    RESOURCE_EXHAUSTED→RateLimitError, INTERNAL→ProviderError), network error
+    classification, error message sanitization (Google API keys, OAuth tokens),
+    context enhancement with provider/version/timestamp, and proper BridgeError
+    type instantiation.
+  src/providers/google-gemini-v1/__tests__/errorNormalizer.test.ts:
+    Created comprehensive unit test suite with 39 tests covering HTTP status
+    code mapping, Gemini error status mapping, network error handling, error
+    message extraction and sanitization, context preservation, fallback
+    handling, and range-based status mapping. Tests verify proper error type
+    classification, security sanitization, retry information parsing, and edge
+    case handling with 100% pass rate.
 log: []
 schema: v1.0
 childrenIds:
@@ -105,11 +124,11 @@ childrenIds:
   - T-create-provider-exports-and
   - T-implement-error-normalization
   - T-implement-googlegeminiv1provid
-  - T-implement-streaming-response-1
   - T-create-gemini-api-request-and
   - T-create-provider-configuration-1
   - T-implement-non-streaming-1
   - T-implement-request-translator-1
+  - T-implement-streaming-response-1
   - T-implement-tool-definition-1
 created: 2025-09-17T03:05:49.808Z
 updated: 2025-09-17T03:05:49.808Z
