@@ -1,13 +1,28 @@
 ---
 id: T-update-model-registry-to-use
 title: Update model registry to use anthropic-2023-06-01 provider plugin
-status: open
+status: done
 priority: medium
 parent: F-anthropic-messages-api
 prerequisites:
   - T-create-provider-module
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/data/defaultLlmModels.ts: Updated all 5 Anthropic model entries to use
+    'anthropic-2023-06-01' provider plugin instead of 'anthropic-messages-v1',
+    maintaining all other model capabilities and metadata
+  src/data/__tests__/defaultLlmModels.test.ts: Created comprehensive test suite
+    with 12 test cases covering Anthropic model configuration validation,
+    provider plugin consistency, schema compliance, and integration requirements
+log:
+  - Successfully updated all Anthropic model configurations in
+    defaultLlmModels.ts to use the correct 'anthropic-2023-06-01' provider
+    plugin identifier. All 5 Anthropic models (claude-3-haiku-20240307,
+    claude-3-5-haiku-latest, claude-sonnet-4-20250514, claude-opus-4-20250514,
+    claude-opus-4-1-20250805) now use the proper provider plugin that matches
+    the existing BridgeClient mapping. Created comprehensive unit tests with 12
+    test cases covering provider plugin validation, schema compliance, model
+    metadata integrity, and integration requirements. All quality checks pass
+    and tests achieve full coverage of the updated functionality.
 schema: v1.0
 childrenIds: []
 created: 2025-09-16T13:33:44.935Z

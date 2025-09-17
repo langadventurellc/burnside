@@ -133,7 +133,7 @@ export const defaultLlmModels = DefaultLlmModelsSchema.parse({
       models: [
         {
           id: "claude-3-haiku-20240307",
-          providerPlugin: "anthropic-messages-v1",
+          providerPlugin: "anthropic-2023-06-01",
           name: "Claude 3 Haiku",
           contextLength: 200000,
           streaming: true,
@@ -144,7 +144,7 @@ export const defaultLlmModels = DefaultLlmModelsSchema.parse({
         },
         {
           id: "claude-3-5-haiku-latest",
-          providerPlugin: "anthropic-messages-v1",
+          providerPlugin: "anthropic-2023-06-01",
           name: "Claude 3.5 Haiku",
           contextLength: 200000,
           streaming: true,
@@ -155,7 +155,7 @@ export const defaultLlmModels = DefaultLlmModelsSchema.parse({
         },
         {
           id: "claude-sonnet-4-20250514",
-          providerPlugin: "anthropic-messages-v1",
+          providerPlugin: "anthropic-2023-06-01",
           name: "Claude Sonnet 4",
           contextLength: 200000,
           streaming: true,
@@ -166,7 +166,7 @@ export const defaultLlmModels = DefaultLlmModelsSchema.parse({
         },
         {
           id: "claude-opus-4-20250514",
-          providerPlugin: "anthropic-messages-v1",
+          providerPlugin: "anthropic-2023-06-01",
           name: "Claude Opus 4",
           contextLength: 200000,
           streaming: true,
@@ -177,7 +177,7 @@ export const defaultLlmModels = DefaultLlmModelsSchema.parse({
         },
         {
           id: "claude-opus-4-1-20250805",
-          providerPlugin: "anthropic-messages-v1",
+          providerPlugin: "anthropic-2023-06-01",
           name: "Claude Opus 4.1",
           contextLength: 200000,
           streaming: true,
