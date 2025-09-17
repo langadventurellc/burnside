@@ -9,11 +9,11 @@ import type { ChatRequest } from "../../client/chatRequest";
 import type { Message } from "../../core/messages/message";
 import type { ContentPart } from "../../core/messages/contentPart";
 import type { ProviderHttpRequest } from "../../core/transport/providerHttpRequest";
-import type { ToolDefinition } from "../../core/tools/toolDefinition";
 import { createHttpRequest } from "../../core/providers/createHttpRequest";
 import { ValidationError } from "../../core/errors/validationError";
 import type { XAIV1Config } from "./configSchema";
 import { XAIV1RequestSchema } from "./requestSchema";
+import { translateToolsForXAI } from "./toolsTranslator";
 
 /**
  * Convert unified model ID to xAI model name by stripping provider prefix
@@ -101,60 +101,6 @@ function convertMessage(message: Message): unknown {
 }
 
 /**
- * Convert unified tool definitions to xAI function format
- * xAI uses the same tool format as OpenAI
- */
-function translateTools(tools: ToolDefinition[]): unknown[] {
-  return tools.map((tool) => {
-    // Extract JSON Schema from Zod schema or use existing object
-    const parametersSchema = extractParametersFromInputSchema(tool.inputSchema);
-
-    return {
-      type: "function",
-      function: {
-        name: tool.name,
-        description: tool.description || `Execute ${tool.name} tool`,
-        parameters: {
-          type: "object",
-          properties: parametersSchema.properties || {},
-          required: parametersSchema.required || [],
-          additionalProperties: false,
-        },
-      },
-    };
-  });
-}
-
-/**
- * Extract parameters schema from inputSchema (Zod or JSON Schema)
- */
-function extractParametersFromInputSchema(inputSchema: unknown): {
-  properties?: Record<string, unknown>;
-  required?: string[];
-} {
-  // If it's already a JSON Schema object, extract properties and required
-  if (
-    inputSchema &&
-    typeof inputSchema === "object" &&
-    !("_def" in inputSchema)
-  ) {
-    const jsonSchema = inputSchema as Record<string, unknown>;
-    return {
-      properties: (jsonSchema.properties as Record<string, unknown>) || {},
-      required: (jsonSchema.required as string[]) || [],
-    };
-  }
-
-  // For Zod schemas, return basic object structure
-  // Note: Full Zod-to-JSON conversion would require zodToJsonSchema library
-  // For now, we'll use a basic approach since xAI tools follow OpenAI format
-  return {
-    properties: {},
-    required: [],
-  };
-}
-
-/**
  * Build xAI request body from unified request
  *
  * @param request - The unified chat request
@@ -192,15 +138,17 @@ function buildXAIRequestBody(
     request.tools.length > 0
   ) {
     try {
-      xaiRequest.tools = translateTools(
-        request.tools as Parameters<typeof translateTools>[0],
-      );
+      xaiRequest.tools = translateToolsForXAI(request.tools);
     } catch (error) {
       throw new ValidationError(
         `Failed to translate tools for xAI request: ${error instanceof Error ? error.message : "Unknown error"}`,
         {
           originalError:
-            error instanceof Error ? error : new Error(String(error)),
+            error instanceof Error
+              ? error
+              : new Error(
+                  error instanceof Error ? error.message : "Unknown error",
+                ),
           tools: request.tools,
         },
       );

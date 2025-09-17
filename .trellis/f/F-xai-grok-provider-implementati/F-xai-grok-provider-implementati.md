@@ -60,12 +60,16 @@ affectedFiles:
     that converts unified ChatRequest format to xAI Responses API v1 format.
     Includes model ID mapping, message content translation (text/multimodal),
     tool definition conversion, parameter mapping, header construction, and URL
-    building with proper error handling and Zod validation.
+    building with proper error handling and Zod validation.; Extracted tool
+    translation functionality to dedicated modules and updated imports to use
+    new toolsTranslator
   src/providers/xai-v1/__tests__/translator.test.ts: Created comprehensive unit
     test suite with 34 test cases covering model mapping, message translation
     (text/multimodal), tool translation (JSON Schema/Zod), parameter handling,
     header construction, URL building, error scenarios, and schema validation.
-    Includes helper functions for safe body parsing and complete test coverage.
+    Includes helper functions for safe body parsing and complete test coverage.;
+    Updated existing test expectation to match improved Zod schema conversion
+    instead of placeholder behavior
   src/providers/xai-v1/toolCallParser.ts: Created comprehensive tool call parser
     that validates and converts xAI tool calls to unified ToolCall format.
     Includes robust JSON argument parsing, schema validation with Zod, error
@@ -103,6 +107,24 @@ affectedFiles:
   src/providers/xai-v1/__tests__/streamingParser.test.ts: Created comprehensive
     unit test suite with 21 tests covering success cases, error handling, edge
     cases, and performance testing
+  src/providers/xai-v1/toolTranslator.ts: Created comprehensive single tool
+    translation functionality with proper Zod-to-JSON Schema conversion,
+    provider hints support, and validation following OpenAI patterns
+  src/providers/xai-v1/toolsTranslator.ts:
+    Created array wrapper for multiple tool
+    translation with detailed error handling and context for failed conversions
+  src/providers/xai-v1/xaiTool.ts: Created XAITool interface type definition
+    following OpenAI compatibility format
+  src/providers/xai-v1/xaiToolFunction.ts: Created XAIToolFunction interface type definition for tool function structure
+  src/providers/xai-v1/__tests__/fixtures/toolExamples.ts: Created comprehensive
+    test fixtures with tool definitions and expected xAI formats for testing
+  src/providers/xai-v1/__tests__/toolTranslator.test.ts: Created comprehensive
+    unit test suite with 22 test cases covering schema conversion, error
+    handling, and type validation
+  src/providers/xai-v1/__tests__/toolsTranslator.test.ts:
+    Created unit test suite
+    with 11 test cases covering array translation, error handling, and
+    performance testing
 log: []
 schema: v1.0
 childrenIds:
@@ -110,11 +132,11 @@ childrenIds:
   - T-create-xai-error-normalizer
   - T-create-xai-provider-module
   - T-implement-main-xai-provider
-  - T-implement-xai-streaming
   - T-build-xai-request-translator
   - T-create-xai-configuration
   - T-create-xai-response-parser
   - T-implement-xai-request-and
+  - T-implement-xai-streaming
 created: 2025-09-17T19:39:03.829Z
 updated: 2025-09-17T19:39:03.829Z
 ---

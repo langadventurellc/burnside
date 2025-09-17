@@ -23,7 +23,7 @@ updated: 2025-09-17T20:00:33.627Z
 
 ## Context
 
-This task implements the main xAI provider class that orchestrates all the component pieces (configuration, translation, parsing, error handling) into a complete ProviderPlugin implementation. This is the central integration point that brings together all xAI-specific functionality.
+This task implements the main xAI provider class that orchestrates all the component pieces (configuration, translation, parsing, error handling) into a complete ProviderPlugin implementation. This is the central integration point that brings together all xAI-specific functionality. Since we're using xAI's Responses API, which is pretty much in line with the OpenAI Responses API, we should heavily reference our existing OpenAI provider code as a reference pattern for this.
 
 ## Reference Implementation
 

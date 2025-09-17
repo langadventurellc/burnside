@@ -18,7 +18,7 @@ updated: 2025-09-17T19:58:57.710Z
 
 ## Context
 
-This task implements the error normalizer that converts xAI-specific errors to standardized BridgeError instances. The normalizer handles API errors, HTTP errors, network failures, and provides proper error categorization with context preservation.
+This task implements the error normalizer that converts xAI-specific errors to standardized BridgeError instances. The normalizer handles API errors, HTTP errors, network failures, and provides proper error categorization with context preservation. Since we're using xAI's Responses API, which is pretty much in line with the OpenAI Responses API, we should heavily reference our existing OpenAI provider code as a reference pattern for this.
 
 ## Reference Implementation
 
