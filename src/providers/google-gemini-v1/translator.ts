@@ -13,6 +13,7 @@ import { createHttpRequest } from "../../core/providers/createHttpRequest";
 import { ValidationError } from "../../core/errors/validationError";
 import type { GoogleGeminiV1Config } from "./configSchema";
 import { GoogleGeminiV1RequestSchema } from "./requestSchema";
+import type { ModelCapabilities } from "../../core/providers/modelCapabilities";
 
 /**
  * Convert unified ContentPart to Gemini content part format
@@ -136,6 +137,7 @@ function extractAndMergeSystemMessages(messages: Message[]): Message[] {
  */
 function buildGeminiRequestBody(
   request: ChatRequest & { stream?: boolean },
+  modelCapabilities?: ModelCapabilities,
 ): Record<string, unknown> {
   // Extract and merge system messages
   const processedMessages = extractAndMergeSystemMessages(request.messages);
@@ -153,13 +155,15 @@ function buildGeminiRequestBody(
     contents,
   };
 
-  // Add generation config - always include thinkingConfig to limit reasoning tokens
-  const generationConfig: Record<string, unknown> = {
-    // Set thinkingBudget to minimum for gemini-2.5-pro (128) to leave more tokens for response
-    thinkingConfig: {
+  // Add generation config
+  const generationConfig: Record<string, unknown> = {};
+
+  // Only include thinkingConfig if model supports thinking capability
+  if (modelCapabilities && modelCapabilities.thinking === true) {
+    generationConfig.thinkingConfig = {
       thinkingBudget: 512,
-    },
-  };
+    };
+  }
 
   if (request.temperature !== undefined) {
     generationConfig.temperature = request.temperature;
@@ -231,7 +235,7 @@ function buildEndpointUrl(
 export function translateChatRequest(
   request: ChatRequest & { stream?: boolean },
   config: GoogleGeminiV1Config,
-  _modelCapabilities?: { temperature?: boolean },
+  modelCapabilities?: ModelCapabilities,
 ): ProviderHttpRequest {
   try {
     // Validate input
@@ -242,7 +246,7 @@ export function translateChatRequest(
     }
 
     // Build and validate the request body
-    const geminiRequest = buildGeminiRequestBody(request);
+    const geminiRequest = buildGeminiRequestBody(request, modelCapabilities);
     const validatedRequest = GoogleGeminiV1RequestSchema.parse(geminiRequest);
 
     // Build headers

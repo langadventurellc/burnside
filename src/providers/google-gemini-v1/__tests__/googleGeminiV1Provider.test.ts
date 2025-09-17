@@ -188,7 +188,14 @@ describe("GoogleGeminiV1Provider", () => {
 
       mockTranslateChatRequest.mockReturnValue(mockHttpRequest);
 
-      const modelCapabilities = { temperature: true };
+      const modelCapabilities = {
+        streaming: true,
+        toolCalls: true,
+        images: true,
+        documents: true,
+        temperature: true,
+        supportedContentTypes: ["text", "image"],
+      };
       provider.translateRequest(mockRequest, modelCapabilities);
 
       expect(mockTranslateChatRequest).toHaveBeenCalledWith(

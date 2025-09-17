@@ -23,6 +23,7 @@ import { translateChatRequest } from "./translator";
 import { parseGeminiResponse } from "./responseParser";
 import { parseGeminiResponseStream } from "./streamingParser";
 import { normalizeGeminiError } from "./errorNormalizer";
+import type { ModelCapabilities } from "../../core/providers/modelCapabilities";
 
 /**
  * Google Gemini v1 Provider Plugin
@@ -103,7 +104,7 @@ export class GoogleGeminiV1Provider implements ProviderPlugin {
    */
   translateRequest(
     request: ChatRequest & { stream?: boolean },
-    modelCapabilities?: { temperature?: boolean },
+    modelCapabilities?: ModelCapabilities,
   ): ProviderHttpRequest {
     if (!this.config) {
       throw new BridgeError("Provider not initialized", "NOT_INITIALIZED", {

@@ -45,6 +45,7 @@ export const DefaultLlmModelsSchema = z.object({
           images: z.boolean().optional(),
           documents: z.boolean().optional(),
           temperature: z.boolean().optional(),
+          thinking: z.boolean().optional(),
           supportedContentTypes: z.array(z.string()).optional(),
         }),
       ),

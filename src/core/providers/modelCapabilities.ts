@@ -12,6 +12,7 @@
  *   images: true,
  *   documents: false,
  *   temperature: true,
+ *   thinking: false,
  *   maxTokens: 128000,
  *   supportedContentTypes: ["text", "image"]
  * };
@@ -28,6 +29,8 @@ export interface ModelCapabilities {
   documents: boolean;
   /** Whether the model supports temperature parameter */
   temperature?: boolean;
+  /** Whether the model supports thinking capability */
+  thinking?: boolean;
   /** Maximum number of tokens the model can handle */
   maxTokens?: number;
   /** Array of supported content types */

@@ -110,9 +110,6 @@ describe("translateChatRequest", () => {
         topK: 40,
         topP: 0.9,
         stopSequences: ["END", "STOP"],
-        thinkingConfig: {
-          thinkingBudget: 512,
-        },
       });
     });
 
@@ -548,13 +545,76 @@ describe("translateChatRequest", () => {
       expect(body.generationConfig).toEqual({
         temperature: 1.5,
         maxOutputTokens: 2000,
-        thinkingConfig: {
-          thinkingBudget: 512,
-        },
       });
     });
 
-    test("includes thinking config even when no other parameters provided", () => {
+    test("includes thinking config only when model supports thinking", () => {
+      const request: ChatRequest = {
+        model: "gemini-2.5-pro",
+        messages: [
+          {
+            role: "user",
+            content: [{ type: "text", text: "Test" }],
+          },
+        ],
+      };
+
+      // Test with thinking capability enabled
+      const modelCapabilities = {
+        streaming: true,
+        toolCalls: true,
+        images: true,
+        documents: true,
+        thinking: true,
+        supportedContentTypes: ["text"],
+      };
+
+      const result = translateChatRequest(
+        request,
+        mockConfig,
+        modelCapabilities,
+      );
+      const body = parseBody(result.body);
+
+      expect(body.generationConfig).toBeDefined();
+      expect((body.generationConfig as any).thinkingConfig).toEqual({
+        thinkingBudget: 512,
+      });
+    });
+
+    test("excludes thinking config when model does not support thinking", () => {
+      const request: ChatRequest = {
+        model: "gemini-2.0-flash",
+        messages: [
+          {
+            role: "user",
+            content: [{ type: "text", text: "Test" }],
+          },
+        ],
+      };
+
+      // Test with thinking capability disabled
+      const modelCapabilities = {
+        streaming: true,
+        toolCalls: true,
+        images: true,
+        documents: true,
+        thinking: false,
+        supportedContentTypes: ["text"],
+      };
+
+      const result = translateChatRequest(
+        request,
+        mockConfig,
+        modelCapabilities,
+      );
+      const body = parseBody(result.body);
+
+      expect(body.generationConfig).toBeDefined();
+      expect((body.generationConfig as any).thinkingConfig).toBeUndefined();
+    });
+
+    test("excludes thinking config when no model capabilities provided", () => {
       const request: ChatRequest = {
         model: "gemini-2.0-flash",
         messages: [
@@ -569,9 +629,7 @@ describe("translateChatRequest", () => {
       const body = parseBody(result.body);
 
       expect(body.generationConfig).toBeDefined();
-      expect((body.generationConfig as any).thinkingConfig).toEqual({
-        thinkingBudget: 512,
-      });
+      expect((body.generationConfig as any).thinkingConfig).toBeUndefined();
     });
   });
 
