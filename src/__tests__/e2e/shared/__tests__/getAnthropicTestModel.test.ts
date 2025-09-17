@@ -16,7 +16,7 @@ describe("getAnthropicTestModel", () => {
 
     const model = getAnthropicTestModel();
 
-    expect(model).toBe("anthropic:claude-3-5-haiku-latest");
+    expect(model).toBe("anthropic:claude-3-haiku-20240307");
   });
 
   it("should return custom model from environment variable", () => {
@@ -40,6 +40,6 @@ describe("getAnthropicTestModel", () => {
 
     const model = getAnthropicTestModel();
 
-    expect(model).toBe("anthropic:claude-3-5-haiku-latest");
+    expect(model).toBe("anthropic:claude-3-haiku-20240307");
   });
 });

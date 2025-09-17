@@ -36,7 +36,7 @@ describe("loadAnthropicTestConfig", () => {
       expect(config).toEqual({
         anthropicApiKey: "sk-ant-valid-key-12345",
         testEnabled: true,
-        testModel: "anthropic:claude-3-5-haiku-latest",
+        testModel: "anthropic:claude-3-haiku-20240307",
         timeout: 30000,
       });
     });
@@ -132,7 +132,7 @@ describe("loadAnthropicTestConfig", () => {
     it("should use default model when E2E_ANTHROPIC_MODEL is not set", () => {
       const config = loadAnthropicTestConfig();
 
-      expect(config.testModel).toBe("anthropic:claude-3-5-haiku-latest");
+      expect(config.testModel).toBe("anthropic:claude-3-haiku-20240307");
     });
 
     it("should have default timeout of 30000", () => {

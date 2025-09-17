@@ -43,15 +43,23 @@ affectedFiles:
   src/__tests__/e2e/setup/__tests__/globalSetup.test.ts: Created comprehensive
     unit tests for global setup validation logic covering provider credential
     isolation, test pattern detection, and error handling scenarios
+  src/__tests__/e2e/anthropic/chat.e2e.test.ts: "Created comprehensive E2E test
+    suite for Anthropic chat completion with 14 test cases exactly mirroring
+    OpenAI structure, including parameterized tests across all Anthropic models,
+    conversation context handling, response validation, model integration, and
+    error handling scenarios; Fixed Anthropic API requirement by adding
+    maxTokens: 100 to all client.chat() calls, ensuring tests work with live
+    Anthropic APIs that require maxTokens parameter (unlike OpenAI which makes
+    it optional)"
 log: []
 schema: v1.0
 childrenIds:
   - T-add-npm-script-and-environment
-  - T-create-anthropic-chat
   - T-create-anthropic-streaming
   - T-create-anthropic-tool
-  - T-update-jest-setup-files-for
+  - T-create-anthropic-chat
   - T-extend-shared-helpers-for
+  - T-update-jest-setup-files-for
 created: 2025-09-17T00:40:55.311Z
 updated: 2025-09-17T00:40:55.311Z
 ---

@@ -32,7 +32,7 @@ describe("createAnthropicTestClient", () => {
     mockLoadAnthropicTestConfig.mockReturnValue({
       anthropicApiKey: "sk-ant-test-key-12345",
       testEnabled: true,
-      testModel: "anthropic:claude-3-5-haiku-latest",
+      testModel: "anthropic:claude-3-haiku-20240307",
       timeout: 30000,
     });
 

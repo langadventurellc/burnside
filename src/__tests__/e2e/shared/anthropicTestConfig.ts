@@ -27,7 +27,7 @@ export function loadAnthropicTestConfig(): AnthropicTestConfig {
     anthropicApiKey,
     testEnabled,
     testModel:
-      process.env.E2E_ANTHROPIC_MODEL || "anthropic:claude-3-5-haiku-latest",
+      process.env.E2E_ANTHROPIC_MODEL || "anthropic:claude-3-haiku-20240307",
     timeout: 30000,
   };
 }
