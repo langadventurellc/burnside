@@ -51,6 +51,15 @@ affectedFiles:
     maxTokens: 100 to all client.chat() calls, ensuring tests work with live
     Anthropic APIs that require maxTokens parameter (unlike OpenAI which makes
     it optional)"
+  src/__tests__/e2e/anthropic/streaming.e2e.test.ts: "Created comprehensive
+    Anthropic streaming E2E test suite with 12 test cases exactly mirroring
+    OpenAI structure: Basic Streaming (parameterized tests + multiple deltas),
+    Delta Accumulation (correct accumulation + content ordering), Stream
+    Lifecycle (start/end + cancellation), Format Validation (schema compliance +
+    usage info), and Error Handling (invalid models + timeouts + empty
+    messages). Includes proper helper functions for delta collection,
+    accumulation, and validation, with correct timeout patterns and Anthropic
+    API requirements."
 log: []
 schema: v1.0
 childrenIds:
