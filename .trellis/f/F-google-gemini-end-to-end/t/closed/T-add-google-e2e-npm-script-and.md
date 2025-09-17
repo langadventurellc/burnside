@@ -1,12 +1,25 @@
 ---
 id: T-add-google-e2e-npm-script-and
 title: Add Google E2E NPM script and environment documentation
-status: open
+status: done
 priority: low
 parent: F-google-gemini-end-to-end
 prerequisites: []
-affectedFiles: {}
-log: []
+affectedFiles:
+  package.json: Added 'test:e2e:google' NPM script that uses NODE_OPTIONS for
+    dotenv loading and testPathPatterns=google to filter only Google E2E tests,
+    maintaining consistency with existing OpenAI/Anthropic script patterns
+  .env.example: Added Google E2E testing environment documentation including
+    GOOGLE_API_KEY and E2E_GOOGLE_MODEL variables with clear descriptions,
+    updated the shared note to include Google alongside OpenAI/Anthropic, and
+    added Google-specific usage instruction (#6) to the usage section
+log:
+  - Successfully added Google E2E NPM script and environment documentation
+    following the established OpenAI/Anthropic patterns. The new `npm run
+    test:e2e:google` command properly filters and executes only Google E2E
+    tests, and the environment documentation clearly explains Google-specific
+    configuration. All quality checks pass and the script executed successfully
+    with 55 tests passing.
 schema: v1.0
 childrenIds: []
 created: 2025-09-17T07:03:15.495Z

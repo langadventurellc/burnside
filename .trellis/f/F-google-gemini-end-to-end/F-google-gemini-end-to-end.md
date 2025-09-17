@@ -1,7 +1,7 @@
 ---
 id: F-google-gemini-end-to-end
 title: Google Gemini End-to-End Testing Infrastructure
-status: in-progress
+status: done
 priority: medium
 parent: none
 prerequisites: []
@@ -76,15 +76,23 @@ affectedFiles:
     argument validation, response formatting, metadata preservation, and
     execution timing). Uses Google-specific imports, real Google Gemini APIs,
     25s/30s timeouts, and e2e_echo_tool for predictable testing results."
-log: []
+  package.json: Added 'test:e2e:google' NPM script that uses NODE_OPTIONS for
+    dotenv loading and testPathPatterns=google to filter only Google E2E tests,
+    maintaining consistency with existing OpenAI/Anthropic script patterns
+  .env.example: Added Google E2E testing environment documentation including
+    GOOGLE_API_KEY and E2E_GOOGLE_MODEL variables with clear descriptions,
+    updated the shared note to include Google alongside OpenAI/Anthropic, and
+    added Google-specific usage instruction (#6) to the usage section
+log:
+  - "Auto-completed: All child tasks are complete"
 schema: v1.0
 childrenIds:
   - T-add-google-e2e-npm-script-and
-  - T-create-google-tool-execution
   - T-create-google-chat-completion
   - T-create-google-model-helpers
   - T-create-google-streaming-e2e
   - T-create-google-test-configurati
+  - T-create-google-tool-execution
   - T-extend-api-key-validation-for
   - T-update-jest-setup-files-for-1
 created: 2025-09-17T06:52:49.815Z
