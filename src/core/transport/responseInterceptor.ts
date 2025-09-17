@@ -13,7 +13,7 @@
  * };
  * ```
  */
-import type { ProviderHttpResponse } from "./providerHttpResponse.js";
+import type { ProviderHttpResponse } from "./providerHttpResponse";
 
 /**
  * Function type for intercepting HTTP responses after reception.

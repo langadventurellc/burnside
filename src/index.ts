@@ -2,7 +2,7 @@
  * LLM Bridge Library - Main Public API
  *
  * A unified TypeScript library that acts as a bridge to multiple LLM provider APIs
- * for use across Desktop (Electron), Mobile (React Native), and Web (Node.js) platforms.
+ * for use across Desktop (Electron), Mobile (React Native), and Web (Node) platforms.
  *
  * The library provides an extensible architecture for integrating various LLM providers
  * and tools while maintaining a consistent interface across all platforms with comprehensive
@@ -212,19 +212,6 @@ export {
   createModelId,
   parseModelId,
 } from "./core/models";
-
-// ============================================================================
-// FEATURE FLAGS AND ERROR HANDLING
-// ============================================================================
-
-/**
- * Feature flag system for progressive feature enablement.
- * Used internally for phased rollout, exposed for advanced usage and testing.
- *
- * @since 0.1.0 (Phase 1)
- */
-export type { FeatureFlags, FeatureFlagOverrides } from "./client";
-export { initializeFeatureFlags, isFeatureEnabled } from "./client";
 
 /**
  * Error types and utilities for comprehensive error handling.

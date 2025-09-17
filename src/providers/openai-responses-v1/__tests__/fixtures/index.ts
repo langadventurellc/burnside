@@ -6,24 +6,24 @@
  */
 
 // Non-streaming response fixtures
-export * from "./nonStreamingResponses.js";
+export * from "./nonStreamingResponses";
 
 // Streaming event fixtures
-export * from "./streamingEvents.js";
+export * from "./streamingEvents";
 
 // Error response fixtures
-export * from "./errorResponses.js";
+export * from "./errorResponses";
 
 // Request example fixtures
-export * from "./requestExamples.js";
+export * from "./requestExamples";
 
 /**
  * Complete fixture collection for convenience
  */
 export const fixtures = {
   // Re-export organized fixture collections
-  nonStreamingResponses: import("./nonStreamingResponses.js"),
-  streamingEvents: import("./streamingEvents.js"),
-  errorResponses: import("./errorResponses.js"),
-  requestExamples: import("./requestExamples.js"),
+  nonStreamingResponses: import("./nonStreamingResponses"),
+  streamingEvents: import("./streamingEvents"),
+  errorResponses: import("./errorResponses"),
+  requestExamples: import("./requestExamples"),
 } as const;

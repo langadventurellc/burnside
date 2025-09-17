@@ -5,7 +5,7 @@
  */
 
 import { z } from "zod";
-import { createTypeGuard } from "../createTypeGuard.js";
+import { createTypeGuard } from "../createTypeGuard";
 
 describe("createTypeGuard", () => {
   describe("basic type guards", () => {

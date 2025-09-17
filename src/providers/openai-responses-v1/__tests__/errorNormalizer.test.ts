@@ -4,7 +4,7 @@
  * Comprehensive test coverage for OpenAI error normalization including
  * HTTP status codes, OpenAI error types, network errors, and edge cases.
  */
-import { normalizeOpenAIError } from "../errorNormalizer.js";
+import { normalizeOpenAIError } from "../errorNormalizer";
 import {
   AuthError,
   RateLimitError,
@@ -12,7 +12,7 @@ import {
   ProviderError,
   TransportError,
   TimeoutError,
-} from "../../../core/errors/index.js";
+} from "../../../core/errors/index";
 
 describe("OpenAI Error Normalizer", () => {
   describe("HTTP Status Code Mapping", () => {

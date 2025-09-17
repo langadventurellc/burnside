@@ -4,9 +4,9 @@
  * Tests for the ChunkParser utility class.
  */
 
-import { ChunkParser } from "../chunkParser.js";
-import { StreamingError } from "../../errors/streamingError.js";
-import type { ParsedChunk } from "../parsedChunk.js";
+import { ChunkParser } from "../chunkParser";
+import { StreamingError } from "../../errors/streamingError";
+import type { ParsedChunk } from "../parsedChunk";
 
 describe("ChunkParser", () => {
   describe("parseJson", () => {

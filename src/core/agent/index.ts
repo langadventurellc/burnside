@@ -1,15 +1,12 @@
 /**
- * Agent Loop Orchestrator Module
+ * Agent Loop Module
  *
- * This module will contain agent loop orchestrator and policies including
- * AgentLimits and orchestration for deterministic agent loop execution
- * with multi-turn conversation management.
- *
- * Future exports will provide the main orchestration point for conversations.
+ * This module provides agent loop orchestration and execution capabilities
+ * for single-turn tool execution and conversation flow management.
+ * Includes types, execution context utilities, and the main AgentLoop class.
  */
 
-// TODO: Export AgentLimits interface when implemented
-// TODO: Export agent orchestration utilities when implemented
-// TODO: Export conversation management when implemented
-
-export {};
+export type { AgentExecutionState } from "./agentExecutionState";
+export type { AgentExecutionOptions } from "./agentExecutionOptions";
+export { createExecutionContext } from "./agentExecutionContext";
+export { AgentLoop } from "./agentLoop";

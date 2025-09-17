@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { ContentPartSchema } from "./contentPartSchema.js";
+ * import { ContentPartSchema } from "./contentPartSchema";
  *
  * const result = ContentPartSchema.parse({
  *   type: "text",
@@ -16,7 +16,7 @@
  */
 
 import { z } from "zod";
-import { commonSchemas } from "../validation/commonSchemas.js";
+import { commonSchemas } from "../validation/commonSchemas";
 
 const TextContentSchema = z
   .object({

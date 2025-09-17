@@ -1,8 +1,15 @@
 import { BridgeClient } from "../bridgeClient";
 import type { BridgeConfig } from "../../core/config/bridgeConfig";
-import type { ChatRequest } from "../chatRequest";
-import type { StreamRequest } from "../streamRequest";
 import { BridgeError } from "../../core/errors/bridgeError";
+import type { ProviderPlugin } from "../../core/providers/providerPlugin";
+import type { ProviderRegistry } from "../../core/providers/providerRegistry";
+import type { ModelRegistry } from "../../core/models/modelRegistry";
+import type { HttpTransport } from "../../core/transport/index";
+import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse";
+import { InMemoryProviderRegistry } from "../../core/providers/inMemoryProviderRegistry";
+import { InMemoryModelRegistry } from "../../core/models/inMemoryModelRegistry";
+import { TransportError } from "../../core/errors/transportError";
+import { AuthError } from "../../core/errors/authError";
 
 describe("BridgeClient", () => {
   const validConfig: BridgeConfig = {
@@ -12,17 +19,6 @@ describe("BridgeClient", () => {
     },
     defaultModel: "gpt-4",
     timeout: 30000,
-  };
-
-  const validChatRequest: ChatRequest = {
-    messages: [{ role: "user", content: [{ type: "text", text: "Hello!" }] }],
-    model: "gpt-4",
-  };
-
-  const validStreamRequest: StreamRequest = {
-    messages: [{ role: "user", content: [{ type: "text", text: "Hello!" }] }],
-    model: "gpt-4",
-    stream: true,
   };
 
   describe("constructor", () => {
@@ -98,132 +94,6 @@ describe("BridgeClient", () => {
 
       expect(clientConfig.defaultProvider).toBeTruthy();
       expect(["openai", "anthropic"]).toContain(clientConfig.defaultProvider);
-    });
-  });
-
-  describe("chat method", () => {
-    let client: BridgeClient;
-
-    beforeEach(() => {
-      client = new BridgeClient(validConfig);
-    });
-
-    it("should throw FEATURE_DISABLED error by default", () => {
-      expect(() => client.chat(validChatRequest)).toThrow(BridgeError);
-
-      try {
-        client.chat(validChatRequest);
-      } catch (error) {
-        expect(error).toBeInstanceOf(BridgeError);
-        expect((error as BridgeError).code).toBe("FEATURE_DISABLED");
-        expect((error as BridgeError).message).toContain(
-          "Chat functionality is not yet implemented",
-        );
-        expect((error as BridgeError).context?.feature).toBe("chat");
-        expect((error as BridgeError).context?.phase).toBe("Phase 1");
-      }
-    });
-
-    it("should return Promise<Message> type", () => {
-      // This test ensures the method signature is correct
-      try {
-        const result = client.chat(validChatRequest);
-        expect(result).toBeInstanceOf(Promise);
-      } catch (error) {
-        // Expected to throw in Phase 1
-        expect(error).toBeInstanceOf(BridgeError);
-      }
-    });
-
-    it("should accept valid ChatRequest parameters", () => {
-      const complexRequest: ChatRequest = {
-        messages: [
-          { role: "user", content: [{ type: "text", text: "Hello!" }] },
-          { role: "assistant", content: [{ type: "text", text: "Hi there!" }] },
-        ],
-        model: "gpt-3.5-turbo",
-        temperature: 0.7,
-        maxTokens: 1000,
-        options: { customParam: "value" },
-      };
-
-      // Should throw FEATURE_DISABLED error in Phase 1
-      try {
-        client.chat(complexRequest);
-      } catch (error) {
-        expect(error).toBeInstanceOf(BridgeError);
-        const bridgeError = error as BridgeError;
-        expect(bridgeError.code).toBe("FEATURE_DISABLED");
-        expect(bridgeError.context?.feature).toBe("chat");
-
-        // The request context is not included in FEATURE_DISABLED errors
-        // This is expected behavior - detailed request info only in NOT_IMPLEMENTED
-      }
-    });
-  });
-
-  describe("stream method", () => {
-    let client: BridgeClient;
-
-    beforeEach(() => {
-      client = new BridgeClient(validConfig);
-    });
-
-    it("should throw FEATURE_DISABLED error by default", () => {
-      expect(() => {
-        client.stream(validStreamRequest);
-      }).toThrow(BridgeError);
-
-      try {
-        client.stream(validStreamRequest);
-      } catch (error) {
-        expect(error).toBeInstanceOf(BridgeError);
-        expect((error as BridgeError).code).toBe("FEATURE_DISABLED");
-        expect((error as BridgeError).message).toContain(
-          "Streaming functionality is not yet implemented",
-        );
-        expect((error as BridgeError).context?.feature).toBe("streaming");
-        expect((error as BridgeError).context?.phase).toBe("Phase 1");
-      }
-    });
-
-    it("should return AsyncIterable type", () => {
-      // This test ensures the method signature is correct
-      try {
-        const result = client.stream(validStreamRequest);
-        expect(typeof result[Symbol.asyncIterator]).toBe("function");
-      } catch (error) {
-        // Expected to throw in Phase 1
-        expect(error).toBeInstanceOf(BridgeError);
-      }
-    });
-
-    it("should accept valid StreamRequest parameters", () => {
-      const complexRequest: StreamRequest = {
-        messages: [
-          { role: "user", content: [{ type: "text", text: "Hello!" }] },
-        ],
-        model: "gpt-4",
-        temperature: 0.5,
-        stream: true,
-        streamOptions: {
-          includeUsage: true,
-          bufferSize: 1024,
-        },
-      };
-
-      // Should throw FEATURE_DISABLED error in Phase 1
-      try {
-        client.stream(complexRequest);
-      } catch (error) {
-        expect(error).toBeInstanceOf(BridgeError);
-        const bridgeError = error as BridgeError;
-        expect(bridgeError.code).toBe("FEATURE_DISABLED");
-        expect(bridgeError.context?.feature).toBe("streaming");
-
-        // The request context is not included in FEATURE_DISABLED errors
-        // This is expected behavior - detailed request info only in NOT_IMPLEMENTED
-      }
     });
   });
 
@@ -403,6 +273,637 @@ describe("BridgeClient", () => {
           "Configuration must specify",
         );
       }
+    });
+  });
+
+  describe("chat() method", () => {
+    let fakePlugin: jest.Mocked<ProviderPlugin>;
+    let fakeTransport: jest.Mocked<HttpTransport>;
+    let providerRegistry: ProviderRegistry;
+    let modelRegistry: ModelRegistry;
+    let client: BridgeClient;
+
+    beforeEach(() => {
+      // Create fake plugin
+      fakePlugin = {
+        id: "openai",
+        name: "OpenAI Provider",
+        version: "responses-v1",
+        initialize: jest.fn().mockResolvedValue(undefined),
+        translateRequest: jest.fn().mockReturnValue({
+          url: "https://api.openai.com/v1/responses",
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: "test-model", messages: [] }),
+        }),
+        parseResponse: jest.fn().mockResolvedValue({
+          message: {
+            role: "assistant",
+            content: [{ type: "text", text: "ok" }],
+          },
+          model: "gpt-x",
+        }),
+        isTerminal: jest.fn(),
+        normalizeError: jest.fn((e) => new TransportError(String(e))),
+      } as jest.Mocked<ProviderPlugin>;
+
+      // Create fake transport
+      fakeTransport = {
+        fetch: jest.fn().mockResolvedValue({
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          body: new ReadableStream(),
+        } as ProviderHttpResponse),
+        stream: jest.fn().mockResolvedValue(
+          (function* () {
+            yield new Uint8Array([]);
+          })(),
+        ),
+      } as unknown as jest.Mocked<HttpTransport>;
+
+      // Create registries and register test data
+      providerRegistry = new InMemoryProviderRegistry();
+      modelRegistry = new InMemoryModelRegistry();
+
+      providerRegistry.register(fakePlugin);
+      modelRegistry.register("openai:test-model", {
+        id: "openai:test-model",
+        name: "Test Model",
+        provider: "openai",
+        capabilities: {
+          streaming: true,
+          toolCalls: false,
+          images: false,
+          documents: false,
+          maxTokens: 4096,
+          supportedContentTypes: ["text"],
+        },
+        metadata: {
+          providerPlugin: "openai-responses-v1",
+        },
+      });
+
+      // Create client with injected dependencies
+      client = new BridgeClient(validConfig, {
+        transport: fakeTransport,
+        providerRegistry,
+        modelRegistry,
+      });
+    });
+
+    it("should successfully complete a chat request", async () => {
+      // Act
+      const result = await client.chat({
+        model: "openai:test-model",
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+      });
+
+      // Assert
+      expect(result).toEqual({
+        role: "assistant",
+        content: [{ type: "text", text: "ok" }],
+      });
+
+      // Verify call sequence
+      expect(fakePlugin.translateRequest).toHaveBeenCalledWith({
+        model: "test-model",
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        stream: false,
+      });
+
+      expect(fakeTransport.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: "https://api.openai.com/v1/responses",
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: expect.any(AbortSignal),
+        }),
+      );
+
+      expect(fakePlugin.parseResponse).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 200 }),
+        false,
+      );
+    });
+
+    it("should qualify model ID with default provider", async () => {
+      // Act
+      await client.chat({
+        model: "test-model", // No provider prefix
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+      });
+
+      // Assert - should call with qualified model
+      expect(fakePlugin.translateRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: "test-model", // Provider prefix stripped for translation
+        }),
+      );
+    });
+
+    it("should initialize provider only once", async () => {
+      // Act - make two requests
+      await client.chat({
+        model: "openai:test-model",
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+      });
+
+      await client.chat({
+        model: "openai:test-model",
+        messages: [
+          { role: "user", content: [{ type: "text", text: "hello" }] },
+        ],
+      });
+
+      // Assert - initialize called only once
+      expect(fakePlugin.initialize).toHaveBeenCalledTimes(1);
+      expect(fakePlugin.initialize).toHaveBeenCalledWith({ apiKey: "sk-test" });
+    });
+
+    it("should normalize network errors via plugin", async () => {
+      // Arrange
+      const networkError = new Error("network down");
+      fakeTransport.fetch.mockRejectedValue(networkError);
+      fakePlugin.normalizeError.mockReturnValue(
+        new TransportError("Network connection failed"),
+      );
+
+      // Act & Assert
+      await expect(
+        client.chat({
+          model: "openai:test-model",
+          messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        }),
+      ).rejects.toThrow(TransportError);
+
+      // Verify normalization was called
+      expect(fakePlugin.normalizeError).toHaveBeenCalledWith(networkError);
+      expect(fakePlugin.parseResponse).not.toHaveBeenCalled();
+    });
+
+    it("should handle provider errors from parsing", async () => {
+      // Arrange
+      const providerHttpResponse = {
+        status: 401,
+        statusText: "Unauthorized",
+        headers: { "content-type": "application/json" },
+        body: new ReadableStream(),
+      };
+      fakeTransport.fetch.mockResolvedValue(providerHttpResponse);
+      const parseError = new AuthError("Invalid API key");
+      fakePlugin.parseResponse.mockRejectedValue(parseError);
+      fakePlugin.normalizeError.mockReturnValue(parseError); // Return the same error
+
+      // Act & Assert
+      await expect(
+        client.chat({
+          model: "openai:test-model",
+          messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        }),
+      ).rejects.toThrow(AuthError);
+
+      // Verify parseResponse was called and normalizeError was called
+      expect(fakePlugin.parseResponse).toHaveBeenCalledWith(
+        providerHttpResponse,
+        false,
+      );
+      expect(fakePlugin.normalizeError).toHaveBeenCalledWith(parseError);
+    });
+
+    it("should throw error for unregistered model", async () => {
+      // Act & Assert
+      await expect(
+        client.chat({
+          model: "openai:unknown-model",
+          messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        }),
+      ).rejects.toThrow(BridgeError);
+
+      // Verify no provider calls were made
+      expect(fakePlugin.translateRequest).not.toHaveBeenCalled();
+      expect(fakeTransport.fetch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("stream() method", () => {
+    let fakePlugin: jest.Mocked<ProviderPlugin>;
+    let fakeTransport: jest.Mocked<HttpTransport>;
+    let providerRegistry: ProviderRegistry;
+    let modelRegistry: ModelRegistry;
+    let client: BridgeClient;
+
+    beforeEach(() => {
+      // Create fake plugin
+      fakePlugin = {
+        id: "openai",
+        name: "OpenAI Provider",
+        version: "responses-v1",
+        initialize: jest.fn().mockResolvedValue(undefined),
+        translateRequest: jest.fn().mockReturnValue({
+          url: "https://api.openai.com/v1/responses",
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "test-model",
+            messages: [],
+            stream: true,
+          }),
+        }),
+        parseResponse: jest.fn().mockReturnValue(
+          (function* () {
+            yield {
+              id: "chunk-1",
+              delta: { content: [{ type: "text", text: "Hello" }] },
+              finished: false,
+            };
+            yield {
+              id: "chunk-2",
+              delta: { content: [{ type: "text", text: " world" }] },
+              finished: true,
+            };
+          })(),
+        ),
+        isTerminal: jest.fn(),
+        normalizeError: jest.fn((e) => new TransportError(String(e))),
+      } as unknown as jest.Mocked<ProviderPlugin>;
+
+      // Create fake transport
+      fakeTransport = {
+        fetch: jest.fn().mockResolvedValue({
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          body: new ReadableStream(),
+        } as ProviderHttpResponse),
+        stream: jest.fn().mockResolvedValue(
+          (function* () {
+            yield new Uint8Array([]);
+          })(),
+        ),
+      } as unknown as jest.Mocked<HttpTransport>;
+
+      // Create registries and register test data
+      providerRegistry = new InMemoryProviderRegistry();
+      modelRegistry = new InMemoryModelRegistry();
+
+      providerRegistry.register(fakePlugin);
+      modelRegistry.register("openai:test-model", {
+        id: "openai:test-model",
+        name: "Test Model",
+        provider: "openai",
+        capabilities: {
+          streaming: true,
+          toolCalls: false,
+          images: false,
+          documents: false,
+          maxTokens: 4096,
+          supportedContentTypes: ["text"],
+        },
+        metadata: {
+          providerPlugin: "openai-responses-v1",
+        },
+      });
+
+      // Create client with injected dependencies
+      client = new BridgeClient(validConfig, {
+        transport: fakeTransport,
+        providerRegistry,
+        modelRegistry,
+      });
+    });
+
+    it("should successfully stream chat completion", async () => {
+      // Act
+      const stream = await client.stream({
+        model: "openai:test-model",
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+      });
+
+      // Consume the stream
+      const chunks = [];
+      for await (const delta of stream) {
+        chunks.push(delta);
+      }
+
+      // Assert
+      expect(chunks).toHaveLength(2);
+      expect(chunks[0]).toEqual({
+        id: "chunk-1",
+        delta: { content: [{ type: "text", text: "Hello" }] },
+        finished: false,
+      });
+      expect(chunks[1]).toEqual({
+        id: "chunk-2",
+        delta: { content: [{ type: "text", text: " world" }] },
+        finished: true,
+      });
+
+      // Verify call sequence
+      expect(fakePlugin.translateRequest).toHaveBeenCalledWith(
+        {
+          model: "test-model",
+          messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+          stream: true,
+        },
+        { temperature: undefined },
+      );
+
+      expect(fakeTransport.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: "https://api.openai.com/v1/responses",
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: expect.any(AbortSignal),
+        }),
+      );
+
+      expect(fakePlugin.parseResponse).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 200 }),
+        true,
+      );
+    });
+
+    it("should handle network errors during streaming", async () => {
+      // Arrange
+      const networkError = new Error("network down");
+      fakeTransport.fetch.mockRejectedValue(networkError);
+      fakePlugin.normalizeError.mockReturnValue(
+        new TransportError("Network connection failed"),
+      );
+
+      // Act & Assert
+      await expect(
+        client.stream({
+          model: "openai:test-model",
+          messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        }),
+      ).rejects.toThrow(TransportError);
+
+      // Verify normalization was called
+      expect(fakePlugin.normalizeError).toHaveBeenCalledWith(networkError);
+      expect(fakePlugin.parseResponse).not.toHaveBeenCalled();
+    });
+
+    it("should handle provider errors from parse response", async () => {
+      // Arrange
+      const providerHttpResponse = {
+        status: 401,
+        statusText: "Unauthorized",
+        headers: { "content-type": "application/json" },
+        body: new ReadableStream(),
+      };
+      fakeTransport.fetch.mockResolvedValue(providerHttpResponse);
+      const parseError = new AuthError("Invalid API key");
+      fakePlugin.parseResponse.mockImplementation(() => {
+        throw parseError;
+      });
+      fakePlugin.normalizeError.mockReturnValue(parseError); // Return the same error
+
+      // Act & Assert
+      await expect(
+        client.stream({
+          model: "openai:test-model",
+          messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        }),
+      ).rejects.toThrow(AuthError);
+
+      // Verify parseResponse was called and normalizeError was called
+      expect(fakePlugin.parseResponse).toHaveBeenCalledWith(
+        providerHttpResponse,
+        true,
+      );
+      expect(fakePlugin.normalizeError).toHaveBeenCalledWith(parseError);
+    });
+
+    it("should throw error for unregistered model", async () => {
+      // Act & Assert
+      await expect(
+        client.stream({
+          model: "openai:unknown-model",
+          messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        }),
+      ).rejects.toThrow(BridgeError);
+
+      // Verify no provider calls were made
+      expect(fakePlugin.translateRequest).not.toHaveBeenCalled();
+      expect(fakeTransport.fetch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Provider Plugin Mapping", () => {
+    let fakeOpenAIPlugin: jest.Mocked<ProviderPlugin>;
+    let fakeAnthropicPlugin: jest.Mocked<ProviderPlugin>;
+    let fakeTransport: jest.Mocked<HttpTransport>;
+    let providerRegistry: ProviderRegistry;
+    let modelRegistry: ModelRegistry;
+    let client: BridgeClient;
+
+    const testConfig: BridgeConfig = {
+      defaultProvider: "openai",
+      providers: {
+        openai: { apiKey: "sk-test" },
+        anthropic: { apiKey: "sk-ant-test" },
+      },
+      defaultModel: "gpt-4",
+      timeout: 30000,
+    };
+
+    beforeEach(() => {
+      // Create fake OpenAI plugin
+      fakeOpenAIPlugin = {
+        id: "openai",
+        version: "responses-v1",
+        name: "OpenAI Responses V1 Provider",
+        initialize: jest.fn().mockResolvedValue(undefined),
+        supportsModel: jest.fn().mockReturnValue(true),
+        translateRequest: jest.fn().mockReturnValue({
+          url: "https://api.openai.com/v1/chat/completions",
+          method: "POST",
+          headers: { Authorization: "Bearer sk-test" },
+          body: '{"model":"gpt-4","messages":[]}',
+        }),
+        parseResponse: jest.fn(),
+        isTerminal: jest.fn().mockReturnValue(true),
+        normalizeError: jest.fn(),
+      };
+
+      // Create fake Anthropic plugin
+      fakeAnthropicPlugin = {
+        id: "anthropic",
+        version: "2023-06-01",
+        name: "Anthropic Messages Provider",
+        initialize: jest.fn().mockResolvedValue(undefined),
+        supportsModel: jest.fn().mockReturnValue(true),
+        translateRequest: jest.fn().mockReturnValue({
+          url: "https://api.anthropic.com/v1/messages",
+          method: "POST",
+          headers: {
+            "x-api-key": "sk-ant-test",
+            "anthropic-version": "2023-06-01",
+          },
+          body: '{"model":"claude-sonnet-4-20250514","messages":[]}',
+        }),
+        parseResponse: jest.fn(),
+        isTerminal: jest.fn().mockReturnValue(true),
+        normalizeError: jest.fn(),
+      };
+
+      // Create fake transport
+      fakeTransport = {
+        fetch: jest.fn().mockResolvedValue({
+          status: 200,
+          statusText: "OK",
+          headers: { "content-type": "application/json" },
+          body: new ReadableStream(),
+        } as ProviderHttpResponse),
+        stream: jest.fn().mockResolvedValue(
+          (function* () {
+            yield new Uint8Array([]);
+          })(),
+        ),
+      } as unknown as jest.Mocked<HttpTransport>;
+
+      // Create registries and register test data
+      providerRegistry = new InMemoryProviderRegistry();
+      modelRegistry = new InMemoryModelRegistry();
+
+      providerRegistry.register(fakeOpenAIPlugin);
+      providerRegistry.register(fakeAnthropicPlugin);
+
+      // Register models with provider plugin metadata
+      modelRegistry.register("openai:gpt-4", {
+        id: "openai:gpt-4",
+        name: "GPT-4",
+        provider: "openai",
+        capabilities: {
+          streaming: true,
+          toolCalls: true,
+          images: true,
+          documents: false,
+          temperature: true,
+          maxTokens: 128000,
+          supportedContentTypes: ["text", "image"],
+        },
+        metadata: { providerPlugin: "openai-responses-v1" },
+      });
+
+      modelRegistry.register("anthropic:claude-sonnet", {
+        id: "anthropic:claude-sonnet",
+        name: "Claude Sonnet",
+        provider: "anthropic",
+        capabilities: {
+          streaming: true,
+          toolCalls: true,
+          images: true,
+          documents: true,
+          temperature: true,
+          maxTokens: 200000,
+          supportedContentTypes: ["text", "image"],
+        },
+        metadata: { providerPlugin: "anthropic-2023-06-01" },
+      });
+
+      // Create client with custom registries
+      client = new BridgeClient(testConfig, {
+        transport: fakeTransport,
+        providerRegistry,
+        modelRegistry,
+      });
+    });
+
+    it("should map 'openai-responses-v1' to OpenAI provider", async () => {
+      // Arrange
+      fakeOpenAIPlugin.parseResponse.mockResolvedValue({
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "Hello from OpenAI!" }],
+        },
+        usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 },
+        model: "gpt-4",
+      });
+
+      // Act
+      await client.chat({
+        model: "openai:gpt-4",
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+      });
+
+      // Assert
+      expect(fakeOpenAIPlugin.translateRequest).toHaveBeenCalled();
+      expect(fakeAnthropicPlugin.translateRequest).not.toHaveBeenCalled();
+    });
+
+    it("should map 'anthropic-2023-06-01' to Anthropic provider", async () => {
+      // Arrange
+      fakeAnthropicPlugin.parseResponse.mockResolvedValue({
+        message: {
+          role: "assistant",
+          content: [{ type: "text", text: "Hello from Claude!" }],
+        },
+        usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 },
+        model: "claude-sonnet-4-20250514",
+      });
+
+      // Act
+      await client.chat({
+        model: "anthropic:claude-sonnet",
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+      });
+
+      // Assert
+      expect(fakeAnthropicPlugin.translateRequest).toHaveBeenCalled();
+      expect(fakeOpenAIPlugin.translateRequest).not.toHaveBeenCalled();
+    });
+
+    it("should throw error for unknown provider plugin", async () => {
+      // Arrange
+      modelRegistry.register("unknown:model", {
+        id: "unknown:model",
+        name: "Unknown Model",
+        provider: "unknown",
+        capabilities: {
+          streaming: false,
+          toolCalls: false,
+          images: false,
+          documents: false,
+          supportedContentTypes: ["text"],
+        },
+        metadata: { providerPlugin: "unknown-provider-v1" },
+      });
+
+      // Act & Assert
+      await expect(
+        client.chat({
+          model: "unknown:model",
+          messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        }),
+      ).rejects.toThrow(BridgeError);
+    });
+
+    it("should throw error for model without provider plugin metadata", async () => {
+      // Arrange
+      modelRegistry.register("no-plugin:model", {
+        id: "no-plugin:model",
+        name: "No Plugin Model",
+        provider: "unknown",
+        capabilities: {
+          streaming: false,
+          toolCalls: false,
+          images: false,
+          documents: false,
+          supportedContentTypes: ["text"],
+        },
+        // Missing metadata.providerPlugin
+      });
+
+      // Act & Assert
+      await expect(
+        client.chat({
+          model: "no-plugin:model",
+          messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        }),
+      ).rejects.toThrow(BridgeError);
     });
   });
 });

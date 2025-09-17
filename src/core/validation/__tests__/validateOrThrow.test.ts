@@ -5,8 +5,8 @@
  */
 
 import { z } from "zod";
-import { validateOrThrow } from "../validateOrThrow.js";
-import { ValidationError } from "../../errors/validationError.js";
+import { validateOrThrow } from "../validateOrThrow";
+import { ValidationError } from "../../errors/validationError";
 
 describe("validateOrThrow", () => {
   const stringSchema = z.string();

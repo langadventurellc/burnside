@@ -1,5 +1,5 @@
-import type { ProviderPlugin } from "./providerPlugin.js";
-import type { ProviderInfo } from "./providerInfo.js";
+import type { ProviderPlugin } from "./providerPlugin";
+import type { ProviderInfo } from "./providerInfo";
 
 /**
  * Provider Registry Interface

@@ -3,11 +3,11 @@
  */
 
 import { describe, test, expect } from "@jest/globals";
-import type { ChatRequest } from "../../../client/chatRequest.js";
-import type { Message } from "../../../core/messages/message.js";
-import { ValidationError } from "../../../core/errors/validationError.js";
-import { translateChatRequest } from "../translator.js";
-import type { OpenAIResponsesV1Config } from "../configSchema.js";
+import type { ChatRequest } from "../../../client/chatRequest";
+import type { Message } from "../../../core/messages/message";
+import { ValidationError } from "../../../core/errors/validationError";
+import { translateChatRequest } from "../translator";
+import type { OpenAIResponsesV1Config } from "../configSchema";
 
 const mockConfig: OpenAIResponsesV1Config = {
   apiKey: "sk-test-key-123",
@@ -56,8 +56,9 @@ describe("translateChatRequest", () => {
       const body = parseBody(result.body!);
       expect(body).toEqual({
         model: "gpt-4",
-        messages: [
+        input: [
           {
+            type: "message",
             role: "user",
             content: "Hello, world!",
           },
@@ -102,18 +103,20 @@ describe("translateChatRequest", () => {
       const body = parseBody(result.body!);
       expect(body).toEqual({
         model: "gpt-4o",
-        messages: [
+        input: [
           {
+            type: "message",
             role: "system",
             content: "You are a helpful assistant.",
           },
           {
+            type: "message",
             role: "user",
             content: "What is the weather?",
           },
         ],
         temperature: 0.7,
-        max_tokens: 1000,
+        max_output_tokens: 1000,
         stream: true,
         top_p: 0.9,
         frequency_penalty: 0.1,
@@ -142,7 +145,7 @@ describe("translateChatRequest", () => {
       const result = translateChatRequest(request, mockConfig);
 
       const body = parseBody(result.body!);
-      expect(body.messages[0].content).toEqual([
+      expect(body.input[0].content).toEqual([
         {
           type: "text",
           text: "What do you see in this image?",
@@ -177,7 +180,7 @@ describe("translateChatRequest", () => {
       const result = translateChatRequest(request, mockConfig);
 
       const body = parseBody(result.body!);
-      expect(body.messages[0].content).toBe("console.log('Hello');");
+      expect(body.input[0].content).toBe("console.log('Hello');");
     });
 
     test("should handle multiple messages with different roles", () => {
@@ -204,10 +207,10 @@ describe("translateChatRequest", () => {
       const result = translateChatRequest(request, mockConfig);
 
       const body = parseBody(result.body!);
-      expect(body.messages).toEqual([
-        { role: "system", content: "You are helpful." },
-        { role: "user", content: "Hello!" },
-        { role: "assistant", content: "Hi there!" },
+      expect(body.input).toEqual([
+        { type: "message", role: "system", content: "You are helpful." },
+        { type: "message", role: "user", content: "Hello!" },
+        { type: "message", role: "assistant", content: "Hi there!" },
       ]);
     });
   });
@@ -420,7 +423,7 @@ describe("translateChatRequest", () => {
       expect(body.top_p).toBe(0.9);
       expect(body.frequency_penalty).toBe(0.5);
       expect(body.presence_penalty).toBe(0.3);
-      expect(body.max_tokens).toBe(500);
+      expect(body.max_output_tokens).toBe(500);
     });
 
     test("should handle maxTokens parameter mapping", () => {
@@ -438,7 +441,7 @@ describe("translateChatRequest", () => {
       const result = translateChatRequest(request, mockConfig);
       const body = parseBody(result.body!);
 
-      expect(body.max_tokens).toBe(2000);
+      expect(body.max_output_tokens).toBe(2000);
     });
 
     test("should handle stream parameter", () => {

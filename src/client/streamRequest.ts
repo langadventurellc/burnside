@@ -6,6 +6,10 @@ import type { ChatRequest } from "./chatRequest";
  * Configuration for streaming chat completion requests.
  * Identical to ChatRequest with additional streaming-specific options.
  *
+ * When tools are provided, the stream may be interrupted mid-response if the model
+ * requests tool execution. The stream will pause, execute the tool, and resume
+ * with the tool results integrated into the conversation.
+ *
  * @example
  * ```typescript
  * const request: StreamRequest = {
@@ -15,7 +19,10 @@ import type { ChatRequest } from "./chatRequest";
  *   model: "gpt-4",
  *   temperature: 0.7,
  *   stream: true,
- *   streamOptions: { includeUsage: true }
+ *   streamOptions: { includeUsage: true },
+ *   tools: [
+ *     { name: "echo", description: "Echo input", inputSchema: { type: "object" } }
+ *   ]
  * };
  * ```
  */

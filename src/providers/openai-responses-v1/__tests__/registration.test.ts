@@ -5,10 +5,10 @@
  * error handling, and registry integration.
  */
 
-import { InMemoryProviderRegistry } from "../../../core/providers/inMemoryProviderRegistry.js";
-import { OpenAIResponsesV1Provider } from "../index.js";
-import { ValidationError } from "../../../core/errors/validationError.js";
-import { BridgeError } from "../../../core/errors/bridgeError.js";
+import { InMemoryProviderRegistry } from "../../../core/providers/inMemoryProviderRegistry";
+import { OpenAIResponsesV1Provider } from "../index";
+import { ValidationError } from "../../../core/errors/validationError";
+import { BridgeError } from "../../../core/errors/bridgeError";
 
 describe("OpenAI Responses v1 Provider Registration", () => {
   let registry: InMemoryProviderRegistry;
@@ -176,19 +176,22 @@ describe("OpenAI Responses v1 Provider Registration", () => {
       );
     });
 
-    it("should replace the existing provider when overwriting", () => {
+    it("should replace the existing provider when overwriting", async () => {
       registry.register(provider);
       const beforeRegistration = registry.list("openai")[0].registeredAt;
 
       // Wait a brief moment to ensure different timestamp
-      setTimeout(() => {
-        registry.register(provider);
-        const afterRegistration = registry.list("openai")[0].registeredAt;
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          registry.register(provider);
+          const afterRegistration = registry.list("openai")[0].registeredAt;
 
-        expect(afterRegistration.getTime()).toBeGreaterThan(
-          beforeRegistration.getTime(),
-        );
-      }, 10);
+          expect(afterRegistration.getTime()).toBeGreaterThan(
+            beforeRegistration.getTime(),
+          );
+          resolve(undefined);
+        }, 10);
+      });
     });
   });
 

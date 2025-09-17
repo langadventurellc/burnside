@@ -6,9 +6,9 @@
  */
 
 import type { z } from "zod";
-import { validateOrThrow } from "./validateOrThrow.js";
-import type { ValidationOptions } from "./validationOptions.js";
-import { providerSchemas } from "./providerSchemas.js";
+import { validateOrThrow } from "./validateOrThrow";
+import type { ValidationOptions } from "./validationOptions";
+import { providerSchemas } from "./providerSchemas";
 
 /**
  * Validate provider configuration with specific schema

@@ -4,9 +4,9 @@
  * Tests for the Transport interface to ensure proper contract
  * compliance and method signature validation.
  */
-import type { Transport } from "../transport.js";
-import type { ProviderHttpRequest } from "../providerHttpRequest.js";
-import type { ProviderHttpResponse } from "../providerHttpResponse.js";
+import type { Transport } from "../transport";
+import type { ProviderHttpRequest } from "../providerHttpRequest";
+import type { ProviderHttpResponse } from "../providerHttpResponse";
 
 describe("Transport", () => {
   // Mock implementation for testing interface compliance

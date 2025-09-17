@@ -17,8 +17,8 @@
  * }
  * ```
  */
-import { BridgeError } from "../errors/bridgeError.js";
-import type { InterceptorErrorContext } from "./interceptorErrorContext.js";
+import { BridgeError } from "../errors/bridgeError";
+import type { InterceptorErrorContext } from "./interceptorErrorContext";
 
 /**
  * Error thrown when interceptor execution fails.

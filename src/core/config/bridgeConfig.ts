@@ -1,3 +1,5 @@
+import type { ToolsConfig } from "./toolsConfig";
+
 /**
  * Bridge Config Interface
  *
@@ -18,6 +20,11 @@
  *   registryOptions: {
  *     providers: {},
  *     models: {}
+ *   },
+ *   tools: {
+ *     enabled: true,
+ *     builtinTools: ["echo"],
+ *     executionTimeoutMs: 5000
  *   }
  * };
  * ```
@@ -47,4 +54,7 @@ export interface BridgeConfig {
     | "none" // do not seed (default)
     | { data?: unknown } // app‑supplied JSON object matching DefaultLlmModels schema
     | { path: string }; // Node-only path; prefer supplying data instead in cross-platform apps
+
+  /** Tool system configuration */
+  tools?: ToolsConfig;
 }

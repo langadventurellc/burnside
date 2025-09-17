@@ -11,7 +11,7 @@
  *
  * @example
  * ```typescript
- * import { InMemoryModelRegistry, createModelId } from "./models/index.js";
+ * import { InMemoryModelRegistry, createModelId } from "./models/index";
  *
  * const registry = new InMemoryModelRegistry();
  * const modelId = createModelId("openai", "gpt-4");
@@ -34,17 +34,17 @@
  */
 
 // Type exports
-export type { ModelId } from "./modelId.js";
-export type { ModelQuery } from "./modelQuery.js";
+export type { ModelId } from "./modelId";
+export type { ModelQuery } from "./modelQuery";
 
 // Interface exports
-export type { ModelRegistry } from "./modelRegistry.js";
+export type { ModelRegistry } from "./modelRegistry";
 
 // Implementation exports
-export { InMemoryModelRegistry } from "./inMemoryModelRegistry.js";
+export { InMemoryModelRegistry } from "./inMemoryModelRegistry";
 
 // Utility function exports
-export { createModelId } from "./createModelId.js";
-export { parseModelId } from "./parseModelId.js";
-export { mapJsonToModelInfo } from "./modelLoader.js";
-export { DefaultLlmModelsSchema } from "./defaultLlmModelsSchema.js";
+export { createModelId } from "./createModelId";
+export { parseModelId } from "./parseModelId";
+export { mapJsonToModelInfo } from "./modelLoader";
+export { DefaultLlmModelsSchema } from "./defaultLlmModelsSchema";

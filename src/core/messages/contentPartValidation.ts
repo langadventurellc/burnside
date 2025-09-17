@@ -5,7 +5,7 @@
  * using the Zod schema with safe validation and type guards.
  */
 
-import { ContentPartSchema } from "./contentPartSchema.js";
+import { ContentPartSchema } from "./contentPartSchema";
 
 /**
  * Validation utility for safely validating content parts.

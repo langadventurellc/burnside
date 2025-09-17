@@ -4,13 +4,13 @@
  * HTTP request interface for provider API calls.
  *
  * Provides a platform-agnostic abstraction for HTTP requests that can be
- * implemented using Node.js fetch, browser fetch, or custom HTTP clients.
+ * implemented using Node fetch, browser fetch, or custom HTTP clients.
  * All properties align with the modern fetch API standard.
  *
  * @example Basic HTTP request
  * ```typescript
  * const request: ProviderHttpRequest = {
- *   url: "https://api.openai.com/v1/chat/completions",
+ *   url: "https://api.openai.com/v1/responses",
  *   method: "POST",
  *   headers: {
  *     "Content-Type": "application/json",
@@ -30,7 +30,7 @@
  * };
  * ```
  */
-import type { HttpMethod } from "./httpMethod.js";
+import type { HttpMethod } from "./httpMethod";
 
 /**
  * HTTP request interface for provider API calls.

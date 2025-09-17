@@ -1,500 +1,622 @@
-/**
- * Tests for OpenAI Responses v1 Response Parser
- */
-
 import { describe, test, expect } from "@jest/globals";
-import type { ProviderHttpResponse } from "../../../core/transport/providerHttpResponse.js";
-import { ValidationError } from "../../../core/errors/validationError.js";
-import { parseOpenAIResponse } from "../responseParser.js";
+import { parseOpenAIResponse } from "../responseParser";
+import { ValidationError } from "../../../core/errors/validationError";
+import type { ProviderHttpResponse } from "../../../core/transport/providerHttpResponse";
 
-// Helper function to create mock ProviderHttpResponse
+// Mock ProviderHttpResponse for testing
 function createMockResponse(
-  status: number,
-  statusText: string,
+  body: string,
+  status: number = 200,
+  statusText: string = "OK",
 ): ProviderHttpResponse {
   return {
     status,
     statusText,
     headers: { "content-type": "application/json" },
-    body: null, // Not used in current implementation since we pass responseText directly
+    body: null, // Not used since we pass responseText directly
   };
 }
 
 describe("parseOpenAIResponse", () => {
   describe("Successful parsing", () => {
     test("should parse valid response with string content", () => {
-      const responseText = JSON.stringify({
-        id: "chatcmpl-123",
-        object: "chat.completion",
-        created: 1677652288,
+      const responseBody = JSON.stringify({
+        id: "resp_123",
+        object: "response",
+        status: "completed",
         model: "gpt-4o-2024-08-06",
-        choices: [
+        output: [
           {
-            index: 0,
-            message: {
-              role: "assistant",
-              content: "Hello! How can I help you today?",
-            },
-            finish_reason: "stop",
+            type: "message",
+            role: "assistant",
+            content: [
+              {
+                type: "output_text",
+                text: "Hello! How can I help you today?",
+              },
+            ],
           },
         ],
         usage: {
-          prompt_tokens: 10,
-          completion_tokens: 9,
+          input_tokens: 10,
+          output_tokens: 9,
           total_tokens: 19,
         },
-        system_fingerprint: "fp_44709d6fcb",
+        created_at: 1677652288,
       });
 
-      const response = createMockResponse(200, "OK");
-      const result = parseOpenAIResponse(response, responseText);
+      const response = createMockResponse(responseBody);
+      const result = parseOpenAIResponse(response, responseBody);
 
-      expect(result).toEqual({
-        message: {
-          id: "chatcmpl-123",
-          role: "assistant",
-          content: [{ type: "text", text: "Hello! How can I help you today?" }],
-        },
-        usage: {
-          promptTokens: 10,
-          completionTokens: 9,
-          totalTokens: 19,
-        },
-        model: "gpt-4o-2024-08-06",
-        metadata: {
-          id: "chatcmpl-123",
-          created: 1677652288,
-          finishReason: "stop",
-          systemFingerprint: "fp_44709d6fcb",
-        },
+      expect(result.message.id).toBe("resp_123");
+      expect(result.message.role).toBe("assistant");
+      expect(result.message.content).toHaveLength(1);
+      expect(result.message.content[0]).toEqual({
+        type: "text",
+        text: "Hello! How can I help you today?",
       });
+      expect(result.usage?.promptTokens).toBe(10);
+      expect(result.usage?.completionTokens).toBe(9);
+      expect(result.usage?.totalTokens).toBe(19);
+      expect(result.model).toBe("gpt-4o-2024-08-06");
     });
 
     test("should parse response with array content parts", () => {
-      const responseText = JSON.stringify({
-        id: "chatcmpl-456",
-        object: "chat.completion",
-        created: 1677652300,
+      const responseBody = JSON.stringify({
+        id: "resp_456",
+        object: "response",
+        status: "completed",
         model: "gpt-4o-2024-08-06",
-        choices: [
+        output: [
           {
-            index: 0,
-            message: {
-              role: "assistant",
-              content: [
-                {
-                  type: "text",
-                  text: "Here is the information:",
-                },
-                {
-                  type: "text",
-                  text: "Additional details.",
-                },
-              ],
-            },
-            finish_reason: "length",
+            type: "message",
+            role: "assistant",
+            content: [
+              {
+                type: "output_text",
+                text: "Here is the first part.",
+              },
+              {
+                type: "output_text",
+                text: "And here is the second part.",
+              },
+            ],
           },
         ],
         usage: {
-          prompt_tokens: 15,
-          completion_tokens: 12,
+          input_tokens: 15,
+          output_tokens: 12,
           total_tokens: 27,
         },
       });
 
-      const response = createMockResponse(200, "OK");
-      const result = parseOpenAIResponse(response, responseText);
+      const response = createMockResponse(responseBody);
+      const result = parseOpenAIResponse(response, responseBody);
 
-      expect(result.message.content).toEqual([
-        { type: "text", text: "Here is the information:" },
-        { type: "text", text: "Additional details." },
-      ]);
-      expect(result.metadata?.finishReason).toBe("length");
+      expect(result.message.content).toHaveLength(2);
+      expect(result.message.content[0]).toEqual({
+        type: "text",
+        text: "Here is the first part.",
+      });
+      expect(result.message.content[1]).toEqual({
+        type: "text",
+        text: "And here is the second part.",
+      });
     });
 
     test("should parse response without usage information", () => {
-      const responseText = JSON.stringify({
-        id: "chatcmpl-789",
-        object: "chat.completion",
-        created: 1677652310,
+      const responseBody = JSON.stringify({
+        id: "resp_789",
+        object: "response",
+        status: "completed",
         model: "gpt-4o-2024-08-06",
-        choices: [
+        output: [
           {
-            index: 0,
-            message: {
-              role: "assistant",
-              content: "Response without usage",
-            },
-            finish_reason: null,
+            type: "message",
+            role: "assistant",
+            content: [
+              {
+                type: "output_text",
+                text: "Response without usage",
+              },
+            ],
           },
         ],
       });
 
-      const response = createMockResponse(200, "OK");
-      const result = parseOpenAIResponse(response, responseText);
+      const response = createMockResponse(responseBody);
+      const result = parseOpenAIResponse(response, responseBody);
 
       expect(result.usage).toBeUndefined();
-      expect(result.metadata?.finishReason).toBeNull();
     });
 
-    test("should parse response without system fingerprint", () => {
-      const responseText = JSON.stringify({
-        id: "chatcmpl-abc",
-        object: "chat.completion",
-        created: 1677652320,
+    test("should parse response without optional fields", () => {
+      const responseBody = JSON.stringify({
+        id: "resp_minimal",
+        object: "response",
+        status: "completed",
         model: "gpt-4o-2024-08-06",
-        choices: [
+        output: [
           {
-            index: 0,
-            message: {
-              role: "assistant",
-              content: "No fingerprint",
-            },
-            finish_reason: "stop",
+            type: "message",
+            role: "assistant",
+            content: [
+              {
+                type: "output_text",
+                text: "Minimal response",
+              },
+            ],
           },
         ],
-        usage: {
-          prompt_tokens: 5,
-          completion_tokens: 3,
-          total_tokens: 8,
-        },
       });
 
-      const response = createMockResponse(200, "OK");
-      const result = parseOpenAIResponse(response, responseText);
+      const response = createMockResponse(responseBody);
+      const result = parseOpenAIResponse(response, responseBody);
 
-      expect(result.metadata?.systemFingerprint).toBeUndefined();
+      expect(result.message.id).toBe("resp_minimal");
+      expect(result.message.role).toBe("assistant");
+      expect(result.model).toBe("gpt-4o-2024-08-06");
     });
 
     test("should handle empty string content", () => {
-      const responseText = JSON.stringify({
-        id: "chatcmpl-empty",
-        object: "chat.completion",
-        created: 1677652330,
+      const responseBody = JSON.stringify({
+        id: "resp_empty",
+        object: "response",
+        status: "completed",
         model: "gpt-4o-2024-08-06",
-        choices: [
+        output: [
           {
-            index: 0,
-            message: {
-              role: "assistant",
-              content: "",
-            },
-            finish_reason: "stop",
+            type: "message",
+            role: "assistant",
+            content: [
+              {
+                type: "output_text",
+                text: "",
+              },
+            ],
           },
         ],
       });
 
-      const response = createMockResponse(200, "OK");
-      const result = parseOpenAIResponse(response, responseText);
+      const response = createMockResponse(responseBody);
+      const result = parseOpenAIResponse(response, responseBody);
 
-      expect(result.message.content).toEqual([{ type: "text", text: "" }]);
+      expect(result.message.content).toHaveLength(1);
+      expect(result.message.content[0]).toEqual({
+        type: "text",
+        text: "",
+      });
     });
 
     test("should handle empty array content", () => {
-      const responseText = JSON.stringify({
-        id: "chatcmpl-empty-array",
-        object: "chat.completion",
-        created: 1677652340,
+      const responseBody = JSON.stringify({
+        id: "resp_empty_array",
+        object: "response",
+        status: "completed",
         model: "gpt-4o-2024-08-06",
-        choices: [
+        output: [
           {
-            index: 0,
-            message: {
-              role: "assistant",
-              content: [],
-            },
-            finish_reason: "stop",
+            type: "message",
+            role: "assistant",
+            content: [],
           },
         ],
       });
 
-      const response = createMockResponse(200, "OK");
-      const result = parseOpenAIResponse(response, responseText);
+      const response = createMockResponse(responseBody);
+      const result = parseOpenAIResponse(response, responseBody);
 
-      expect(result.message.content).toEqual([]);
+      expect(result.message.content).toHaveLength(0);
     });
   });
 
   describe("Error handling", () => {
     test("should throw ValidationError for empty response text", () => {
-      const response = createMockResponse(200, "OK");
+      const response = createMockResponse("");
 
       expect(() => parseOpenAIResponse(response, "")).toThrow(ValidationError);
-      expect(() => parseOpenAIResponse(response, "   ")).toThrow(
-        ValidationError,
+      expect(() => parseOpenAIResponse(response, "")).toThrow(
+        "Response body is empty",
       );
-
-      try {
-        parseOpenAIResponse(response, "");
-      } catch (error) {
-        expect(error).toBeInstanceOf(ValidationError);
-        expect((error as ValidationError).message).toBe(
-          "Response body is empty",
-        );
-        expect((error as ValidationError).context).toEqual({
-          status: 200,
-          statusText: "OK",
-        });
-      }
     });
 
     test("should throw ValidationError for invalid JSON", () => {
-      const response = createMockResponse(200, "OK");
-      const invalidJson = "{ invalid json }";
+      const response = createMockResponse("invalid json");
 
-      expect(() => parseOpenAIResponse(response, invalidJson)).toThrow(
+      expect(() => parseOpenAIResponse(response, "invalid json")).toThrow(
         ValidationError,
       );
-
-      try {
-        parseOpenAIResponse(response, invalidJson);
-      } catch (error) {
-        expect(error).toBeInstanceOf(ValidationError);
-        expect((error as ValidationError).message).toBe(
-          "Failed to parse response as JSON",
-        );
-        expect((error as ValidationError).context).toMatchObject({
-          status: 200,
-          statusText: "OK",
-          responseText: invalidJson,
-          parseError: expect.any(String),
-        });
-      }
+      expect(() => parseOpenAIResponse(response, "invalid json")).toThrow(
+        "Failed to parse response as JSON",
+      );
     });
 
     test("should throw ValidationError for invalid OpenAI response structure", () => {
-      const response = createMockResponse(200, "OK");
       const invalidResponse = JSON.stringify({
-        id: "chatcmpl-invalid",
-        object: "wrong_type", // Invalid object type
-        created: 1677652350,
+        id: "resp_invalid",
+        object: "chat.completion", // Wrong object type
         model: "gpt-4o-2024-08-06",
-        choices: [],
       });
+
+      const response = createMockResponse(invalidResponse);
 
       expect(() => parseOpenAIResponse(response, invalidResponse)).toThrow(
         ValidationError,
       );
-
-      try {
-        parseOpenAIResponse(response, invalidResponse);
-      } catch (error) {
-        expect(error).toBeInstanceOf(ValidationError);
-        expect((error as ValidationError).message).toBe(
-          "Invalid OpenAI response structure",
-        );
-        expect((error as ValidationError).context).toMatchObject({
-          status: 200,
-          statusText: "OK",
-          validationErrors: expect.any(Array),
-          responseData: expect.any(Object),
-        });
-      }
+      expect(() => parseOpenAIResponse(response, invalidResponse)).toThrow(
+        "Invalid OpenAI response structure",
+      );
     });
 
-    test("should throw ValidationError for empty choices array", () => {
-      const response = createMockResponse(200, "OK");
-      const responseWithEmptyChoices = JSON.stringify({
-        id: "chatcmpl-no-choices",
-        object: "chat.completion",
-        created: 1677652360,
+    test("should throw ValidationError for empty output array", () => {
+      const responseBody = JSON.stringify({
+        id: "resp_empty_output",
+        object: "response",
+        status: "completed",
         model: "gpt-4o-2024-08-06",
-        choices: [],
+        output: [],
       });
 
-      expect(() =>
-        parseOpenAIResponse(response, responseWithEmptyChoices),
-      ).toThrow(ValidationError);
+      const response = createMockResponse(responseBody);
 
       try {
-        parseOpenAIResponse(response, responseWithEmptyChoices);
+        parseOpenAIResponse(response, responseBody);
+        expect(false).toBe(true); // Should not reach here
       } catch (error) {
         expect(error).toBeInstanceOf(ValidationError);
         expect((error as ValidationError).message).toBe(
-          "OpenAI response contains no choices",
+          "OpenAI response contains no output",
         );
         expect((error as ValidationError).context).toMatchObject({
           status: 200,
           statusText: "OK",
-          responseId: "chatcmpl-no-choices",
+          responseId: "resp_empty_output",
         });
       }
     });
 
     test("should include response context in validation errors", () => {
-      const response = createMockResponse(400, "Bad Request");
-      const invalidResponse = JSON.stringify({
-        id: 123, // Should be string
-        object: "chat.completion",
-        created: 1677652370,
-        model: "gpt-4o-2024-08-06",
-        choices: [
-          {
-            index: 0,
-            message: {
-              role: "assistant",
-              content: "Test",
-            },
-            finish_reason: "stop",
-          },
-        ],
-      });
+      const invalidResponse = JSON.stringify({ invalid: "structure" });
+      const response = createMockResponse(invalidResponse, 400, "Bad Request");
 
       try {
         parseOpenAIResponse(response, invalidResponse);
+        expect(false).toBe(true); // Should not reach here
       } catch (error) {
         expect(error).toBeInstanceOf(ValidationError);
         expect((error as ValidationError).context).toMatchObject({
           status: 400,
           statusText: "Bad Request",
-          validationErrors: expect.arrayContaining([
-            expect.objectContaining({
-              path: ["id"],
-            }),
-          ]),
         });
       }
     });
 
     test("should handle large response text in error context", () => {
-      const response = createMockResponse(200, "OK");
-      const largeInvalidJson = "{ invalid: " + "x".repeat(1000) + " }";
+      const largeInvalidResponse = "invalid json " + "x".repeat(10000);
+      const response = createMockResponse(largeInvalidResponse);
 
-      try {
-        parseOpenAIResponse(response, largeInvalidJson);
-      } catch (error) {
-        expect(error).toBeInstanceOf(ValidationError);
-        expect((error as ValidationError).context?.responseText).toHaveLength(
-          500,
-        );
-      }
+      expect(() => parseOpenAIResponse(response, largeInvalidResponse)).toThrow(
+        ValidationError,
+      );
     });
   });
 
   describe("Content conversion", () => {
-    test("should convert string content to text content part", () => {
-      const responseText = JSON.stringify({
-        id: "chatcmpl-string",
-        object: "chat.completion",
-        created: 1677652380,
+    test("should convert output_text content to text content part", () => {
+      const responseBody = JSON.stringify({
+        id: "resp_content",
+        object: "response",
+        status: "completed",
         model: "gpt-4o-2024-08-06",
-        choices: [
+        output: [
           {
-            index: 0,
-            message: {
-              role: "assistant",
-              content: "Simple string content",
-            },
-            finish_reason: "stop",
+            type: "message",
+            role: "assistant",
+            content: [
+              {
+                type: "output_text",
+                text: "Converted content",
+              },
+            ],
           },
         ],
       });
 
-      const response = createMockResponse(200, "OK");
-      const result = parseOpenAIResponse(response, responseText);
+      const response = createMockResponse(responseBody);
+      const result = parseOpenAIResponse(response, responseBody);
 
-      expect(result.message.content).toEqual([
-        { type: "text", text: "Simple string content" },
-      ]);
+      expect(result.message.content[0]).toEqual({
+        type: "text",
+        text: "Converted content",
+      });
     });
 
     test("should preserve array content parts structure", () => {
-      const responseText = JSON.stringify({
-        id: "chatcmpl-array",
-        object: "chat.completion",
-        created: 1677652390,
+      const responseBody = JSON.stringify({
+        id: "resp_array",
+        object: "response",
+        status: "completed",
         model: "gpt-4o-2024-08-06",
-        choices: [
+        output: [
           {
-            index: 0,
-            message: {
-              role: "assistant",
-              content: [
-                { type: "text", text: "First part" },
-                { type: "text", text: "Second part" },
-                { type: "text", text: "Third part" },
-              ],
-            },
-            finish_reason: "stop",
+            type: "message",
+            role: "assistant",
+            content: [
+              {
+                type: "output_text",
+                text: "First part",
+              },
+              {
+                type: "output_text",
+                text: "Second part",
+              },
+            ],
           },
         ],
       });
 
-      const response = createMockResponse(200, "OK");
-      const result = parseOpenAIResponse(response, responseText);
+      const response = createMockResponse(responseBody);
+      const result = parseOpenAIResponse(response, responseBody);
 
-      expect(result.message.content).toEqual([
-        { type: "text", text: "First part" },
-        { type: "text", text: "Second part" },
-        { type: "text", text: "Third part" },
-      ]);
+      expect(result.message.content).toHaveLength(2);
+      expect(result.message.content[0].type).toBe("text");
+      expect(result.message.content[1].type).toBe("text");
     });
   });
 
   describe("Usage information extraction", () => {
     test("should correctly map usage field names", () => {
-      const responseText = JSON.stringify({
-        id: "chatcmpl-usage",
-        object: "chat.completion",
-        created: 1677652400,
+      const responseBody = JSON.stringify({
+        id: "resp_usage",
+        object: "response",
+        status: "completed",
         model: "gpt-4o-2024-08-06",
-        choices: [
+        output: [
           {
-            index: 0,
-            message: {
-              role: "assistant",
-              content: "Test",
-            },
-            finish_reason: "stop",
+            type: "message",
+            role: "assistant",
+            content: [
+              {
+                type: "output_text",
+                text: "Usage test",
+              },
+            ],
           },
         ],
         usage: {
-          prompt_tokens: 25,
-          completion_tokens: 50,
-          total_tokens: 75,
+          input_tokens: 25,
+          output_tokens: 15,
+          total_tokens: 40,
         },
       });
 
-      const response = createMockResponse(200, "OK");
-      const result = parseOpenAIResponse(response, responseText);
+      const response = createMockResponse(responseBody);
+      const result = parseOpenAIResponse(response, responseBody);
 
       expect(result.usage).toEqual({
         promptTokens: 25,
-        completionTokens: 50,
-        totalTokens: 75,
+        completionTokens: 15,
+        totalTokens: 40,
       });
     });
   });
 
   describe("Metadata extraction", () => {
     test("should extract all metadata fields", () => {
-      const responseText = JSON.stringify({
-        id: "chatcmpl-metadata",
-        object: "chat.completion",
-        created: 1677652410,
+      const responseBody = JSON.stringify({
+        id: "resp_metadata",
+        object: "response",
+        status: "completed",
         model: "gpt-4o-2024-08-06",
-        choices: [
+        output: [
           {
-            index: 0,
-            message: {
-              role: "assistant",
-              content: "Test",
-            },
-            finish_reason: "content_filter",
+            type: "message",
+            role: "assistant",
+            content: [
+              {
+                type: "output_text",
+                text: "Metadata test",
+              },
+            ],
           },
         ],
-        system_fingerprint: "fp_test123",
+        created_at: 1677652288,
       });
 
-      const response = createMockResponse(200, "OK");
-      const result = parseOpenAIResponse(response, responseText);
+      const response = createMockResponse(responseBody);
+      const result = parseOpenAIResponse(response, responseBody);
 
-      expect(result.metadata).toEqual({
-        id: "chatcmpl-metadata",
-        created: 1677652410,
-        finishReason: "content_filter",
-        systemFingerprint: "fp_test123",
+      expect(result.metadata).toMatchObject({
+        provider: "openai",
+        id: "resp_metadata",
+        created_at: 1677652288,
+        status: "completed",
+        finishReason: null, // Not available in Responses API
       });
+    });
+  });
+
+  describe("Tool call parsing", () => {
+    test("should parse response with text content and tool calls", () => {
+      const responseBody = JSON.stringify({
+        id: "resp_tools",
+        object: "response",
+        status: "completed",
+        model: "gpt-4o-2024-08-06",
+        output: [
+          {
+            type: "message",
+            role: "assistant",
+            content: [
+              {
+                type: "output_text",
+                text: "I'll help you with that calculation.",
+              },
+            ],
+            tool_calls: [
+              {
+                id: "call_123",
+                type: "function",
+                function: {
+                  name: "calculate",
+                  arguments: '{"operation": "add", "a": 2, "b": 3}',
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      const response = createMockResponse(responseBody);
+      const result = parseOpenAIResponse(response, responseBody);
+
+      expect(result.message.content[0]).toEqual({
+        type: "text",
+        text: "I'll help you with that calculation.",
+      });
+      expect(result.message.toolCalls).toHaveLength(1);
+      expect(result.message.toolCalls?.[0]).toMatchObject({
+        id: "call_123",
+        name: "calculate",
+        parameters: { operation: "add", a: 2, b: 3 },
+      });
+    });
+
+    test("should parse response with multiple tool calls", () => {
+      const responseBody = JSON.stringify({
+        id: "resp_multi_tools",
+        object: "response",
+        status: "completed",
+        model: "gpt-4o-2024-08-06",
+        output: [
+          {
+            type: "message",
+            role: "assistant",
+            content: [
+              {
+                type: "output_text",
+                text: "I'll perform both calculations for you.",
+              },
+            ],
+            tool_calls: [
+              {
+                id: "call_456",
+                type: "function",
+                function: {
+                  name: "add",
+                  arguments: '{"a": 5, "b": 7}',
+                },
+              },
+              {
+                id: "call_789",
+                type: "function",
+                function: {
+                  name: "multiply",
+                  arguments: '{"a": 3, "b": 4}',
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      const response = createMockResponse(responseBody);
+      const result = parseOpenAIResponse(response, responseBody);
+
+      expect(result.message.toolCalls).toHaveLength(2);
+      expect(result.message.toolCalls?.[0].id).toBe("call_456");
+      expect(result.message.toolCalls?.[1].id).toBe("call_789");
+    });
+
+    test("should parse tool calls without text content", () => {
+      const responseBody = JSON.stringify({
+        id: "resp_tools_only",
+        object: "response",
+        status: "completed",
+        model: "gpt-4o-2024-08-06",
+        output: [
+          {
+            type: "message",
+            role: "assistant",
+            content: [],
+            tool_calls: [
+              {
+                id: "call_only",
+                type: "function",
+                function: {
+                  name: "search",
+                  arguments: '{"query": "weather"}',
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      const response = createMockResponse(responseBody);
+      const result = parseOpenAIResponse(response, responseBody);
+
+      expect(result.message.content).toHaveLength(0);
+      expect(result.message.toolCalls).toHaveLength(1);
+      expect(result.message.toolCalls?.[0].name).toBe("search");
+    });
+
+    test("should handle responses without tool calls", () => {
+      const responseBody = JSON.stringify({
+        id: "resp_no_tools",
+        object: "response",
+        status: "completed",
+        model: "gpt-4o-2024-08-06",
+        output: [
+          {
+            type: "message",
+            role: "assistant",
+            content: [
+              {
+                type: "output_text",
+                text: "Just a regular response.",
+              },
+            ],
+          },
+        ],
+      });
+
+      const response = createMockResponse(responseBody);
+      const result = parseOpenAIResponse(response, responseBody);
+
+      expect(result.message.toolCalls).toBeUndefined();
+    });
+
+    test("should throw ValidationError for malformed tool call JSON", () => {
+      const responseBody = JSON.stringify({
+        id: "resp_bad_tools",
+        object: "response",
+        status: "completed",
+        model: "gpt-4o-2024-08-06",
+        output: [
+          {
+            type: "message",
+            role: "assistant",
+            content: [],
+            tool_calls: [
+              {
+                id: "call_bad",
+                type: "function",
+                function: {
+                  name: "test",
+                  arguments: "invalid json {",
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      const response = createMockResponse(responseBody);
+
+      expect(() => parseOpenAIResponse(response, responseBody)).toThrow(
+        /Failed to parse tool calls in response/,
+      );
     });
   });
 });

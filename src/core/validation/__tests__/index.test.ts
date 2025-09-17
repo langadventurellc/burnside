@@ -4,7 +4,7 @@
  * Tests for the validation module's barrel exports and integration.
  */
 
-import * as validationModule from "../index.js";
+import * as validationModule from "../index";
 
 describe("validation module exports", () => {
   describe("type exports", () => {

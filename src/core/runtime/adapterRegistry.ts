@@ -6,11 +6,11 @@
  * pattern for global adapter management.
  */
 
-import type { RuntimeAdapter } from "./runtimeAdapter.js";
-import type { Platform } from "./platform.js";
-import { RuntimeError } from "./runtimeError.js";
-import { detectPlatform } from "./detectPlatform.js";
-import { NodeRuntimeAdapter } from "./adapters/nodeRuntimeAdapter.js";
+import type { RuntimeAdapter } from "./runtimeAdapter";
+import type { Platform } from "./platform";
+import { RuntimeError } from "./runtimeError";
+import { detectPlatform } from "./detectPlatform";
+import { NodeRuntimeAdapter } from "./adapters/nodeRuntimeAdapter";
 
 /**
  * Registry for managing runtime adapters across different platforms.
@@ -122,7 +122,7 @@ export class AdapterRegistry {
    */
   private initializeDefaultAdapters(): void {
     try {
-      // Register Node.js adapter if we're in a Node.js environment
+      // Register Node adapter if we're in a Node environment
       const currentPlatform = detectPlatform();
       if (currentPlatform === "node" || currentPlatform === "electron") {
         this.registerAdapter("node", new NodeRuntimeAdapter());
@@ -143,7 +143,7 @@ export class AdapterRegistry {
     // Fallback strategies based on platform compatibility
     switch (platform) {
       case "electron":
-        // Electron can use Node.js adapter as fallback
+        // Electron can use Node adapter as fallback
         return this.adapters.get("node");
       case "react-native":
         // React Native might use browser-like adapter in some cases
@@ -152,7 +152,7 @@ export class AdapterRegistry {
         // No fallback for browser - too different from other platforms
         return undefined;
       case "node":
-        // No fallback for Node.js - it's the most basic platform
+        // No fallback for Node - it's the most basic platform
         return undefined;
       default:
         return undefined;

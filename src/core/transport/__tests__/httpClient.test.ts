@@ -4,13 +4,13 @@
  * Tests for the HttpClient interface and related configuration types
  * to ensure proper structure and fetch injection capabilities.
  */
-import type { HttpClient } from "../httpClient.js";
-import type { HttpClientConfig } from "../httpClientConfig.js";
-import type { FetchFunction } from "../fetchFunction.js";
-import type { RequestInterceptor } from "../requestInterceptor.js";
-import type { ResponseInterceptor } from "../responseInterceptor.js";
-import type { ProviderHttpRequest } from "../providerHttpRequest.js";
-import type { ProviderHttpResponse } from "../providerHttpResponse.js";
+import type { HttpClient } from "../httpClient";
+import type { HttpClientConfig } from "../httpClientConfig";
+import type { FetchFunction } from "../fetchFunction";
+import type { RequestInterceptor } from "../requestInterceptor";
+import type { ResponseInterceptor } from "../responseInterceptor";
+import type { ProviderHttpRequest } from "../providerHttpRequest";
+import type { ProviderHttpResponse } from "../providerHttpResponse";
 
 describe("HttpClient", () => {
   const mockFetch: FetchFunction = () => {

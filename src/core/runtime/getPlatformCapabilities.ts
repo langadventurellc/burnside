@@ -5,10 +5,10 @@
  * Detects available features like HTTP, timers, and file system access.
  */
 
-import type { PlatformCapabilities } from "./platformCapabilities.js";
-import { detectPlatform } from "./detectPlatform.js";
-import { isNodeJs } from "./isNodeJs.js";
-import { isElectron } from "./isElectron.js";
+import type { PlatformCapabilities } from "./platformCapabilities";
+import { detectPlatform } from "./detectPlatform";
+import { isNodeJs } from "./isNodeJs";
+import { isElectron } from "./isElectron";
 
 /**
  * Get platform capabilities for the current environment.

@@ -23,8 +23,8 @@
  * ```
  */
 
-import { StreamingError } from "../errors/streamingError.js";
-import type { SseEvent } from "./sseEvent.js";
+import { StreamingError } from "../errors/streamingError";
+import type { SseEvent } from "./sseEvent";
 
 /**
  * Default configuration for SSE parsing.
@@ -289,7 +289,7 @@ export class SseParser {
           break;
 
         default:
-          console.warn(`Unknown SSE field: ${field.name}, ignoring`);
+          // Skip unknown SSE fields silently to reduce log noise
           break;
       }
     } catch (error) {

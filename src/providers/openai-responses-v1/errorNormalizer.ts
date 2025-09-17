@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { normalizeOpenAIError } from "./errorNormalizer.js";
+ * import { normalizeOpenAIError } from "./errorNormalizer";
  *
  * try {
  *   // OpenAI API call
@@ -24,7 +24,7 @@ import {
   ProviderError,
   TransportError,
   TimeoutError,
-} from "../../core/errors/index.js";
+} from "../../core/errors/index";
 
 /**
  * OpenAI error response structure

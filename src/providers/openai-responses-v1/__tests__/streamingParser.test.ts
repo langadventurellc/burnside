@@ -5,12 +5,12 @@
  * and edge cases for the SSE streaming parser implementation.
  */
 
-import { parseOpenAIResponseStream } from "../streamingParser.js";
-import type { ProviderHttpResponse } from "../../../core/transport/providerHttpResponse.js";
-import type { StreamDelta } from "../../../client/streamDelta.js";
-import { StreamingError } from "../../../core/errors/streamingError.js";
-import { ValidationError } from "../../../core/errors/validationError.js";
-import { BridgeError } from "../../../core/errors/bridgeError.js";
+import { parseOpenAIResponseStream } from "../streamingParser";
+import type { ProviderHttpResponse } from "../../../core/transport/providerHttpResponse";
+import type { StreamDelta } from "../../../client/streamDelta";
+import { StreamingError } from "../../../core/errors/streamingError";
+import { ValidationError } from "../../../core/errors/validationError";
+import { BridgeError } from "../../../core/errors/bridgeError";
 
 /**
  * Helper function to create mock SSE stream from events
@@ -78,7 +78,7 @@ describe("parseOpenAIResponseStream", () => {
 
     it("should parse response.output_text.delta event", async () => {
       const events = [
-        'data: {"type":"response.output_text.delta","delta":{"text":"Hello"},"response":{"id":"resp_123"}}\n\n',
+        'data: {"type":"response.output_text.delta","delta":"Hello","response":{"id":"resp_123"}}\n\n',
         "data: [DONE]\n\n",
       ];
 
@@ -123,8 +123,8 @@ describe("parseOpenAIResponseStream", () => {
     it("should handle complete streaming conversation", async () => {
       const events = [
         'data: {"type":"response.created","response":{"id":"resp_123"}}\n\n',
-        'data: {"type":"response.output_text.delta","delta":{"text":"Hello"},"response":{"id":"resp_123"}}\n\n',
-        'data: {"type":"response.output_text.delta","delta":{"text":" world"},"response":{"id":"resp_123"}}\n\n',
+        'data: {"type":"response.output_text.delta","delta":"Hello","response":{"id":"resp_123"}}\n\n',
+        'data: {"type":"response.output_text.delta","delta":" world","response":{"id":"resp_123"}}\n\n',
         'data: {"type":"response.completed","response":{"id":"resp_123"},"usage":{"prompt_tokens":10,"completion_tokens":5}}\n\n',
         "data: [DONE]\n\n",
       ];
@@ -179,7 +179,7 @@ describe("parseOpenAIResponseStream", () => {
 
     it("should handle events without response ID", async () => {
       const events = [
-        'data: {"type":"response.output_text.delta","delta":{"text":"Hello"}}\n\n',
+        'data: {"type":"response.output_text.delta","delta":"Hello"}\n\n',
         "data: [DONE]\n\n",
       ];
 
@@ -193,8 +193,8 @@ describe("parseOpenAIResponseStream", () => {
 
     it("should maintain response ID consistency across events", async () => {
       const events = [
-        'data: {"type":"response.output_text.delta","delta":{"text":"Hello"}}\n\n',
-        'data: {"type":"response.output_text.delta","delta":{"text":" world"}}\n\n',
+        'data: {"type":"response.output_text.delta","delta":"Hello"}\n\n',
+        'data: {"type":"response.output_text.delta","delta":" world"}\n\n',
         "data: [DONE]\n\n",
       ];
 
@@ -245,7 +245,7 @@ describe("parseOpenAIResponseStream", () => {
     it("should handle malformed JSON gracefully", async () => {
       const events = [
         "data: {invalid json}\n\n",
-        'data: {"type":"response.output_text.delta","delta":{"text":"Hello"}}\n\n',
+        'data: {"type":"response.output_text.delta","delta":"Hello"}\n\n',
         "data: [DONE]\n\n",
       ];
 
@@ -263,7 +263,7 @@ describe("parseOpenAIResponseStream", () => {
     it("should handle unknown event types gracefully", async () => {
       const events = [
         'data: {"type":"unknown.event","someData":"value"}\n\n',
-        'data: {"type":"response.output_text.delta","delta":{"text":"Hello"}}\n\n',
+        'data: {"type":"response.output_text.delta","delta":"Hello"}\n\n',
         "data: [DONE]\n\n",
       ];
 
@@ -281,7 +281,7 @@ describe("parseOpenAIResponseStream", () => {
     it("should skip events without data", async () => {
       const events = [
         "event: heartbeat\n\n", // Event without data
-        'data: {"type":"response.output_text.delta","delta":{"text":"Hello"}}\n\n',
+        'data: {"type":"response.output_text.delta","delta":"Hello"}\n\n',
         "data: [DONE]\n\n",
       ];
 
@@ -297,7 +297,7 @@ describe("parseOpenAIResponseStream", () => {
 
     it("should handle empty text deltas", async () => {
       const events = [
-        'data: {"type":"response.output_text.delta","delta":{"text":""}}\n\n',
+        'data: {"type":"response.output_text.delta","delta":""}\n\n',
         "data: [DONE]\n\n",
       ];
 
@@ -403,7 +403,7 @@ describe("parseOpenAIResponseStream", () => {
     it("should track response ID across events", async () => {
       const events = [
         'data: {"type":"response.created","response":{"id":"resp_123"}}\n\n',
-        'data: {"type":"response.output_text.delta","delta":{"text":"Hello"}}\n\n', // No response ID
+        'data: {"type":"response.output_text.delta","delta":"Hello"}\n\n', // No response ID
         'data: {"type":"response.completed","response":{"id":"resp_456"}}\n\n', // Different ID
         "data: [DONE]\n\n",
       ];
@@ -419,7 +419,7 @@ describe("parseOpenAIResponseStream", () => {
 
     it("should accumulate usage information", async () => {
       const events = [
-        'data: {"type":"response.output_text.delta","delta":{"text":"Hello"},"response":{"id":"resp_123"}}\n\n',
+        'data: {"type":"response.output_text.delta","delta":"Hello","response":{"id":"resp_123"}}\n\n',
         'data: {"type":"response.completed","response":{"id":"resp_123"},"usage":{"prompt_tokens":10,"completion_tokens":5}}\n\n',
         "data: [DONE]\n\n",
       ];

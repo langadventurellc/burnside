@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { MessageSchema } from "./messageSchema.js";
+ * import { MessageSchema } from "./messageSchema";
  *
  * const result = MessageSchema.parse({
  *   role: "user",
@@ -16,9 +16,9 @@
  */
 
 import { z } from "zod";
-import { ContentPartSchema } from "./contentPartSchema.js";
-import type { Role } from "./role.js";
-import { commonSchemas } from "../validation/commonSchemas.js";
+import { ContentPartSchema } from "./contentPartSchema";
+import type { Role } from "./role";
+import { commonSchemas } from "../validation/commonSchemas";
 
 /**
  * UUID v4 validation schema for message IDs.

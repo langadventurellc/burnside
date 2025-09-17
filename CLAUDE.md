@@ -24,6 +24,7 @@ A TypeScript library that acts as a unified bridge to multiple LLM provider APIs
 | Command              | Description                                           |
 | -------------------- | ----------------------------------------------------- |
 | `npm test`           | Run unit tests with Jest                              |
+| `npm run test:e2e`   | Run E2E tests with Jest                               |
 | `npm run lint`       | Run ESLint and fix issues automatically               |
 | `npm run format`     | Format all TypeScript, JavaScript, and Markdown files |
 | `npm run type-check` | Run TypeScript type checks without emitting files     |

@@ -4,13 +4,13 @@
  * Comprehensive test suite for the HttpTransport class covering all methods,
  * error scenarios, streaming functionality, and integration points.
  */
-import { HttpTransport } from "../httpTransport.js";
-import { InterceptorChain } from "../interceptorChain.js";
-import { HttpErrorNormalizer } from "../../errors/httpErrorNormalizer.js";
-import { TransportError } from "../../errors/transportError.js";
-import type { HttpClientConfig } from "../httpClientConfig.js";
-import type { ProviderHttpRequest } from "../providerHttpRequest.js";
-import type { FetchFunction } from "../fetchFunction.js";
+import { HttpTransport } from "../httpTransport";
+import { InterceptorChain } from "../interceptorChain";
+import { HttpErrorNormalizer } from "../../errors/httpErrorNormalizer";
+import { TransportError } from "../../errors/transportError";
+import type { HttpClientConfig } from "../httpClientConfig";
+import type { ProviderHttpRequest } from "../providerHttpRequest";
+import type { FetchFunction } from "../fetchFunction";
 
 describe("HttpTransport", () => {
   let mockFetch: jest.MockedFunction<FetchFunction>;

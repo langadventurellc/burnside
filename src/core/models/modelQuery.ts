@@ -1,4 +1,4 @@
-import type { ModelCapabilities } from "../providers/modelCapabilities.js";
+import type { ModelCapabilities } from "../providers/modelCapabilities";
 
 /**
  * Model Query interface for filtering models by provider and capabilities

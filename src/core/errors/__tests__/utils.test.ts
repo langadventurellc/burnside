@@ -11,7 +11,7 @@ import {
   BridgeError,
   TransportError,
   AuthError,
-} from "../index.js";
+} from "../index";
 
 describe("ERROR_CODES", () => {
   it("should contain all expected error codes", () => {

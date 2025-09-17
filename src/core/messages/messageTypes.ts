@@ -5,7 +5,7 @@
  */
 
 import { z } from "zod";
-import { MessageSchema } from "./messageSchema.js";
+import { MessageSchema } from "./messageSchema";
 
 /**
  * Validated Message type inferred from the Zod schema.

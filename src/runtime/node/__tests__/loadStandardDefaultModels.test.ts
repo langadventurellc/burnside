@@ -1,6 +1,6 @@
-import { loadStandardDefaultModels } from "../loadStandardDefaultModels.js";
-import { mapJsonToModelInfo } from "../../../core/models/modelLoader.js";
-import { defaultLlmModels } from "../../../data/defaultLlmModels.js";
+import { loadStandardDefaultModels } from "../loadStandardDefaultModels";
+import { mapJsonToModelInfo } from "../../../core/models/modelLoader";
+import { defaultLlmModels } from "../../../data/defaultLlmModels";
 
 describe("loadStandardDefaultModels", () => {
   beforeEach(() => {

@@ -3,6 +3,7 @@
  */
 
 import { z } from "zod";
+import { OpenAIToolSchema } from "./openAIToolSchema";
 
 /**
  * OpenAI message role schema
@@ -32,9 +33,10 @@ const MessageContentSchema = z.union([
 ]);
 
 /**
- * OpenAI chat message schema
+ * OpenAI Responses API message schema
  */
-const ChatMessageSchema = z.object({
+const ResponsesMessageSchema = z.object({
+  type: z.literal("message"),
   role: MessageRoleSchema,
   content: MessageContentSchema,
   name: z.string().optional(),
@@ -51,10 +53,10 @@ export const OpenAIResponsesV1RequestSchema = z.object({
   /** Model to use for completion */
   model: z.string().min(1),
 
-  /** Array of messages for the conversation */
-  messages: z
-    .array(ChatMessageSchema)
-    .min(1, "At least one message is required"),
+  /** Input for the model (Responses API uses 'input' not 'messages') */
+  input: z
+    .array(ResponsesMessageSchema)
+    .min(1, "At least one input message is required"),
 
   /** Whether to stream the response */
   stream: z.boolean().optional(),
@@ -63,7 +65,7 @@ export const OpenAIResponsesV1RequestSchema = z.object({
   temperature: z.number().min(0).max(2).optional(),
 
   /** Maximum tokens to generate */
-  max_tokens: z.number().int().positive().optional(),
+  max_output_tokens: z.number().int().positive().optional(),
 
   /** Top-p nucleus sampling parameter */
   top_p: z.number().min(0).max(1).optional(),
@@ -82,4 +84,21 @@ export const OpenAIResponsesV1RequestSchema = z.object({
 
   /** User identifier for abuse monitoring */
   user: z.string().optional(),
+
+  /** Tools available for function calling */
+  tools: z.array(OpenAIToolSchema).optional(),
+
+  /** Tool choice configuration */
+  tool_choice: z
+    .union([
+      z.literal("auto"),
+      z.literal("none"),
+      z.object({
+        type: z.literal("function"),
+        function: z.object({
+          name: z.string(),
+        }),
+      }),
+    ])
+    .optional(),
 });

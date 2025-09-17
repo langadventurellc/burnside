@@ -5,7 +5,7 @@
  *
  * @example
  * ```typescript
- * import { validateMessage } from "./messageValidation.js";
+ * import { validateMessage } from "./messageValidation";
  *
  * const message = validateMessage({
  *   role: "user",
@@ -15,8 +15,8 @@
  * ```
  */
 
-import { MessageSchema } from "./messageSchema.js";
-import { validateOrThrow } from "../validation/validateOrThrow.js";
+import { MessageSchema } from "./messageSchema";
+import { validateOrThrow } from "../validation/validateOrThrow";
 
 /**
  * Validates a message input and returns a typed Message object.

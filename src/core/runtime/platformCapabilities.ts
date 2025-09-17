@@ -5,7 +5,7 @@
  * Used to determine what operations are supported in the current environment.
  */
 
-import type { Platform } from "./platform.js";
+import type { Platform } from "./platform";
 
 /**
  * Platform capability information describing available features.

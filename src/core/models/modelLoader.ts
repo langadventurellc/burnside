@@ -1,23 +1,24 @@
 import { z } from "zod";
-import type { ModelInfo } from "../providers/modelInfo.js";
-import type { ModelCapabilities } from "../providers/modelCapabilities.js";
-import { ValidationError } from "../errors/validationError.js";
-import { DefaultLlmModelsSchema } from "./defaultLlmModelsSchema.js";
+import type { ModelInfo } from "../providers/modelInfo";
+import type { ModelCapabilities } from "../providers/modelCapabilities";
+import { ValidationError } from "../errors/validationError";
+import { DefaultLlmModelsSchema } from "./defaultLlmModelsSchema";
 
 /**
- * Type definition for the validated defaultLlmModels.json structure
+ * Type definition for the validated defaultLlmModelson structure
  */
 type DefaultLlmModelsJson = z.infer<typeof DefaultLlmModelsSchema>;
 
 /**
- * Platform-agnostic function to convert defaultLlmModels.json structure
+ * Platform-agnostic function to convert defaultLlmModelson structure
  * to ModelInfo array with default capabilities
  *
  * Maps the nested provider/model JSON structure to ModelInfo objects,
  * inferring provider IDs from parent objects and setting default capabilities
- * for all models. Providers can later enrich capabilities as needed.
+ * for all models. Temperature capability defaults to true if not specified.
+ * Providers can later enrich capabilities as needed.
  *
- * @param jsonData - Validated JSON data from defaultLlmModels.json
+ * @param jsonData - Validated JSON data from defaultLlmModelson
  * @returns Array of ModelInfo objects with default capabilities
  *
  * @example
@@ -40,7 +41,7 @@ type DefaultLlmModelsJson = z.infer<typeof DefaultLlmModelsSchema>;
  * //   id: "gpt-4o-2024-08-06",
  * //   name: "GPT-4o",
  * //   provider: "openai",
- * //   capabilities: { streaming: false, toolCalls: false, ... },
+ * //   capabilities: { streaming: false, toolCalls: false, temperature: true, ... },
  * //   metadata: { contextLength: 128000, providerPlugin: "openai-responses-v1" }
  * // }]
  * ```
@@ -57,12 +58,13 @@ export function mapJsonToModelInfo(
     return validatedData.providers.flatMap((provider) =>
       provider.models.map((model) => {
         const capabilities: ModelCapabilities = {
-          streaming: false,
-          toolCalls: false,
-          images: false,
-          documents: false,
+          streaming: model.streaming ?? false,
+          toolCalls: model.toolCalls ?? false,
+          images: model.images ?? false,
+          documents: model.documents ?? false,
+          temperature: model.temperature ?? true, // Default true for backward compatibility
           maxTokens: model.contextLength,
-          supportedContentTypes: [],
+          supportedContentTypes: model.supportedContentTypes ?? [],
         };
 
         const modelInfo: ModelInfo = {
@@ -84,7 +86,7 @@ export function mapJsonToModelInfo(
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
-      throw new ValidationError("Invalid defaultLlmModels.json structure", {
+      throw new ValidationError("Invalid defaultLlmModelson structure", {
         zodErrors: error.errors,
         receivedData: jsonData,
       });

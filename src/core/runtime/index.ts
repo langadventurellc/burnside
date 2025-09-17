@@ -2,7 +2,7 @@
  * Runtime Platform Adapters Module
  *
  * Platform abstraction layer providing runtime adapters for HTTP, timers,
- * and file access across Node.js, Electron, and React Native environments.
+ * and file access across Node, Electron, and React Native environments.
  * Includes automatic adapter detection and registry management.
  *
  * @example Basic usage
@@ -14,31 +14,31 @@
  *
  * // Use adapter for platform-agnostic operations
  * const response = await adapter.fetch('https://api.example.com');
- * const content = await adapter.readFile('./config.json');
+ * const content = await adapter.readFile('./configon');
  * ```
  */
 
 // Core interfaces and types
-export type { RuntimeAdapter } from "./runtimeAdapter.js";
-export type { Platform } from "./platform.js";
-export type { PlatformInfo } from "./platformInfo.js";
-export type { PlatformCapabilities } from "./platformCapabilities.js";
-export type { TimerHandle } from "./timerHandle.js";
-export type { FileOperationOptions } from "./fileOperationOptions.js";
+export type { RuntimeAdapter } from "./runtimeAdapter";
+export type { Platform } from "./platform";
+export type { PlatformInfo } from "./platformInfo";
+export type { PlatformCapabilities } from "./platformCapabilities";
+export type { TimerHandle } from "./timerHandle";
+export type { FileOperationOptions } from "./fileOperationOptions";
 
 // Error handling
-export { RuntimeError } from "./runtimeError.js";
+export { RuntimeError } from "./runtimeError";
 
 // Platform detection utilities
-export { detectPlatform } from "./detectPlatform.js";
-export { isNodeJs } from "./isNodeJs.js";
-export { isBrowser } from "./isBrowser.js";
-export { isElectron } from "./isElectron.js";
-export { isReactNative } from "./isReactNative.js";
-export { getPlatformCapabilities } from "./getPlatformCapabilities.js";
+export { detectPlatform } from "./detectPlatform";
+export { isNodeJs } from "./isNodeJs";
+export { isBrowser } from "./isBrowser";
+export { isElectron } from "./isElectron";
+export { isReactNative } from "./isReactNative";
+export { getPlatformCapabilities } from "./getPlatformCapabilities";
 
 // Adapter implementations
-export { NodeRuntimeAdapter } from "./adapters/nodeRuntimeAdapter.js";
+export { NodeRuntimeAdapter } from "./adapters/nodeRuntimeAdapter";
 
 // Registry system
-export { AdapterRegistry } from "./adapterRegistry.js";
+export { AdapterRegistry } from "./adapterRegistry";

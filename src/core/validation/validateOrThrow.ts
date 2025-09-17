@@ -5,9 +5,9 @@
  */
 
 import { z } from "zod";
-import { ValidationError } from "../errors/validationError.js";
-import type { ValidationOptions } from "./validationOptions.js";
-import { safeValidate } from "./safeValidate.js";
+import { ValidationError } from "../errors/validationError";
+import type { ValidationOptions } from "./validationOptions";
+import { safeValidate } from "./safeValidate";
 
 /**
  * Validation wrapper that throws ValidationError on failure.

@@ -5,8 +5,8 @@
  * for request translation contract testing.
  */
 
-import type { ChatRequest } from "../../../../client/chatRequest.js";
-import type { OpenAIResponsesV1Config } from "../../configSchema.js";
+import type { ChatRequest } from "../../../../client/chatRequest";
+import type { OpenAIResponsesV1Config } from "../../configSchema";
 
 /**
  * Basic configuration for testing

@@ -1,5 +1,5 @@
-import { createModelId } from "../createModelId.js";
-import type { ModelId } from "../modelId.js";
+import { createModelId } from "../createModelId";
+import type { ModelId } from "../modelId";
 
 describe("createModelId", () => {
   it("creates valid model ID from provider and model name", () => {

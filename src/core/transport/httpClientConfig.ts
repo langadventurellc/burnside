@@ -14,9 +14,9 @@
  * };
  * ```
  */
-import type { FetchFunction } from "./fetchFunction.js";
-import type { RequestInterceptor } from "./requestInterceptor.js";
-import type { ResponseInterceptor } from "./responseInterceptor.js";
+import type { FetchFunction } from "./fetchFunction";
+import type { RequestInterceptor } from "./requestInterceptor";
+import type { ResponseInterceptor } from "./responseInterceptor";
 
 /**
  * Configuration interface for HTTP clients with fetch injection.

@@ -22,9 +22,9 @@
  * ```
  */
 
-import { StreamingError } from "../errors/streamingError.js";
-import type { ParsedChunk } from "./parsedChunk.js";
-import type { ChunkParserOptions } from "./chunkParserOptions.js";
+import { StreamingError } from "../errors/streamingError";
+import type { ParsedChunk } from "./parsedChunk";
+import type { ChunkParserOptions } from "./chunkParserOptions";
 
 /**
  * Default configuration for ChunkParser.

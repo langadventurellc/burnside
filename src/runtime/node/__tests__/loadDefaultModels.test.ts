@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
-import { loadDefaultModels } from "../loadDefaultModels.js";
-import { ValidationError } from "../../../core/errors/validationError.js";
+import { loadDefaultModels } from "../loadDefaultModels";
+import { ValidationError } from "../../../core/errors/validationError";
 
 // Mock fs module
 jest.mock("node:fs");
@@ -31,7 +31,7 @@ describe("loadDefaultModels", () => {
   };
 
   it("should successfully load and parse valid JSON file", () => {
-    const filePath = "./test-models.json";
+    const filePath = "./test-modelson";
     mockReadFileSync.mockReturnValue(JSON.stringify(validJsonData));
 
     const result = loadDefaultModels(filePath);
@@ -79,7 +79,7 @@ describe("loadDefaultModels", () => {
 
     mockReadFileSync.mockReturnValue(JSON.stringify(multiProviderData));
 
-    const result = loadDefaultModels("./test.json");
+    const result = loadDefaultModels("./teston");
 
     expect(result).toHaveLength(3);
     expect(result.map((m) => m.provider)).toEqual([
@@ -91,7 +91,7 @@ describe("loadDefaultModels", () => {
   });
 
   it("should throw ValidationError for invalid JSON syntax", () => {
-    const filePath = "./invalid.json";
+    const filePath = "./invalidon";
     mockReadFileSync.mockReturnValue("{ invalid json");
 
     expect(() => loadDefaultModels(filePath)).toThrow(ValidationError);
@@ -120,16 +120,16 @@ describe("loadDefaultModels", () => {
 
     mockReadFileSync.mockReturnValue(JSON.stringify(invalidData));
 
-    expect(() => loadDefaultModels("./invalid-schema.json")).toThrow(
+    expect(() => loadDefaultModels("./invalid-schemaon")).toThrow(
       ValidationError,
     );
-    expect(() => loadDefaultModels("./invalid-schema.json")).toThrow(
-      "Invalid defaultLlmModels.json structure in ./invalid-schema.json",
+    expect(() => loadDefaultModels("./invalid-schemaon")).toThrow(
+      "Invalid defaultLlmModelson structure in ./invalid-schemaon",
     );
   });
 
   it("should propagate file system errors", () => {
-    const filePath = "./nonexistent.json";
+    const filePath = "./nonexistenton";
     const fsError = new Error("ENOENT: no such file or directory");
     mockReadFileSync.mockImplementation(() => {
       throw fsError;
@@ -146,7 +146,7 @@ describe("loadDefaultModels", () => {
 
     mockReadFileSync.mockReturnValue(JSON.stringify(emptyData));
 
-    const result = loadDefaultModels("./empty.json");
+    const result = loadDefaultModels("./emptyon");
 
     expect(result).toHaveLength(0);
     expect(result).toEqual([]);
@@ -166,7 +166,7 @@ describe("loadDefaultModels", () => {
 
     mockReadFileSync.mockReturnValue(JSON.stringify(emptyModelsData));
 
-    const result = loadDefaultModels("./empty-models.json");
+    const result = loadDefaultModels("./empty-modelson");
 
     expect(result).toHaveLength(0);
     expect(result).toEqual([]);
@@ -192,7 +192,7 @@ describe("loadDefaultModels", () => {
 
     mockReadFileSync.mockReturnValue(JSON.stringify(invalidContextLength));
 
-    expect(() => loadDefaultModels("./invalid-context.json")).toThrow(
+    expect(() => loadDefaultModels("./invalid-contexton")).toThrow(
       ValidationError,
     );
   });
@@ -217,7 +217,7 @@ describe("loadDefaultModels", () => {
 
     mockReadFileSync.mockReturnValue(JSON.stringify(largeContextData));
 
-    const result = loadDefaultModels("./large.json");
+    const result = loadDefaultModels("./largeon");
 
     expect(result).toHaveLength(1);
     expect(result[0].capabilities.maxTokens).toBe(1000000);

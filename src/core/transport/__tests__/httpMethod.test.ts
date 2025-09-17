@@ -4,7 +4,7 @@
  * Tests for the HttpMethod union type to ensure it only accepts
  * valid HTTP methods and provides proper TypeScript type checking.
  */
-import type { HttpMethod } from "../httpMethod.js";
+import type { HttpMethod } from "../httpMethod";
 
 describe("HttpMethod", () => {
   it("should accept valid HTTP methods", () => {

@@ -42,7 +42,7 @@ Acceptance
 
 - Unit tests for SSE parsing and error mapping; simulated chunking tests.
 
-### Phase 3 — Provider Plugin Framework ✅ COMPLETED
+### Phase 3 — Provider Plugin Framework
 
 - Define `ProviderPlugin` interface (request translate/response parse/termination detection).
 - Implement `ProviderRegistry` (register/resolve by `{id, version}`) with Zod‑validated provider configs.

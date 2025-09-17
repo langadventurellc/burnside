@@ -1,13 +1,13 @@
 /**
  * @jest-environment node
  */
-import { InterceptorChain } from "../interceptorChain.js";
-import { InterceptorError } from "../interceptorError.js";
-import type { InterceptorContext } from "../interceptorContext.js";
-import type { RequestInterceptor } from "../requestInterceptorChain.js";
-import type { ResponseInterceptor } from "../responseInterceptorChain.js";
-import type { ProviderHttpRequest } from "../providerHttpRequest.js";
-import type { ProviderHttpResponse } from "../providerHttpResponse.js";
+import { InterceptorChain } from "../interceptorChain";
+import { InterceptorError } from "../interceptorError";
+import type { InterceptorContext } from "../interceptorContext";
+import type { RequestInterceptor } from "../requestInterceptorChain";
+import type { ResponseInterceptor } from "../responseInterceptorChain";
+import type { ProviderHttpRequest } from "../providerHttpRequest";
+import type { ProviderHttpResponse } from "../providerHttpResponse";
 
 describe("InterceptorChain", () => {
   let chain: InterceptorChain;

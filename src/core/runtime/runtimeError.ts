@@ -5,7 +5,7 @@
  * Extends BridgeError with runtime adapter context.
  */
 
-import { BridgeError } from "../errors/bridgeError.js";
+import { BridgeError } from "../errors/bridgeError";
 
 /**
  * Runtime-specific error class for adapter operations.

@@ -42,7 +42,7 @@
  */
 
 import type { z } from "zod";
-import type { ToolDefinitionSchema } from "./toolDefinitionSchema.js";
+import type { ToolDefinitionSchema } from "./toolDefinitionSchema";
 
 /**
  * ToolDefinition type derived from comprehensive Zod schema validation.

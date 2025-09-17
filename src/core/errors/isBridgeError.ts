@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { isBridgeError } from "./isBridgeError.js";
+ * import { isBridgeError } from "./isBridgeError";
  *
  * try {
  *   // some operation
@@ -18,7 +18,7 @@
  * }
  * ```
  */
-import { BridgeError } from "./bridgeError.js";
+import { BridgeError } from "./bridgeError";
 
 export function isBridgeError(value: unknown): value is BridgeError {
   return value instanceof BridgeError;

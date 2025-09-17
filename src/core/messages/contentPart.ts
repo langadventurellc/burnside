@@ -7,7 +7,7 @@
  *
  * @example
  * ```typescript
- * import { ContentPart, TextContent } from "./contentPart.js";
+ * import { ContentPart, TextContent } from "./contentPart";
  *
  * const textContent: TextContent = {
  *   type: "text",
@@ -23,4 +23,4 @@
  * ```
  */
 
-export type { ContentPart } from "./contentPartTypes.js";
+export type { ContentPart } from "./contentPartTypes";

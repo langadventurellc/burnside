@@ -6,25 +6,28 @@
  * information and metadata extraction.
  */
 
-import type { Message } from "../../core/messages/message.js";
-import type { ContentPart } from "../../core/messages/contentPart.js";
-import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse.js";
-import { ValidationError } from "../../core/errors/validationError.js";
+import type { Message } from "../../core/messages/message";
+import type { ContentPart } from "../../core/messages/contentPart";
+import type { ToolCall } from "../../core/tools/toolCall";
+import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse";
+import { ValidationError } from "../../core/errors/validationError";
 import {
   OpenAIResponsesV1ResponseSchema,
   type OpenAIResponsesV1Response,
-} from "./responseSchema.js";
+} from "./responseSchema";
+import { parseOpenAIToolCalls } from "./toolCallParser";
 
 /**
- * Convert OpenAI content to unified ContentPart array
+ * Convert OpenAI content to unified ContentPart array (Responses API format)
  */
 function convertOpenAIContentToContentParts(
-  content: string | Array<{ type: "text"; text: string }>,
+  content: Array<{
+    type: "output_text";
+    text: string;
+    annotations?: unknown[];
+    logprobs?: unknown[];
+  }>,
 ): ContentPart[] {
-  if (typeof content === "string") {
-    return [{ type: "text", text: content }];
-  }
-
   return content.map((part) => ({
     type: "text" as const,
     text: part.text,
@@ -32,25 +35,55 @@ function convertOpenAIContentToContentParts(
 }
 
 /**
- * Convert OpenAI choice to unified Message format
+ * Convert OpenAI output message to unified Message format with tool calls
  */
-function convertOpenAIChoiceToMessage(
-  choice: OpenAIResponsesV1Response["choices"][0],
+function convertOpenAIOutputToMessage(
+  output: OpenAIResponsesV1Response["output"][0],
   responseId: string,
-): Message {
+): Message & { toolCalls?: ToolCall[] } {
+  // Type guard to ensure we're working with a message output
+  if (!("type" in output) || output.type !== "message") {
+    throw new ValidationError("Unsupported output type", {
+      outputType: "type" in output ? output.type : "unknown",
+      responseId,
+    });
+  }
+
+  // Now TypeScript knows this is a message type
+  const messageOutput = output;
   const contentParts = convertOpenAIContentToContentParts(
-    choice.message.content,
+    messageOutput.content,
   );
 
-  return {
+  const message: Message & { toolCalls?: ToolCall[] } = {
     id: responseId,
     role: "assistant",
     content: contentParts,
+    timestamp: new Date().toISOString(),
   };
+
+  // Parse tool calls if present
+  if (messageOutput.tool_calls) {
+    try {
+      message.toolCalls = parseOpenAIToolCalls(messageOutput.tool_calls);
+    } catch (error) {
+      // Add tool call parsing error to metadata but don't fail the entire response
+      if (error instanceof ValidationError) {
+        throw new ValidationError("Failed to parse tool calls in response", {
+          cause: error,
+          responseId,
+          toolCallsData: messageOutput.tool_calls,
+        });
+      }
+      throw error;
+    }
+  }
+
+  return message;
 }
 
 /**
- * Extract usage information from OpenAI response
+ * Extract usage information from OpenAI response (Responses API format)
  */
 function extractUsageInformation(usage?: OpenAIResponsesV1Response["usage"]) {
   if (!usage) {
@@ -58,23 +91,25 @@ function extractUsageInformation(usage?: OpenAIResponsesV1Response["usage"]) {
   }
 
   return {
-    promptTokens: usage.prompt_tokens,
-    completionTokens: usage.completion_tokens,
+    promptTokens: usage.input_tokens,
+    completionTokens: usage.output_tokens,
     totalTokens: usage.total_tokens,
   };
 }
 
 /**
- * Extract metadata from OpenAI response
+ * Extract metadata from OpenAI response (Responses API format)
  */
 function extractMetadata(
   response: OpenAIResponsesV1Response,
 ): Record<string, unknown> {
   return {
     id: response.id,
-    created: response.created,
-    finishReason: response.choices[0]?.finish_reason ?? null,
-    systemFingerprint: response.system_fingerprint,
+    created_at: response.created_at,
+    status: response.status,
+    // Note: finish_reason is not part of the standard Responses API output
+    // but we include null for backwards compatibility
+    finishReason: null,
   };
 }
 
@@ -90,7 +125,7 @@ export function parseOpenAIResponse(
   response: ProviderHttpResponse,
   responseText: string,
 ): {
-  message: Message;
+  message: Message & { toolCalls?: ToolCall[] };
   usage?: {
     promptTokens: number;
     completionTokens: number;
@@ -133,18 +168,37 @@ export function parseOpenAIResponse(
 
   const openaiResponse = validationResult.data;
 
-  // Handle empty choices
-  if (openaiResponse.choices.length === 0) {
-    throw new ValidationError("OpenAI response contains no choices", {
+  // Handle empty output array
+  if (openaiResponse.output.length === 0) {
+    throw new ValidationError("OpenAI response contains no output", {
       status: response.status,
       statusText: response.statusText,
       responseId: openaiResponse.id,
     });
   }
 
-  // Convert first choice to unified message format
-  const message = convertOpenAIChoiceToMessage(
-    openaiResponse.choices[0],
+  // Find the message type in the output array (it might not be the first item for GPT-5 models)
+  const messageOutput = openaiResponse.output.find(
+    (item) => "type" in item && item.type === "message",
+  );
+
+  if (!messageOutput) {
+    throw new ValidationError(
+      "No message type found in OpenAI response output",
+      {
+        status: response.status,
+        statusText: response.statusText,
+        responseId: openaiResponse.id,
+        outputTypes: openaiResponse.output.map((item) =>
+          "type" in item ? item.type : "unknown",
+        ),
+      },
+    );
+  }
+
+  // Convert the message output to unified message format
+  const message = convertOpenAIOutputToMessage(
+    messageOutput,
     openaiResponse.id,
   );
 
@@ -153,9 +207,18 @@ export function parseOpenAIResponse(
   const metadata = extractMetadata(openaiResponse);
 
   return {
-    message,
+    message: {
+      ...message,
+      metadata: {
+        provider: "openai",
+        ...metadata,
+      },
+    },
     usage,
     model: openaiResponse.model,
-    metadata,
+    metadata: {
+      provider: "openai",
+      ...metadata,
+    },
   };
 }

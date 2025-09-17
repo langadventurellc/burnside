@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ModelId } from "./modelId.js";
+import type { ModelId } from "./modelId";
 
 /**
  * Zod schema for validating model ID format (provider:model)

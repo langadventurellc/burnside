@@ -7,9 +7,9 @@
 import {
   RedactionProcessor,
   DEFAULT_REDACTION_CONFIG,
-} from "../redactionHooks.js";
-import type { ProviderHttpRequest } from "../providerHttpRequest.js";
-import type { ProviderHttpResponse } from "../providerHttpResponse.js";
+} from "../redactionHooks";
+import type { ProviderHttpRequest } from "../providerHttpRequest";
+import type { ProviderHttpResponse } from "../providerHttpResponse";
 
 describe("RedactionProcessor", () => {
   describe("Configuration Validation", () => {

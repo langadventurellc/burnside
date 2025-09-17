@@ -4,14 +4,15 @@
  * Converts unified ChatRequest format to OpenAI Responses API v1 format.
  */
 
-import type { ChatRequest } from "../../client/chatRequest.js";
-import type { Message } from "../../core/messages/message.js";
-import type { ContentPart } from "../../core/messages/contentPart.js";
-import type { ProviderHttpRequest } from "../../core/transport/providerHttpRequest.js";
-import { createHttpRequest } from "../../core/providers/createHttpRequest.js";
-import { ValidationError } from "../../core/errors/validationError.js";
-import type { OpenAIResponsesV1Config } from "./configSchema.js";
-import { OpenAIResponsesV1RequestSchema } from "./requestSchema.js";
+import type { ChatRequest } from "../../client/chatRequest";
+import type { Message } from "../../core/messages/message";
+import type { ContentPart } from "../../core/messages/contentPart";
+import type { ProviderHttpRequest } from "../../core/transport/providerHttpRequest";
+import { createHttpRequest } from "../../core/providers/createHttpRequest";
+import { ValidationError } from "../../core/errors/validationError";
+import type { OpenAIResponsesV1Config } from "./configSchema";
+import { OpenAIResponsesV1RequestSchema } from "./requestSchema";
+import { translateToolsForOpenAI } from "./toolsTranslator";
 
 /**
  * Convert unified ContentPart to OpenAI message content format
@@ -59,7 +60,7 @@ function convertContentPart(part: ContentPart): unknown {
 }
 
 /**
- * Convert unified Message format to OpenAI message format
+ * Convert unified Message format to OpenAI Responses API message format
  */
 function convertMessage(message: Message): unknown {
   // Handle simple text-only case (text or code content treated as text)
@@ -68,6 +69,7 @@ function convertMessage(message: Message): unknown {
     (message.content[0].type === "text" || message.content[0].type === "code")
   ) {
     return {
+      type: "message",
       role: message.role,
       content: message.content[0].text,
     };
@@ -77,6 +79,7 @@ function convertMessage(message: Message): unknown {
   const convertedContent = message.content.map(convertContentPart);
 
   return {
+    type: "message",
     role: message.role,
     content: convertedContent,
   };
@@ -84,30 +87,65 @@ function convertMessage(message: Message): unknown {
 
 /**
  * Build OpenAI request body from unified request
+ *
+ * @param request - The unified chat request
+ * @param modelCapabilities - Optional model capabilities to control parameter inclusion
  */
 function buildOpenAIRequestBody(
-  request: ChatRequest & { stream?: boolean },
+  request: ChatRequest & { stream?: boolean; tools?: unknown[] },
+  modelCapabilities?: { temperature?: boolean },
 ): Record<string, unknown> {
   const messages = request.messages.map(convertMessage);
 
   const openaiRequest: Record<string, unknown> = {
     model: request.model,
-    messages,
+    input: messages,
   };
 
   // Add optional parameters
   // Always include stream field, defaulting to false for non-streaming
   openaiRequest.stream = request.stream ?? false;
-  if (request.temperature !== undefined) {
+
+  if (
+    request.temperature !== undefined &&
+    modelCapabilities?.temperature !== false
+  ) {
     openaiRequest.temperature = request.temperature;
   }
   if (request.maxTokens !== undefined) {
-    openaiRequest.max_tokens = request.maxTokens;
+    openaiRequest.max_output_tokens = request.maxTokens;
+  }
+
+  // Add tools if provided
+  if (
+    request.tools &&
+    Array.isArray(request.tools) &&
+    request.tools.length > 0
+  ) {
+    try {
+      openaiRequest.tools = translateToolsForOpenAI(
+        request.tools as Parameters<typeof translateToolsForOpenAI>[0],
+      );
+    } catch (error) {
+      throw new ValidationError(
+        `Failed to translate tools for OpenAI request: ${error instanceof Error ? error.message : "Unknown error"}`,
+        { originalError: error, tools: request.tools },
+      );
+    }
   }
 
   // Add options from the request if provided
   if (request.options) {
     for (const [key, value] of Object.entries(request.options)) {
+      // Skip tools if already processed above
+      if (key === "tools") continue;
+
+      // Special handling for maxTokens in responses API
+      if (key === "maxTokens") {
+        openaiRequest.max_output_tokens = value;
+        continue;
+      }
+
       // Convert camelCase to snake_case for OpenAI API
       const openaiKey = key.replace(/([A-Z])/g, "_$1").toLowerCase();
       openaiRequest[openaiKey] = value;
@@ -145,21 +183,24 @@ function buildHeaders(config: OpenAIResponsesV1Config): Record<string, string> {
  * @param config - OpenAI provider configuration
  * @returns HTTP request for OpenAI Responses API v1
  * @throws {ValidationError} When request or config is invalid
+ *
+ * @todo Pass model capabilities to buildOpenAIRequestBody for capability-aware temperature handling
  */
 export function translateChatRequest(
   request: ChatRequest & { stream?: boolean },
   config: OpenAIResponsesV1Config,
+  modelCapabilities?: { temperature?: boolean },
 ): ProviderHttpRequest {
   try {
     // Build and validate the request body
-    const openaiRequest = buildOpenAIRequestBody(request);
+    const openaiRequest = buildOpenAIRequestBody(request, modelCapabilities);
     const validatedRequest =
       OpenAIResponsesV1RequestSchema.parse(openaiRequest);
 
     // Build headers
     const headers = buildHeaders(config);
 
-    // Construct the URL - NOTE: Using /v1/responses not /v1/chat/completions
+    // Construct the URL - NOTE: Using /v1/responses not /v1/responses
     const url = `${config.baseUrl}/responses`;
 
     return createHttpRequest({

@@ -8,13 +8,13 @@
  * @example
  * ```typescript
  * const error = new TransportError("Connection timeout", {
- *   url: "https://api.openai.com/v1/chat/completions",
+ *   url: "https://api.openai.com/v1/responses",
  *   timeout: 30000,
  *   attempt: 3
  * });
  * ```
  */
-import { BridgeError } from "./bridgeError.js";
+import { BridgeError } from "./bridgeError";
 
 export class TransportError extends BridgeError {
   constructor(message: string, context?: Record<string, unknown>) {

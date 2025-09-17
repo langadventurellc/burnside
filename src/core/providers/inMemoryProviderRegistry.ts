@@ -1,10 +1,10 @@
 import { z } from "zod";
-import type { ProviderPlugin } from "./providerPlugin.js";
-import type { ProviderRegistry } from "./providerRegistry.js";
-import type { ProviderInfo } from "./providerInfo.js";
-import type { ProviderKey } from "./providerKey.js";
-import { validateOrThrow } from "../validation/validateOrThrow.js";
-import { ValidationError } from "../errors/validationError.js";
+import type { ProviderPlugin } from "./providerPlugin";
+import type { ProviderRegistry } from "./providerRegistry";
+import type { ProviderInfo } from "./providerInfo";
+import type { ProviderKey } from "./providerKey";
+import { validateOrThrow } from "../validation/validateOrThrow";
+import { ValidationError } from "../errors/validationError";
 
 /**
  * Zod schema for validating ProviderPlugin during registration
@@ -37,12 +37,6 @@ const providerPluginSchema = z.object({
  * Provides a Map-based storage implementation suitable for runtime provider
  * plugin management. Providers are stored by composite keys (id:version)
  * and can be queried efficiently by ID, version, or capability.
- *
- * Features:
- * - Thread-safe operations using synchronous Map operations
- * - Zod-based validation of provider plugin structure
- * - Semantic version sorting for latest version resolution
- * - Efficient storage and retrieval with composite keys
  *
  * @example
  * ```typescript

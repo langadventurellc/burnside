@@ -4,15 +4,16 @@
  * Unit tests for the OpenAI Responses v1 request schema validation.
  */
 
-import { OpenAIResponsesV1RequestSchema } from "../requestSchema.js";
+import { OpenAIResponsesV1RequestSchema } from "../requestSchema";
 
 describe("OpenAIResponsesV1RequestSchema", () => {
   describe("valid requests", () => {
     it("should validate minimal valid request", () => {
       const request = {
         model: "gpt-4o-2024-08-06",
-        messages: [
+        input: [
           {
+            type: "message",
             role: "user",
             content: "Hello, world!",
           },
@@ -22,27 +23,30 @@ describe("OpenAIResponsesV1RequestSchema", () => {
       const result = OpenAIResponsesV1RequestSchema.parse(request);
 
       expect(result.model).toBe("gpt-4o-2024-08-06");
-      expect(result.messages).toHaveLength(1);
-      expect(result.messages[0].role).toBe("user");
-      expect(result.messages[0].content).toBe("Hello, world!");
+      expect(result.input).toHaveLength(1);
+      expect(result.input[0].type).toBe("message");
+      expect(result.input[0].role).toBe("user");
+      expect(result.input[0].content).toBe("Hello, world!");
     });
 
     it("should validate request with all optional parameters", () => {
       const request = {
         model: "gpt-4o-2024-08-06",
-        messages: [
+        input: [
           {
+            type: "message",
             role: "system",
             content: "You are a helpful assistant.",
           },
           {
+            type: "message",
             role: "user",
             content: "Hello!",
           },
         ],
         stream: true,
         temperature: 0.7,
-        max_tokens: 1000,
+        max_output_tokens: 1000,
         top_p: 0.9,
         frequency_penalty: 0.5,
         presence_penalty: 0.2,
@@ -54,10 +58,12 @@ describe("OpenAIResponsesV1RequestSchema", () => {
       const result = OpenAIResponsesV1RequestSchema.parse(request);
 
       expect(result.model).toBe("gpt-4o-2024-08-06");
-      expect(result.messages).toHaveLength(2);
+      expect(result.input).toHaveLength(2);
+      expect(result.input[0].type).toBe("message");
+      expect(result.input[1].type).toBe("message");
       expect(result.stream).toBe(true);
       expect(result.temperature).toBe(0.7);
-      expect(result.max_tokens).toBe(1000);
+      expect(result.max_output_tokens).toBe(1000);
       expect(result.top_p).toBe(0.9);
       expect(result.frequency_penalty).toBe(0.5);
       expect(result.presence_penalty).toBe(0.2);
@@ -69,8 +75,9 @@ describe("OpenAIResponsesV1RequestSchema", () => {
     it("should validate message with image content", () => {
       const request = {
         model: "gpt-4o-2024-08-06",
-        messages: [
+        input: [
           {
+            type: "message",
             role: "user",
             content: [
               {
@@ -91,8 +98,8 @@ describe("OpenAIResponsesV1RequestSchema", () => {
 
       const result = OpenAIResponsesV1RequestSchema.parse(request);
 
-      expect(result.messages[0].content).toHaveLength(2);
-      const imageContent = result.messages[0].content as Array<any>;
+      expect(result.input[0].content).toHaveLength(2);
+      const imageContent = result.input[0].content as Array<any>;
       expect(imageContent[1].type).toBe("image_url");
       expect(imageContent[1].image_url.url).toBe(
         "https://example.com/image.jpg",

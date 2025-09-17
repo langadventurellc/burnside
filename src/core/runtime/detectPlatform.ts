@@ -5,21 +5,21 @@
  * Used by the adapter registry for automatic adapter selection.
  */
 
-import type { Platform } from "./platform.js";
+import type { Platform } from "./platform";
 
 /**
  * Detect the current platform type.
  *
- * Uses environment inspection to determine if running in Node.js, browser,
+ * Uses environment inspection to determine if running in Node, browser,
  * Electron, or React Native environment. Provides reliable detection across
  * different JavaScript runtime environments.
  *
  * @returns Platform type string
  */
 export function detectPlatform(): Platform {
-  // Check for Node.js environment
+  // Check for Node environment
   if (isNodeJs()) {
-    // Check if running in Electron (which also has Node.js APIs)
+    // Check if running in Electron (which also has Node APIs)
     if (isElectron()) {
       return "electron";
     }
@@ -36,7 +36,7 @@ export function detectPlatform(): Platform {
 }
 
 /**
- * Check if running in Node.js environment.
+ * Check if running in Node environment.
  */
 function isNodeJs(): boolean {
   try {
@@ -55,7 +55,7 @@ function isNodeJs(): boolean {
  */
 function isElectron(): boolean {
   try {
-    // Electron has both Node.js APIs and browser-like environment
+    // Electron has both Node APIs and browser-like environment
     return (
       isNodeJs() &&
       (typeof process.versions.electron !== "undefined" ||

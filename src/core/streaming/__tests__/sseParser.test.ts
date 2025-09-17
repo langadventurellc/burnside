@@ -10,9 +10,9 @@ import {
   beforeEach,
   afterEach,
 } from "@jest/globals";
-import { SseParser } from "../sseParser.js";
-import type { SseEvent } from "../sseEvent.js";
-import { StreamingError } from "../../errors/streamingError.js";
+import { SseParser } from "../sseParser";
+import type { SseEvent } from "../sseEvent";
+import { StreamingError } from "../../errors/streamingError";
 
 // Helper function to create async iterable from chunks
 async function* createStream(chunks: string[]): AsyncIterable<Uint8Array> {
@@ -214,12 +214,8 @@ describe("SseParser", () => {
 
       expect(events).toHaveLength(1);
       expect(events[0]).toEqual({ data: "test" });
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        "Unknown SSE field: unknown, ignoring",
-      );
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        "Unknown SSE field: another, ignoring",
-      );
+      // Unknown fields are now silently ignored to reduce log noise
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
     });
   });
 

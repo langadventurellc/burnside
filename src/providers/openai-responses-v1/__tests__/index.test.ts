@@ -8,7 +8,7 @@ import {
   OpenAIResponsesV1Provider,
   type OpenAIResponsesV1Config,
   default as defaultProvider,
-} from "../index.js";
+} from "../index";
 
 describe("OpenAI Responses v1 Provider Module", () => {
   describe("exports", () => {

@@ -5,8 +5,8 @@
  * rules, error cases, and edge conditions.
  */
 
-import { MessageSchema } from "../messageSchema.js";
-import { validateMessage } from "../messageValidation.js";
+import { MessageSchema } from "../messageSchema";
+import { validateMessage } from "../messageValidation";
 
 describe("MessageSchema", () => {
   describe("valid message validation", () => {

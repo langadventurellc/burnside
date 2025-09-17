@@ -6,23 +6,23 @@
  * for core methods that will be implemented in subsequent tasks.
  */
 
-import type { ProviderPlugin } from "../../core/providers/providerPlugin.js";
-import type { ChatRequest } from "../../client/chatRequest.js";
-import type { StreamDelta } from "../../client/streamDelta.js";
-import type { Message } from "../../core/messages/message.js";
-import type { ProviderHttpRequest } from "../../core/transport/providerHttpRequest.js";
-import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse.js";
-import { BridgeError } from "../../core/errors/bridgeError.js";
-import { ValidationError } from "../../core/errors/validationError.js";
-import { ProviderError } from "../../core/errors/providerError.js";
+import type { ProviderPlugin } from "../../core/providers/providerPlugin";
+import type { ChatRequest } from "../../client/chatRequest";
+import type { StreamDelta } from "../../client/streamDelta";
+import type { Message } from "../../core/messages/message";
+import type { ProviderHttpRequest } from "../../core/transport/providerHttpRequest";
+import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse";
+import { BridgeError } from "../../core/errors/bridgeError";
+import { ValidationError } from "../../core/errors/validationError";
+import { ProviderError } from "../../core/errors/providerError";
 import {
   OpenAIResponsesV1ConfigSchema,
   type OpenAIResponsesV1Config,
-} from "./configSchema.js";
-import { translateChatRequest } from "./translator.js";
-import { parseOpenAIResponse } from "./responseParser.js";
-import { parseOpenAIResponseStream } from "./streamingParser.js";
-import { normalizeOpenAIError } from "./errorNormalizer.js";
+} from "./configSchema";
+import { translateChatRequest } from "./translator";
+import { parseOpenAIResponse } from "./responseParser";
+import { parseOpenAIResponseStream } from "./streamingParser";
+import { normalizeOpenAIError } from "./errorNormalizer";
 
 /**
  * OpenAI Responses v1 Provider Plugin
@@ -90,6 +90,7 @@ export class OpenAIResponsesV1Provider implements ProviderPlugin {
    */
   translateRequest(
     request: ChatRequest & { stream?: boolean },
+    modelCapabilities?: { temperature?: boolean },
   ): ProviderHttpRequest {
     if (!this.config) {
       throw new BridgeError("Provider not initialized", "NOT_INITIALIZED", {
@@ -97,7 +98,7 @@ export class OpenAIResponsesV1Provider implements ProviderPlugin {
       });
     }
 
-    return translateChatRequest(request, this.config);
+    return translateChatRequest(request, this.config, modelCapabilities);
   }
 
   /**

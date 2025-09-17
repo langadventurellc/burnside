@@ -7,7 +7,7 @@
  *
  * @example
  * ```typescript
- * import { ToolDefinitionSchema } from "./toolDefinitionSchema.js";
+ * import { ToolDefinitionSchema } from "./toolDefinitionSchema";
  * import { z } from "zod";
  *
  * // Using Zod schema for input validation
@@ -29,7 +29,7 @@
  */
 
 import { z } from "zod";
-import { commonSchemas } from "../validation/index.js";
+import { commonSchemas } from "../validation/index";
 
 /**
  * JSON Schema validation for backward compatibility with existing tools.

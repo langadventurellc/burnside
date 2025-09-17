@@ -103,25 +103,6 @@ describe("Library Exports", () => {
     });
   });
 
-  describe("Feature Flags and Error Handling", () => {
-    it("exports initializeFeatureFlags function", () => {
-      expect(typeof LibraryExports.initializeFeatureFlags).toBe("function");
-      expect(LibraryExports.initializeFeatureFlags.name).toBe(
-        "initializeFeatureFlags",
-      );
-    });
-
-    it("exports isFeatureEnabled function", () => {
-      expect(typeof LibraryExports.isFeatureEnabled).toBe("function");
-      expect(LibraryExports.isFeatureEnabled.name).toBe("isFeatureEnabled");
-    });
-
-    it("exports BridgeError class", () => {
-      expect(typeof LibraryExports.BridgeError).toBe("function");
-      expect(LibraryExports.BridgeError.name).toBe("BridgeError");
-    });
-  });
-
   describe("Import Patterns", () => {
     it("supports named imports", () => {
       expect(() => {
@@ -259,9 +240,6 @@ describe("Library Exports", () => {
       "createModelId",
       "parseModelId",
 
-      // Feature flags and errors
-      "initializeFeatureFlags",
-      "isFeatureEnabled",
       "BridgeError",
     ];
 

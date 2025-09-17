@@ -5,11 +5,11 @@
  * identification across different JavaScript runtime environments.
  */
 
-import { detectPlatform } from "../detectPlatform.js";
-import { isNodeJs } from "../isNodeJs.js";
-import { isBrowser } from "../isBrowser.js";
-import { isElectron } from "../isElectron.js";
-import { isReactNative } from "../isReactNative.js";
+import { detectPlatform } from "../detectPlatform";
+import { isNodeJs } from "../isNodeJs";
+import { isBrowser } from "../isBrowser";
+import { isElectron } from "../isElectron";
+import { isReactNative } from "../isReactNative";
 
 // Mock global objects for testing different environments
 const mockGlobalThis = (globals: Record<string, unknown>) => {
@@ -45,15 +45,15 @@ describe("Platform Detection", () => {
       );
     });
 
-    // Note: In Jest/Node.js environment, this will typically return 'node'
-    it("should detect Node.js in current test environment", () => {
+    // Note: In Jest/Node environment, this will typically return 'node'
+    it("should detect Node in current test environment", () => {
       const platform = detectPlatform();
       expect(platform).toBe("node");
     });
   });
 
   describe("isNodeJs", () => {
-    it("should return true in Node.js environment", () => {
+    it("should return true in Node environment", () => {
       expect(isNodeJs()).toBe(true);
     });
 
@@ -81,7 +81,7 @@ describe("Platform Detection", () => {
   });
 
   describe("isBrowser", () => {
-    it("should return false in Node.js environment", () => {
+    it("should return false in Node environment", () => {
       expect(isBrowser()).toBe(false);
     });
 
@@ -120,7 +120,7 @@ describe("Platform Detection", () => {
   });
 
   describe("isElectron", () => {
-    it("should return false in pure Node.js environment", () => {
+    it("should return false in pure Node environment", () => {
       expect(isElectron()).toBe(false);
     });
 
@@ -139,7 +139,7 @@ describe("Platform Detection", () => {
       (globalThis as unknown as { process: unknown }).process = originalProcess;
     });
 
-    it("should return true when Node.js + window are both available", () => {
+    it("should return true when Node + window are both available", () => {
       const cleanup = mockGlobalThis({ window: {} });
       expect(isElectron()).toBe(true);
       cleanup();
@@ -147,7 +147,7 @@ describe("Platform Detection", () => {
   });
 
   describe("isReactNative", () => {
-    it("should return false in Node.js environment", () => {
+    it("should return false in Node environment", () => {
       expect(isReactNative()).toBe(false);
     });
 

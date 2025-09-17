@@ -5,4 +5,4 @@
  * Provides access to platform-specific adapter implementations.
  */
 
-export { NodeRuntimeAdapter } from "./nodeRuntimeAdapter.js";
+export { NodeRuntimeAdapter } from "./nodeRuntimeAdapter";

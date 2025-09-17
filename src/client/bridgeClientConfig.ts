@@ -1,3 +1,5 @@
+import type { ToolsConfig } from "../core/config/toolsConfig";
+
 /**
  * Bridge Client Configuration
  *
@@ -13,6 +15,13 @@
  *   providers: new Map([
  *     ["openai", { apiKey: "sk-..." }]
  *   ]),
+ *   tools: {
+ *     enabled: true,
+ *     builtinTools: ["echo"],
+ *     executionTimeoutMs: 5000,
+ *     maxConcurrentTools: 1
+ *   },
+ *   toolSystemInitialized: false,
  *   registryOptions: {
  *     providers: {},
  *     models: {}
@@ -30,6 +39,10 @@ export interface BridgeClientConfig {
   timeout: number;
   /** Validated provider configurations */
   providers: Map<string, Record<string, unknown>>;
+  /** Tool system configuration */
+  tools?: ToolsConfig;
+  /** Tracks whether tool system has been initialized */
+  toolSystemInitialized?: boolean;
   /** Global configuration options */
   options: Record<string, unknown>;
   /** Registry initialization options (validated internal configuration) */

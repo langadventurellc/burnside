@@ -6,16 +6,16 @@
  */
 
 import { describe, test, expect, beforeEach } from "@jest/globals";
-import type { ChatRequest } from "../../../client/chatRequest.js";
-import type { ProviderHttpResponse } from "../../../core/transport/providerHttpResponse.js";
-import type { StreamDelta } from "../../../client/streamDelta.js";
-import { OpenAIResponsesV1Provider } from "../index.js";
+import type { ChatRequest } from "../../../client/chatRequest";
+import type { ProviderHttpResponse } from "../../../core/transport/providerHttpResponse";
+import type { StreamDelta } from "../../../client/streamDelta";
+import { OpenAIResponsesV1Provider } from "../index";
 import {
   nonStreamingResponses,
   streamingEvents,
   errorResponses,
   requestExamples,
-} from "./fixtures/index.js";
+} from "./fixtures/index";
 
 /**
  * Helper to create mock HTTP response from fixture
@@ -156,13 +156,13 @@ describe("OpenAI Responses v1 Provider Integration", () => {
 
       const result = (await provider.parseResponse(mockResponse, false)) as {
         message: { content: Array<{ text: string }> };
-        metadata?: { finishReason: string };
+        metadata?: { finishReason: string | null };
       };
 
       expect(result.message.content[0].text).toContain(
         "can't provide information",
       );
-      expect(result.metadata?.finishReason).toBe("content_filter");
+      expect(result.metadata?.finishReason).toBeNull();
     });
 
     test("should handle length limit response", async () => {
@@ -171,11 +171,11 @@ describe("OpenAI Responses v1 Provider Integration", () => {
       );
 
       const result = (await provider.parseResponse(mockResponse, false)) as {
-        metadata?: { finishReason: string };
+        metadata?: { finishReason: string | null };
         usage?: { completionTokens: number };
       };
 
-      expect(result.metadata?.finishReason).toBe("length");
+      expect(result.metadata?.finishReason).toBeNull();
       expect(result.usage?.completionTokens).toBe(50);
     });
   });
@@ -352,7 +352,7 @@ describe("OpenAI Responses v1 Provider Integration", () => {
       const parsedBody = JSON.parse(bodyString);
 
       expect(parsedBody.model).toBe("gpt-4o-2024-08-06");
-      expect(parsedBody.messages).toHaveLength(1);
+      expect(parsedBody.input).toHaveLength(1);
       expect(parsedBody.stream).toBe(false);
     });
 
@@ -383,7 +383,7 @@ describe("OpenAI Responses v1 Provider Integration", () => {
       const parsedBody = JSON.parse(bodyString);
 
       expect(parsedBody.temperature).toBe(0.8);
-      expect(parsedBody.max_tokens).toBe(150);
+      expect(parsedBody.max_output_tokens).toBe(150);
     });
   });
 

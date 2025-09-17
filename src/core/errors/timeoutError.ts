@@ -14,7 +14,7 @@
  * });
  * ```
  */
-import { BridgeError } from "./bridgeError.js";
+import { BridgeError } from "./bridgeError";
 
 export class TimeoutError extends BridgeError {
   constructor(message: string, context?: Record<string, unknown>) {

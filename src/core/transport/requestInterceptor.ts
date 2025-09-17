@@ -18,7 +18,7 @@
  * };
  * ```
  */
-import type { ProviderHttpRequest } from "./providerHttpRequest.js";
+import type { ProviderHttpRequest } from "./providerHttpRequest";
 
 /**
  * Function type for intercepting HTTP requests before transmission.

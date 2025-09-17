@@ -9,7 +9,7 @@ import { z } from "zod";
  *
  * @example
  * ```typescript
- * import { BridgeConfigSchema } from "./bridgeConfigSchema.js";
+ * import { BridgeConfigSchema } from "./bridgeConfigSchema";
  *
  * const config = {
  *   defaultProvider: "openai",
@@ -70,6 +70,35 @@ export const BridgeConfigSchema = z
         z.object({ path: z.string().min(1) }),
       ])
       .optional(),
+
+    /** Tool system configuration */
+    tools: z
+      .object({
+        /** Enable tool execution functionality */
+        enabled: z.boolean().describe("Enable tool execution functionality"),
+        /** List of enabled built-in tools */
+        builtinTools: z
+          .array(z.string().min(1, "Builtin tool name cannot be empty"))
+          .describe("List of enabled built-in tools"),
+        /** Tool execution timeout in milliseconds */
+        executionTimeoutMs: z
+          .number()
+          .int("Execution timeout must be an integer")
+          .min(1000, "Execution timeout must be at least 1000ms")
+          .max(300000, "Execution timeout must not exceed 300000ms")
+          .optional()
+          .describe("Tool execution timeout in milliseconds"),
+        /** Maximum concurrent tool executions (future use) */
+        maxConcurrentTools: z
+          .number()
+          .int("Max concurrent tools must be an integer")
+          .min(1, "Max concurrent tools must be at least 1")
+          .max(10, "Max concurrent tools must not exceed 10")
+          .optional()
+          .describe("Maximum concurrent tool executions"),
+      })
+      .optional()
+      .describe("Tool system configuration"),
   })
   .superRefine((config, ctx) => {
     // At least one of defaultProvider or providers must be specified

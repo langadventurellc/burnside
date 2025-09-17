@@ -1,4 +1,4 @@
-import type { ModelId } from "./modelId.js";
+import type { ModelId } from "./modelId";
 
 /**
  * Parses a ModelId into its provider and model components

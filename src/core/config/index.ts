@@ -9,6 +9,7 @@
 export type { BridgeConfig } from "./bridgeConfig";
 export type { ProviderConfig } from "./providerConfig";
 export type { ModelConfig } from "./modelConfig";
+export type { ToolsConfig } from "./toolsConfig";
 export {
   BridgeConfigSchema,
   type ValidatedBridgeConfig,

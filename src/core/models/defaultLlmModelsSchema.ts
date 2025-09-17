@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * JSON schema validation for defaultLlmModels.json structure
+ * JSON schema validation for defaultLlmModelson structure
  *
  * Validates the expected nested structure with providers containing
  * arrays of models with required metadata fields.
@@ -19,7 +19,8 @@ import { z } from "zod";
  *       contextLength: 128000,
  *       providerPlugin: "openai-responses-v1",
  *       streaming: true,
- *       toolCalls: true
+ *       toolCalls: true,
+ *       temperature: true
  *     }]
  *   }]
  * };
@@ -43,6 +44,8 @@ export const DefaultLlmModelsSchema = z.object({
           toolCalls: z.boolean().optional(),
           images: z.boolean().optional(),
           documents: z.boolean().optional(),
+          temperature: z.boolean().optional(),
+          supportedContentTypes: z.array(z.string()).optional(),
         }),
       ),
     }),

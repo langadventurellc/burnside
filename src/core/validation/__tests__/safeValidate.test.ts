@@ -5,7 +5,7 @@
  */
 
 import { z } from "zod";
-import { safeValidate } from "../safeValidate.js";
+import { safeValidate } from "../safeValidate";
 
 describe("safeValidate", () => {
   const stringSchema = z.string();

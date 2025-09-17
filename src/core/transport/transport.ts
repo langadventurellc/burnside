@@ -9,7 +9,7 @@
  * ```typescript
  * const transport: Transport = new HttpTransport();
  * const response = await transport.fetch({
- *   url: "https://api.openai.com/v1/chat/completions",
+ *   url: "https://api.openai.com/v1/responses",
  *   method: "POST",
  *   headers: { "Authorization": "Bearer sk-..." },
  *   body: JSON.stringify({ model: "gpt-4", messages: [...] })
@@ -20,7 +20,7 @@
  * ```typescript
  * const transport: Transport = new HttpTransport();
  * const stream = await transport.stream({
- *   url: "https://api.openai.com/v1/chat/completions",
+ *   url: "https://api.openai.com/v1/responses",
  *   method: "POST",
  *   headers: { "Authorization": "Bearer sk-..." },
  *   body: JSON.stringify({ model: "gpt-4", stream: true, messages: [...] })
@@ -31,8 +31,8 @@
  * }
  * ```
  */
-import type { ProviderHttpRequest } from "./providerHttpRequest.js";
-import type { ProviderHttpResponse } from "./providerHttpResponse.js";
+import type { ProviderHttpRequest } from "./providerHttpRequest";
+import type { ProviderHttpResponse } from "./providerHttpResponse";
 
 /**
  * Main transport interface for HTTP operations with LLM providers.

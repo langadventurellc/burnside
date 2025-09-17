@@ -20,9 +20,7 @@ export const streamEventsComplete = [
   {
     data: JSON.stringify({
       type: "response.output_text.delta",
-      delta: {
-        text: "Hello",
-      },
+      delta: "Hello",
       response: {
         id: "resp_01J8KRXF7QZQZQZQZQZQZQZQZW",
       },
@@ -31,9 +29,7 @@ export const streamEventsComplete = [
   {
     data: JSON.stringify({
       type: "response.output_text.delta",
-      delta: {
-        text: "! I'm",
-      },
+      delta: "! I'm",
       response: {
         id: "resp_01J8KRXF7QZQZQZQZQZQZQZQZW",
       },
@@ -42,9 +38,7 @@ export const streamEventsComplete = [
   {
     data: JSON.stringify({
       type: "response.output_text.delta",
-      delta: {
-        text: " Claude,",
-      },
+      delta: " Claude,",
       response: {
         id: "resp_01J8KRXF7QZQZQZQZQZQZQZQZW",
       },
@@ -53,9 +47,7 @@ export const streamEventsComplete = [
   {
     data: JSON.stringify({
       type: "response.output_text.delta",
-      delta: {
-        text: " an AI assistant.",
-      },
+      delta: " an AI assistant.",
       response: {
         id: "resp_01J8KRXF7QZQZQZQZQZQZQZQZW",
       },
@@ -64,9 +56,7 @@ export const streamEventsComplete = [
   {
     data: JSON.stringify({
       type: "response.output_text.delta",
-      delta: {
-        text: " How can I help you?",
-      },
+      delta: " How can I help you?",
       response: {
         id: "resp_01J8KRXF7QZQZQZQZQZQZQZQZW",
       },
@@ -111,9 +101,7 @@ export const streamEventsError = [
   {
     data: JSON.stringify({
       type: "response.output_text.delta",
-      delta: {
-        text: "I was starting to respond but",
-      },
+      delta: "I was starting to respond but",
       response: {
         id: "resp_01J8KRXF7QZQZQZQZQZQZQZQZX",
       },
@@ -145,9 +133,7 @@ export const streamEventsPartialUsage = [
   {
     data: JSON.stringify({
       type: "response.output_text.delta",
-      delta: {
-        text: "Short response.",
-      },
+      delta: "Short response.",
       response: {
         id: "resp_01J8KRXF7QZQZQZQZQZQZQZQZY",
       },
@@ -186,9 +172,7 @@ export const streamEventsIndividual = {
   textDelta: {
     data: JSON.stringify({
       type: "response.output_text.delta",
-      delta: {
-        text: "Sample text delta",
-      },
+      delta: "Sample text delta",
       response: {
         id: "resp_01J8KRXF7QZQZQZQZQZQZQZQZZ",
       },
@@ -197,9 +181,7 @@ export const streamEventsIndividual = {
   emptyDelta: {
     data: JSON.stringify({
       type: "response.output_text.delta",
-      delta: {
-        text: "",
-      },
+      delta: "",
       response: {
         id: "resp_01J8KRXF7QZQZQZQZQZQZQZQZZ",
       },
@@ -264,9 +246,7 @@ export const streamEventsMalformed = {
   missingResponseId: {
     data: JSON.stringify({
       type: "response.output_text.delta",
-      delta: {
-        text: "Text without response ID",
-      },
+      delta: "Text without response ID",
     }),
   },
 } as const;

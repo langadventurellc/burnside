@@ -1,8 +1,8 @@
-import { InMemoryModelRegistry } from "../inMemoryModelRegistry.js";
-import type { ModelRegistry } from "../modelRegistry.js";
-import type { ModelInfo } from "../../providers/modelInfo.js";
-import type { ModelCapabilities } from "../../providers/modelCapabilities.js";
-import { ValidationError } from "../../errors/validationError.js";
+import { InMemoryModelRegistry } from "../inMemoryModelRegistry";
+import type { ModelRegistry } from "../modelRegistry";
+import type { ModelInfo } from "../../providers/modelInfo";
+import type { ModelCapabilities } from "../../providers/modelCapabilities";
+import { ValidationError } from "../../errors/validationError";
 
 describe("InMemoryModelRegistry", () => {
   let registry: ModelRegistry;
