@@ -1,13 +1,27 @@
 ---
 id: T-add-npm-script-and-environment
 title: Add NPM script and environment documentation
-status: open
+status: done
 priority: low
 parent: F-anthropic-end-to-end-testing
 prerequisites:
   - T-extend-shared-helpers-for
-affectedFiles: {}
-log: []
+affectedFiles:
+  package.json:
+    Added test:e2e:anthropic NPM script following OpenAI pattern with
+    NODE_OPTIONS dotenv loading and Jest testPathPatterns filter
+  .env.example: Added Anthropic environment variable documentation with API key
+    format, default model, and updated usage instructions
+log:
+  - Successfully implemented NPM script and environment documentation for
+    Anthropic E2E tests following the exact OpenAI patterns. Added
+    `test:e2e:anthropic` script to package.json using Jest v30 syntax with
+    `--testPathPatterns=anthropic` filter. Updated .env.example with
+    comprehensive Anthropic environment variable documentation including proper
+    API key format (sk-ant- prefix), default model (claude-3-5-haiku-latest),
+    and clear usage instructions. Both OpenAI and Anthropic test suites now work
+    independently with proper credential isolation. All quality checks pass and
+    47 Anthropic E2E tests execute successfully.
 schema: v1.0
 childrenIds: []
 created: 2025-09-17T00:51:35.179Z

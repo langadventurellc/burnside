@@ -1,7 +1,7 @@
 ---
 id: F-anthropic-end-to-end-testing
 title: Anthropic End-to-End Testing Infrastructure
-status: in-progress
+status: done
 priority: medium
 parent: none
 prerequisites: []
@@ -67,13 +67,19 @@ affectedFiles:
     tests), Tool Error Handling (4 tests), and Tool Behavior Validation (3
     tests). Uses Anthropic-specific helpers and includes maxTokens: 100 for all
     client.chat() calls to meet Anthropic API requirements."
-log: []
+  package.json:
+    Added test:e2e:anthropic NPM script following OpenAI pattern with
+    NODE_OPTIONS dotenv loading and Jest testPathPatterns filter
+  .env.example: Added Anthropic environment variable documentation with API key
+    format, default model, and updated usage instructions
+log:
+  - "Auto-completed: All child tasks are complete"
 schema: v1.0
 childrenIds:
   - T-add-npm-script-and-environment
-  - T-create-anthropic-tool
   - T-create-anthropic-chat
   - T-create-anthropic-streaming
+  - T-create-anthropic-tool
   - T-extend-shared-helpers-for
   - T-update-jest-setup-files-for
 created: 2025-09-17T00:40:55.311Z
