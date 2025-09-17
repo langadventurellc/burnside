@@ -55,6 +55,17 @@ affectedFiles:
     response test suite with 15+ test cases covering common error types (rate
     limit, auth, validation), invalid error responses, edge cases with special
     characters, and type inference validation.
+  src/providers/xai-v1/translator.ts:
+    Created comprehensive xAI request translator
+    that converts unified ChatRequest format to xAI Responses API v1 format.
+    Includes model ID mapping, message content translation (text/multimodal),
+    tool definition conversion, parameter mapping, header construction, and URL
+    building with proper error handling and Zod validation.
+  src/providers/xai-v1/__tests__/translator.test.ts: Created comprehensive unit
+    test suite with 34 test cases covering model mapping, message translation
+    (text/multimodal), tool translation (JSON Schema/Zod), parameter handling,
+    header construction, URL building, error scenarios, and schema validation.
+    Includes helper functions for safe body parsing and complete test coverage.
 log: []
 schema: v1.0
 childrenIds:
@@ -64,9 +75,9 @@ childrenIds:
   - T-create-xai-provider-module
   - T-create-xai-response-parser
   - T-implement-main-xai-provider
-  - T-implement-xai-request-and
   - T-implement-xai-streaming
   - T-create-xai-configuration
+  - T-implement-xai-request-and
 created: 2025-09-17T19:39:03.829Z
 updated: 2025-09-17T19:39:03.829Z
 ---
