@@ -1,9 +1,9 @@
 import { describe, test, expect, beforeAll } from "@jest/globals";
 import type { BridgeClient } from "../../../client/bridgeClient.js";
-import { createTestClient } from "../shared/modelHelpers.js";
+import { createTestClient } from "../shared/openAIModelHelpers.js";
 import { ensureModelRegistered } from "../shared/ensureModelRegistered.js";
 import { getTestModel } from "../shared/getTestModel.js";
-import { loadTestConfig } from "../shared/testConfig.js";
+import { loadTestConfig } from "../shared/openAITestConfig.js";
 import { validateMessageSchema } from "../shared/testHelpers.js";
 import { createTestMessages } from "../shared/createTestMessages.js";
 import { withTimeout } from "../shared/withTimeout.js";

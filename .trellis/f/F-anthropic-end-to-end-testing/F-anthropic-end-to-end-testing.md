@@ -1,14 +1,48 @@
 ---
 id: F-anthropic-end-to-end-testing
 title: Anthropic End-to-End Testing Infrastructure
-status: open
+status: in-progress
 priority: medium
 parent: none
 prerequisites: []
-affectedFiles: {}
+affectedFiles:
+  src/__tests__/e2e/shared/validateApiKey.ts:
+    Extended validateApiKey function to
+    support Anthropic provider with sk-ant- prefix validation alongside existing
+    OpenAI support
+  src/__tests__/e2e/shared/anthropicTestConfigInterface.ts:
+    Created new interface
+    for Anthropic test configuration following one-export-per-file rule
+  src/__tests__/e2e/shared/anthropicTestConfig.ts: Implemented
+    loadAnthropicTestConfig function with environment variable validation and
+    error handling
+  src/__tests__/e2e/shared/anthropicModelHelpers.ts: Created
+    createAnthropicTestClient function for Anthropic provider registration and
+    configuration
+  src/__tests__/e2e/shared/getAnthropicTestModel.ts: Implemented
+    getAnthropicTestModel function for environment-based model selection with
+    defaults
+  src/__tests__/e2e/shared/__tests__/validateApiKey.anthropic.test.ts:
+    Comprehensive unit tests for Anthropic API key validation covering
+    valid/invalid cases and error scenarios
+  src/__tests__/e2e/shared/__tests__/anthropicTestConfig.test.ts:
+    Complete test coverage for Anthropic test configuration loading including
+    mocking and error cases
+  src/__tests__/e2e/shared/__tests__/anthropicModelHelpers.test.ts:
+    Full unit tests for Anthropic client creation with provider registration and
+    configuration override testing
+  src/__tests__/e2e/shared/__tests__/getAnthropicTestModel.test.ts:
+    Unit tests for Anthropic model selection covering environment variables and
+    default values
 log: []
 schema: v1.0
-childrenIds: []
+childrenIds:
+  - T-add-npm-script-and-environment
+  - T-create-anthropic-chat
+  - T-create-anthropic-streaming
+  - T-create-anthropic-tool
+  - T-extend-shared-helpers-for
+  - T-update-jest-setup-files-for
 created: 2025-09-17T00:40:55.311Z
 updated: 2025-09-17T00:40:55.311Z
 ---
