@@ -99,7 +99,11 @@ affectedFiles:
     Created provider exports file exposing
     all necessary streaming parser functions and schemas; Added export for
     normalizeGeminiError function to make error normalizer available for
-    provider integration and external usage
+    provider integration and external usage; Updated to add comprehensive
+    provider exports including GoogleGeminiV1Provider class,
+    GoogleGeminiV1Config type, GOOGLE_GEMINI_PROVIDER_INFO metadata constant,
+    default export, and utility functions following established provider
+    patterns
   src/providers/google-gemini-v1/errorNormalizer.ts: Created comprehensive error
     normalizer with normalizeGeminiError() main function, HTTP status code
     mapping (400→ValidationError, 401/403→AuthError, 429→RateLimitError,
@@ -130,15 +134,22 @@ affectedFiles:
     support detection, request translation integration, response parsing (both
     modes), stream termination logic, error normalization, and complete
     integration workflows. All tests pass with proper mocking and type safety.
+  src/providers/index.ts: Updated to register Google Gemini v1 provider with
+    alphabetical ordering, adding GoogleGeminiV1Provider,
+    GOOGLE_GEMINI_PROVIDER_INFO, and default export
+  src/providers/google-gemini-v1/__tests__/index.test.ts: Created comprehensive
+    test suite with 18 tests covering named exports, default export, TypeScript
+    types, provider instantiation, schema validation, and integration with main
+    provider registry
 log: []
 schema: v1.0
 childrenIds:
   - T-create-api-response-fixtures
   - T-create-provider-exports-and
-  - T-implement-googlegeminiv1provid
   - T-create-gemini-api-request-and
   - T-create-provider-configuration-1
   - T-implement-error-normalization
+  - T-implement-googlegeminiv1provid
   - T-implement-non-streaming-1
   - T-implement-request-translator-1
   - T-implement-streaming-response-1
