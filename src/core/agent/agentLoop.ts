@@ -38,7 +38,10 @@ import { createExecutionContext } from "./agentExecutionContext";
  * ```
  */
 export class AgentLoop {
-  private defaultOptions: Required<AgentExecutionOptions>;
+  private defaultOptions: Required<
+    Omit<AgentExecutionOptions, "iterationTimeoutMs">
+  > &
+    Pick<AgentExecutionOptions, "iterationTimeoutMs">;
 
   constructor(
     private toolRouter: ToolRouter,
@@ -49,6 +52,12 @@ export class AgentLoop {
       timeoutMs: defaultOptions.timeoutMs ?? 30000,
       toolTimeoutMs: defaultOptions.toolTimeoutMs ?? 5000,
       continueOnToolError: defaultOptions.continueOnToolError ?? true,
+      maxIterations: defaultOptions.maxIterations ?? 10,
+      iterationTimeoutMs: defaultOptions.iterationTimeoutMs,
+      enableStreaming: defaultOptions.enableStreaming ?? true,
+      toolExecutionStrategy:
+        defaultOptions.toolExecutionStrategy ?? "sequential",
+      maxConcurrentTools: defaultOptions.maxConcurrentTools ?? 3,
     };
   }
 

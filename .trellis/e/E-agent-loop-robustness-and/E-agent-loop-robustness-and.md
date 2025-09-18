@@ -1,14 +1,28 @@
 ---
 id: E-agent-loop-robustness-and
 title: Agent Loop Robustness and Safety
-status: open
+status: in-progress
 priority: medium
 parent: none
 prerequisites: []
-affectedFiles: {}
+affectedFiles:
+  src/core/agent/agentExecutionOptions.ts:
+    Extended interface with 5 new optional
+    multi-turn properties and comprehensive JSDoc documentation with examples
+  src/core/agent/agentLoop.ts: Updated constructor to initialize new multi-turn
+    options with proper defaults and fixed TypeScript typing for
+    Required<AgentExecutionOptions>
+  src/core/agent/__tests__/agentExecutionOptions.test.ts: Created comprehensive
+    test suite with 19 tests covering backward compatibility, type safety,
+    documentation examples, and edge cases
 log: []
 schema: v1.0
-childrenIds: []
+childrenIds:
+  - F-cancellation-infrastructure
+  - F-context-management-and-token
+  - F-multi-turn-loop-foundation
+  - F-observability-and-safety
+  - F-provider-aware-termination
 created: 2025-09-18T02:14:48.566Z
 updated: 2025-09-18T02:14:48.566Z
 ---
