@@ -35,7 +35,9 @@ affectedFiles:
   src/core/agent/index.ts: Updated module exports to include MultiTurnState,
     StreamingState, and TerminationReason types, and updated module
     documentation to mention multi-turn capabilities; Updated module exports to
-    include new IterationManager class and related interfaces
+    include new IterationManager class and related interfaces; Updated module
+    exports to include StreamingResult interface and StreamingStateMachine class
+    in alphabetical order following existing patterns
   src/core/agent/__tests__/agentLoop.test.ts: Added comprehensive test suite for
     executeMultiTurn() method with 12 test cases covering state management,
     iteration limits, timeout scenarios, metrics calculation, error handling,
@@ -48,6 +50,21 @@ affectedFiles:
   src/core/agent/executionMetrics.ts: Created new ExecutionMetrics interface for performance monitoring
   src/core/agent/__tests__/iterationManager.test.ts: Created comprehensive test
     suite with 26 tests covering all functionality including edge cases
+  src/core/agent/streamingResult.ts: Created new StreamingResult interface
+    defining return type for streaming operations with state, content, tool
+    calls, success status, execution metrics, and optional error/metadata fields
+  src/core/agent/streamingStateMachine.ts:
+    Created new StreamingStateMachine class
+    implementing complete state machine for streaming interruption handling with
+    handleStreamingResponse(), state transition validation, tool call detection
+    infrastructure, and buffer management
+  src/core/agent/__tests__/streamingResult.test.ts: Created comprehensive test
+    suite with 15 tests covering StreamingResult interface validation, streaming
+    states, execution metrics, and error handling scenarios
+  src/core/agent/__tests__/streamingStateMachine.test.ts: Created comprehensive
+    test suite with 16 tests covering state transitions, streaming response
+    processing, tool execution coordination, buffer management, and error
+    handling with mock async iterables
 log: []
 schema: v1.0
 childrenIds:
