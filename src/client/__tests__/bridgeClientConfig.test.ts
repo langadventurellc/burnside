@@ -4,8 +4,6 @@ describe("BridgeClientConfig", () => {
   describe("interface structure", () => {
     it("should accept valid configuration with all required fields", () => {
       const config: BridgeClientConfig = {
-        defaultProvider: "openai",
-        defaultModel: "gpt-4",
         timeout: 30000,
         providers: new Map([
           ["openai", { apiKey: "sk-test" }],
@@ -19,8 +17,6 @@ describe("BridgeClientConfig", () => {
         validated: true,
       };
 
-      expect(config.defaultProvider).toBe("openai");
-      expect(config.defaultModel).toBe("gpt-4");
       expect(config.timeout).toBe(30000);
       expect(config.providers.size).toBe(2);
       expect(config.validated).toBe(true);
@@ -35,8 +31,6 @@ describe("BridgeClientConfig", () => {
       providersMap.set("anthropic", { apiKey: "sk-ant-test" });
 
       const config: BridgeClientConfig = {
-        defaultProvider: "openai",
-        defaultModel: "gpt-3.5-turbo",
         timeout: 60000,
         providers: providersMap,
         options: { retries: 3 },
@@ -58,8 +52,6 @@ describe("BridgeClientConfig", () => {
 
     it("should accept empty providers Map", () => {
       const config: BridgeClientConfig = {
-        defaultProvider: "default",
-        defaultModel: "default-model",
         timeout: 15000,
         providers: new Map(),
         options: {},
@@ -81,8 +73,6 @@ describe("BridgeClientConfig", () => {
       };
 
       const config: BridgeClientConfig = {
-        defaultProvider: "custom",
-        defaultModel: "custom-model",
         timeout: 45000,
         providers: new Map([["custom", { endpoint: "http://localhost:8080" }]]),
         options,
@@ -102,8 +92,6 @@ describe("BridgeClientConfig", () => {
   describe("providers Map behavior", () => {
     it("should maintain Map functionality", () => {
       const config: BridgeClientConfig = {
-        defaultProvider: "test",
-        defaultModel: "test-model",
         timeout: 20000,
         providers: new Map(),
         options: {},
@@ -145,8 +133,6 @@ describe("BridgeClientConfig", () => {
       };
 
       const config: BridgeClientConfig = {
-        defaultProvider: "openai",
-        defaultModel: "gpt-4",
         timeout: 30000,
         providers: new Map<string, Record<string, unknown>>([
           ["openai", openaiConfig],
@@ -173,8 +159,6 @@ describe("BridgeClientConfig", () => {
       // const invalid3: BridgeClientConfig = { defaultProvider: "test", defaultModel: "test", providers: new Map(), options: {}, validated: true }; // missing timeout
 
       const valid: BridgeClientConfig = {
-        defaultProvider: "test",
-        defaultModel: "test-model",
         timeout: 30000,
         providers: new Map(),
         options: {},
@@ -190,8 +174,6 @@ describe("BridgeClientConfig", () => {
 
     it("should allow proper type inference", () => {
       const config: BridgeClientConfig = {
-        defaultProvider: "openai",
-        defaultModel: "gpt-4",
         timeout: 30000,
         providers: new Map([["openai", { apiKey: "test" }]]),
         options: { debug: true },
@@ -203,15 +185,11 @@ describe("BridgeClientConfig", () => {
       };
 
       // TypeScript should infer correct types
-      const provider: string = config.defaultProvider;
-      const model: string = config.defaultModel;
       const timeout: number = config.timeout;
       const providers: Map<string, Record<string, unknown>> = config.providers;
       const options: Record<string, unknown> = config.options;
       const validated: boolean = config.validated;
 
-      expect(provider).toBe("openai");
-      expect(model).toBe("gpt-4");
       expect(timeout).toBe(30000);
       expect(providers.size).toBe(1);
       expect(options.debug).toBe(true);
@@ -220,8 +198,6 @@ describe("BridgeClientConfig", () => {
 
     it("should maintain type safety for provider configurations", () => {
       const config: BridgeClientConfig = {
-        defaultProvider: "test",
-        defaultModel: "test-model",
         timeout: 30000,
         providers: new Map(),
         options: {},

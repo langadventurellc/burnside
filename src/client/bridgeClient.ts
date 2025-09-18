@@ -132,7 +132,11 @@ export class BridgeClient {
     if (model.includes(":")) {
       return model;
     }
-    return `${this.config.defaultProvider}:${model}`;
+    throw new BridgeError(
+      "Unqualified model IDs are not supported. Please specify the full model ID with provider prefix.",
+      "MODEL_NOT_REGISTERED",
+      { modelId: model },
+    );
   }
 
   /**
@@ -697,7 +701,7 @@ export class BridgeClient {
     // Validate required configuration
     if (!config.defaultProvider && !config.providers) {
       throw new BridgeError(
-        "Configuration must specify either defaultProvider or providers",
+        "Configuration must specify providers",
         "INVALID_CONFIG",
         { config },
       );
@@ -736,7 +740,6 @@ export class BridgeClient {
       );
     }
 
-    const defaultModel = config.defaultModel || "gpt-3.5-turbo";
     const timeout = config.timeout || 30000;
 
     if (timeout < 1000 || timeout > 300000) {
@@ -748,8 +751,6 @@ export class BridgeClient {
     }
 
     return {
-      defaultProvider,
-      defaultModel,
       timeout,
       providers: providersMap,
       tools: config.tools,

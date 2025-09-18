@@ -57,11 +57,8 @@ export function createClient(config: BridgeConfig): BridgeClient {
     // Process environment variable references in configuration
     const processedConfig = processEnvironmentVariables(validatedConfig);
 
-    // Merge with defaults and create client
-    const configWithDefaults = mergeWithDefaults(processedConfig);
-
     // Create and return BridgeClient instance
-    return new BridgeClient(configWithDefaults);
+    return new BridgeClient(processedConfig);
   } catch (error) {
     // Re-throw ValidationError as-is for clear configuration errors
     if (error instanceof ValidationError) {
@@ -167,26 +164,4 @@ function processStringValue(value: string, path: string): string {
 
     return envValue;
   });
-}
-
-/**
- * Merge Configuration with Defaults
- *
- * Applies sensible default values for optional configuration fields
- * while preserving explicitly provided values.
- *
- * @param config - Validated configuration
- * @returns Configuration with defaults applied
- */
-function mergeWithDefaults(config: BridgeConfig): BridgeConfig {
-  return {
-    ...config,
-    defaultModel: config.defaultModel || "gpt-3.5-turbo",
-    timeout: config.timeout || 30000,
-    options: config.options || {},
-    registryOptions: {
-      providers: config.registryOptions?.providers || {},
-      models: config.registryOptions?.models || {},
-    },
-  };
 }

@@ -113,7 +113,7 @@ describe("GoogleGeminiV1Provider", () => {
     it("should return false for non-Gemini models", () => {
       const unsupportedModels = [
         "gpt-4",
-        "gpt-3.5-turbo",
+        "gpt-5-nano-2025-08-07",
         "claude-3-opus",
         "claude-3-sonnet",
         "gemini-1.5-pro", // Different version

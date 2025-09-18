@@ -76,7 +76,7 @@ describe("ChatRequest", () => {
 
       const request: ChatRequest = {
         messages: multipleMessages,
-        model: "gpt-3.5-turbo",
+        model: "gpt-5-nano-2025-08-07",
       };
 
       expect(request.messages).toHaveLength(2);

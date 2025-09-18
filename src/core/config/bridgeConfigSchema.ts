@@ -105,8 +105,7 @@ export const BridgeConfigSchema = z
     if (!config.defaultProvider && !config.providers) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message:
-          "Configuration must specify either defaultProvider or providers",
+        message: "Configuration must specify providers",
         path: ["defaultProvider"],
       });
       return;

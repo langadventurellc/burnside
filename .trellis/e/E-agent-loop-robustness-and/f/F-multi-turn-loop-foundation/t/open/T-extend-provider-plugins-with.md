@@ -18,7 +18,7 @@ updated: 2025-09-18T02:58:39.998Z
 
 ## Context
 
-This task extends the existing `ProviderPlugin` interface and implementations to support multi-turn conversation state, enabling providers to make informed decisions about conversation continuation, token usage, and termination detection within multi-turn contexts.
+This task extends the existing `ProviderPlugin` interface and implementations to support multi-turn conversation state, enabling providers to make informed decisions about conversation continuation, token usage, and termination detection within multi-turn contexts. Do not hard code anything about models. Everything should come from the models configuration file. `src/data/defaultLlmModels.ts`.
 
 ## Related Files
 
