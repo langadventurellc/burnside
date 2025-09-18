@@ -182,25 +182,81 @@ export function parseOpenAIResponse(
     (item) => "type" in item && item.type === "message",
   );
 
-  if (!messageOutput) {
-    throw new ValidationError(
-      "No message type found in OpenAI response output",
-      {
-        status: response.status,
-        statusText: response.statusText,
-        responseId: openaiResponse.id,
-        outputTypes: openaiResponse.output.map((item) =>
-          "type" in item ? item.type : "unknown",
-        ),
-      },
-    );
-  }
+  let message: Message & { toolCalls?: ToolCall[] };
 
-  // Convert the message output to unified message format
-  const message = convertOpenAIOutputToMessage(
-    messageOutput,
-    openaiResponse.id,
-  );
+  if (messageOutput) {
+    // Convert the message output to unified message format
+    message = convertOpenAIOutputToMessage(messageOutput, openaiResponse.id);
+  } else {
+    // Check if there are function_call outputs
+    const functionCallOutputs = openaiResponse.output.filter(
+      (item) => "type" in item && item.type === "function_call",
+    );
+
+    if (functionCallOutputs.length === 0) {
+      throw new ValidationError(
+        "No message or function_call type found in OpenAI response output",
+        {
+          status: response.status,
+          statusText: response.statusText,
+          responseId: openaiResponse.id,
+          outputTypes: openaiResponse.output.map((item) =>
+            "type" in item ? item.type : "unknown",
+          ),
+        },
+      );
+    }
+
+    // Convert function_call outputs to a message with tool calls
+    // This handles multi-turn scenarios where the API returns only function calls
+    const toolCalls: ToolCall[] = functionCallOutputs.map((output) => {
+      // Type guard to ensure we have the expected structure
+      if (!("type" in output) || output.type !== "function_call") {
+        throw new ValidationError(
+          "Unexpected output type in function call processing",
+        );
+      }
+
+      // Cast to the expected function_call structure
+      const functionCallOutput = output as {
+        type: "function_call";
+        id: string;
+        call_id?: string;
+        name: string;
+        arguments: string;
+      };
+
+      // Parse the arguments JSON string
+      let parameters: Record<string, unknown>;
+      try {
+        parameters = JSON.parse(functionCallOutput.arguments) as Record<
+          string,
+          unknown
+        >;
+      } catch (error) {
+        throw new ValidationError("Failed to parse function call arguments", {
+          functionName: functionCallOutput.name,
+          arguments: functionCallOutput.arguments,
+          parseError: error instanceof Error ? error.message : String(error),
+        });
+      }
+
+      return {
+        id: functionCallOutput.call_id || functionCallOutput.id,
+        name: functionCallOutput.name,
+        parameters,
+      };
+    });
+
+    // Create a synthetic assistant message with the tool calls
+    message = {
+      id: openaiResponse.id,
+      role: "assistant",
+      content: [], // Empty content for tool-only responses
+      timestamp: new Date().toISOString(),
+      toolCalls,
+    };
+  }
 
   // Extract usage and metadata
   const usage = extractUsageInformation(openaiResponse.usage);

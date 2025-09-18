@@ -194,6 +194,7 @@ export function translateChatRequest(
   try {
     // Build and validate the request body
     const openaiRequest = buildOpenAIRequestBody(request, modelCapabilities);
+
     const validatedRequest =
       OpenAIResponsesV1RequestSchema.parse(openaiRequest);
 

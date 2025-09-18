@@ -12,13 +12,26 @@ affectedFiles:
     integration, and natural completion. Follows exact same patterns as
     tools.e2e.test.ts with proper imports, model filtering, and validation
     logic."
+  src/__tests__/e2e/openai/multiTurn.e2e.test.ts:
+    Created comprehensive multi-turn
+    E2E tests with basic conversation flow and maxIterations limit validation
+  src/providers/openai-responses-v1/openAIToolSchema.ts: Updated tool schema for OpenAI Responses API format (flat structure)
+  src/providers/openai-responses-v1/toolTranslator.ts: Fixed tool translator to
+    use Responses API format instead of Chat Completions format
+  src/providers/openai-responses-v1/toolsTranslator.ts: Updated tools translator type definitions for consistency
+  src/providers/openai-responses-v1/__tests__/toolTranslator.test.ts: Updated test assertions for new tool format
+  src/providers/openai-responses-v1/__tests__/fixtures/toolExamples.ts: Updated test fixtures to match Responses API tool format
+  src/providers/openai-responses-v1/responseSchema.ts: Added function_call output schema support for multi-turn responses
+  src/providers/openai-responses-v1/responseParser.ts: Enhanced parser to handle
+    function-call-only responses and create synthetic assistant messages
+  src/providers/openai-responses-v1/errorNormalizer.ts: Enhanced error logging for better debugging of validation failures
 log: []
 schema: v1.0
 childrenIds:
-  - T-create-anthropic-multi-turn
   - T-create-google-multi-turn-e2e
   - T-create-openai-multi-turn-e2e
   - T-create-xai-multi-turn-e2e
+  - T-create-anthropic-multi-turn
 created: 2025-09-18T16:50:43.296Z
 updated: 2025-09-18T16:50:43.296Z
 ---

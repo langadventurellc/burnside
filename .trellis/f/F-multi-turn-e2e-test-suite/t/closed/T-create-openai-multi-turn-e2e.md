@@ -1,12 +1,33 @@
 ---
 id: T-create-openai-multi-turn-e2e
 title: Create OpenAI multi-turn E2E tests
-status: open
+status: done
 priority: medium
 parent: F-multi-turn-e2e-test-suite
 prerequisites: []
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/__tests__/e2e/openai/multiTurn.e2e.test.ts:
+    Created comprehensive multi-turn
+    E2E tests with basic conversation flow and maxIterations limit validation
+  src/providers/openai-responses-v1/openAIToolSchema.ts: Updated tool schema for OpenAI Responses API format (flat structure)
+  src/providers/openai-responses-v1/toolTranslator.ts: Fixed tool translator to
+    use Responses API format instead of Chat Completions format
+  src/providers/openai-responses-v1/toolsTranslator.ts: Updated tools translator type definitions for consistency
+  src/providers/openai-responses-v1/__tests__/toolTranslator.test.ts: Updated test assertions for new tool format
+  src/providers/openai-responses-v1/__tests__/fixtures/toolExamples.ts: Updated test fixtures to match Responses API tool format
+  src/providers/openai-responses-v1/responseSchema.ts: Added function_call output schema support for multi-turn responses
+  src/providers/openai-responses-v1/responseParser.ts: Enhanced parser to handle
+    function-call-only responses and create synthetic assistant messages
+  src/providers/openai-responses-v1/errorNormalizer.ts: Enhanced error logging for better debugging of validation failures
+log:
+  - "Successfully implemented OpenAI multi-turn E2E tests with core provider
+    fixes. Created multi-turn test file with two test cases following Anthropic
+    patterns. Fixed critical OpenAI provider bugs: corrected tool format for
+    Responses API, added function_call output schema support, and enhanced
+    response parser to handle function-call-only responses by creating synthetic
+    assistant messages. Multi-turn execution now works correctly for OpenAI
+    provider. Enhanced error logging for better debugging of intermittent API
+    issues."
 schema: v1.0
 childrenIds: []
 created: 2025-09-18T16:59:08.345Z

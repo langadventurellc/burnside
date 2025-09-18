@@ -122,6 +122,7 @@ Acceptance
 
 - Add in‑memory response cache with TTL + LRU and deterministic request hashing.
 - Add in‑memory token‑bucket rate limiter; respect 429/Retry‑After with jitter backoff.
+- Add error handling for non-success responses with automatic retries.
 - Provider‑native prompt caching hooks (e.g., Anthropic cache points) via plugin capability; reuse within session.
 
 Acceptance
