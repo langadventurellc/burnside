@@ -20,15 +20,20 @@ affectedFiles:
   src/__tests__/e2e/shared/getXaiTestModel.ts: Created model selection helper
     returning E2E_XAI_MODEL environment variable override or default
     'xai:grok-3-mini'
+  src/__tests__/e2e/shared/xaiModelHelpers.ts: Created BridgeClient factory
+    function following OpenAI E2E patterns with XAIV1Provider registration, xAI
+    configuration, builtin model seed, and echo tool support
+  src/client/bridgeClient.ts: Added xai-v1 provider plugin mapping to enable
+    automatic provider resolution for Grok models from builtin seed
 log: []
 schema: v1.0
 childrenIds:
   - T-add-xai-e2e-test-configuration
   - T-create-xai-bridgeclient
-  - T-create-xai-test-configuration
   - T-implement-xai-chat-completion
   - T-implement-xai-streaming-e2e
   - T-implement-xai-tool-execution
+  - T-create-xai-test-configuration
 created: 2025-09-18T00:08:03.828Z
 updated: 2025-09-18T00:08:03.828Z
 ---

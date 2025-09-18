@@ -1,13 +1,24 @@
 ---
 id: T-create-xai-bridgeclient
 title: Create xAI BridgeClient factory and model helpers
-status: open
+status: done
 priority: high
 parent: F-xai-grok-provider-e2e-testing
 prerequisites:
   - T-create-xai-test-configuration
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/__tests__/e2e/shared/xaiModelHelpers.ts: Created BridgeClient factory
+    function following OpenAI E2E patterns with XAIV1Provider registration, xAI
+    configuration, builtin model seed, and echo tool support
+  src/client/bridgeClient.ts: Added xai-v1 provider plugin mapping to enable
+    automatic provider resolution for Grok models from builtin seed
+log:
+  - Implemented xAI BridgeClient factory and model helpers for E2E testing.
+    Created xaiModelHelpers.ts with createTestClient() function that registers
+    XAIV1Provider, configures xAI as default provider, enables builtin model
+    seed for automatic Grok model registration, and enables tools with echo
+    builtin. Updated BridgeClient provider mapping to support "xai-v1" plugin
+    resolution. All quality checks pass.
 schema: v1.0
 childrenIds: []
 created: 2025-09-18T00:10:13.863Z
