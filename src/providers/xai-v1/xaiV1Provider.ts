@@ -222,6 +222,10 @@ export class XAIV1Provider implements ProviderPlugin {
     if ("message" in deltaOrResponse) {
       const response = deltaOrResponse;
       const status = response.metadata?.status as string | null | undefined;
+      const finishReason = response.metadata?.finish_reason as
+        | string
+        | null
+        | undefined;
       const incompleteDetails = response.metadata?.incomplete_details as
         | { reason: string }
         | null
@@ -234,6 +238,7 @@ export class XAIV1Provider implements ProviderPlugin {
         response.metadata || {},
         undefined, // No eventType for non-streaming
         undefined, // Non-streaming doesn't use usage as termination indicator
+        finishReason, // Pass finish_reason for additional normalization
       );
     }
 
@@ -241,6 +246,10 @@ export class XAIV1Provider implements ProviderPlugin {
     const delta = deltaOrResponse;
     const eventType = delta.metadata?.eventType as string | null | undefined;
     const status = delta.metadata?.status as string | null | undefined;
+    const finishReason = delta.metadata?.finish_reason as
+      | string
+      | null
+      | undefined;
 
     // Check if stream is finished
     const isFinished =
@@ -255,6 +264,7 @@ export class XAIV1Provider implements ProviderPlugin {
       delta.metadata || {},
       eventType,
       delta.usage,
+      finishReason, // Pass finish_reason for additional normalization
     );
   }
 
@@ -282,6 +292,7 @@ export class XAIV1Provider implements ProviderPlugin {
       completionTokens: number;
       totalTokens?: number;
     } | null,
+    finishReason?: string | null,
   ): UnifiedTerminationSignal {
     // Handle streaming completion
     if (eventType === "response.completed") {
@@ -305,6 +316,19 @@ export class XAIV1Provider implements ProviderPlugin {
         "natural_completion",
         "high",
         "Stream completed with usage information",
+        metadata,
+      );
+    }
+
+    // Handle content filtering based on finish_reason
+    if (finishReason === "content_filter") {
+      return createTerminationSignal(
+        true,
+        "finish_reason",
+        finishReason,
+        "content_filtered",
+        "high",
+        "Response terminated due to content filtering",
         metadata,
       );
     }

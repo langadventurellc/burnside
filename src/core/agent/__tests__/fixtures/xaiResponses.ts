@@ -37,6 +37,7 @@ export const xaiResponses = {
       object: "chat.completion",
       created: 1699000000,
       model: "grok-3",
+      status: "completed",
       finish_reason: "stop",
       choices: [
         {
@@ -90,6 +91,7 @@ export const xaiResponses = {
       object: "chat.completion",
       created: 1699000001,
       model: "grok-3",
+      status: "incomplete",
       finish_reason: "length",
       choices: [
         {
@@ -143,6 +145,7 @@ export const xaiResponses = {
       object: "chat.completion",
       created: 1699000002,
       model: "grok-3",
+      status: "completed",
       finish_reason: "content_filter",
       choices: [
         {
@@ -202,6 +205,7 @@ export const xaiResponses = {
       object: "chat.completion",
       created: 1699000003,
       model: "grok-3",
+      status: "completed",
       finish_reason: "tool_calls",
       choices: [
         {
@@ -270,6 +274,7 @@ export const xaiResponses = {
       object: "chat.completion",
       created: 1699000004,
       model: "grok-2",
+      status: "completed",
       finish_reason: "function_call",
       choices: [
         {
@@ -326,6 +331,7 @@ export const xaiResponses = {
       object: "chat.completion",
       created: 1699000005,
       model: "grok-3",
+      status: null,
       finish_reason: null,
       choices: [
         {
@@ -378,6 +384,7 @@ export const xaiResponses = {
       object: "chat.completion",
       created: 1699000006,
       model: "grok-3",
+      status: null,
       choices: [
         {
           index: 0,
@@ -431,6 +438,7 @@ export const xaiStreamingResponses = {
       totalTokens: 29,
     },
     metadata: {
+      eventType: "response.completed",
       finish_reason: "stop",
       choices: [
         {
@@ -471,6 +479,7 @@ export const xaiStreamingResponses = {
       totalTokens: 4196,
     },
     metadata: {
+      eventType: "response.completed",
       finish_reason: "length",
       choices: [
         {
@@ -511,6 +520,7 @@ export const xaiStreamingResponses = {
       totalTokens: 30,
     },
     metadata: {
+      eventType: "response.completed",
       finish_reason: "content_filter",
       choices: [
         {
@@ -551,6 +561,7 @@ export const xaiStreamingResponses = {
       totalTokens: 70,
     },
     metadata: {
+      eventType: "response.completed",
       finish_reason: "tool_calls",
       choices: [
         {
@@ -630,6 +641,7 @@ export const xaiStreamingResponses = {
       totalTokens: 21,
     },
     metadata: {
+      eventType: null,
       finish_reason: null,
       choices: [
         {

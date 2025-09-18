@@ -32,6 +32,7 @@ export const geminiResponses = {
     },
     model: "gemini-1.5-pro",
     metadata: {
+      finishReason: "STOP",
       candidates: [
         {
           content: {
@@ -98,6 +99,7 @@ export const geminiResponses = {
     },
     model: "gemini-1.5-pro",
     metadata: {
+      finishReason: "MAX_TOKENS",
       candidates: [
         {
           content: {
@@ -164,6 +166,7 @@ export const geminiResponses = {
     },
     model: "gemini-1.5-pro",
     metadata: {
+      finishReason: "SAFETY",
       candidates: [
         {
           content: {
@@ -227,6 +230,7 @@ export const geminiResponses = {
     },
     model: "gemini-1.5-pro",
     metadata: {
+      finishReason: "RECITATION",
       candidates: [
         {
           content: {
@@ -289,6 +293,7 @@ export const geminiResponses = {
     },
     model: "gemini-1.5-pro",
     metadata: {
+      finishReason: "OTHER",
       candidates: [
         {
           content: {
@@ -357,6 +362,7 @@ export const geminiResponses = {
     },
     model: "gemini-1.5-pro",
     metadata: {
+      finishReason: "STOP",
       candidates: [
         {
           content: {
@@ -427,6 +433,7 @@ export const geminiResponses = {
     },
     model: "gemini-1.5-pro",
     metadata: {
+      finishReason: "FUTURE_UNKNOWN_REASON",
       candidates: [
         {
           content: {

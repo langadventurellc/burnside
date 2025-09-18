@@ -322,6 +322,21 @@ affectedFiles:
     Created comprehensive unit
     tests covering edge cases, provider detection scenarios, conversation
     context creation, and assistant message finding functionality.
+  src/core/agent/__tests__/fixtures/geminiResponses.ts: Fixed Gemini provider
+    fixtures to include finishReason at top level of metadata for proper
+    detection
+  src/core/agent/__tests__/fixtures/xaiResponses.ts: Fixed xAI provider fixtures
+    to include status field and eventType for streaming responses to match
+    provider expectations
+  src/core/agent/__tests__/terminationConsistency.test.ts: Created comprehensive
+    cross-provider consistency tests with realistic expectations for provider
+    differences
+  src/core/agent/__tests__/terminationIntegration.test.ts: Created end-to-end
+    integration tests for multi-turn loops, streaming coordination, fallback
+    behavior, and error scenarios
+  src/providers/xai-v1/xaiV1Provider.ts: Enhanced xAI provider to properly
+    normalize content filtering finish_reason to content_filtered termination
+    reason
 log: []
 schema: v1.0
 childrenIds:
