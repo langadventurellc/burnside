@@ -59,7 +59,9 @@ affectedFiles:
     related interfaces, enhanced module documentation to mention multi-turn
     error handling capabilities; Added exports for all new termination types and
     utility functions; Added export for analyzeConversationTermination function
-    to make termination analysis available for external consumption.
+    to make termination analysis available for external consumption.; Updated
+    main agent module to export cancellation infrastructure and enhanced module
+    documentation to mention cancellation capabilities
   src/core/agent/__tests__/agentLoop.test.ts: Added comprehensive test suite for
     executeMultiTurn() method with 12 test cases covering state management,
     iteration limits, timeout scenarios, metrics calculation, error handling,
@@ -337,6 +339,35 @@ affectedFiles:
   src/providers/xai-v1/xaiV1Provider.ts: Enhanced xAI provider to properly
     normalize content filtering finish_reason to content_filtered termination
     reason
+  src/core/agent/cancellation/cancellationPhase.ts:
+    Created CancellationPhase type
+    definition with 5 specialized execution phases for cancellation contexts
+  src/core/agent/cancellation/cancellationError.ts:
+    Created core CancellationError
+    class extending Error with detailed context properties (code, reason, phase,
+    cleanupCompleted, timestamp) and custom JSON serialization
+  src/core/agent/cancellation/gracefulCancellationTimeoutError.ts:
+    Created GracefulCancellationTimeoutError class extending CancellationError
+    with timeout-specific properties (timeoutMs, cleanupAttempted) and enhanced
+    JSON serialization
+  src/core/agent/cancellation/createCancellationError.ts: Created factory method
+    for standard cancellation error creation with configurable reason, phase,
+    and cleanup status
+  src/core/agent/cancellation/createTimeoutError.ts: Created factory method for
+    timeout-specific cancellation error creation with timeout context and phase
+    defaulting
+  src/core/agent/cancellation/fromAbortSignal.ts: Created factory method for
+    creating cancellation errors from AbortSignal with safe reason extraction
+    and proper type checking
+  src/core/agent/cancellation/isCancellationError.ts: Created type guard function for CancellationError instance detection
+  src/core/agent/cancellation/isGracefulTimeoutError.ts: Created type guard
+    function for GracefulCancellationTimeoutError instance detection
+  src/core/agent/cancellation/index.ts: Created barrel export file with
+    comprehensive module documentation and organized exports by category (Types,
+    Classes, Factory Methods, Type Guards)
+  src/core/agent/cancellation/__tests__/cancellationErrors.test.ts:
+    Created comprehensive test suite with 32 tests covering all error classes,
+    factory methods, type guards, serialization, and integration scenarios
 log: []
 schema: v1.0
 childrenIds:

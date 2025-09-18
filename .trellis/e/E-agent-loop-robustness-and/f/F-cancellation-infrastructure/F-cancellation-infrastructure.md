@@ -1,15 +1,56 @@
 ---
 id: F-cancellation-infrastructure
 title: Cancellation Infrastructure
-status: open
+status: in-progress
 priority: medium
 parent: E-agent-loop-robustness-and
 prerequisites:
   - F-multi-turn-loop-foundation
-affectedFiles: {}
+affectedFiles:
+  src/core/agent/cancellation/cancellationPhase.ts:
+    Created CancellationPhase type
+    definition with 5 specialized execution phases for cancellation contexts
+  src/core/agent/cancellation/cancellationError.ts:
+    Created core CancellationError
+    class extending Error with detailed context properties (code, reason, phase,
+    cleanupCompleted, timestamp) and custom JSON serialization
+  src/core/agent/cancellation/gracefulCancellationTimeoutError.ts:
+    Created GracefulCancellationTimeoutError class extending CancellationError
+    with timeout-specific properties (timeoutMs, cleanupAttempted) and enhanced
+    JSON serialization
+  src/core/agent/cancellation/createCancellationError.ts: Created factory method
+    for standard cancellation error creation with configurable reason, phase,
+    and cleanup status
+  src/core/agent/cancellation/createTimeoutError.ts: Created factory method for
+    timeout-specific cancellation error creation with timeout context and phase
+    defaulting
+  src/core/agent/cancellation/fromAbortSignal.ts: Created factory method for
+    creating cancellation errors from AbortSignal with safe reason extraction
+    and proper type checking
+  src/core/agent/cancellation/isCancellationError.ts: Created type guard function for CancellationError instance detection
+  src/core/agent/cancellation/isGracefulTimeoutError.ts: Created type guard
+    function for GracefulCancellationTimeoutError instance detection
+  src/core/agent/cancellation/index.ts: Created barrel export file with
+    comprehensive module documentation and organized exports by category (Types,
+    Classes, Factory Methods, Type Guards)
+  src/core/agent/cancellation/__tests__/cancellationErrors.test.ts:
+    Created comprehensive test suite with 32 tests covering all error classes,
+    factory methods, type guards, serialization, and integration scenarios
+  src/core/agent/index.ts: Updated main agent module to export cancellation
+    infrastructure and enhanced module documentation to mention cancellation
+    capabilities
 log: []
 schema: v1.0
-childrenIds: []
+childrenIds:
+  - T-add-comprehensive-cancellation
+  - T-add-tool-execution-cancellatio
+  - T-create-cancellation-error
+  - T-create-resource-cleanup
+  - T-enhance-bridgeclient-with
+  - T-extend-agentexecutionoptions-1
+  - T-implement-cancellationmanager
+  - T-implement-streaming
+  - T-integrate-cancellation
 created: 2025-09-18T02:17:29.151Z
 updated: 2025-09-18T02:17:29.151Z
 ---

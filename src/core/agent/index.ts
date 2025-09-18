@@ -4,9 +4,9 @@
  * This module provides agent loop orchestration and execution capabilities
  * for single-turn and multi-turn tool execution and conversation flow management.
  * Includes types, execution context utilities, streaming interruption handling,
- * comprehensive multi-turn error types, unified termination detection, and the
- * main AgentLoop class with comprehensive streaming integration and error recovery
- * strategies.
+ * comprehensive multi-turn error types, unified termination detection, cancellation
+ * infrastructure, and the main AgentLoop class with comprehensive streaming
+ * integration and error recovery strategies.
  */
 
 export type { AgentExecutionState } from "./agentExecutionState";
@@ -26,6 +26,7 @@ export type { TimeoutStatus } from "./timeoutStatus";
 export type { UnifiedTerminationSignal } from "./unifiedTerminationSignal";
 export { AgentLoop } from "./agentLoop";
 export { calculateTerminationConfidence } from "./calculateTerminationConfidence";
+export * from "./cancellation";
 export { createExecutionContext } from "./agentExecutionContext";
 export { createTerminationSignal } from "./createTerminationSignal";
 export { isUnifiedTerminationSignal } from "./isUnifiedTerminationSignal";

@@ -1,12 +1,52 @@
 ---
 id: T-create-cancellation-error
 title: Create cancellation error types
-status: open
+status: done
 priority: high
 parent: F-cancellation-infrastructure
 prerequisites: []
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/agent/cancellation/cancellationPhase.ts:
+    Created CancellationPhase type
+    definition with 5 specialized execution phases for cancellation contexts
+  src/core/agent/cancellation/cancellationError.ts:
+    Created core CancellationError
+    class extending Error with detailed context properties (code, reason, phase,
+    cleanupCompleted, timestamp) and custom JSON serialization
+  src/core/agent/cancellation/gracefulCancellationTimeoutError.ts:
+    Created GracefulCancellationTimeoutError class extending CancellationError
+    with timeout-specific properties (timeoutMs, cleanupAttempted) and enhanced
+    JSON serialization
+  src/core/agent/cancellation/createCancellationError.ts: Created factory method
+    for standard cancellation error creation with configurable reason, phase,
+    and cleanup status
+  src/core/agent/cancellation/createTimeoutError.ts: Created factory method for
+    timeout-specific cancellation error creation with timeout context and phase
+    defaulting
+  src/core/agent/cancellation/fromAbortSignal.ts: Created factory method for
+    creating cancellation errors from AbortSignal with safe reason extraction
+    and proper type checking
+  src/core/agent/cancellation/isCancellationError.ts: Created type guard function for CancellationError instance detection
+  src/core/agent/cancellation/isGracefulTimeoutError.ts: Created type guard
+    function for GracefulCancellationTimeoutError instance detection
+  src/core/agent/cancellation/index.ts: Created barrel export file with
+    comprehensive module documentation and organized exports by category (Types,
+    Classes, Factory Methods, Type Guards)
+  src/core/agent/cancellation/__tests__/cancellationErrors.test.ts:
+    Created comprehensive test suite with 32 tests covering all error classes,
+    factory methods, type guards, serialization, and integration scenarios
+  src/core/agent/index.ts: Updated main agent module to export cancellation
+    infrastructure and enhanced module documentation to mention cancellation
+    capabilities
+log:
+  - Successfully implemented comprehensive cancellation error types for the LLM
+    Bridge Library. Created specialized error classes (CancellationError and
+    GracefulCancellationTimeoutError) with rich context including execution
+    phase tracking, cleanup status, and timestamp information. Implemented
+    factory methods for easy error creation from different scenarios (standard
+    cancellation, timeout scenarios, and AbortSignal integration). Added type
+    guards for error detection and comprehensive test coverage with 32 passing
+    tests. All quality checks pass with no linting, formatting, or type errors.
 schema: v1.0
 childrenIds: []
 created: 2025-09-18T23:29:56.432Z
