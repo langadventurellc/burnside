@@ -1,14 +1,34 @@
 ---
 id: F-xai-grok-provider-e2e-testing
 title: xAI Grok Provider E2E Testing Implementation
-status: open
+status: in-progress
 priority: medium
 parent: none
 prerequisites: []
-affectedFiles: {}
+affectedFiles:
+  src/__tests__/e2e/shared/xaiTestConfigInterface.ts:
+    Created TypeScript interface
+    with xaiApiKey, testEnabled, testModel, and timeout properties following
+    established pattern
+  src/__tests__/e2e/shared/xaiTestConfig.ts: Created configuration loader with
+    XAI_API_KEY validation, E2E_TEST_ENABLED checking, model selection with
+    E2E_XAI_MODEL override support, and proper error handling
+  src/__tests__/e2e/shared/validateApiKey.ts:
+    Extended existing API key validation
+    to support xAI provider with 'xai-' prefix requirement and minimum length
+    validation
+  src/__tests__/e2e/shared/getXaiTestModel.ts: Created model selection helper
+    returning E2E_XAI_MODEL environment variable override or default
+    'xai:grok-3-mini'
 log: []
 schema: v1.0
-childrenIds: []
+childrenIds:
+  - T-add-xai-e2e-test-configuration
+  - T-create-xai-bridgeclient
+  - T-create-xai-test-configuration
+  - T-implement-xai-chat-completion
+  - T-implement-xai-streaming-e2e
+  - T-implement-xai-tool-execution
 created: 2025-09-18T00:08:03.828Z
 updated: 2025-09-18T00:08:03.828Z
 ---
