@@ -11,6 +11,9 @@ export function validateApiKey(apiKey: string, provider: string): boolean {
     case "google":
       // Google API key format validation (starts with AIza, exactly 39 characters)
       return apiKey.startsWith("AIza") && apiKey.length === 39;
+    case "xai":
+      // xAI API key format validation (starts with xai-, minimum length)
+      return apiKey.startsWith("xai-") && apiKey.length >= 20;
     default:
       throw new ValidationError(
         `Unsupported provider for API key validation: ${provider}`,

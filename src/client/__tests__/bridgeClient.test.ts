@@ -718,7 +718,7 @@ describe("BridgeClient", () => {
         initialize: jest.fn().mockResolvedValue(undefined),
         supportsModel: jest.fn().mockReturnValue(true),
         translateRequest: jest.fn().mockReturnValue({
-          url: "https://api.openai.com/v1/chat/completions",
+          url: "https://api.openai.com/v1/responses",
           method: "POST",
           headers: { Authorization: "Bearer sk-test" },
           body: '{"model":"gpt-4","messages":[]}',
