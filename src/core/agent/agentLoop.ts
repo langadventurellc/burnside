@@ -18,6 +18,7 @@ import type { MultiTurnState } from "./multiTurnState";
 import type { StreamingTurnResult } from "./streamingTurnResult";
 import type { StreamDelta } from "../../client/streamDelta";
 import type { ExecutionMetrics } from "./executionMetrics";
+import type { UnifiedTerminationSignal } from "./unifiedTerminationSignal";
 import { createExecutionContext } from "./agentExecutionContext";
 import { StreamingStateMachine } from "./streamingStateMachine";
 import { StreamingIntegrationError } from "./streamingIntegrationError";
@@ -25,6 +26,7 @@ import { MultiTurnExecutionError } from "./multiTurnErrors";
 import { MaxIterationsExceededError } from "./maxIterationsExceededError";
 import { IterationTimeoutError } from "./iterationTimeoutError";
 import { MultiTurnStreamingInterruptionError } from "./multiTurnStreamingInterruptionError";
+import { analyzeConversationTermination } from "./terminationAnalyzer";
 
 /**
  * Agent Loop class for single-turn tool execution and conversation flow
@@ -338,7 +340,7 @@ export class AgentLoop {
         currentMessages = iterationResult.messages;
         state = iterationResult.state;
 
-        // Check termination conditions
+        // Check termination conditions using provider-aware detection
         if (!this.shouldContinueConversation(currentMessages, state)) {
           state = this.updateStateForTermination(state, "natural_completion");
           break;
@@ -850,7 +852,7 @@ export class AgentLoop {
   }
 
   /**
-   * Update state for conversation termination
+   * Update state for conversation termination with enhanced context
    */
   private updateStateForTermination(
     state: MultiTurnState,
@@ -860,28 +862,95 @@ export class AgentLoop {
       ...state,
       shouldContinue: false,
       terminationReason: reason,
+      // Preserve existing termination signal analysis if available
+      currentTerminationSignal: state.currentTerminationSignal,
+      terminationSignalHistory: state.terminationSignalHistory,
+      providerTerminationMetadata: state.providerTerminationMetadata,
     };
   }
 
   /**
-   * Check if conversation should continue based on natural termination
+   * Check if conversation should continue based on termination signal analysis
    */
   private shouldContinueConversation(
-    _messages: Message[],
+    messages: Message[],
     state: MultiTurnState,
   ): boolean {
     if (!state.shouldContinue) {
       return false;
     }
 
-    // TODO: Implement tool call detection when tool_use content type is added
-    // For now, use a simple heuristic based on pending tool calls
-    if (state.pendingToolCalls.length > 0) {
-      return true;
+    // Analyze conversation termination using provider-aware detection
+    const terminationSignal = this.detectTerminationForMessages(
+      messages,
+      state,
+    );
+
+    // Update state with termination analysis
+    state.currentTerminationSignal = terminationSignal;
+    state.terminationSignalHistory = state.terminationSignalHistory || [];
+    state.terminationSignalHistory.push(terminationSignal);
+    state.providerTerminationMetadata =
+      terminationSignal.providerSpecific.metadata;
+
+    // Use smart termination decision logic, but fall back to original logic if uncertain
+    const shouldContinueFromTermination =
+      this.shouldContinueBasedOnTermination(terminationSignal);
+
+    // If termination detection is uncertain (unknown + low confidence), fall back to original logic
+    if (
+      terminationSignal.reason === "unknown" &&
+      terminationSignal.confidence === "low"
+    ) {
+      // Original logic: if no pending tool calls, stop the conversation
+      return state.pendingToolCalls.length > 0;
     }
 
-    // No tool calls pending - natural completion
-    return false;
+    return shouldContinueFromTermination;
+  }
+
+  /**
+   * Smart termination decision based on UnifiedTerminationSignal analysis
+   */
+  private shouldContinueBasedOnTermination(
+    signal: UnifiedTerminationSignal,
+  ): boolean {
+    // NATURAL_COMPLETION with high confidence = definitely stop
+    if (
+      signal.reason === "natural_completion" &&
+      signal.confidence === "high"
+    ) {
+      return false;
+    }
+
+    // TOKEN_LIMIT_REACHED = stop but consider budget expansion
+    if (signal.reason === "token_limit_reached") {
+      return false; // For now, will be enhanced with budget management later
+    }
+
+    // CONTENT_FILTERED = stop for safety
+    if (signal.reason === "content_filtered") {
+      return false;
+    }
+
+    // UNKNOWN with low confidence = continue with caution
+    if (signal.reason === "unknown" && signal.confidence === "low") {
+      return true; // Provider might not be signaling properly
+    }
+
+    return false; // Default to stopping
+  }
+
+  /**
+   * Detect termination signals from current conversation state
+   */
+  private detectTerminationForMessages(
+    messages: Message[],
+    state: MultiTurnState,
+  ): UnifiedTerminationSignal {
+    // For now, we don't have access to the provider here
+    // In the future, this could be passed through the execution context
+    return analyzeConversationTermination(messages, state);
   }
 
   /**

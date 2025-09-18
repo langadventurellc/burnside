@@ -14,6 +14,7 @@ import type { AgentExecutionState } from "./agentExecutionState";
 import type { ToolCall } from "../tools/toolCall";
 import type { StreamingState } from "./streamingState";
 import type { TerminationReason } from "./terminationReason";
+import type { UnifiedTerminationSignal } from "./unifiedTerminationSignal";
 
 /**
  * Multi-turn conversation state that extends single-turn AgentExecutionState
@@ -140,4 +141,25 @@ export interface MultiTurnState extends AgentExecutionState {
    * Only set when the conversation has ended (shouldContinue = false).
    */
   terminationReason?: TerminationReason;
+
+  /**
+   * History of termination signals analyzed across all iterations.
+   * Tracks termination analysis results from each iteration for debugging
+   * and provider consistency analysis.
+   */
+  terminationSignalHistory?: UnifiedTerminationSignal[];
+
+  /**
+   * Most recent termination signal analysis.
+   * Contains the latest termination analysis including reason, confidence,
+   * and provider-specific metadata for the current iteration.
+   */
+  currentTerminationSignal?: UnifiedTerminationSignal;
+
+  /**
+   * Provider-specific termination metadata for debugging.
+   * Preserves raw provider termination context for troubleshooting
+   * and analysis of provider-specific termination behavior.
+   */
+  providerTerminationMetadata?: Record<string, unknown>;
 }

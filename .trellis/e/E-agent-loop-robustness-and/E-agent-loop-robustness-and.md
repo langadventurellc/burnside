@@ -23,7 +23,11 @@ affectedFiles:
     executeIterationWithTimeout() methods with specific multi-turn error
     handling, added buildExecutionMetrics() helper method, improved streaming
     error handling with multi-turn context, and fixed critical iteration limit
-    logic bug where max iterations check was unreachable due to loop condition"
+    logic bug where max iterations check was unreachable due to loop condition;
+    Replaced boolean termination logic with provider-aware detection,
+    implemented smart continuation decisions based on termination reasons and
+    confidence levels, and added fallback to original logic for uncertain
+    cases."
   src/core/agent/__tests__/agentExecutionOptions.test.ts: Created comprehensive
     test suite with 19 tests covering backward compatibility, type safety,
     documentation examples, and edge cases
@@ -31,7 +35,9 @@ affectedFiles:
     Created new MultiTurnState interface extending
     AgentExecutionState with comprehensive multi-turn conversation state
     tracking including iteration counts, streaming state, tool call management,
-    and termination reasons
+    and termination reasons; Added UnifiedTerminationSignal tracking fields
+    including terminationSignalHistory, currentTerminationSignal, and
+    providerTerminationMetadata for comprehensive termination state management.
   src/core/agent/streamingState.ts: Created StreamingState union type with 5
     literal values for streaming state machine transitions during multi-turn
     conversations
@@ -52,7 +58,8 @@ affectedFiles:
     capabilities; Updated module exports to include all new error types and
     related interfaces, enhanced module documentation to mention multi-turn
     error handling capabilities; Added exports for all new termination types and
-    utility functions
+    utility functions; Added export for analyzeConversationTermination function
+    to make termination analysis available for external consumption.
   src/core/agent/__tests__/agentLoop.test.ts: Added comprehensive test suite for
     executeMultiTurn() method with 12 test cases covering state management,
     iteration limits, timeout scenarios, metrics calculation, error handling,
@@ -60,7 +67,9 @@ affectedFiles:
     integration test suite for multi-turn error handling with 6 test cases
     covering max iterations, timeouts, general errors, serialization, error
     causes, and instanceof checks with proper mocking to trigger error
-    conditions
+    conditions; Added integration tests for enhanced termination detection
+    including intelligent continuation decisions, content filtering, token
+    limits, and fallback behavior.
   src/core/agent/iterationManager.ts: Created new IterationManager class with
     iteration tracking, timeout enforcement, limit validation, termination
     detection, and execution metrics
@@ -304,6 +313,15 @@ affectedFiles:
     context support, and error handling scenarios. Tests verify proper
     termination reason mapping, confidence level assignment, and
     provider-specific metadata handling.
+  src/core/agent/terminationAnalyzer.ts:
+    Created centralized termination analysis
+    logic that works with or without provider plugins, providing intelligent
+    conversation termination decisions based on UnifiedTerminationSignal
+    analysis and conversation context.
+  src/core/agent/__tests__/terminationAnalyzer.test.ts:
+    Created comprehensive unit
+    tests covering edge cases, provider detection scenarios, conversation
+    context creation, and assistant message finding functionality.
 log: []
 schema: v1.0
 childrenIds:

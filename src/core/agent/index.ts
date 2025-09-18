@@ -36,3 +36,4 @@ export { MultiTurnExecutionError } from "./multiTurnErrors";
 export { MultiTurnStreamingInterruptionError } from "./multiTurnStreamingInterruptionError";
 export { StreamingIntegrationError } from "./streamingIntegrationError";
 export { StreamingStateMachine } from "./streamingStateMachine";
+export { analyzeConversationTermination } from "./terminationAnalyzer";
