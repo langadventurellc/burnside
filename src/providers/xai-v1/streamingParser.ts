@@ -14,14 +14,12 @@
  * ```
  */
 
-import { z } from "zod";
 import { SseParser } from "../../core/streaming/sseParser";
 import type { StreamDelta } from "../../client/streamDelta";
 import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse";
 import { BridgeError } from "../../core/errors/bridgeError";
 import { StreamingError } from "../../core/errors/streamingError";
 import { ValidationError } from "../../core/errors/validationError";
-import { XAIV1StreamingResponseSchema } from "./streamingResponseSchema";
 
 /**
  * Internal state for tracking streaming response
@@ -60,6 +58,7 @@ export async function* parseXAIV1ResponseStream(
     const chunks = convertToUint8ArrayIterable(response.body!);
     yield* processSSEStream(chunks, state);
   } catch (error) {
+    console.error("xAI Stream Parser: Error in processing:", error);
     handleStreamingError(error, response.status, state);
   }
 }
@@ -120,11 +119,9 @@ function processSingleEvent(
     const parsedData: unknown = JSON.parse(eventData);
     handleErrorResponse(parsedData);
 
-    const parsedChunk = parseXAIEvent(parsedData);
-    if (parsedChunk) {
-      return convertEventToStreamDelta(parsedChunk, state);
-    }
-    return null;
+    // Handle new xAI event-based streaming format
+    const result = convertXAIEventToStreamDelta(parsedData, state);
+    return result;
   } catch (parseError) {
     // Re-throw BridgeErrors (like error events) instead of logging them
     if (parseError instanceof BridgeError) {
@@ -198,109 +195,84 @@ async function* convertToUint8ArrayIterable(
 }
 
 /**
- * Parses and validates xAI streaming event data
+ * Converts new xAI event-based streaming format to unified StreamDelta format
  */
-function parseXAIEvent(eventData: unknown) {
-  try {
-    return XAIV1StreamingResponseSchema.parse(eventData);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      // Skip invalid events silently unless debugging
-      if (process.env.DEBUG_STREAMING) {
-        console.warn("Invalid xAI streaming event format:", error.message);
-      }
-      return null;
-    }
-    throw error;
-  }
-}
-
-/**
- * Converts xAI streaming chunk to unified StreamDelta format
- */
-function convertEventToStreamDelta(
-  chunk: z.infer<typeof XAIV1StreamingResponseSchema>,
+function convertXAIEventToStreamDelta(
+  eventData: unknown,
   state: StreamingState,
 ): StreamDelta | null {
-  // Set response ID from first chunk
-  if (!state.responseId && chunk.id) {
-    state.responseId = chunk.id;
-  }
-
-  // Extract content from xAI format: output[0].delta.content[0].text
-  const output = chunk.output?.[0];
-  if (!output) {
+  if (typeof eventData !== "object" || eventData === null) {
     return null;
   }
 
-  const delta = output.delta;
-  let content: Array<{ type: "text"; text: string }> | undefined;
+  const event = eventData as Record<string, unknown>;
+  const eventType = event.type as string;
 
-  // Handle content streaming
-  if (delta.content?.[0]?.text) {
-    content = [
-      {
-        type: "text",
-        text: delta.content[0].text,
-      },
-    ];
+  // Handle response.created event to initialize state
+  if (eventType === "response.created") {
+    const response = event.response as Record<string, unknown>;
+    if (response?.id && typeof response.id === "string") {
+      state.responseId = response.id;
+    }
+    return null; // Don't emit delta for creation event
   }
 
-  // Handle tool calls streaming - accumulate in state for metadata
-  let accumulatedToolCalls:
-    | Array<{ id: string; function: { name: string; arguments: string } }>
-    | undefined;
-  if (delta.tool_calls?.length) {
-    accumulatedToolCalls = [];
-    for (const toolCall of delta.tool_calls) {
-      // Accumulate streaming tool calls
-      const existing = state.toolCalls?.get(toolCall.id) || {};
-      const accumulated = {
-        name: existing.name || toolCall.function.name,
-        arguments:
-          (existing.arguments || "") + (toolCall.function.arguments || ""),
-      };
-      state.toolCalls?.set(toolCall.id, accumulated);
+  // Handle response.output_text.delta events (main streaming content)
+  if (eventType === "response.output_text.delta") {
+    const text = event.delta as string;
 
-      // Include current state in metadata format
-      accumulatedToolCalls.push({
-        id: toolCall.id,
-        function: {
-          name: accumulated.name || "",
-          arguments: accumulated.arguments || "",
+    if (typeof text === "string" && text.length > 0) {
+      return {
+        id: state.responseId || "unknown",
+        delta: {
+          role: "assistant",
+          content: [
+            {
+              type: "text",
+              text,
+            },
+          ],
         },
-      });
+        finished: false,
+        metadata: {
+          provider: "xai",
+          eventType,
+        },
+      };
     }
   }
 
-  // Handle usage information from xAI format
-  let usage: StreamDelta["usage"] | undefined;
-  if (chunk.usage) {
-    usage = {
-      promptTokens: chunk.usage.input_tokens,
-      completionTokens: chunk.usage.output_tokens,
-      totalTokens: chunk.usage.total_tokens,
+  // Handle response.completed event (final delta)
+  if (eventType === "response.completed") {
+    const response = event.response as Record<string, unknown>;
+    const usage = response?.usage as Record<string, unknown>;
+
+    let usageInfo: StreamDelta["usage"] | undefined;
+    if (usage) {
+      usageInfo = {
+        promptTokens: (usage.input_tokens as number) || 0,
+        completionTokens: (usage.output_tokens as number) || 0,
+        totalTokens: (usage.total_tokens as number) || 0,
+      };
+      state.accumulatedUsage = usageInfo;
+    }
+
+    return {
+      id: state.responseId || "unknown",
+      delta: {
+        role: "assistant",
+        content: [],
+      },
+      finished: true,
+      usage: usageInfo || state.accumulatedUsage,
+      metadata: {
+        provider: "xai",
+        eventType,
+        model: response?.model,
+      },
     };
-    state.accumulatedUsage = usage;
   }
 
-  // Determine if this is the final chunk (has usage info typically)
-  const finished = Boolean(chunk.usage);
-
-  return {
-    id: state.responseId || chunk.id,
-    delta: {
-      role: delta.role || "assistant",
-      content,
-    },
-    finished,
-    usage: usage || state.accumulatedUsage,
-    metadata: {
-      provider: "xai",
-      model: chunk.model,
-      created_at: chunk.created_at,
-      status: chunk.status,
-      tool_calls: accumulatedToolCalls,
-    },
-  };
+  // Skip other event types (response.in_progress, etc.)
+  return null;
 }

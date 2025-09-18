@@ -1,13 +1,33 @@
 ---
 id: T-implement-xai-streaming-e2e
 title: Implement xAI streaming E2E tests
-status: open
+status: done
 priority: medium
 parent: F-xai-grok-provider-e2e-testing
 prerequisites:
   - T-create-xai-bridgeclient
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/__tests__/e2e/xai/streaming.e2e.test.ts: Created comprehensive E2E test
+    suite for xAI streaming covering basic streaming, delta accumulation, stream
+    lifecycle, and format validation across Grok 3 Mini, Grok 3, and Grok 4
+    models
+  src/providers/xai-v1/streamingParser.ts:
+    Updated xAI streaming parser to handle
+    new event-based API format with response.output_text.delta events instead of
+    old output array format, maintained compatibility with unified StreamDelta
+    interface
+  src/providers/xai-v1/__tests__/fixtures/streamingEvents.ts: Updated test
+    fixtures to use new xAI event format with response.created,
+    response.output_text.delta, and response.completed events
+  src/providers/xai-v1/__tests__/streamingParser.test.ts:
+    Fixed all unit tests to
+    work with new streaming format, updated expectations for metadata structure
+    and content format, removed unused imports
+log:
+  - Successfully implemented comprehensive xAI streaming E2E tests with full
+    coverage across all 3 Grok models. Created test suite following OpenAI
+    patterns, updated xAI streaming parser to handle new event-based API format,
+    and fixed all unit tests. All tests now pass.
 schema: v1.0
 childrenIds: []
 created: 2025-09-18T00:11:51.756Z

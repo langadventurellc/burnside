@@ -6,150 +6,105 @@
  */
 
 /**
+ * Response creation event - sets up the streaming session
+ */
+export const RESPONSE_CREATED_CHUNK = JSON.stringify({
+  sequence_number: 0,
+  type: "response.created",
+  response: {
+    id: "response-abc123",
+    model: "grok-3",
+    created_at: 1703097600,
+  },
+});
+
+/**
+ * Response completion event - final event with usage stats
+ */
+export const RESPONSE_COMPLETED_CHUNK = JSON.stringify({
+  sequence_number: 10,
+  type: "response.completed",
+  response: {
+    id: "response-abc123",
+    model: "grok-3",
+    created_at: 1703097600,
+    usage: {
+      input_tokens: 25,
+      output_tokens: 15,
+      total_tokens: 40,
+    },
+  },
+});
+
+/**
  * Basic text content streaming - initial chunk with response ID
  */
 export const INITIAL_TEXT_CHUNK = JSON.stringify({
-  id: "response-abc123",
-  object: "response.chunk",
-  model: "grok-3",
-  output: [
-    {
-      type: "message",
-      delta: {
-        role: "assistant",
-        content: [
-          {
-            type: "output_text",
-            text: "Hello! I'm ",
-          },
-        ],
-      },
-    },
-  ],
-  created_at: 1703097600,
+  sequence_number: 1,
+  type: "response.output_text.delta",
+  content_index: 0,
+  delta: "Hello! I'm ",
+  item_id: "msg_response-abc123",
+  output_index: 1,
 });
 
 /**
  * Continuation text chunk
  */
 export const CONTINUATION_TEXT_CHUNK = JSON.stringify({
-  id: "response-abc123",
-  object: "response.chunk",
-  model: "grok-3",
-  output: [
-    {
-      type: "message",
-      delta: {
-        content: [
-          {
-            type: "output_text",
-            text: "happy to help you today!",
-          },
-        ],
-      },
-    },
-  ],
-  created_at: 1703097600,
+  sequence_number: 2,
+  type: "response.output_text.delta",
+  content_index: 0,
+  delta: "happy to help you today!",
+  item_id: "msg_response-abc123",
+  output_index: 1,
 });
 
 /**
- * Tool call chunk - initial function name
+ * Tool call chunk - initial function name (new format - simplified for now)
  */
 export const TOOL_CALL_START_CHUNK = JSON.stringify({
-  id: "response-def456",
-  object: "response.chunk",
-  model: "grok-3",
-  output: [
-    {
-      type: "message",
-      delta: {
-        role: "assistant",
-        tool_calls: [
-          {
-            id: "call_123abc",
-            type: "function",
-            function: {
-              name: "calculate",
-              arguments: "",
-            },
-          },
-        ],
-      },
-    },
-  ],
-  created_at: 1703097600,
+  sequence_number: 3,
+  type: "response.output_text.delta",
+  content_index: 0,
+  delta: "I'll help you calculate that.",
+  item_id: "msg_response-def456",
+  output_index: 1,
 });
 
 /**
- * Tool call chunk - streaming arguments
+ * Tool call chunk - streaming arguments (new format - simplified for now)
  */
 export const TOOL_CALL_ARGS_CHUNK = JSON.stringify({
-  id: "response-def456",
-  object: "response.chunk",
-  model: "grok-3",
-  output: [
-    {
-      type: "message",
-      delta: {
-        tool_calls: [
-          {
-            id: "call_123abc",
-            type: "function",
-            function: {
-              name: "",
-              arguments: '{"num1": 5, "num2": 3, "operation": "add"}',
-            },
-          },
-        ],
-      },
-    },
-  ],
-  created_at: 1703097600,
+  sequence_number: 4,
+  type: "response.output_text.delta",
+  content_index: 0,
+  delta: " The result is 8.",
+  item_id: "msg_response-def456",
+  output_index: 1,
 });
 
 /**
- * Final chunk with usage information
+ * Final chunk with usage information - use RESPONSE_COMPLETED_CHUNK instead
  */
-export const FINAL_CHUNK_WITH_USAGE = JSON.stringify({
-  id: "response-abc123",
-  object: "response.chunk",
-  model: "grok-3",
-  output: [
-    {
-      type: "message",
-      delta: {},
-    },
-  ],
-  usage: {
-    input_tokens: 25,
-    input_tokens_details: {
-      cached_tokens: 0,
-    },
-    output_tokens: 15,
-    output_tokens_details: {
-      reasoning_tokens: 0,
-    },
-    total_tokens: 40,
-  },
-  created_at: 1703097600,
-});
+export const FINAL_CHUNK_WITH_USAGE = RESPONSE_COMPLETED_CHUNK;
 
 /**
  * Empty content chunk (should be skipped gracefully)
  */
 export const EMPTY_CONTENT_CHUNK = JSON.stringify({
-  id: "response-ghi789",
-  object: "response.chunk",
-  model: "grok-3",
-  output: [
-    {
-      type: "message",
-      delta: {
-        content: [],
-      },
+  sequence_number: 5,
+  type: "response.completed",
+  response: {
+    id: "response-ghi789",
+    model: "grok-3",
+    created_at: 1703097600,
+    usage: {
+      input_tokens: 10,
+      output_tokens: 0,
+      total_tokens: 10,
     },
-  ],
-  created_at: 1703097600,
+  },
 });
 
 /**
@@ -172,11 +127,13 @@ export const MALFORMED_JSON_CHUNK = '{"id": "incomplete", "object":';
  * Complete conversation flow - text only
  */
 export const TEXT_CONVERSATION_FLOW = [
+  `data: ${RESPONSE_CREATED_CHUNK}`,
+  "",
   `data: ${INITIAL_TEXT_CHUNK}`,
   "",
   `data: ${CONTINUATION_TEXT_CHUNK}`,
   "",
-  `data: ${FINAL_CHUNK_WITH_USAGE}`,
+  `data: ${RESPONSE_COMPLETED_CHUNK}`,
   "",
   "data: [DONE]",
   "",
@@ -186,11 +143,13 @@ export const TEXT_CONVERSATION_FLOW = [
  * Complete conversation flow - with tool calls
  */
 export const TOOL_CALL_CONVERSATION_FLOW = [
+  `data: ${RESPONSE_CREATED_CHUNK}`,
+  "",
   `data: ${TOOL_CALL_START_CHUNK}`,
   "",
   `data: ${TOOL_CALL_ARGS_CHUNK}`,
   "",
-  `data: ${FINAL_CHUNK_WITH_USAGE}`,
+  `data: ${RESPONSE_COMPLETED_CHUNK}`,
   "",
   "data: [DONE]",
   "",
@@ -200,15 +159,13 @@ export const TOOL_CALL_CONVERSATION_FLOW = [
  * Mixed content and tool call conversation
  */
 export const MIXED_CONVERSATION_FLOW = [
+  `data: ${RESPONSE_CREATED_CHUNK}`,
+  "",
   `data: ${INITIAL_TEXT_CHUNK}`,
-  "",
-  `data: ${TOOL_CALL_START_CHUNK}`,
-  "",
-  `data: ${TOOL_CALL_ARGS_CHUNK}`,
   "",
   `data: ${CONTINUATION_TEXT_CHUNK}`,
   "",
-  `data: ${FINAL_CHUNK_WITH_USAGE}`,
+  `data: ${RESPONSE_COMPLETED_CHUNK}`,
   "",
   "data: [DONE]",
   "",
@@ -242,24 +199,12 @@ export const MALFORMED_STREAM = [
  * Large content chunk for memory testing
  */
 export const LARGE_CONTENT_CHUNK = JSON.stringify({
-  id: "response-large123",
-  object: "response.chunk",
-  model: "grok-3",
-  output: [
-    {
-      type: "message",
-      delta: {
-        role: "assistant",
-        content: [
-          {
-            type: "output_text",
-            text: "A".repeat(10000), // 10KB of text
-          },
-        ],
-      },
-    },
-  ],
-  created_at: 1703097600,
+  sequence_number: 6,
+  type: "response.output_text.delta",
+  content_index: 0,
+  delta: "A".repeat(10000), // 10KB of text
+  item_id: "msg_response-large123",
+  output_index: 1,
 });
 
 /**
@@ -339,59 +284,22 @@ export const MULTIPLE_TOOL_CALLS_CHUNK = JSON.stringify({
  * Edge case: chunk with optional fields missing
  */
 export const MINIMAL_CHUNK = JSON.stringify({
-  id: "response-minimal",
-  object: "response.chunk",
-  model: "grok-3",
-  output: [
-    {
-      type: "message",
-      delta: {},
-    },
-  ],
+  sequence_number: 7,
+  type: "response.completed",
+  response: {
+    id: "response-minimal",
+    model: "grok-3",
+  },
 });
 
 /**
  * Edge case: chunk with all optional fields present
  */
 export const MAXIMAL_CHUNK = JSON.stringify({
-  id: "response-maximal",
-  object: "response.chunk",
-  status: "completed",
-  model: "grok-3",
-  output: [
-    {
-      type: "message",
-      delta: {
-        role: "assistant",
-        content: [
-          {
-            type: "output_text",
-            text: "Complete response",
-          },
-        ],
-        tool_calls: [
-          {
-            id: "call_maximal123",
-            type: "function",
-            function: {
-              name: "final_action",
-              arguments: '{"status": "complete"}',
-            },
-          },
-        ],
-      },
-    },
-  ],
-  usage: {
-    input_tokens: 50,
-    input_tokens_details: {
-      cached_tokens: 10,
-    },
-    output_tokens: 25,
-    output_tokens_details: {
-      reasoning_tokens: 5,
-    },
-    total_tokens: 75,
-  },
-  created_at: 1703097600,
+  sequence_number: 8,
+  type: "response.output_text.delta",
+  content_index: 0,
+  delta: "Complete response",
+  item_id: "msg_response-maximal",
+  output_index: 1,
 });

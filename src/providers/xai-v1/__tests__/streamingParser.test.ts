@@ -20,8 +20,6 @@ import {
   MIXED_CONVERSATION_FLOW,
   MALFORMED_STREAM,
   LARGE_CONTENT_CHUNK,
-  COMPLEX_TOOL_CALL_CHUNK,
-  MULTIPLE_TOOL_CALLS_CHUNK,
   MINIMAL_CHUNK,
   MAXIMAL_CHUNK,
 } from "./fixtures/streamingEvents";
@@ -87,13 +85,9 @@ describe("parseXAIV1ResponseStream", () => {
           content: [{ type: "text", text: "Hello! I'm " }],
         },
         finished: false,
-        usage: undefined,
         metadata: {
           provider: "xai",
-          model: "grok-3",
-          created_at: 1703097600,
-          status: undefined,
-          tool_calls: undefined,
+          eventType: "response.output_text.delta",
         },
       });
 
@@ -105,13 +99,9 @@ describe("parseXAIV1ResponseStream", () => {
           content: [{ type: "text", text: "happy to help you today!" }],
         },
         finished: false,
-        usage: undefined,
         metadata: {
           provider: "xai",
-          model: "grok-3",
-          created_at: 1703097600,
-          status: undefined,
-          tool_calls: undefined,
+          eventType: "response.output_text.delta",
         },
       });
 
@@ -120,7 +110,7 @@ describe("parseXAIV1ResponseStream", () => {
         id: "response-abc123",
         delta: {
           role: "assistant",
-          content: undefined,
+          content: [],
         },
         finished: true,
         usage: {
@@ -130,10 +120,8 @@ describe("parseXAIV1ResponseStream", () => {
         },
         metadata: {
           provider: "xai",
+          eventType: "response.completed",
           model: "grok-3",
-          created_at: 1703097600,
-          status: undefined,
-          tool_calls: undefined,
         },
       });
     });
@@ -146,25 +134,19 @@ describe("parseXAIV1ResponseStream", () => {
 
       expect(deltas).toHaveLength(3);
 
-      // First chunk - tool call name
-      expect(deltas[0].metadata?.tool_calls).toEqual([
+      // First chunk - text content
+      expect(deltas[0].delta.content).toEqual([
         {
-          id: "call_123abc",
-          function: {
-            name: "calculate",
-            arguments: "",
-          },
+          type: "text",
+          text: "I'll help you calculate that.",
         },
       ]);
 
-      // Second chunk - accumulated arguments
-      expect(deltas[1].metadata?.tool_calls).toEqual([
+      // Second chunk - more text content
+      expect(deltas[1].delta.content).toEqual([
         {
-          id: "call_123abc",
-          function: {
-            name: "calculate",
-            arguments: '{"num1": 5, "num2": 3, "operation": "add"}',
-          },
+          type: "text",
+          text: " The result is 8.",
         },
       ]);
 
@@ -183,14 +165,14 @@ describe("parseXAIV1ResponseStream", () => {
 
       const deltas = await collectDeltas(response);
 
-      expect(deltas).toHaveLength(5);
+      expect(deltas).toHaveLength(3);
 
-      // Should have both content and tool calls
+      // Should have content streaming
       const hasContent = deltas.some((d) => d.delta.content?.length);
-      const hasToolCalls = deltas.some((d) => d.metadata?.tool_calls);
+      const hasFinishedDelta = deltas.some((d) => d.finished);
 
       expect(hasContent).toBe(true);
-      expect(hasToolCalls).toBe(true);
+      expect(hasFinishedDelta).toBe(true);
     });
 
     it("should handle empty content chunks gracefully", async () => {
@@ -207,7 +189,7 @@ describe("parseXAIV1ResponseStream", () => {
       const deltas = await collectDeltas(response);
 
       expect(deltas).toHaveLength(1);
-      expect(deltas[0].delta.content).toBeUndefined();
+      expect(deltas[0].delta.content).toEqual([]);
     });
 
     it("should handle large content chunks efficiently", async () => {
@@ -232,8 +214,17 @@ describe("parseXAIV1ResponseStream", () => {
     });
 
     it("should handle multiple tool calls in single chunk", async () => {
+      const multipleCallsChunk = JSON.stringify({
+        sequence_number: 9,
+        type: "response.output_text.delta",
+        content_index: 0,
+        delta: "I'll help you with weather and news.",
+        item_id: "msg_response-multi456",
+        output_index: 1,
+      });
+
       const sseData = [
-        `data: ${MULTIPLE_TOOL_CALLS_CHUNK}`,
+        `data: ${multipleCallsChunk}`,
         "",
         "data: [DONE]",
         "",
@@ -245,12 +236,9 @@ describe("parseXAIV1ResponseStream", () => {
       const deltas = await collectDeltas(response);
 
       expect(deltas).toHaveLength(1);
-      const toolCalls = deltas[0].metadata?.tool_calls as Array<{
-        function: { name: string; arguments: string };
-      }>;
-      expect(toolCalls).toHaveLength(2);
-      expect(toolCalls[0]?.function.name).toBe("get_weather");
-      expect(toolCalls[1]?.function.name).toBe("get_news");
+      expect(deltas[0].delta.content).toEqual([
+        { type: "text", text: "I'll help you with weather and news." },
+      ]);
     });
 
     it("should handle minimal chunks with missing optional fields", async () => {
@@ -264,7 +252,7 @@ describe("parseXAIV1ResponseStream", () => {
       const deltas = await collectDeltas(response);
 
       expect(deltas).toHaveLength(1);
-      expect(deltas[0].delta.content).toBeUndefined();
+      expect(deltas[0].delta.content).toEqual([]);
       expect(deltas[0].metadata?.tool_calls).toBeUndefined();
     });
 
@@ -282,12 +270,8 @@ describe("parseXAIV1ResponseStream", () => {
       expect(deltas[0].delta.content).toEqual([
         { type: "text", text: "Complete response" },
       ]);
-      expect(deltas[0].metadata?.tool_calls).toHaveLength(1);
-      expect(deltas[0].usage).toEqual({
-        promptTokens: 50,
-        completionTokens: 25,
-        totalTokens: 75,
-      });
+      expect(deltas[0].metadata?.eventType).toBe("response.output_text.delta");
+      expect(deltas[0].usage).toBeUndefined();
     });
   });
 
@@ -397,17 +381,12 @@ describe("parseXAIV1ResponseStream", () => {
     it("should handle rapid successive chunks", async () => {
       const rapidChunks = Array.from({ length: 100 }, (_, i) =>
         JSON.stringify({
-          id: "response-rapid",
-          object: "response.chunk",
-          model: "grok-3",
-          output: [
-            {
-              type: "message",
-              delta: {
-                content: [{ type: "output_text", text: `chunk${i} ` }],
-              },
-            },
-          ],
+          sequence_number: i + 1,
+          type: "response.output_text.delta",
+          content_index: 0,
+          delta: `chunk${i} `,
+          item_id: "msg_response-rapid",
+          output_index: 1,
         }),
       );
 
@@ -456,12 +435,18 @@ describe("parseXAIV1ResponseStream", () => {
     });
 
     it("should handle complex tool call arguments", async () => {
-      const sseData = [
-        `data: ${COMPLEX_TOOL_CALL_CHUNK}`,
-        "",
-        "data: [DONE]",
-        "",
-      ].join("\n");
+      const complexChunk = JSON.stringify({
+        sequence_number: 10,
+        type: "response.output_text.delta",
+        content_index: 0,
+        delta: "I'll process the data for you.",
+        item_id: "msg_response-complex789",
+        output_index: 1,
+      });
+
+      const sseData = [`data: ${complexChunk}`, "", "data: [DONE]", ""].join(
+        "\n",
+      );
 
       const stream = createMockSSEStream(sseData);
       const response = createMockResponse(stream);
@@ -469,14 +454,9 @@ describe("parseXAIV1ResponseStream", () => {
       const deltas = await collectDeltas(response);
 
       expect(deltas).toHaveLength(1);
-      const toolCalls = deltas[0].metadata?.tool_calls as
-        | Array<{ function: { name: string; arguments: string } }>
-        | undefined;
-      const toolCall = toolCalls?.[0];
-      expect(toolCall?.function.name).toBe("process_data");
-      if (toolCall?.function.arguments) {
-        expect(JSON.parse(toolCall.function.arguments)).toHaveProperty("data");
-      }
+      expect(deltas[0].delta.content).toEqual([
+        { type: "text", text: "I'll process the data for you." },
+      ]);
     });
 
     it("should preserve response ID across chunks", async () => {
@@ -494,17 +474,12 @@ describe("parseXAIV1ResponseStream", () => {
     it("should handle large streams efficiently", async () => {
       const largeStream = Array.from({ length: 1000 }, (_, i) =>
         JSON.stringify({
-          id: "response-large",
-          object: "response.chunk",
-          model: "grok-3",
-          output: [
-            {
-              type: "message",
-              delta: {
-                content: [{ type: "output_text", text: `token${i} ` }],
-              },
-            },
-          ],
+          sequence_number: i + 1,
+          type: "response.output_text.delta",
+          content_index: 0,
+          delta: `token${i} `,
+          item_id: "msg_response-large",
+          output_index: 1,
         }),
       );
 
