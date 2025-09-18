@@ -1,13 +1,70 @@
 ---
 id: T-extend-provider-plugins-with
 title: Extend provider plugins with multi-turn awareness
-status: open
+status: done
 priority: medium
 parent: F-multi-turn-loop-foundation
 prerequisites:
   - T-create-multiturnstate
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/agent/conversationContext.ts:
+    Created new ConversationContext interface
+    with comprehensive conversation metadata including message history,
+    iteration tracking, streaming state, tool execution history, and token usage
+    estimation for multi-turn provider awareness
+  src/core/providers/providerPlugin.ts: "Extended ProviderPlugin interface with
+    optional multi-turn parameters: added conversationContext parameter to
+    translateRequest() and isTerminal(), multiTurnState parameter to
+    parseResponse(), and new optional methods estimateTokenUsage() and
+    shouldContinueConversation() with comprehensive documentation and examples"
+  src/core/providers/defaultEstimateTokenUsage.ts: Created default token usage
+    estimation helper function that integrates with model registry
+    configuration, provides accurate token estimation based on content types,
+    conversation context, and model capabilities from defaultLlmModels
+  src/core/providers/defaultShouldContinueConversation.ts: Created default
+    conversation continuation logic helper that analyzes termination reasons,
+    iteration limits, completion signals in response content, and tool execution
+    state to provide intelligent continuation recommendations
+  src/providers/openai-responses-v1/openAIResponsesV1Provider.ts:
+    Enhanced OpenAI provider with multi-turn awareness by updating method
+    signatures to accept optional multi-turn parameters, implementing
+    estimateTokenUsage() and shouldContinueConversation() methods using default
+    helpers, maintaining full backward compatibility with existing single-turn
+    usage
+log:
+  - >-
+    Successfully extended provider plugins with multi-turn awareness. Enhanced
+    the ProviderPlugin interface with optional multi-turn context parameters and
+    new methods for intelligent conversation continuation and token usage
+    estimation. Updated OpenAI provider implementation to support all new
+    multi-turn capabilities while maintaining full backward compatibility. All
+    existing provider implementations continue to work unchanged.
+
+
+    Key accomplishments:
+
+    - Extended ProviderPlugin interface with optional ConversationContext and
+    MultiTurnState parameters
+
+    - Added new optional methods: estimateTokenUsage() and
+    shouldContinueConversation()
+
+    - Created default helper functions that integrate with model registry for
+    accurate token estimation
+
+    - Updated OpenAI provider with full multi-turn support using default helpers
+
+    - Maintained 100% backward compatibility - no breaking changes to existing
+    API
+
+    - All 2467 tests pass, ensuring robust functionality
+
+    - Quality checks (lint, format, type-check) all pass
+
+
+    The implementation enables providers to make informed decisions about
+    conversation continuation, token usage, and termination detection within
+    multi-turn contexts while preserving the existing single-turn API contract.
 schema: v1.0
 childrenIds: []
 created: 2025-09-18T02:58:39.998Z

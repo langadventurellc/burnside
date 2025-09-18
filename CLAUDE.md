@@ -7,6 +7,7 @@ A TypeScript library that acts as a unified bridge to multiple LLM provider APIs
 **Applications:**
 
 - `src` - main library code
+- `src/data/defaultLlmModels.ts` - configured LLM providers, models and model capabilities. **ALL** provider and model information should come from this file and **NEVER EVER** hardcoded.
 
 ## Development
 
