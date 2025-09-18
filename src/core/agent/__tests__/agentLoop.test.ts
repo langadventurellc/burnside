@@ -9,6 +9,9 @@ import { z } from "zod";
 import { AgentLoop } from "../agentLoop";
 import { ToolRouter } from "../../tools/toolRouter";
 import { InMemoryToolRegistry } from "../../tools/inMemoryToolRegistry";
+import { MaxIterationsExceededError } from "../maxIterationsExceededError";
+import { IterationTimeoutError } from "../iterationTimeoutError";
+import { MultiTurnExecutionError } from "../multiTurnErrors";
 import type { Message } from "../../messages/message";
 import type { ToolCall } from "../../tools/toolCall";
 import type { ToolResult } from "../../tools/toolResult";
@@ -778,6 +781,256 @@ describe("AgentLoop", () => {
       expect(result.state.shouldContinue).toBe(false);
       expect(result.state.terminationReason).toBe("natural_completion");
       expect(result.state.pendingToolCalls).toEqual([]);
+    });
+  });
+
+  describe("Multi-Turn Error Handling Integration", () => {
+    it("should throw MaxIterationsExceededError when conversation exceeds iteration limit", async () => {
+      // Create a custom AgentLoop that forces multiple iterations
+      const customAgentLoop = new AgentLoop(toolRouter, {
+        maxToolCalls: 1,
+        timeoutMs: 10000,
+        toolTimeoutMs: 5000,
+        continueOnToolError: true,
+        maxIterations: 1, // Very low limit
+      });
+
+      // Spy on shouldContinueConversation to force it to return true for the first few calls
+      let continueCallCount = 0;
+      const shouldContinueSpy = jest
+        .spyOn(customAgentLoop as any, "shouldContinueConversation")
+        .mockImplementation(() => {
+          continueCallCount++;
+          return continueCallCount <= 2; // Force at least 2 iterations
+        });
+
+      const initialMessages: Message[] = [
+        {
+          id: "msg-1",
+          role: "user",
+          content: [{ type: "text", text: "Start conversation" }],
+          timestamp: new Date().toISOString(),
+        },
+      ];
+
+      await expect(
+        customAgentLoop.executeMultiTurn(initialMessages),
+      ).rejects.toThrow(MaxIterationsExceededError);
+
+      shouldContinueSpy.mockRestore();
+    });
+
+    it("should throw IterationTimeoutError when individual iteration exceeds timeout", async () => {
+      const initialMessages: Message[] = [
+        {
+          id: "msg-1",
+          role: "user",
+          content: [{ type: "text", text: "Test timeout" }],
+          timestamp: new Date().toISOString(),
+        },
+      ];
+
+      const agentLoopWithTimeout = new AgentLoop(toolRouter, {
+        maxToolCalls: 1,
+        timeoutMs: 10000,
+        toolTimeoutMs: 5000,
+        continueOnToolError: true,
+        iterationTimeoutMs: 1, // Very short timeout to guarantee failure
+      });
+
+      // Mock executeIteration to take longer than the timeout
+      const executeIterationSpy = jest
+        .spyOn(agentLoopWithTimeout as any, "executeIteration")
+        .mockImplementation(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 100)); // Delay longer than timeout
+          return {
+            messages: initialMessages,
+            state: { shouldContinue: false, iteration: 1 },
+            toolCallsExecuted: 0,
+          };
+        });
+
+      await expect(
+        agentLoopWithTimeout.executeMultiTurn(initialMessages),
+      ).rejects.toThrow(IterationTimeoutError);
+
+      executeIterationSpy.mockRestore();
+    });
+
+    it("should wrap general errors with MultiTurnExecutionError", async () => {
+      const initialMessages: Message[] = [
+        {
+          id: "msg-1",
+          role: "user",
+          content: [{ type: "text", text: "Test general error" }],
+          timestamp: new Date().toISOString(),
+        },
+      ];
+
+      const faultyAgentLoop = new AgentLoop(toolRouter, {
+        maxToolCalls: 1,
+        timeoutMs: 10000,
+        toolTimeoutMs: 5000,
+        continueOnToolError: true,
+      });
+
+      // Mock executeIteration to throw an error
+      const executeIterationSpy = jest
+        .spyOn(faultyAgentLoop as any, "executeIteration")
+        .mockRejectedValue(new Error("Mock execution error"));
+
+      await expect(
+        faultyAgentLoop.executeMultiTurn(initialMessages),
+      ).rejects.toThrow(MultiTurnExecutionError);
+
+      executeIterationSpy.mockRestore();
+    });
+
+    it("should serialize error context properly with sensitive data redaction", async () => {
+      const initialMessages: Message[] = [
+        {
+          id: "msg-1",
+          role: "user",
+          content: [{ type: "text", text: "Test serialization" }],
+          timestamp: new Date().toISOString(),
+        },
+      ];
+
+      const agentLoopWithLowLimit = new AgentLoop(toolRouter, {
+        maxToolCalls: 1,
+        timeoutMs: 10000,
+        toolTimeoutMs: 5000,
+        continueOnToolError: true,
+        maxIterations: 1, // Very low limit
+      });
+
+      // Mock shouldContinueConversation to force multiple iterations
+      let continueCallCount = 0;
+      const shouldContinueSpy = jest
+        .spyOn(agentLoopWithLowLimit as any, "shouldContinueConversation")
+        .mockImplementation(() => {
+          continueCallCount++;
+          return continueCallCount <= 2; // Force at least 2 iterations
+        });
+
+      try {
+        await agentLoopWithLowLimit.executeMultiTurn(initialMessages);
+        fail("Expected error to be thrown");
+      } catch (error: any) {
+        expect(error.name).toBe("MaxIterationsExceededError");
+
+        const serialized = error.toJSON();
+
+        // Check that serialization includes expected fields
+        expect(serialized.name).toBe("MaxIterationsExceededError");
+        expect(serialized.message).toContain("exceeded maximum iterations");
+        expect(serialized.currentIteration).toBe(error.currentIteration);
+        expect(serialized.maxIterations).toBe(error.maxIterations);
+        expect(serialized.recoveryAction).toBe("abort");
+        expect(serialized.timestamp).toBeGreaterThan(0);
+
+        // Check multi-turn context structure
+        expect(serialized.multiTurnContext).toBeDefined();
+        const context = serialized.multiTurnContext;
+        expect(context.state.iteration).toBe(error.currentIteration - 1); // Context has original state before increment
+        expect(context.state.totalIterations).toBe(error.maxIterations);
+
+        // Verify sensitive data is redacted
+        expect(context.state.messageCount).toBeGreaterThanOrEqual(1);
+        expect(context.state.messages).toBeUndefined(); // Should be redacted
+        expect(context.state.toolCalls).toBeUndefined(); // Should be redacted
+
+        // Check metrics are included
+        expect(context.metrics.totalExecutionTimeMs).toBeGreaterThanOrEqual(0);
+        expect(context.metrics.totalIterations).toBeGreaterThanOrEqual(0);
+      } finally {
+        shouldContinueSpy.mockRestore();
+      }
+    });
+
+    it("should preserve error cause chain", async () => {
+      const initialMessages: Message[] = [
+        {
+          id: "msg-1",
+          role: "user",
+          content: [{ type: "text", text: "Test error cause" }],
+          timestamp: new Date().toISOString(),
+        },
+      ];
+
+      const faultyAgentLoop = new AgentLoop(toolRouter, {
+        maxToolCalls: 1,
+        timeoutMs: 10000,
+        toolTimeoutMs: 5000,
+        continueOnToolError: true,
+      });
+
+      // Mock executeIteration to throw an error
+      const originalError = new Error("Original execution error");
+      const executeIterationSpy = jest
+        .spyOn(faultyAgentLoop as any, "executeIteration")
+        .mockRejectedValue(originalError);
+
+      try {
+        await faultyAgentLoop.executeMultiTurn(initialMessages);
+        fail("Expected error to be thrown");
+      } catch (error: any) {
+        expect(error.name).toBe("MultiTurnExecutionError");
+        expect(error.cause).toBe(originalError);
+        expect(error.cause).toBeInstanceOf(Error);
+
+        const serialized = error.toJSON();
+        expect(serialized.cause).toBeDefined();
+        expect(serialized.cause).toMatchObject({
+          name: "Error",
+          message: "Original execution error",
+        });
+      } finally {
+        executeIterationSpy.mockRestore();
+      }
+    });
+
+    it("should handle specific multi-turn error types in instanceof checks", async () => {
+      const initialMessages: Message[] = [
+        {
+          id: "msg-1",
+          role: "user",
+          content: [{ type: "text", text: "Test instanceof" }],
+          timestamp: new Date().toISOString(),
+        },
+      ];
+
+      const agentLoopWithLowLimit = new AgentLoop(toolRouter, {
+        maxToolCalls: 1,
+        timeoutMs: 10000,
+        toolTimeoutMs: 5000,
+        continueOnToolError: true,
+        maxIterations: 1,
+      });
+
+      // Mock shouldContinueConversation to force multiple iterations
+      let continueCallCount = 0;
+      const shouldContinueSpy = jest
+        .spyOn(agentLoopWithLowLimit as any, "shouldContinueConversation")
+        .mockImplementation(() => {
+          continueCallCount++;
+          return continueCallCount <= 2; // Force at least 2 iterations
+        });
+
+      try {
+        await agentLoopWithLowLimit.executeMultiTurn(initialMessages);
+        fail("Expected error to be thrown");
+      } catch (error: any) {
+        // Test error type hierarchy
+        expect(error instanceof Error).toBe(true);
+        expect(error instanceof MaxIterationsExceededError).toBe(true);
+        expect(error instanceof MultiTurnExecutionError).toBe(true);
+
+        // Should not be other error types
+        expect(error instanceof IterationTimeoutError).toBe(false);
+      } finally {
+        shouldContinueSpy.mockRestore();
+      }
     });
   });
 });

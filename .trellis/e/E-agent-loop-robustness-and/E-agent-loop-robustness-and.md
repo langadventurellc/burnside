@@ -19,7 +19,11 @@ affectedFiles:
     coordinateToolExecutionDuringStreaming() method,
     createMockStreamingResponse() method with empty message handling, and
     updated executeIteration() to support streaming when enabled with fallback
-    to non-streaming mode"
+    to non-streaming mode; Enhanced executeMultiTurn() and
+    executeIterationWithTimeout() methods with specific multi-turn error
+    handling, added buildExecutionMetrics() helper method, improved streaming
+    error handling with multi-turn context, and fixed critical iteration limit
+    logic bug where max iterations check was unreachable due to loop condition"
   src/core/agent/__tests__/agentExecutionOptions.test.ts: Created comprehensive
     test suite with 19 tests covering backward compatibility, type safety,
     documentation examples, and edge cases
@@ -45,11 +49,17 @@ affectedFiles:
     in alphabetical order following existing patterns; Updated module exports to
     include StreamingTurnResult interface and StreamingIntegrationError class,
     and enhanced module documentation to mention streaming interruption
-    capabilities
+    capabilities; Updated module exports to include all new error types and
+    related interfaces, enhanced module documentation to mention multi-turn
+    error handling capabilities
   src/core/agent/__tests__/agentLoop.test.ts: Added comprehensive test suite for
     executeMultiTurn() method with 12 test cases covering state management,
     iteration limits, timeout scenarios, metrics calculation, error handling,
-    conversation history preservation, and edge cases
+    conversation history preservation, and edge cases; Added comprehensive
+    integration test suite for multi-turn error handling with 6 test cases
+    covering max iterations, timeouts, general errors, serialization, error
+    causes, and instanceof checks with proper mocking to trigger error
+    conditions
   src/core/agent/iterationManager.ts: Created new IterationManager class with
     iteration tracking, timeout enforcement, limit validation, termination
     detection, and execution metrics
@@ -197,6 +207,28 @@ affectedFiles:
     tool execution during interruption, error handling scenarios, and multiple
     tool call processing. Includes proper mocking of StreamingStateMachine and
     ToolRouter dependencies with full async iterable support.
+  src/core/agent/executionPhase.ts: Created new ExecutionPhase type definition
+    with 8 specific phase values for multi-turn error context tracking
+  src/core/agent/multiTurnContext.ts: Created new MultiTurnContext interface
+    providing comprehensive context information for multi-turn error debugging
+    and analysis
+  src/core/agent/multiTurnErrors.ts: Created base MultiTurnExecutionError class
+    with comprehensive multi-turn context, recovery strategies, and secure error
+    serialization
+  src/core/agent/maxIterationsExceededError.ts:
+    Created MaxIterationsExceededError
+    class for iteration limit violations with detailed iteration context and
+    timing information
+  src/core/agent/iterationTimeoutError.ts:
+    Created IterationTimeoutError class for
+    individual iteration timeouts with precise timing information and execution
+    context
+  src/core/agent/multiTurnStreamingInterruptionError.ts: Created
+    MultiTurnStreamingInterruptionError class for streaming interruption
+    failures with streaming state context and factory methods
+  src/core/agent/__tests__/multiTurnErrors.test.ts: Created comprehensive test
+    suite with 21 test cases covering error creation, inheritance,
+    serialization, integration scenarios, and type safety
 log: []
 schema: v1.0
 childrenIds:

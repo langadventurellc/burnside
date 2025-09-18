@@ -21,6 +21,10 @@ import type { ExecutionMetrics } from "./executionMetrics";
 import { createExecutionContext } from "./agentExecutionContext";
 import { StreamingStateMachine } from "./streamingStateMachine";
 import { StreamingIntegrationError } from "./streamingIntegrationError";
+import { MultiTurnExecutionError } from "./multiTurnErrors";
+import { MaxIterationsExceededError } from "./maxIterationsExceededError";
+import { IterationTimeoutError } from "./iterationTimeoutError";
+import { MultiTurnStreamingInterruptionError } from "./multiTurnStreamingInterruptionError";
 
 /**
  * Agent Loop class for single-turn tool execution and conversation flow
@@ -312,7 +316,7 @@ export class AgentLoop {
 
     try {
       // Main iteration loop
-      while (state.iteration <= state.totalIterations && state.shouldContinue) {
+      while (state.shouldContinue) {
         const iterationStartTime = Date.now();
 
         // Check for overall timeout
@@ -340,21 +344,45 @@ export class AgentLoop {
           break;
         }
 
+        // Check iteration limit BEFORE incrementing
+        if (state.iteration >= state.totalIterations) {
+          // Throw specific error for max iterations exceeded
+          const metrics = this.buildExecutionMetrics(state, startTime);
+          throw new MaxIterationsExceededError(
+            state.iteration + 1,
+            state.totalIterations,
+            state,
+            { metrics },
+          );
+        }
+
         // Update state for next iteration
         state = this.updateStateAfterIteration(
           state,
           iterationResult.toolCallsExecuted,
         );
-
-        // Check iteration limit
-        if (state.iteration > state.totalIterations) {
-          state = this.updateStateForTermination(state, "max_iterations");
-          break;
-        }
       }
-    } catch {
-      state = this.updateStateForTermination(state, "error");
-      // Don't rethrow - return partial results with error state
+    } catch (error: unknown) {
+      // Handle specific multi-turn errors
+      if (
+        error instanceof MaxIterationsExceededError ||
+        error instanceof IterationTimeoutError ||
+        error instanceof MultiTurnStreamingInterruptionError
+      ) {
+        // Re-throw specific multi-turn errors to preserve context
+        throw error;
+      }
+
+      // Wrap other errors with multi-turn context
+      const metrics = this.buildExecutionMetrics(state, startTime);
+      const errorToWrap =
+        error instanceof Error ? error : new Error(String(error));
+      throw MultiTurnExecutionError.createExecutionError(
+        "termination_check",
+        errorToWrap,
+        state,
+        { metrics, recoveryAction: "abort" },
+      );
     }
 
     // Calculate final metrics
@@ -385,11 +413,21 @@ export class AgentLoop {
     };
 
     if (options.iterationTimeoutMs) {
+      const iterationStartTime = Date.now();
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(
-          () => reject(new Error("Iteration timeout")),
-          options.iterationTimeoutMs,
-        );
+        setTimeout(() => {
+          const actualExecutionTime = Date.now() - iterationStartTime;
+          const metrics = this.buildExecutionMetrics(state, iterationStartTime);
+          reject(
+            new IterationTimeoutError(
+              state.iteration,
+              options.iterationTimeoutMs!,
+              actualExecutionTime,
+              state,
+              { metrics },
+            ),
+          );
+        }, options.iterationTimeoutMs);
       });
 
       return Promise.race([executeIteration(), timeoutPromise]);
@@ -567,15 +605,33 @@ export class AgentLoop {
         streamingResult,
       } as StreamingTurnResult;
     } catch (error: unknown) {
-      // Handle streaming-specific errors
+      // Handle streaming-specific errors with multi-turn context
       const errorInstance =
         error instanceof Error ? error : new Error(String(error));
-      throw StreamingIntegrationError.createGenericStreamingError(
-        `Streaming turn execution failed: ${errorInstance.message}`,
+
+      // Check if it's already a streaming integration error
+      if (error instanceof StreamingIntegrationError) {
+        // Wrap existing streaming error with multi-turn context
+        throw MultiTurnStreamingInterruptionError.createPauseError(
+          errorInstance,
+          updatedState,
+          updatedState.streamingState,
+        );
+      }
+
+      // Create general streaming interruption error
+      const metrics = this.buildExecutionMetrics(updatedState, startTime);
+      throw new MultiTurnStreamingInterruptionError(
         updatedState.streamingState,
-        "fallback_non_streaming",
-        { originalError: errorInstance.name },
         errorInstance,
+        updatedState,
+        {
+          metrics,
+          debugContext: {
+            originalError: errorInstance.name,
+            streamingPhase: "streaming_turn_execution",
+          },
+        },
       );
     }
   }
@@ -837,6 +893,29 @@ export class AgentLoop {
     // TODO: Implement tool call extraction when tool_use content type is added to ContentPart schema
     // For now, return empty array to satisfy the interface
     return [];
+  }
+
+  /**
+   * Build ExecutionMetrics object for error context
+   */
+  private buildExecutionMetrics(
+    state: MultiTurnState,
+    startTime: number,
+  ): ExecutionMetrics {
+    const totalExecutionTime = Date.now() - startTime;
+    const totalIterations = Math.max(1, state.iteration - 1);
+    const averageIterationTime = totalExecutionTime / totalIterations;
+
+    return {
+      totalExecutionTimeMs: totalExecutionTime,
+      totalIterations,
+      averageIterationTimeMs: averageIterationTime,
+      minIterationTimeMs: averageIterationTime, // Approximation for error context
+      maxIterationTimeMs: averageIterationTime, // Approximation for error context
+      currentIteration: state.iteration,
+      isTerminated: !state.shouldContinue,
+      terminationReason: state.terminationReason,
+    };
   }
 
   /**
