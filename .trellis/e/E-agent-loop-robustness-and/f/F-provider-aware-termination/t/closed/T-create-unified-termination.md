@@ -1,12 +1,44 @@
 ---
 id: T-create-unified-termination
 title: Create unified termination model and enhanced ProviderPlugin interface
-status: open
+status: done
 priority: high
 parent: F-provider-aware-termination
 prerequisites: []
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/agent/enhancedTerminationReason.ts: Created enhanced termination
+    reasons extending base TerminationReason with provider-specific cases
+  src/core/agent/terminationConfidence.ts: Created confidence level enum for termination signal reliability
+  src/core/agent/unifiedTerminationSignal.ts: Created main
+    UnifiedTerminationSignal interface for normalized completion detection
+  src/core/agent/isUnifiedTerminationSignal.ts: Created type guard function for UnifiedTerminationSignal validation
+  src/core/agent/createTerminationSignal.ts: Created utility function to build
+    UnifiedTerminationSignal from minimal information
+  src/core/agent/calculateTerminationConfidence.ts: Created helper function to
+    extract confidence levels from termination indicators
+  src/core/providers/providerPlugin.ts: Enhanced interface with optional
+    detectTermination() method and comprehensive JSDoc documentation
+  src/core/providers/defaultTerminationDetection.ts:
+    Created intelligent fallback
+    implementation that analyzes provider responses and overrides decisions for
+    high-confidence metadata signals
+  src/core/providers/index.ts:
+    Added exports for defaultDetectTermination function
+    and UnifiedTerminationSignal type
+  src/core/agent/index.ts: Added exports for all new termination types and utility functions
+  src/core/agent/__tests__/unifiedTerminationSignal.test.ts: Created comprehensive unit tests for unified termination model utilities
+  src/core/providers/__tests__/defaultTerminationDetection.test.ts:
+    Created extensive unit tests for default termination detection with 23 test
+    cases covering all scenarios
+log:
+  - Successfully implemented unified termination model and enhanced
+    ProviderPlugin interface with intelligent fallback detection. Created
+    modular type system with 9 new files following project conventions, enhanced
+    ProviderPlugin interface with optional detectTermination() method, and built
+    smart default implementation that overrides provider decisions when
+    high-confidence metadata signals are detected. All 23 unit tests pass,
+    demonstrating robust backward compatibility and enhanced termination
+    detection capabilities.
 schema: v1.0
 childrenIds: []
 created: 2025-09-18T19:39:44.980Z

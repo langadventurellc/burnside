@@ -208,6 +208,65 @@ export interface ProviderPlugin {
   ): boolean;
 
   /**
+   * Enhanced termination detection with provider-aware reasoning.
+   *
+   * Optional method that provides detailed termination analysis beyond the basic
+   * boolean result of isTerminal(). Returns a unified termination signal with
+   * confidence levels, standardized reasons, and provider-specific metadata.
+   *
+   * When implemented, this method should be the primary termination detection
+   * mechanism, with isTerminal() delegating to it for backward compatibility.
+   *
+   * @param deltaOrResponse - Either a streaming delta or final response
+   * @param conversationContext - Optional conversation context for intelligent termination detection
+   * @returns Detailed termination signal with reasoning and confidence
+   *
+   * @example Basic enhanced termination detection
+   * ```typescript
+   * const signal = plugin.detectTermination?.(response);
+   * if (signal?.shouldTerminate) {
+   *   console.log(`Terminated: ${signal.reason} (${signal.confidence} confidence)`);
+   *   console.log(`Provider: ${signal.providerSpecific.originalField}=${signal.providerSpecific.originalValue}`);
+   * }
+   * ```
+   *
+   * @example Fallback to isTerminal() for backward compatibility
+   * ```typescript
+   * const signal = plugin.detectTermination?.(response) ?? {
+   *   shouldTerminate: plugin.isTerminal(response),
+   *   reason: "unknown",
+   *   confidence: "low",
+   *   providerSpecific: { originalField: "isTerminal", originalValue: "boolean" }
+   * };
+   * ```
+   *
+   * @example Integration with conversation context
+   * ```typescript
+   * const signal = plugin.detectTermination?.(response, {
+   *   conversationHistory: [...],
+   *   currentIteration: 3,
+   *   streamingState: "completed"
+   * });
+   * // Provider can use context for more intelligent termination decisions
+   * ```
+   */
+  detectTermination?(
+    deltaOrResponse:
+      | StreamDelta
+      | {
+          message: Message;
+          usage?: {
+            promptTokens: number;
+            completionTokens: number;
+            totalTokens?: number;
+          };
+          model: string;
+          metadata?: Record<string, unknown>;
+        },
+    conversationContext?: ConversationContext,
+  ): import("../agent/unifiedTerminationSignal").UnifiedTerminationSignal;
+
+  /**
    * Normalize provider-specific errors to unified error types.
    *
    * Converts provider-specific error responses and exceptions into

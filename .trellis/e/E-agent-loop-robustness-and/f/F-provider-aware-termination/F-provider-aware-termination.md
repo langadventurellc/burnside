@@ -1,14 +1,44 @@
 ---
 id: F-provider-aware-termination
 title: Provider-Aware Termination Detection
-status: open
+status: in-progress
 priority: medium
 parent: E-agent-loop-robustness-and
 prerequisites: []
-affectedFiles: {}
+affectedFiles:
+  src/core/agent/enhancedTerminationReason.ts: Created enhanced termination
+    reasons extending base TerminationReason with provider-specific cases
+  src/core/agent/terminationConfidence.ts: Created confidence level enum for termination signal reliability
+  src/core/agent/unifiedTerminationSignal.ts: Created main
+    UnifiedTerminationSignal interface for normalized completion detection
+  src/core/agent/isUnifiedTerminationSignal.ts: Created type guard function for UnifiedTerminationSignal validation
+  src/core/agent/createTerminationSignal.ts: Created utility function to build
+    UnifiedTerminationSignal from minimal information
+  src/core/agent/calculateTerminationConfidence.ts: Created helper function to
+    extract confidence levels from termination indicators
+  src/core/providers/providerPlugin.ts: Enhanced interface with optional
+    detectTermination() method and comprehensive JSDoc documentation
+  src/core/providers/defaultTerminationDetection.ts:
+    Created intelligent fallback
+    implementation that analyzes provider responses and overrides decisions for
+    high-confidence metadata signals
+  src/core/providers/index.ts:
+    Added exports for defaultDetectTermination function
+    and UnifiedTerminationSignal type
+  src/core/agent/index.ts: Added exports for all new termination types and utility functions
+  src/core/agent/__tests__/unifiedTerminationSignal.test.ts: Created comprehensive unit tests for unified termination model utilities
+  src/core/providers/__tests__/defaultTerminationDetection.test.ts:
+    Created extensive unit tests for default termination detection with 23 test
+    cases covering all scenarios
 log: []
 schema: v1.0
-childrenIds: []
+childrenIds:
+  - T-create-comprehensive
+  - T-create-unified-termination
+  - T-implement-anthropic
+  - T-implement-google-gemini
+  - T-implement-openaixai
+  - T-integrate-termination
 created: 2025-09-18T02:18:25.836Z
 updated: 2025-09-18T02:18:25.836Z
 ---

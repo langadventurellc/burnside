@@ -51,7 +51,8 @@ affectedFiles:
     and enhanced module documentation to mention streaming interruption
     capabilities; Updated module exports to include all new error types and
     related interfaces, enhanced module documentation to mention multi-turn
-    error handling capabilities
+    error handling capabilities; Added exports for all new termination types and
+    utility functions
   src/core/agent/__tests__/agentLoop.test.ts: Added comprehensive test suite for
     executeMultiTurn() method with 12 test cases covering state management,
     iteration limits, timeout scenarios, metrics calculation, error handling,
@@ -113,7 +114,9 @@ affectedFiles:
     optional multi-turn parameters: added conversationContext parameter to
     translateRequest() and isTerminal(), multiTurnState parameter to
     parseResponse(), and new optional methods estimateTokenUsage() and
-    shouldContinueConversation() with comprehensive documentation and examples"
+    shouldContinueConversation() with comprehensive documentation and examples;
+    Enhanced interface with optional detectTermination() method and
+    comprehensive JSDoc documentation"
   src/core/providers/defaultEstimateTokenUsage.ts: Created default token usage
     estimation helper function that integrates with model registry
     configuration, provides accurate token estimation based on content types,
@@ -229,6 +232,27 @@ affectedFiles:
   src/core/agent/__tests__/multiTurnErrors.test.ts: Created comprehensive test
     suite with 21 test cases covering error creation, inheritance,
     serialization, integration scenarios, and type safety
+  src/core/agent/enhancedTerminationReason.ts: Created enhanced termination
+    reasons extending base TerminationReason with provider-specific cases
+  src/core/agent/terminationConfidence.ts: Created confidence level enum for termination signal reliability
+  src/core/agent/unifiedTerminationSignal.ts: Created main
+    UnifiedTerminationSignal interface for normalized completion detection
+  src/core/agent/isUnifiedTerminationSignal.ts: Created type guard function for UnifiedTerminationSignal validation
+  src/core/agent/createTerminationSignal.ts: Created utility function to build
+    UnifiedTerminationSignal from minimal information
+  src/core/agent/calculateTerminationConfidence.ts: Created helper function to
+    extract confidence levels from termination indicators
+  src/core/providers/defaultTerminationDetection.ts:
+    Created intelligent fallback
+    implementation that analyzes provider responses and overrides decisions for
+    high-confidence metadata signals
+  src/core/providers/index.ts:
+    Added exports for defaultDetectTermination function
+    and UnifiedTerminationSignal type
+  src/core/agent/__tests__/unifiedTerminationSignal.test.ts: Created comprehensive unit tests for unified termination model utilities
+  src/core/providers/__tests__/defaultTerminationDetection.test.ts:
+    Created extensive unit tests for default termination detection with 23 test
+    cases covering all scenarios
 log: []
 schema: v1.0
 childrenIds:
