@@ -12,8 +12,11 @@ import type { StreamDelta } from "../../client/streamDelta";
 import type { Message } from "../../core/messages/message";
 import type { ProviderHttpRequest } from "../../core/transport/providerHttpRequest";
 import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse";
+import type { UnifiedTerminationSignal } from "../../core/agent/unifiedTerminationSignal";
+import type { ConversationContext } from "../../core/agent/conversationContext";
 import { BridgeError } from "../../core/errors/bridgeError";
 import { ValidationError } from "../../core/errors/validationError";
+import { createTerminationSignal } from "../../core/agent/createTerminationSignal";
 import {
   AnthropicMessagesConfigSchema,
   type AnthropicMessagesConfigType,
@@ -166,12 +169,66 @@ export class AnthropicMessagesV1Provider implements ProviderPlugin {
   }
 
   /**
+   * Enhanced termination detection with provider-aware reasoning
+   *
+   * Analyzes Anthropic responses and streaming deltas for stop_reason
+   * and maps to unified termination signals with confidence levels.
+   *
+   * @param deltaOrResponse - Either a streaming delta or final response
+   * @param conversationContext - Optional conversation context for enhanced analysis
+   * @returns Detailed termination signal with reasoning and confidence
+   */
+  detectTermination(
+    deltaOrResponse:
+      | StreamDelta
+      | {
+          message: Message;
+          usage?: {
+            promptTokens: number;
+            completionTokens: number;
+            totalTokens?: number;
+          };
+          model: string;
+          metadata?: Record<string, unknown>;
+        },
+    _conversationContext?: ConversationContext,
+  ): UnifiedTerminationSignal {
+    // Handle complete response object (non-streaming)
+    if ("message" in deltaOrResponse) {
+      const response = deltaOrResponse;
+      const stopReason = response.metadata?.stopReason as
+        | string
+        | null
+        | undefined;
+
+      return this.createAnthropicTerminationSignal(
+        stopReason,
+        true, // Non-streaming responses are always terminal
+        response.metadata || {},
+      );
+    }
+
+    // Handle StreamDelta (streaming)
+    const delta = deltaOrResponse;
+    const stopReason = delta.metadata?.stopReason as string | null | undefined;
+    const shouldTerminate = delta.finished === true;
+
+    return this.createAnthropicTerminationSignal(
+      stopReason,
+      shouldTerminate,
+      delta.metadata || {},
+    );
+  }
+
+  /**
    * Detect if streaming response has reached termination
    *
    * Determines whether a streaming delta or final response indicates
-   * that the stream has completed.
+   * that the stream has completed. Delegates to detectTermination for
+   * backward compatibility.
    *
    * @param deltaOrResponse - Either a streaming delta or final response
+   * @param conversationContext - Optional conversation context
    * @returns True if this indicates stream termination
    */
   isTerminal(
@@ -187,14 +244,10 @@ export class AnthropicMessagesV1Provider implements ProviderPlugin {
           model: string;
           metadata?: Record<string, unknown>;
         },
+    conversationContext?: ConversationContext,
   ): boolean {
-    // Handle complete response object (non-streaming)
-    if ("message" in deltaOrResponse) {
-      return true; // Non-streaming responses are always terminal
-    }
-
-    // Handle StreamDelta (streaming)
-    return deltaOrResponse.finished === true;
+    return this.detectTermination(deltaOrResponse, conversationContext)
+      .shouldTerminate;
   }
 
   /**
@@ -215,6 +268,95 @@ export class AnthropicMessagesV1Provider implements ProviderPlugin {
     };
 
     return normalizeAnthropicError(error, enhancedContext);
+  }
+
+  /**
+   * Creates a unified termination signal from Anthropic stop_reason
+   *
+   * @param stopReason - The stop_reason from Anthropic response metadata
+   * @param shouldTerminate - Whether termination should occur
+   * @param metadata - Additional metadata from the response
+   * @returns Unified termination signal with proper confidence and reasoning
+   */
+  private createAnthropicTerminationSignal(
+    stopReason: string | null | undefined,
+    shouldTerminate: boolean,
+    metadata: Record<string, unknown>,
+  ): UnifiedTerminationSignal {
+    // Handle cases where stop_reason is not available
+    if (!stopReason || stopReason === null) {
+      return createTerminationSignal(
+        shouldTerminate,
+        "finished", // Field name for streaming finished flag
+        shouldTerminate.toString(),
+        "unknown",
+        "low",
+        shouldTerminate
+          ? "Response terminated without stop_reason"
+          : "Response continuing without stop_reason",
+        metadata,
+      );
+    }
+
+    // Map Anthropic stop_reason values to unified termination signals
+    switch (stopReason) {
+      case "end_turn":
+        return createTerminationSignal(
+          true,
+          "stop_reason",
+          stopReason,
+          "natural_completion",
+          "high",
+          "Model completed turn naturally",
+          metadata,
+        );
+
+      case "max_tokens":
+        return createTerminationSignal(
+          true,
+          "stop_reason",
+          stopReason,
+          "token_limit_reached",
+          "high",
+          "Response terminated due to token limit",
+          metadata,
+        );
+
+      case "stop_sequence":
+        return createTerminationSignal(
+          true,
+          "stop_reason",
+          stopReason,
+          "stop_sequence",
+          "high",
+          "Response terminated by custom stop sequence",
+          metadata,
+        );
+
+      case "tool_use":
+        return createTerminationSignal(
+          shouldTerminate,
+          "stop_reason",
+          stopReason,
+          "natural_completion",
+          "high",
+          shouldTerminate
+            ? "Tool use completed and marked terminal"
+            : "Tool use detected but not terminal",
+          metadata,
+        );
+
+      default:
+        return createTerminationSignal(
+          shouldTerminate,
+          "stop_reason",
+          stopReason,
+          "unknown",
+          "medium",
+          `Unknown stop reason: ${stopReason}`,
+          metadata,
+        );
+    }
   }
 
   /**

@@ -1,13 +1,36 @@
 ---
 id: T-implement-anthropic
 title: Implement Anthropic termination detection with stop_reason mapping
-status: open
+status: done
 priority: high
 parent: F-provider-aware-termination
 prerequisites:
   - T-create-unified-termination
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/providers/anthropic-2023-06-01/anthropicMessagesV1Provider.ts:
+    Enhanced with detectTermination() method implementing Anthropic stop_reason
+    mapping to UnifiedTerminationSignal. Added
+    createAnthropicTerminationSignal() helper method. Updated isTerminal() to
+    delegate to detectTermination() for backward compatibility. Added necessary
+    imports for termination detection types.
+  src/providers/anthropic-2023-06-01/__tests__/termination.test.ts:
+    Created comprehensive test suite with 22 test cases covering
+    detectTermination() and isTerminal() integration. Tests all Anthropic
+    stop_reason values, streaming/non-streaming scenarios, edge cases, and
+    conversation context integration.
+  src/providers/anthropic-2023-06-01/__tests__/anthropicMessagesV1Provider.test.ts:
+    Added integration tests for detectTermination() method including stop_reason
+    detection, streaming delta handling, isTerminal() integration, and
+    conversation context parameter support.
+log:
+  - Successfully implemented Anthropic termination detection with stop_reason
+    mapping. Added detectTermination() method that maps Anthropic's stop_reason
+    values (end_turn, max_tokens, stop_sequence, tool_use) to unified
+    termination signals with proper confidence levels. Updated isTerminal() to
+    delegate to detectTermination() for backward compatibility. Created
+    comprehensive test suite with 22 test cases covering all stop_reason
+    scenarios, streaming/non-streaming responses, edge cases, and conversation
+    context integration. All tests pass and quality checks successful.
 schema: v1.0
 childrenIds: []
 created: 2025-09-18T19:40:35.459Z

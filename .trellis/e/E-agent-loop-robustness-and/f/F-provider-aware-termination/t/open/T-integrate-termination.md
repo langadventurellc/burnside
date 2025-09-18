@@ -21,7 +21,7 @@ updated: 2025-09-18T19:41:34.917Z
 
 ## Context
 
-Update the existing AgentLoop multi-turn execution to use the new provider-aware termination detection instead of the simple boolean `isTerminal()` checks. This enables intelligent continuation decisions based on termination reasons and confidence levels.
+Update the existing AgentLoop multi-turn execution to use the new provider-aware termination detection instead of the simple boolean `isTerminal()` checks. This enables intelligent continuation decisions based on termination reasons and confidence levels. Delete `isTerminal()` and supporting code when complete.
 
 ## Implementation Requirements
 

@@ -30,15 +30,30 @@ affectedFiles:
   src/core/providers/__tests__/defaultTerminationDetection.test.ts:
     Created extensive unit tests for default termination detection with 23 test
     cases covering all scenarios
+  src/providers/anthropic-2023-06-01/anthropicMessagesV1Provider.ts:
+    Enhanced with detectTermination() method implementing Anthropic stop_reason
+    mapping to UnifiedTerminationSignal. Added
+    createAnthropicTerminationSignal() helper method. Updated isTerminal() to
+    delegate to detectTermination() for backward compatibility. Added necessary
+    imports for termination detection types.
+  src/providers/anthropic-2023-06-01/__tests__/termination.test.ts:
+    Created comprehensive test suite with 22 test cases covering
+    detectTermination() and isTerminal() integration. Tests all Anthropic
+    stop_reason values, streaming/non-streaming scenarios, edge cases, and
+    conversation context integration.
+  src/providers/anthropic-2023-06-01/__tests__/anthropicMessagesV1Provider.test.ts:
+    Added integration tests for detectTermination() method including stop_reason
+    detection, streaming delta handling, isTerminal() integration, and
+    conversation context parameter support.
 log: []
 schema: v1.0
 childrenIds:
   - T-create-comprehensive
-  - T-create-unified-termination
   - T-implement-anthropic
   - T-implement-google-gemini
   - T-implement-openaixai
   - T-integrate-termination
+  - T-create-unified-termination
 created: 2025-09-18T02:18:25.836Z
 updated: 2025-09-18T02:18:25.836Z
 ---
