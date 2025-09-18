@@ -1,7 +1,7 @@
 ---
 id: F-xai-grok-provider-e2e-testing
 title: xAI Grok Provider E2E Testing Implementation
-status: in-progress
+status: done
 priority: medium
 parent: none
 prerequisites: []
@@ -68,15 +68,22 @@ affectedFiles:
     Tool Error Handling (registration failures, execution errors, system
     disabled scenarios), and Tool Behavior Validation (message format
     consistency, complex requests, metadata preservation)"
-log: []
+  package.json: Added test:e2e:xai NPM script following exact pattern of other
+    provider E2E scripts with NODE_OPTIONS dotenv loading and
+    testPathPatterns=xai filtering
+  .env.example: Added xAI E2E testing section with XAI_API_KEY and E2E_XAI_MODEL
+    documentation, updated general note to include xAI, and added usage
+    instruction for npm run test:e2e:xai command
+log:
+  - "Auto-completed: All child tasks are complete"
 schema: v1.0
 childrenIds:
   - T-add-xai-e2e-test-configuration
-  - T-implement-xai-tool-execution
   - T-create-xai-bridgeclient
   - T-create-xai-test-configuration
   - T-implement-xai-chat-completion
   - T-implement-xai-streaming-e2e
+  - T-implement-xai-tool-execution
 created: 2025-09-18T00:08:03.828Z
 updated: 2025-09-18T00:08:03.828Z
 ---

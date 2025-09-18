@@ -1,15 +1,29 @@
 ---
 id: T-add-xai-e2e-test-configuration
 title: Add xAI E2E test configuration and NPM scripts
-status: open
+status: done
 priority: low
 parent: F-xai-grok-provider-e2e-testing
 prerequisites:
   - T-implement-xai-chat-completion
   - T-implement-xai-streaming-e2e
   - T-implement-xai-tool-execution
-affectedFiles: {}
-log: []
+affectedFiles:
+  package.json: Added test:e2e:xai NPM script following exact pattern of other
+    provider E2E scripts with NODE_OPTIONS dotenv loading and
+    testPathPatterns=xai filtering
+  .env.example: Added xAI E2E testing section with XAI_API_KEY and E2E_XAI_MODEL
+    documentation, updated general note to include xAI, and added usage
+    instruction for npm run test:e2e:xai command
+log:
+  - Successfully added xAI E2E test configuration and NPM scripts following the
+    established patterns. Added "test:e2e:xai" NPM script to package.json that
+    runs Jest with xAI test pattern filtering, updated .env.example with
+    comprehensive xAI environment variable documentation including XAI_API_KEY
+    and E2E_XAI_MODEL configuration. Verified the script executes only xAI E2E
+    tests in isolation (3 test suites, 41 tests passed) and integrated
+    seamlessly with existing Jest E2E configuration. All quality checks pass
+    with no linting, formatting, or type errors.
 schema: v1.0
 childrenIds: []
 created: 2025-09-18T00:13:33.284Z
