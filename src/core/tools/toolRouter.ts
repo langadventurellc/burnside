@@ -15,7 +15,12 @@ import type { ToolExecutionContext } from "./toolExecutionContext";
 import type { ToolDefinition } from "./toolDefinition";
 import type { ToolHandler } from "./toolHandler";
 import type { ToolRegistry } from "./toolRegistry";
+import type { ToolExecutionStrategy } from "./toolExecutionStrategy";
+import type { ToolExecutionOptions } from "./toolExecutionOptions";
+import type { ToolExecutionResult } from "./toolExecutionResult";
 import { ExecutionPipeline } from "./toolExecutionPipeline";
+import { SequentialExecutionStrategy } from "./sequentialExecutionStrategy";
+import { ParallelExecutionStrategy } from "./parallelExecutionStrategy";
 
 /**
  * Central ToolRouter class that orchestrates tool execution
@@ -24,6 +29,7 @@ export class ToolRouter {
   private registry: ToolRegistry;
   private defaultTimeoutMs: number;
   private pipeline: ExecutionPipeline;
+  private strategyCache = new Map<string, ToolExecutionStrategy>();
 
   constructor(registry: ToolRegistry, defaultTimeoutMs = 5000) {
     this.registry = registry;
@@ -117,5 +123,97 @@ export class ToolRouter {
    */
   hasTool(toolName: string): boolean {
     return this.registry.has(toolName);
+  }
+
+  /**
+   * Execute multiple tool calls using configurable strategy
+   */
+  async executeMultiple(
+    toolCalls: ToolCall[],
+    context: ToolExecutionContext,
+    options: ToolExecutionOptions,
+  ): Promise<ToolExecutionResult> {
+    // Validate options
+    this.validateExecutionOptions(options);
+
+    // Get strategy for execution
+    const strategy = this.getExecutionStrategy(options);
+
+    try {
+      // Execute using strategy
+      return await strategy.execute(toolCalls, this, context, options);
+    } catch (error) {
+      // Router-level error boundary
+      return {
+        results: [],
+        success: false,
+        metadata: {
+          totalExecutionTime: 0,
+          successCount: 0,
+          errorCount: toolCalls.length,
+          strategyMetadata: {
+            strategy: "unknown",
+            error: "router_execution_failed",
+          },
+        },
+        firstError: {
+          toolCallId: toolCalls[0]?.id || "unknown",
+          error: {
+            code: "router_error",
+            message: "Multiple tool execution failed at router level",
+            details: {
+              originalError:
+                error instanceof Error ? error.message : String(error),
+              toolCalls,
+              stack: error instanceof Error ? error.stack : undefined,
+            },
+          },
+        },
+      };
+    }
+  }
+
+  /**
+   * Get execution strategy based on options with caching
+   */
+  private getExecutionStrategy(
+    options: ToolExecutionOptions,
+  ): ToolExecutionStrategy {
+    const strategyKey = `${options.errorHandling}-${options.maxConcurrentTools || 3}`;
+
+    let strategy = this.strategyCache.get(strategyKey);
+    if (!strategy) {
+      // Default to sequential if not specified
+      if (options.maxConcurrentTools === 1) {
+        strategy = new SequentialExecutionStrategy();
+      } else {
+        strategy = new ParallelExecutionStrategy();
+      }
+      this.strategyCache.set(strategyKey, strategy);
+    }
+
+    return strategy;
+  }
+
+  /**
+   * Validate execution options
+   */
+  private validateExecutionOptions(options: ToolExecutionOptions): void {
+    if (
+      options.maxConcurrentTools !== undefined &&
+      options.maxConcurrentTools < 1
+    ) {
+      throw new Error("maxConcurrentTools must be at least 1");
+    }
+
+    if (options.toolTimeoutMs !== undefined && options.toolTimeoutMs < 0) {
+      throw new Error("toolTimeoutMs must be non-negative");
+    }
+
+    if (!["fail-fast", "continue-on-error"].includes(options.errorHandling)) {
+      throw new Error(
+        "errorHandling must be 'fail-fast' or 'continue-on-error'",
+      );
+    }
   }
 }
