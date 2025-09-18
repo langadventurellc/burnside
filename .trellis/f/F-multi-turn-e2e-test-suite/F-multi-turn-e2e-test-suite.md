@@ -1,14 +1,24 @@
 ---
 id: F-multi-turn-e2e-test-suite
 title: Basic Multi-Turn E2E Tests
-status: open
+status: in-progress
 priority: medium
 parent: none
 prerequisites: []
-affectedFiles: {}
+affectedFiles:
+  src/__tests__/e2e/anthropic/multiTurn.e2e.test.ts: "Created comprehensive
+    multi-turn E2E test suite for Anthropic provider with 4 test scenarios:
+    basic multi-turn flow, maxIterations limit enforcement, tool execution
+    integration, and natural completion. Follows exact same patterns as
+    tools.e2e.test.ts with proper imports, model filtering, and validation
+    logic."
 log: []
 schema: v1.0
-childrenIds: []
+childrenIds:
+  - T-create-anthropic-multi-turn
+  - T-create-google-multi-turn-e2e
+  - T-create-openai-multi-turn-e2e
+  - T-create-xai-multi-turn-e2e
 created: 2025-09-18T16:50:43.296Z
 updated: 2025-09-18T16:50:43.296Z
 ---
