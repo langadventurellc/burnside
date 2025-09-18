@@ -20,3 +20,6 @@ export { default as googleGeminiV1Provider } from "./google-gemini-v1/index";
 
 export { OpenAIResponsesV1Provider } from "./openai-responses-v1/index";
 export { default as openaiResponsesV1Provider } from "./openai-responses-v1/index";
+
+export { XAIV1Provider, XAI_PROVIDER_INFO } from "./xai-v1/index";
+export { default as xaiV1Provider } from "./xai-v1/index";
