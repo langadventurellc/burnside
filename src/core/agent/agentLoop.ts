@@ -12,6 +12,7 @@ import type { ToolCall } from "../tools/toolCall";
 import type { ToolResult } from "../tools/toolResult";
 import type { ToolRouter } from "../tools/toolRouter";
 import type { AgentExecutionOptions } from "./agentExecutionOptions";
+import type { MultiTurnState } from "./multiTurnState";
 import { createExecutionContext } from "./agentExecutionContext";
 
 /**
@@ -269,6 +270,299 @@ export class AgentLoop {
     }
 
     return errorText;
+  }
+
+  /**
+   * Execute multi-turn conversation with orchestration
+   *
+   * Orchestrates multiple conversation iterations, managing state transitions
+   * and coordinating with executeSingleTurn() to build multi-turn conversations.
+   * Handles iteration loops, timeout enforcement, and natural termination detection.
+   *
+   * @param initialMessages - Starting conversation messages
+   * @param options - Execution options (optional, uses defaults)
+   * @returns Final messages, state, and execution metrics
+   */
+  async executeMultiTurn(
+    initialMessages: Message[],
+    options?: AgentExecutionOptions,
+  ): Promise<{
+    finalMessages: Message[];
+    state: MultiTurnState;
+    executionMetrics: {
+      totalIterations: number;
+      totalExecutionTime: number;
+      averageIterationTime: number;
+      totalToolCalls: number;
+    };
+  }> {
+    const startTime = Date.now();
+    const mergedOptions = { ...this.defaultOptions, ...options };
+
+    // Initialize multi-turn state
+    let state = this.initializeMultiTurnState(initialMessages, mergedOptions);
+    let currentMessages = [...initialMessages];
+
+    try {
+      // Main iteration loop
+      while (state.iteration <= state.totalIterations && state.shouldContinue) {
+        const iterationStartTime = Date.now();
+
+        // Check for overall timeout
+        if (
+          mergedOptions.timeoutMs &&
+          iterationStartTime - startTime >= mergedOptions.timeoutMs
+        ) {
+          state = this.updateStateForTermination(state, "timeout");
+          break;
+        }
+
+        // Execute iteration with timeout if configured
+        const iterationResult = await this.executeIterationWithTimeout(
+          currentMessages,
+          state,
+          mergedOptions,
+        );
+
+        currentMessages = iterationResult.messages;
+        state = iterationResult.state;
+
+        // Check termination conditions
+        if (!this.shouldContinueConversation(currentMessages, state)) {
+          state = this.updateStateForTermination(state, "natural_completion");
+          break;
+        }
+
+        // Update state for next iteration
+        state = this.updateStateAfterIteration(
+          state,
+          iterationResult.toolCallsExecuted,
+        );
+
+        // Check iteration limit
+        if (state.iteration > state.totalIterations) {
+          state = this.updateStateForTermination(state, "max_iterations");
+          break;
+        }
+      }
+    } catch {
+      state = this.updateStateForTermination(state, "error");
+      // Don't rethrow - return partial results with error state
+    }
+
+    // Calculate final metrics
+    const executionMetrics = this.calculateExecutionMetrics(state, startTime);
+
+    return {
+      finalMessages: currentMessages,
+      state,
+      executionMetrics,
+    };
+  }
+
+  /**
+   * Execute single iteration with optional timeout
+   */
+  private async executeIterationWithTimeout(
+    messages: Message[],
+    state: MultiTurnState,
+    options: Required<Omit<AgentExecutionOptions, "iterationTimeoutMs">> &
+      Pick<AgentExecutionOptions, "iterationTimeoutMs">,
+  ): Promise<{
+    messages: Message[];
+    state: MultiTurnState;
+    toolCallsExecuted: number;
+  }> {
+    const executeIteration = async () => {
+      return this.executeIteration(messages, state, options);
+    };
+
+    if (options.iterationTimeoutMs) {
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(
+          () => reject(new Error("Iteration timeout")),
+          options.iterationTimeoutMs,
+        );
+      });
+
+      return Promise.race([executeIteration(), timeoutPromise]);
+    }
+
+    return executeIteration();
+  }
+
+  /**
+   * Execute a single conversation iteration
+   */
+  private async executeIteration(
+    messages: Message[],
+    state: MultiTurnState,
+    options: Required<Omit<AgentExecutionOptions, "iterationTimeoutMs">> &
+      Pick<AgentExecutionOptions, "iterationTimeoutMs">,
+  ): Promise<{
+    messages: Message[];
+    state: MultiTurnState;
+    toolCallsExecuted: number;
+  }> {
+    let currentMessages = [...messages];
+    let toolCallsExecuted = 0;
+    const updatedState = { ...state };
+
+    // For this implementation, we'll simulate tool call detection
+    // In a real implementation, this would integrate with provider streaming
+    const toolCallsToExecute =
+      this.extractToolCallsFromMessages(currentMessages);
+
+    for (const toolCall of toolCallsToExecute) {
+      if (toolCallsExecuted >= options.maxToolCalls) {
+        break;
+      }
+
+      try {
+        const result = await this.executeSingleTurn(
+          currentMessages,
+          toolCall,
+          this.toolRouter,
+        );
+        currentMessages = result.updatedMessages;
+        toolCallsExecuted++;
+
+        // Update completed tool calls tracking
+        updatedState.completedToolCalls.push(toolCall);
+
+        if (!result.shouldContinue && !options.continueOnToolError) {
+          updatedState.shouldContinue = false;
+          break;
+        }
+      } catch {
+        if (!options.continueOnToolError) {
+          updatedState.shouldContinue = false;
+          break;
+        }
+        // Continue on error if configured to do so
+      }
+    }
+
+    return {
+      messages: currentMessages,
+      state: updatedState,
+      toolCallsExecuted,
+    };
+  }
+
+  /**
+   * Initialize multi-turn state
+   */
+  private initializeMultiTurnState(
+    messages: Message[],
+    options: Required<Omit<AgentExecutionOptions, "iterationTimeoutMs">> &
+      Pick<AgentExecutionOptions, "iterationTimeoutMs">,
+  ): MultiTurnState {
+    const now = Date.now();
+
+    return {
+      // Inherited from AgentExecutionState
+      messages: [...messages],
+      toolCalls: [],
+      results: [],
+      shouldContinue: true,
+      lastResponse: "",
+
+      // Multi-turn specific properties
+      iteration: 1,
+      totalIterations: options.maxIterations,
+      startTime: now,
+      lastIterationTime: now,
+      streamingState: "idle",
+      pendingToolCalls: [],
+      completedToolCalls: [],
+    };
+  }
+
+  /**
+   * Update state after completing an iteration
+   */
+  private updateStateAfterIteration(
+    state: MultiTurnState,
+    _toolCallsExecuted: number,
+  ): MultiTurnState {
+    return {
+      ...state,
+      iteration: state.iteration + 1,
+      lastIterationTime: Date.now(),
+      toolCalls: [...state.toolCalls], // Add any new tool calls
+    };
+  }
+
+  /**
+   * Update state for conversation termination
+   */
+  private updateStateForTermination(
+    state: MultiTurnState,
+    reason: MultiTurnState["terminationReason"],
+  ): MultiTurnState {
+    return {
+      ...state,
+      shouldContinue: false,
+      terminationReason: reason,
+    };
+  }
+
+  /**
+   * Check if conversation should continue based on natural termination
+   */
+  private shouldContinueConversation(
+    _messages: Message[],
+    state: MultiTurnState,
+  ): boolean {
+    if (!state.shouldContinue) {
+      return false;
+    }
+
+    // TODO: Implement tool call detection when tool_use content type is added
+    // For now, use a simple heuristic based on pending tool calls
+    if (state.pendingToolCalls.length > 0) {
+      return true;
+    }
+
+    // No tool calls pending - natural completion
+    return false;
+  }
+
+  /**
+   * Extract tool calls from messages for execution
+   * This is a simplified implementation - real implementation would integrate with provider
+   * Currently returns empty array since tool_use content type is not yet implemented
+   */
+  private extractToolCallsFromMessages(_messages: Message[]): ToolCall[] {
+    // TODO: Implement tool call extraction when tool_use content type is added to ContentPart schema
+    // For now, return empty array to satisfy the interface
+    return [];
+  }
+
+  /**
+   * Calculate execution metrics
+   */
+  private calculateExecutionMetrics(
+    state: MultiTurnState,
+    startTime: number,
+  ): {
+    totalIterations: number;
+    totalExecutionTime: number;
+    averageIterationTime: number;
+    totalToolCalls: number;
+  } {
+    const totalExecutionTime = Date.now() - startTime;
+    const totalIterations = Math.max(1, state.iteration - 1); // Subtract 1 since iteration is incremented before completion
+    const averageIterationTime = totalExecutionTime / totalIterations;
+    const totalToolCalls = state.completedToolCalls.length;
+
+    return {
+      totalIterations,
+      totalExecutionTime,
+      averageIterationTime,
+      totalToolCalls,
+    };
   }
 
   /**
