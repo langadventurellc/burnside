@@ -355,6 +355,49 @@ src/core/agent/
    - Prevent injection attacks through malformed termination signals
    - Rate limiting for termination detection operations
 
+## Integration Requirements
+
+### Provider Plugin Integration
+
+**Critical**: This feature must integrate with existing provider plugins without breaking changes:
+
+- **Extend existing ProviderPlugin interface** with termination detection capabilities
+  - Optional `detectTermination(response: ProviderResponse, isStreaming: boolean): UnifiedTerminationSignal` method
+  - Integration with existing `parseResponse()` method for termination context
+  - Enhance existing `isTerminal()` method with conversation context awareness
+
+- **Provider implementation updates**
+  - Update existing OpenAI provider plugin with enhanced termination detection
+  - Update existing Anthropic provider plugin with termination mapping
+  - Update existing Google Gemini provider plugin with termination processing
+  - Update existing xAI provider plugin (leveraging OpenAI compatibility)
+
+### BridgeClient Integration
+
+- **Termination detection in execution flow**
+  - Integrate termination detection into `BridgeClient.chat()` multi-turn execution
+  - Integrate termination detection into `BridgeClient.stream()` streaming responses
+  - Provide termination decision feedback through response metadata
+
+- **Configuration integration**
+  - Optional termination policy configuration in `BridgeClientConfig`
+  - Provider-specific termination customization support
+  - Termination decision callbacks for application-level control
+
+### Multi-Turn Integration
+
+- **AgentLoop termination integration**
+  - Replace basic continuation logic with provider-aware termination detection
+  - Integrate termination confidence levels with iteration decision making
+  - Provider termination signals influence multi-turn flow control
+
+### Streaming Integration
+
+- **Streaming termination detection**
+  - Integrate with existing streaming state machine for real-time termination
+  - Provider-specific streaming termination signal processing
+  - Coordination with streaming interruption for tool execution
+
 ## Dependencies
 
 ### Internal Dependencies
@@ -363,6 +406,9 @@ src/core/agent/
 - Streaming infrastructure for real-time termination detection
 - Agent loop foundation for termination integration
 - Observability framework for termination event emission
+- **Existing provider plugin implementations (OpenAI, Anthropic, Google, xAI)**
+- **BridgeClient execution flow (existing)**
+- **Multi-turn loop foundation (prerequisite)**
 
 ### External Dependencies
 

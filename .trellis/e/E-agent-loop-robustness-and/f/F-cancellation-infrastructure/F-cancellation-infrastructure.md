@@ -288,6 +288,39 @@ src/core/agent/
    - Secure serialization of cancellation state
    - Access control for cancellation state recovery
 
+## Integration Requirements
+
+### BridgeClient Integration
+
+**Critical**: This feature must integrate seamlessly with existing BridgeClient timeout and AbortSignal handling:
+
+- **Enhance existing timeout handling** (lines 211-223 in `src/client/bridgeClient.ts`)
+  - Current `createTimeoutSignal()` method must support external AbortSignal input
+  - Integrate with multi-turn cancellation for conversation-level cancellation
+  - Maintain backward compatibility with existing timeout behavior
+
+- **Extend ChatRequest and StreamRequest interfaces**
+  - Add optional `signal?: AbortSignal` parameter for external cancellation
+  - Support cancellation configuration through request options
+  - Provide cancellation callbacks for execution monitoring
+
+- **Integrate with existing execution flow**
+  - `BridgeClient.chat()` method must support cancellation throughout multi-turn execution
+  - `BridgeClient.stream()` method must support mid-stream cancellation
+  - Provider plugin integration for cancellation propagation
+
+### Transport Layer Integration
+
+- **HttpTransport integration** with enhanced cancellation support
+- **Provider plugin integration** for cancellation-aware request/response handling
+- **Streaming response cancellation** coordination with provider-specific stream handling
+
+### Multi-Turn Integration
+
+- **AgentLoop cancellation** integration throughout multi-turn orchestration
+- **Tool execution cancellation** coordination with ToolRouter
+- **State preservation** during multi-turn conversation cancellation
+
 ## Dependencies
 
 ### Internal Dependencies
@@ -296,6 +329,8 @@ src/core/agent/
 - Enhanced AgentExecutionOptions and AgentExecutionState
 - Provider plugin streaming infrastructure
 - Tool execution infrastructure
+- **BridgeClient timeout and AbortSignal infrastructure (existing)**
+- **HttpTransport and provider plugin system (existing)**
 
 ### External Dependencies
 

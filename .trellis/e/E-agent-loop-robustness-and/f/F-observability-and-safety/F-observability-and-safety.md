@@ -390,6 +390,47 @@ src/core/agent/
    - Testing of configurable hooks and callbacks
    - Verification that no unauthorized access control is enforced
 
+## Integration Requirements
+
+### BridgeClient Integration
+
+**Critical**: This feature must integrate throughout the BridgeClient execution lifecycle for comprehensive observability:
+
+- **Add observability configuration** to `BridgeClientConfig`
+  - Optional `observability?: ObservabilityCallbacks` for event subscription
+  - Optional `redactionRules?: RedactionRule[]` for custom data protection
+  - Optional `safetyGuardrails?: SafetyGuardrail[]` for custom safety controls
+
+- **Integrate event emission** throughout BridgeClient execution flow
+  - Emit execution start/end events in `BridgeClient.chat()` and `BridgeClient.stream()`
+  - Emit tool execution events during tool processing
+  - Emit provider interaction events during API calls
+  - Emit error events for all error scenarios
+
+- **Provide public observability API**
+  - `client.getMetrics()` for accessing execution metrics
+  - `client.addObservabilityCallback()` for dynamic callback registration
+  - `client.addRedactionRule()` for runtime redaction configuration
+
+### Transport Layer Integration
+
+- **HttpTransport observability** for provider API monitoring
+- **Network metrics collection** for provider performance analysis
+- **Request/response event emission** with automatic redaction
+
+### Multi-Turn Integration
+
+- **AgentLoop observability** throughout multi-turn orchestration
+  - Iteration start/end events with context and state
+  - Tool execution events with strategy and timing
+  - Streaming interruption events with buffer state
+
+### Provider Plugin Integration
+
+- **Provider-aware event emission** with provider-specific metadata
+- **Provider performance metrics** collection and reporting
+- **Provider error normalization** integration with observability events
+
 ## Dependencies
 
 ### Internal Dependencies
@@ -398,6 +439,8 @@ src/core/agent/
 - Cancellation Infrastructure (prerequisite)
 - Context Management for context trim events
 - Provider system for provider-specific events
+- **BridgeClient execution flow (existing)**
+- **HttpTransport and provider system (existing)**
 
 ### External Dependencies
 

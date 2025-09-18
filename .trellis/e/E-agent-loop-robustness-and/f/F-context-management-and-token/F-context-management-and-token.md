@@ -375,6 +375,48 @@ src/core/agent/
    - Secure token counting without external API exposure
    - Rate limiting for context optimization operations
 
+## Integration Requirements
+
+### BridgeClient Integration
+
+**Critical**: This feature must integrate with existing BridgeClient execution to provide automatic context management:
+
+- **Add context management configuration** to `BridgeClientConfig`
+  - Optional `contextStrategy?: ContextStrategy` for conversation trimming strategy
+  - Optional `tokenBudget?: TokenBudgetOptions` for budget limits and tracking
+  - Optional `contextPreservation?: AnchorPreservationRules` for custom anchor rules
+
+- **Integrate with existing execution flow**
+  - Automatic context trimming before provider API calls in `BridgeClient.chat()`
+  - Budget tracking integration throughout multi-turn conversations
+  - Token usage reporting in response metadata
+
+- **Provide context management API**
+  - `client.getTokenUsage()` for accessing current conversation token usage
+  - `client.trimContext()` for manual context optimization
+  - `client.setTokenBudget()` for dynamic budget adjustment
+
+### Provider Plugin Integration
+
+- **Extend existing ProviderPlugin interface** with token counting capabilities
+  - Optional `estimateTokenUsage(messages: Message[]): TokenEstimate` method
+  - Integration with existing `parseResponse()` for usage reporting
+  - Provider-specific token counting strategies (tiktoken for OpenAI, approximation for others)
+
+### Multi-Turn Integration
+
+- **AgentLoop integration** with context management
+  - Automatic context trimming between iterations when budget limits approached
+  - Budget checking before each iteration with graceful degradation
+  - Context preservation during multi-turn state management
+
+### Message System Integration
+
+- **Message interface extension** for context management metadata
+  - Optional context anchor marking for preservation priority
+  - Token count caching at message level for performance
+  - Integration with existing message metadata patterns
+
 ## Dependencies
 
 ### Internal Dependencies
@@ -383,6 +425,8 @@ src/core/agent/
 - Provider plugin system for token counting integration
 - Message and content type definitions
 - Error handling infrastructure
+- **BridgeClient execution flow (existing)**
+- **Provider plugin interface (existing)**
 
 ### External Dependencies
 
