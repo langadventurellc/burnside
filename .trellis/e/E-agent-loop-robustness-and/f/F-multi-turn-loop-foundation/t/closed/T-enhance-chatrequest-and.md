@@ -1,13 +1,43 @@
 ---
 id: T-enhance-chatrequest-and
 title: Enhance ChatRequest and StreamRequest interfaces for multi-turn options
-status: open
+status: done
 priority: medium
 parent: F-multi-turn-loop-foundation
 prerequisites:
   - T-extend-agentexecutionoptions
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/client/chatRequest.ts: Added import for AgentExecutionOptions, enhanced
+    JSDoc with multi-turn documentation and examples, added optional multiTurn
+    property of type Partial<AgentExecutionOptions>
+  src/client/streamRequest.ts: Enhanced JSDoc documentation with
+    streaming-specific multi-turn behavior explanation, added examples for
+    streaming interruption handling and tool execution during streaming
+    (multiTurn property inherited from ChatRequest)
+  src/client/__tests__/chatRequest.test.ts: Added comprehensive multi-turn
+    configuration test suite with 7 test cases covering partial configuration,
+    comprehensive configuration, empty objects, backward compatibility,
+    documentation examples, and type safety validation
+  src/client/__tests__/streamRequest.test.ts: Added comprehensive multi-turn
+    configuration test suite with 8 test cases covering inheritance,
+    streaming-specific combinations, enableStreaming/stream interactions,
+    assignability, documentation examples, comprehensive configuration, type
+    safety, and backward compatibility
+  src/client/index.ts: Updated module documentation to mention multi-turn agent
+    conversation capabilities and added example showing multi-turn configuration
+    usage
+log:
+  - "Successfully enhanced ChatRequest and StreamRequest interfaces with
+    optional multi-turn configuration properties. Extended both interfaces with
+    multiTurn?: Partial<AgentExecutionOptions> property, enabling users to
+    configure multi-turn behavior through the public BridgeClient API.
+    Implemented comprehensive JSDoc documentation with usage examples for basic
+    and advanced multi-turn scenarios including tool execution strategies,
+    timeout controls, and streaming interruption handling. Added extensive test
+    coverage with 15 test cases validating type safety, backward compatibility,
+    documentation examples, and edge cases. Updated module documentation to
+    reflect multi-turn capabilities. All quality checks and tests pass
+    successfully."
 schema: v1.0
 childrenIds: []
 created: 2025-09-18T02:59:03.420Z

@@ -65,6 +65,25 @@ affectedFiles:
     test suite with 16 tests covering state transitions, streaming response
     processing, tool execution coordination, buffer management, and error
     handling with mock async iterables
+  src/client/chatRequest.ts: Added import for AgentExecutionOptions, enhanced
+    JSDoc with multi-turn documentation and examples, added optional multiTurn
+    property of type Partial<AgentExecutionOptions>
+  src/client/streamRequest.ts: Enhanced JSDoc documentation with
+    streaming-specific multi-turn behavior explanation, added examples for
+    streaming interruption handling and tool execution during streaming
+    (multiTurn property inherited from ChatRequest)
+  src/client/__tests__/chatRequest.test.ts: Added comprehensive multi-turn
+    configuration test suite with 7 test cases covering partial configuration,
+    comprehensive configuration, empty objects, backward compatibility,
+    documentation examples, and type safety validation
+  src/client/__tests__/streamRequest.test.ts: Added comprehensive multi-turn
+    configuration test suite with 8 test cases covering inheritance,
+    streaming-specific combinations, enableStreaming/stream interactions,
+    assignability, documentation examples, comprehensive configuration, type
+    safety, and backward compatibility
+  src/client/index.ts: Updated module documentation to mention multi-turn agent
+    conversation capabilities and added example showing multi-turn configuration
+    usage
 log: []
 schema: v1.0
 childrenIds:

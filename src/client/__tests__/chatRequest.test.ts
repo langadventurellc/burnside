@@ -1,5 +1,6 @@
 import type { ChatRequest } from "../chatRequest";
 import type { Message } from "../../core/messages/message";
+import type { AgentExecutionOptions } from "../../core/agent/agentExecutionOptions";
 
 describe("ChatRequest", () => {
   const validMessage: Message = {
@@ -110,6 +111,128 @@ describe("ChatRequest", () => {
       expect(messages).toEqual(validMessages);
       expect(model).toBe("gpt-4");
       expect(temperature).toBe(0.8);
+    });
+  });
+
+  describe("multi-turn configuration", () => {
+    it("should accept optional multiTurn property", () => {
+      const multiTurnConfig: Partial<AgentExecutionOptions> = {
+        maxIterations: 5,
+        iterationTimeoutMs: 30000,
+      };
+
+      const request: ChatRequest = {
+        messages: validMessages,
+        model: "gpt-4",
+        multiTurn: multiTurnConfig,
+      };
+
+      expect(request.multiTurn).toEqual(multiTurnConfig);
+      expect(request.multiTurn?.maxIterations).toBe(5);
+      expect(request.multiTurn?.iterationTimeoutMs).toBe(30000);
+    });
+
+    it("should accept partial multiTurn configuration", () => {
+      const request: ChatRequest = {
+        messages: validMessages,
+        model: "gpt-4",
+        multiTurn: {
+          maxIterations: 3,
+        },
+      };
+
+      expect(request.multiTurn?.maxIterations).toBe(3);
+      expect(request.multiTurn?.iterationTimeoutMs).toBeUndefined();
+    });
+
+    it("should accept comprehensive multiTurn configuration", () => {
+      const request: ChatRequest = {
+        messages: validMessages,
+        model: "gpt-4",
+        multiTurn: {
+          maxIterations: 10,
+          iterationTimeoutMs: 45000,
+          enableStreaming: true,
+          toolExecutionStrategy: "parallel",
+          maxConcurrentTools: 2,
+          timeoutMs: 120000,
+        },
+      };
+
+      expect(request.multiTurn?.maxIterations).toBe(10);
+      expect(request.multiTurn?.iterationTimeoutMs).toBe(45000);
+      expect(request.multiTurn?.enableStreaming).toBe(true);
+      expect(request.multiTurn?.toolExecutionStrategy).toBe("parallel");
+      expect(request.multiTurn?.maxConcurrentTools).toBe(2);
+      expect(request.multiTurn?.timeoutMs).toBe(120000);
+    });
+
+    it("should allow empty multiTurn object", () => {
+      const request: ChatRequest = {
+        messages: validMessages,
+        model: "gpt-4",
+        multiTurn: {},
+      };
+
+      expect(request.multiTurn).toEqual({});
+    });
+
+    it("should maintain backward compatibility without multiTurn", () => {
+      const request: ChatRequest = {
+        messages: validMessages,
+        model: "gpt-4",
+        temperature: 0.7,
+        maxTokens: 1000,
+      };
+
+      expect(request.multiTurn).toBeUndefined();
+      expect(request.temperature).toBe(0.7);
+      expect(request.maxTokens).toBe(1000);
+    });
+
+    it("should compile documentation examples correctly", () => {
+      // Basic multi-turn configuration from docs
+      const basicConfig: ChatRequest = {
+        messages: [
+          {
+            role: "user",
+            content: [{ type: "text", text: "Help me with a task" }],
+          },
+        ],
+        model: "gpt-4",
+        multiTurn: {
+          maxIterations: 5,
+          iterationTimeoutMs: 30000,
+          toolExecutionStrategy: "sequential",
+          enableStreaming: true,
+        },
+      };
+
+      expect(basicConfig.multiTurn?.maxIterations).toBe(5);
+      expect(basicConfig.multiTurn?.toolExecutionStrategy).toBe("sequential");
+    });
+
+    it("should ensure type safety for multiTurn options", () => {
+      const request: ChatRequest = {
+        messages: validMessages,
+        model: "gpt-4",
+        multiTurn: {
+          maxIterations: 5,
+          enableStreaming: true,
+        },
+      };
+
+      // TypeScript should infer correct types
+      const maxIterations: number | undefined =
+        request.multiTurn?.maxIterations;
+      const enableStreaming: boolean | undefined =
+        request.multiTurn?.enableStreaming;
+      const strategy: "sequential" | "parallel" | undefined =
+        request.multiTurn?.toolExecutionStrategy;
+
+      expect(maxIterations).toBe(5);
+      expect(enableStreaming).toBe(true);
+      expect(strategy).toBeUndefined();
     });
   });
 });

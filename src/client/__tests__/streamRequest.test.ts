@@ -1,6 +1,7 @@
 import type { StreamRequest } from "../streamRequest";
 import type { ChatRequest } from "../chatRequest";
 import type { Message } from "../../core/messages/message";
+import type { AgentExecutionOptions } from "../../core/agent/agentExecutionOptions";
 
 describe("StreamRequest", () => {
   const validMessage: Message = {
@@ -159,6 +160,176 @@ describe("StreamRequest", () => {
       // Should work without type errors
       const model = createChatRequest(streamRequest);
       expect(model).toBe("gpt-4");
+    });
+  });
+
+  describe("multi-turn configuration", () => {
+    it("should inherit multiTurn property from ChatRequest", () => {
+      const multiTurnConfig: Partial<AgentExecutionOptions> = {
+        maxIterations: 5,
+        iterationTimeoutMs: 30000,
+        enableStreaming: true,
+      };
+
+      const request: StreamRequest = {
+        messages: validMessages,
+        model: "gpt-4",
+        stream: true,
+        multiTurn: multiTurnConfig,
+      };
+
+      expect(request.multiTurn).toEqual(multiTurnConfig);
+      expect(request.multiTurn?.maxIterations).toBe(5);
+      expect(request.multiTurn?.enableStreaming).toBe(true);
+    });
+
+    it("should support streaming-specific multiTurn combinations", () => {
+      const request: StreamRequest = {
+        messages: validMessages,
+        model: "gpt-4",
+        stream: true,
+        streamOptions: { includeUsage: true, bufferSize: 1024 },
+        multiTurn: {
+          maxIterations: 3,
+          iterationTimeoutMs: 45000,
+          enableStreaming: true,
+          toolExecutionStrategy: "sequential",
+        },
+      };
+
+      expect(request.stream).toBe(true);
+      expect(request.multiTurn?.enableStreaming).toBe(true);
+      expect(request.multiTurn?.toolExecutionStrategy).toBe("sequential");
+      expect(request.streamOptions?.bufferSize).toBe(1024);
+    });
+
+    it("should work with enableStreaming false while stream is true", () => {
+      const request: StreamRequest = {
+        messages: validMessages,
+        model: "gpt-4",
+        stream: true,
+        multiTurn: {
+          maxIterations: 2,
+          enableStreaming: false, // Disable streaming interruption handling
+        },
+      };
+
+      expect(request.stream).toBe(true);
+      expect(request.multiTurn?.enableStreaming).toBe(false);
+    });
+
+    it("should maintain assignability to ChatRequest with multiTurn", () => {
+      const streamRequest: StreamRequest = {
+        messages: validMessages,
+        model: "gpt-4",
+        stream: true,
+        multiTurn: {
+          maxIterations: 4,
+          toolExecutionStrategy: "parallel",
+          maxConcurrentTools: 2,
+        },
+      };
+
+      // Should still be assignable to ChatRequest
+      const chatRequest: ChatRequest = streamRequest;
+      expect(chatRequest.multiTurn?.maxIterations).toBe(4);
+      expect(chatRequest.multiTurn?.toolExecutionStrategy).toBe("parallel");
+    });
+
+    it("should compile documentation examples correctly", () => {
+      // Multi-turn streaming example from docs
+      const multiTurnStreamRequest: StreamRequest = {
+        messages: [
+          {
+            role: "user",
+            content: [{ type: "text", text: "Help me research a topic" }],
+          },
+        ],
+        model: "gpt-4",
+        stream: true,
+        streamOptions: { includeUsage: true, bufferSize: 1024 },
+        tools: [
+          {
+            name: "search",
+            description: "Search for information",
+            inputSchema: { type: "object" },
+          },
+        ],
+        multiTurn: {
+          maxIterations: 5,
+          iterationTimeoutMs: 45000,
+          enableStreaming: true,
+          toolExecutionStrategy: "sequential",
+        },
+      };
+
+      expect(multiTurnStreamRequest.multiTurn?.maxIterations).toBe(5);
+      expect(multiTurnStreamRequest.multiTurn?.enableStreaming).toBe(true);
+      expect(multiTurnStreamRequest.stream).toBe(true);
+    });
+
+    it("should support comprehensive multiTurn configuration for streaming", () => {
+      const request: StreamRequest = {
+        messages: validMessages,
+        model: "gpt-4",
+        stream: true,
+        multiTurn: {
+          maxIterations: 8,
+          iterationTimeoutMs: 60000,
+          enableStreaming: true,
+          toolExecutionStrategy: "parallel",
+          maxConcurrentTools: 3,
+          timeoutMs: 300000,
+          maxToolCalls: 10,
+          continueOnToolError: true,
+        },
+      };
+
+      expect(request.multiTurn?.maxIterations).toBe(8);
+      expect(request.multiTurn?.enableStreaming).toBe(true);
+      expect(request.multiTurn?.toolExecutionStrategy).toBe("parallel");
+      expect(request.multiTurn?.maxConcurrentTools).toBe(3);
+      expect(request.multiTurn?.continueOnToolError).toBe(true);
+    });
+
+    it("should ensure type safety for inherited multiTurn options", () => {
+      const request: StreamRequest = {
+        messages: validMessages,
+        model: "gpt-4",
+        stream: true,
+        multiTurn: {
+          maxIterations: 6,
+          enableStreaming: true,
+          toolExecutionStrategy: "parallel",
+        },
+      };
+
+      // TypeScript should infer correct types
+      const maxIterations: number | undefined =
+        request.multiTurn?.maxIterations;
+      const enableStreaming: boolean | undefined =
+        request.multiTurn?.enableStreaming;
+      const strategy: "sequential" | "parallel" | undefined =
+        request.multiTurn?.toolExecutionStrategy;
+      const stream: boolean | undefined = request.stream;
+
+      expect(maxIterations).toBe(6);
+      expect(enableStreaming).toBe(true);
+      expect(strategy).toBe("parallel");
+      expect(stream).toBe(true);
+    });
+
+    it("should maintain backward compatibility without multiTurn", () => {
+      const request: StreamRequest = {
+        messages: validMessages,
+        model: "gpt-4",
+        stream: true,
+        streamOptions: { includeUsage: true },
+      };
+
+      expect(request.multiTurn).toBeUndefined();
+      expect(request.stream).toBe(true);
+      expect(request.streamOptions?.includeUsage).toBe(true);
     });
   });
 });

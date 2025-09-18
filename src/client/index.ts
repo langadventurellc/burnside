@@ -3,16 +3,28 @@
  *
  * This module provides the primary public API for the LLM Bridge Library,
  * including the BridgeClient class and related types for chat and streaming
- * functionality.
+ * functionality. Supports both single-turn and multi-turn agent conversations
+ * with configurable execution options.
  *
  * @example
  * ```typescript
  * import { BridgeClient } from "@llm-bridge/client";
  *
+ * // Basic client setup
  * const client = new BridgeClient({
  *   defaultProvider: "openai",
  *   providers: { openai: { apiKey: "sk-..." } }
  * });
+ *
+ * // Multi-turn conversation with configurable options
+ * const multiTurnRequest = {
+ *   messages: [{ role: "user", content: [{ type: "text", text: "Help me research" }] }],
+ *   model: "gpt-4",
+ *   multiTurn: {
+ *     maxIterations: 5,
+ *     toolExecutionStrategy: "sequential"
+ *   }
+ * };
  * ```
  */
 
