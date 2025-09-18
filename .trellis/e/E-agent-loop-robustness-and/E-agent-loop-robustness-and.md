@@ -15,6 +15,23 @@ affectedFiles:
   src/core/agent/__tests__/agentExecutionOptions.test.ts: Created comprehensive
     test suite with 19 tests covering backward compatibility, type safety,
     documentation examples, and edge cases
+  src/core/agent/multiTurnState.ts:
+    Created new MultiTurnState interface extending
+    AgentExecutionState with comprehensive multi-turn conversation state
+    tracking including iteration counts, streaming state, tool call management,
+    and termination reasons
+  src/core/agent/streamingState.ts: Created StreamingState union type with 5
+    literal values for streaming state machine transitions during multi-turn
+    conversations
+  src/core/agent/terminationReason.ts:
+    Created TerminationReason union type with 5
+    literal values defining possible conversation termination scenarios
+  src/core/agent/__tests__/multiTurnState.test.ts: Created comprehensive test
+    suite with 17 tests covering interface extension, type safety, union type
+    constraints, documentation examples, and edge cases
+  src/core/agent/index.ts: Updated module exports to include MultiTurnState,
+    StreamingState, and TerminationReason types, and updated module
+    documentation to mention multi-turn capabilities
 log: []
 schema: v1.0
 childrenIds:
