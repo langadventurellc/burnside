@@ -36,6 +36,7 @@ import { formatToolResultsAsMessages } from "./formatToolResultsAsMessages";
 import { shouldExecuteTools } from "./shouldExecuteTools";
 import { validateToolDefinitions } from "./validateToolDefinitions";
 import { shouldExecuteMultiTurn } from "./shouldExecuteMultiTurn";
+import { StreamingInterruptionWrapper } from "./streamingInterruptionWrapper";
 
 /**
  * Bridge Client Class
@@ -413,7 +414,36 @@ export class BridgeClient {
       const httpRes = await this.httpTransport.fetch({ ...httpReq, signal });
 
       // Parse response - must be AsyncIterable<StreamDelta>
-      return plugin.parseResponse(httpRes, true) as AsyncIterable<StreamDelta>;
+      const providerStream = plugin.parseResponse(
+        httpRes,
+        true,
+      ) as AsyncIterable<StreamDelta>;
+
+      // Check if streaming interruption should be enabled
+      const hasTools = Boolean(request.tools && request.tools.length > 0);
+      if (
+        StreamingInterruptionWrapper.shouldEnableInterruption(hasTools) &&
+        this.toolRouter
+      ) {
+        // Create tool execution context
+        const context = {
+          userId: undefined,
+          sessionId: undefined,
+          environment: "production",
+          permissions: [],
+          metadata: {},
+        };
+
+        // Wrap with interruption handling
+        const wrapper = new StreamingInterruptionWrapper(
+          this.toolRouter,
+          context,
+        );
+        return wrapper.wrap(providerStream);
+      }
+
+      // Return unwrapped stream for non-tool requests
+      return providerStream;
     } catch (error) {
       let normalized;
       try {

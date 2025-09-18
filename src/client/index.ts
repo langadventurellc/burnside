@@ -48,3 +48,6 @@ export { extractToolCallsFromMessage } from "./extractToolCallsFromMessage";
 export { formatToolResultsAsMessages } from "./formatToolResultsAsMessages";
 export { shouldExecuteTools } from "./shouldExecuteTools";
 export { validateToolDefinitions } from "./validateToolDefinitions";
+
+// Streaming interruption utilities
+export { StreamingInterruptionWrapper } from "./streamingInterruptionWrapper";

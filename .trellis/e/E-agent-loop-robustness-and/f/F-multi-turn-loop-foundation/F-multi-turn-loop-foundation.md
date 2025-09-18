@@ -91,7 +91,9 @@ affectedFiles:
     safety, and backward compatibility
   src/client/index.ts: Updated module documentation to mention multi-turn agent
     conversation capabilities and added example showing multi-turn configuration
-    usage
+    usage; Added export for StreamingInterruptionWrapper to enable internal
+    access to streaming interruption infrastructure while maintaining existing
+    public API contracts.
   src/core/agent/conversationContext.ts:
     Created new ConversationContext interface
     with comprehensive conversation metadata including message history,
@@ -170,7 +172,12 @@ affectedFiles:
     multi-turn execution
   src/client/bridgeClient.ts: Integrated multi-turn execution path in chat()
     method with detection logic, proper error handling for agent loop
-    initialization, timeout integration, and backward compatibility preservation
+    initialization, timeout integration, and backward compatibility
+    preservation; Enhanced stream() method to conditionally wrap provider
+    streams with StreamingInterruptionWrapper when tools are present in the
+    request. Maintains backward compatibility by only enabling interruption for
+    tool-enabled requests. Added proper type checking and context creation for
+    tool execution.
   src/client/__tests__/shouldExecuteMultiTurn.test.ts:
     Created comprehensive unit
     tests for multi-turn detection logic covering all configuration combinations
@@ -178,11 +185,22 @@ affectedFiles:
   src/client/__tests__/createConversationContext.test.ts: Created unit tests for
     conversation context creation utility covering all context building
     scenarios and edge cases
+  src/client/streamingInterruptionWrapper.ts: Created new
+    StreamingInterruptionWrapper class that wraps provider streams with
+    interruption handling capabilities. Integrates with StreamingStateMachine
+    for tool call detection and ToolRouter for execution. Provides transparent
+    streaming interruption with error handling and proper StreamDelta
+    formatting.
+  src/client/__tests__/streamingInterruptionWrapper.test.ts:
+    Created comprehensive
+    test suite with 8 test cases covering stream wrapping without tool calls,
+    tool execution during interruption, error handling scenarios, and multiple
+    tool call processing. Includes proper mocking of StreamingStateMachine and
+    ToolRouter dependencies with full async iterable support.
 log: []
 schema: v1.0
 childrenIds:
   - T-create-comprehensive-multi
-  - T-integrate-multi-turn
   - T-integrate-streaming-1
   - T-create-iteration-manager-for
   - T-create-multiturnstate
@@ -192,6 +210,7 @@ childrenIds:
   - T-extend-provider-plugins-with
   - T-implement-core-multi-turn
   - T-implement-tool-execution
+  - T-integrate-multi-turn
   - T-integrate-streaming
 created: 2025-09-18T02:16:38.173Z
 updated: 2025-09-18T02:16:38.173Z
