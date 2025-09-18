@@ -9,12 +9,17 @@ affectedFiles:
   src/core/agent/agentExecutionOptions.ts:
     Extended interface with 5 new optional
     multi-turn properties and comprehensive JSDoc documentation with examples
-  src/core/agent/agentLoop.ts: Updated constructor to initialize new multi-turn
+  src/core/agent/agentLoop.ts: "Updated constructor to initialize new multi-turn
     options with proper defaults and fixed TypeScript typing for
     Required<AgentExecutionOptions>; Added executeMultiTurn() method with
     complete multi-turn orchestration logic including iteration management,
     state tracking, timeout enforcement, and helper methods for state
-    initialization, termination handling, and metrics calculation
+    initialization, termination handling, and metrics calculation; Enhanced
+    AgentLoop with streaming integration: added handleStreamingTurn() method,
+    coordinateToolExecutionDuringStreaming() method,
+    createMockStreamingResponse() method with empty message handling, and
+    updated executeIteration() to support streaming when enabled with fallback
+    to non-streaming mode"
   src/core/agent/__tests__/agentExecutionOptions.test.ts: Created comprehensive
     test suite with 19 tests covering backward compatibility, type safety,
     documentation examples, and edge cases
@@ -37,7 +42,10 @@ affectedFiles:
     documentation to mention multi-turn capabilities; Updated module exports to
     include new IterationManager class and related interfaces; Updated module
     exports to include StreamingResult interface and StreamingStateMachine class
-    in alphabetical order following existing patterns
+    in alphabetical order following existing patterns; Updated module exports to
+    include StreamingTurnResult interface and StreamingIntegrationError class,
+    and enhanced module documentation to mention streaming interruption
+    capabilities
   src/core/agent/__tests__/agentLoop.test.ts: Added comprehensive test suite for
     executeMultiTurn() method with 12 test cases covering state management,
     iteration limits, timeout scenarios, metrics calculation, error handling,
@@ -136,6 +144,24 @@ affectedFiles:
   src/core/tools/__tests__/toolExecutionStrategy.test.ts: Created integration
     tests for strategy pattern, ToolRouter integration, and configuration
     validation
+  src/core/agent/streamingTurnResult.ts:
+    Created StreamingTurnResult interface for
+    coordinating between streaming state machine and multi-turn orchestration,
+    with comprehensive properties for final messages, updated state, execution
+    metrics, and streaming results
+  src/core/agent/streamingIntegrationError.ts: Created StreamingIntegrationError
+    class with specialized error handling for streaming integration failures,
+    including factory methods for different error scenarios and comprehensive
+    debugging context
+  src/core/agent/__tests__/streamingTurnResult.test.ts:
+    Created comprehensive unit
+    test suite with 12 test cases covering interface structure, property types,
+    integration scenarios, and type compatibility for StreamingTurnResult
+    interface
+  src/core/agent/__tests__/streamingIntegrationError.test.ts: Created
+    comprehensive unit test suite with 19 test cases covering constructor,
+    factory methods, serialization, recovery actions, streaming states, and
+    error inheritance for StreamingIntegrationError class
 log: []
 schema: v1.0
 childrenIds:
