@@ -35,6 +35,7 @@ import { extractToolCallsFromMessage } from "./extractToolCallsFromMessage";
 import { formatToolResultsAsMessages } from "./formatToolResultsAsMessages";
 import { shouldExecuteTools } from "./shouldExecuteTools";
 import { validateToolDefinitions } from "./validateToolDefinitions";
+import { shouldExecuteMultiTurn } from "./shouldExecuteMultiTurn";
 
 /**
  * Bridge Client Class
@@ -304,12 +305,36 @@ export class BridgeClient {
 
       // Check for tool calls and execute if needed
       if (request.tools && request.tools.length > 0 && this.isToolsEnabled()) {
-        const toolResultMessages = await this.executeToolCallsInResponse(
-          result.message,
-        );
-        if (toolResultMessages.length > 0) {
-          // For now, return the original message. Full conversation continuation would need more complex logic
-          return result.message;
+        // Determine execution path: multi-turn vs single-turn
+        if (shouldExecuteMultiTurn(request, this.isToolsEnabled())) {
+          // Multi-turn execution path
+          if (!this.agentLoop) {
+            throw new ValidationError(
+              "Agent loop not initialized for multi-turn execution",
+            );
+          }
+
+          const multiTurnOptions = request.multiTurn || {};
+          const multiTurnResult = await this.agentLoop.executeMultiTurn(
+            request.messages,
+            {
+              ...multiTurnOptions,
+              timeoutMs: multiTurnOptions.timeoutMs || timeoutMs,
+            },
+          );
+
+          // Return the last message from the multi-turn conversation
+          const finalMessages = multiTurnResult.finalMessages;
+          return finalMessages[finalMessages.length - 1];
+        } else {
+          // Single-turn execution path (backward compatibility)
+          const toolResultMessages = await this.executeToolCallsInResponse(
+            result.message,
+          );
+          if (toolResultMessages.length > 0) {
+            // For now, return the original message. Full conversation continuation would need more complex logic
+            return result.message;
+          }
         }
       }
 
