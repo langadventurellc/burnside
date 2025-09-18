@@ -5,6 +5,59 @@
  * with various scenarios including success cases, tool calls, and edge cases.
  */
 
+// Helper function to create properly structured content parts
+function createFixtureContentPart(
+  text: string,
+  annotations?: unknown[],
+  logprobs?: unknown[],
+) {
+  return {
+    type: "output_text" as const,
+    text,
+    annotations: annotations || null,
+    logprobs: logprobs || null,
+  };
+}
+
+// Helper function to create base response fields that are now required/nullable
+function createBaseFixtureFields(overrides: any = {}) {
+  return {
+    max_output_tokens: null,
+    metadata: null,
+    previous_response_id: null,
+    temperature: null,
+    top_p: null,
+    user: null,
+    incomplete_details: null,
+    debug_output: {
+      attempts: 1,
+      cache_read_count: 0,
+      cache_read_input_bytes: 0,
+      cache_write_count: 0,
+      cache_write_input_bytes: 0,
+      engine_request: "req_123",
+      lb_address: "10.0.0.1",
+      prompt: "Hello",
+      request: "original_request",
+      responses: [],
+      sampler_tag: "default",
+    },
+    reasoning: {
+      effort: null,
+      generate_summary: false,
+      summary: null,
+    },
+    store: false,
+    parallel_tool_calls: false,
+    text: {
+      format: {
+        type: "text",
+      },
+    },
+    ...overrides,
+  };
+}
+
 export const validTextResponse = {
   id: "resp_2024_12_xai_text",
   object: "completion",
@@ -16,10 +69,9 @@ export const validTextResponse = {
       type: "message",
       role: "assistant",
       content: [
-        {
-          type: "output_text",
-          text: "Hello! I'm Grok, an AI assistant created by xAI. How can I help you today?",
-        },
+        createFixtureContentPart(
+          "Hello! I'm Grok, an AI assistant created by xAI. How can I help you today?",
+        ),
       ],
     },
   ],
@@ -35,9 +87,9 @@ export const validTextResponse = {
     total_tokens: 35,
   },
   created_at: 1703097600,
-  text: {},
   tool_choice: "auto",
   tools: [],
+  ...createBaseFixtureFields(),
 };
 
 export const validTextResponseWithToolCalls = {
@@ -51,10 +103,9 @@ export const validTextResponseWithToolCalls = {
       type: "message",
       role: "assistant",
       content: [
-        {
-          type: "output_text",
-          text: "I'll help you check the weather. Let me get that information for you.",
-        },
+        createFixtureContentPart(
+          "I'll help you check the weather. Let me get that information for you.",
+        ),
       ],
       tool_calls: [
         {
@@ -80,7 +131,6 @@ export const validTextResponseWithToolCalls = {
     total_tokens: 43,
   },
   created_at: 1703097700,
-  text: {},
   tool_choice: "auto",
   tools: [
     {
@@ -91,6 +141,9 @@ export const validTextResponseWithToolCalls = {
       },
     },
   ],
+  ...createBaseFixtureFields({
+    parallel_tool_calls: true,
+  }),
 };
 
 export const validMultipleToolCallsResponse = {
@@ -104,10 +157,9 @@ export const validMultipleToolCallsResponse = {
       type: "message",
       role: "assistant",
       content: [
-        {
-          type: "output_text",
-          text: "I'll search for information and then calculate the result for you.",
-        },
+        createFixtureContentPart(
+          "I'll search for information and then calculate the result for you.",
+        ),
       ],
       tool_calls: [
         {
@@ -141,9 +193,11 @@ export const validMultipleToolCallsResponse = {
     total_tokens: 55,
   },
   created_at: 1703097800,
-  text: {},
   tool_choice: "auto",
   tools: [],
+  ...createBaseFixtureFields({
+    parallel_tool_calls: true,
+  }),
 };
 
 export const validMinimalResponse = {
@@ -155,17 +209,12 @@ export const validMinimalResponse = {
     {
       type: "message",
       role: "assistant",
-      content: [
-        {
-          type: "output_text",
-          text: "OK",
-        },
-      ],
+      content: [createFixtureContentPart("OK")],
     },
   ],
-  text: {},
   tool_choice: "auto",
   tools: [],
+  ...createBaseFixtureFields(),
 };
 
 export const validResponseWithoutUsage = {
@@ -178,16 +227,13 @@ export const validResponseWithoutUsage = {
       type: "message",
       role: "assistant",
       content: [
-        {
-          type: "output_text",
-          text: "Response without usage information.",
-        },
+        createFixtureContentPart("Response without usage information."),
       ],
     },
   ],
-  text: {},
   tool_choice: "auto",
   tools: [],
+  ...createBaseFixtureFields(),
 };
 
 export const validResponseWithReasoningOutput = {
@@ -206,10 +252,7 @@ export const validResponseWithReasoningOutput = {
       type: "message",
       role: "assistant",
       content: [
-        {
-          type: "output_text",
-          text: "Based on my reasoning, the answer is 42.",
-        },
+        createFixtureContentPart("Based on my reasoning, the answer is 42."),
       ],
     },
   ],
@@ -225,9 +268,15 @@ export const validResponseWithReasoningOutput = {
     total_tokens: 25,
   },
   created_at: 1703097900,
-  text: {},
   tool_choice: "auto",
   tools: [],
+  ...createBaseFixtureFields({
+    reasoning: {
+      effort: "medium",
+      generate_summary: true,
+      summary: "detailed reasoning provided",
+    },
+  }),
 };
 
 export const validResponseWithEmptyContent = {
@@ -239,12 +288,7 @@ export const validResponseWithEmptyContent = {
     {
       type: "message",
       role: "assistant",
-      content: [
-        {
-          type: "output_text",
-          text: "",
-        },
-      ],
+      content: [createFixtureContentPart("")],
     },
   ],
   usage: {
@@ -259,7 +303,7 @@ export const validResponseWithEmptyContent = {
     total_tokens: 6,
   },
   created_at: 1703098000,
-  text: {},
   tool_choice: "auto",
   tools: [],
+  ...createBaseFixtureFields(),
 };

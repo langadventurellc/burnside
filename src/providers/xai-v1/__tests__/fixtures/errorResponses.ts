@@ -5,6 +5,59 @@
  * in the response parser with various error scenarios.
  */
 
+// Helper function to create properly structured content parts
+function createErrorFixtureContentPart(
+  text: string,
+  annotations?: unknown[],
+  logprobs?: unknown[],
+) {
+  return {
+    type: "output_text" as const,
+    text,
+    annotations: annotations || null,
+    logprobs: logprobs || null,
+  };
+}
+
+// Helper function to create base response fields that are now required/nullable
+function createErrorBaseFixtureFields(overrides: any = {}) {
+  return {
+    max_output_tokens: null,
+    metadata: null,
+    previous_response_id: null,
+    temperature: null,
+    top_p: null,
+    user: null,
+    incomplete_details: null,
+    debug_output: {
+      attempts: 1,
+      cache_read_count: 0,
+      cache_read_input_bytes: 0,
+      cache_write_count: 0,
+      cache_write_input_bytes: 0,
+      engine_request: "req_123",
+      lb_address: "10.0.0.1",
+      prompt: "Hello",
+      request: "original_request",
+      responses: [],
+      sampler_tag: "default",
+    },
+    reasoning: {
+      effort: null,
+      generate_summary: false,
+      summary: null,
+    },
+    store: false,
+    parallel_tool_calls: false,
+    text: {
+      format: {
+        type: "text",
+      },
+    },
+    ...overrides,
+  };
+}
+
 export const emptyResponse = "";
 
 export const invalidJsonResponse = "{ invalid json";
@@ -17,9 +70,9 @@ export const emptyOutputArrayResponse = {
   status: "completed",
   model: "grok-3",
   output: [],
-  text: {},
   tool_choice: "auto",
   tools: [],
+  ...createErrorBaseFixtureFields(),
 };
 
 export const noMessageTypeResponse = {
@@ -34,9 +87,9 @@ export const noMessageTypeResponse = {
       summary: ["Only reasoning output"],
     },
   ],
-  text: {},
   tool_choice: "auto",
   tools: [],
+  ...createErrorBaseFixtureFields(),
 };
 
 export const malformedToolCallsResponse = {
@@ -49,10 +102,7 @@ export const malformedToolCallsResponse = {
       type: "message",
       role: "assistant",
       content: [
-        {
-          type: "output_text",
-          text: "Response with malformed tool calls.",
-        },
+        createErrorFixtureContentPart("Response with malformed tool calls."),
       ],
       tool_calls: [
         {
@@ -66,9 +116,9 @@ export const malformedToolCallsResponse = {
       ],
     },
   ],
-  text: {},
   tool_choice: "auto",
   tools: [],
+  ...createErrorBaseFixtureFields(),
 };
 
 export const invalidToolCallStructureResponse = {
@@ -81,10 +131,9 @@ export const invalidToolCallStructureResponse = {
       type: "message",
       role: "assistant",
       content: [
-        {
-          type: "output_text",
-          text: "Response with invalid tool call structure.",
-        },
+        createErrorFixtureContentPart(
+          "Response with invalid tool call structure.",
+        ),
       ],
       tool_calls: [
         {
@@ -94,9 +143,9 @@ export const invalidToolCallStructureResponse = {
       ],
     },
   ],
-  text: {},
   tool_choice: "auto",
   tools: [],
+  ...createErrorBaseFixtureFields(),
 };
 
 export const missingRequiredFieldsResponse = {
@@ -107,15 +156,10 @@ export const missingRequiredFieldsResponse = {
     {
       type: "message",
       role: "assistant",
-      content: [
-        {
-          type: "output_text",
-          text: "Missing required fields.",
-        },
-      ],
+      content: [createErrorFixtureContentPart("Missing required fields.")],
     },
   ],
-  text: {},
   tool_choice: "auto",
   tools: [],
+  ...createErrorBaseFixtureFields(),
 };

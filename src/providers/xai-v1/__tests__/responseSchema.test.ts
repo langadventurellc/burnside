@@ -6,6 +6,34 @@
 
 import { XAIV1ResponseSchema } from "../responseSchema";
 
+// Helper function to create properly structured content parts
+function createContentPart(
+  text: string,
+  annotations?: unknown[],
+  logprobs?: unknown[],
+) {
+  return {
+    type: "output_text" as const,
+    text,
+    annotations: annotations || null,
+    logprobs: logprobs || null,
+  };
+}
+
+// Helper function to create base response structure with required nullable fields
+function createBaseResponse(overrides: any = {}) {
+  return {
+    max_output_tokens: null,
+    metadata: null,
+    previous_response_id: null,
+    temperature: null,
+    top_p: null,
+    user: null,
+    incomplete_details: null,
+    ...overrides,
+  };
+}
+
 describe("XAIV1ResponseSchema", () => {
   describe("Valid Responses", () => {
     it("should validate minimal valid response", () => {
@@ -18,12 +46,7 @@ describe("XAIV1ResponseSchema", () => {
           {
             type: "message",
             role: "assistant",
-            content: [
-              {
-                type: "output_text",
-                text: "Hello! How can I help you today?",
-              },
-            ],
+            content: [createContentPart("Hello! How can I help you today?")],
           },
         ],
         debug_output: {
@@ -40,10 +63,13 @@ describe("XAIV1ResponseSchema", () => {
           sampler_tag: "default",
         },
         text: {
-          format: [],
+          format: {
+            type: "text",
+          },
         },
         tool_choice: "auto",
         tools: [],
+        ...createBaseResponse(),
       };
 
       const result = XAIV1ResponseSchema.safeParse(validResponse);
@@ -61,12 +87,11 @@ describe("XAIV1ResponseSchema", () => {
             type: "message",
             role: "assistant",
             content: [
-              {
-                type: "output_text",
-                text: "Here's a comprehensive response with all features.",
-                annotations: [{ type: "citation", source: "web" }],
-                logprobs: [{ token: "Here", logprob: -0.1 }],
-              },
+              createContentPart(
+                "Here's a comprehensive response with all features.",
+                [{ type: "citation", source: "web" }],
+                [{ token: "Here", logprob: -0.1 }],
+              ),
             ],
             tool_calls: [
               {
@@ -184,10 +209,13 @@ describe("XAIV1ResponseSchema", () => {
           sampler_tag: "reasoning",
         },
         text: {
-          format: [],
+          format: {
+            type: "text",
+          },
         },
         tool_choice: "none",
         tools: [],
+        ...createBaseResponse(),
       };
 
       const result = XAIV1ResponseSchema.safeParse(validResponse);
@@ -208,12 +236,7 @@ describe("XAIV1ResponseSchema", () => {
           {
             type: "message",
             role: "assistant",
-            content: [
-              {
-                type: "output_text",
-                text: "Based on my reasoning...",
-              },
-            ],
+            content: [createContentPart("Based on my reasoning...")],
           },
         ],
         debug_output: {
@@ -230,10 +253,13 @@ describe("XAIV1ResponseSchema", () => {
           sampler_tag: "mixed",
         },
         text: {
-          format: [],
+          format: {
+            type: "text",
+          },
         },
         tool_choice: "auto",
         tools: [],
+        ...createBaseResponse(),
       };
 
       const result = XAIV1ResponseSchema.safeParse(validResponse);
@@ -408,12 +434,7 @@ describe("XAIV1ResponseSchema", () => {
           {
             type: "message",
             role: "assistant",
-            content: [
-              {
-                type: "output_text",
-                text: "",
-              },
-            ],
+            content: [createContentPart("")],
           },
         ],
         debug_output: {
@@ -430,10 +451,13 @@ describe("XAIV1ResponseSchema", () => {
           sampler_tag: "",
         },
         text: {
-          format: [],
+          format: {
+            type: "text",
+          },
         },
         tool_choice: "none",
         tools: [],
+        ...createBaseResponse(),
       };
 
       const result = XAIV1ResponseSchema.safeParse(edgeCaseResponse);
@@ -450,12 +474,7 @@ describe("XAIV1ResponseSchema", () => {
           {
             type: "message",
             role: "assistant",
-            content: [
-              {
-                type: "output_text",
-                text: "",
-              },
-            ],
+            content: [createContentPart("")],
           },
         ],
         usage: {
@@ -482,9 +501,14 @@ describe("XAIV1ResponseSchema", () => {
           responses: [],
           sampler_tag: "",
         },
-        text: { format: [] },
+        text: {
+          format: {
+            type: "text",
+          },
+        },
         tool_choice: "auto",
         tools: [],
+        ...createBaseResponse(),
       };
 
       const result = XAIV1ResponseSchema.safeParse(zeroTokenResponse);
@@ -503,12 +527,7 @@ describe("XAIV1ResponseSchema", () => {
           {
             type: "message" as const,
             role: "assistant" as const,
-            content: [
-              {
-                type: "output_text" as const,
-                text: "Type test response",
-              },
-            ],
+            content: [createContentPart("Type test response")],
           },
         ],
         debug_output: {
@@ -524,9 +543,14 @@ describe("XAIV1ResponseSchema", () => {
           responses: [],
           sampler_tag: "type",
         },
-        text: { format: [] },
+        text: {
+          format: {
+            type: "text",
+          },
+        },
         tool_choice: "auto" as const,
         tools: [],
+        ...createBaseResponse(),
       };
 
       const parsed = XAIV1ResponseSchema.parse(validResponse);

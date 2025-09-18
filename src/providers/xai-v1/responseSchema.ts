@@ -13,8 +13,8 @@ import { z } from "zod";
 const XAIResponseContentPartSchema = z.object({
   type: z.literal("output_text"),
   text: z.string(),
-  annotations: z.array(z.unknown()).optional(),
-  logprobs: z.array(z.unknown()).optional(),
+  annotations: z.array(z.unknown()).nullable(),
+  logprobs: z.array(z.unknown()).nullable(),
 });
 
 /**
@@ -71,7 +71,7 @@ const IncompleteDetailsSchema = z
   .object({
     reason: z.string(),
   })
-  .optional();
+  .nullable();
 
 /**
  * xAI debug output schema
@@ -97,9 +97,9 @@ const DebugOutputSchema = z
  */
 const ReasoningResponseSchema = z
   .object({
-    effort: z.string().optional(),
+    effort: z.string().nullable(),
     generate_summary: z.boolean().optional(),
-    summary: z.string().optional(),
+    summary: z.string().nullable(),
   })
   .optional();
 
@@ -126,7 +126,9 @@ const TextFormatResponseSchema = z.union([
  * xAI text response configuration schema
  */
 const TextResponseConfigSchema = z.object({
-  format: z.array(TextFormatResponseSchema).optional(),
+  format: z
+    .union([z.array(TextFormatResponseSchema), TextFormatResponseSchema])
+    .optional(),
 });
 
 /**
@@ -198,16 +200,16 @@ export const XAIV1ResponseSchema = z.object({
   incomplete_details: IncompleteDetailsSchema,
 
   /** Maximum output tokens configuration */
-  max_output_tokens: z.number().optional(),
+  max_output_tokens: z.number().nullable(),
 
   /** Metadata associated with the response */
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.unknown()).nullable(),
 
   /** Parallel tool calls flag */
   parallel_tool_calls: z.boolean().optional(),
 
   /** Previous response ID reference */
-  previous_response_id: z.string().optional(),
+  previous_response_id: z.string().nullable(),
 
   /** Reasoning configuration */
   reasoning: ReasoningResponseSchema,
@@ -216,7 +218,7 @@ export const XAIV1ResponseSchema = z.object({
   store: z.boolean().optional(),
 
   /** Temperature used */
-  temperature: z.number().optional(),
+  temperature: z.number().nullable(),
 
   /** Text configuration */
   text: TextResponseConfigSchema,
@@ -228,10 +230,10 @@ export const XAIV1ResponseSchema = z.object({
   tools: z.array(z.unknown()),
 
   /** Top-p value used */
-  top_p: z.number().optional(),
+  top_p: z.number().nullable(),
 
   /** User identifier */
-  user: z.string().optional(),
+  user: z.string().nullable(),
 });
 
 /**

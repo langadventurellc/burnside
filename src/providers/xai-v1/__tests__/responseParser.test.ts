@@ -366,10 +366,14 @@ describe("parseXAIResponse", () => {
               {
                 type: "output_text",
                 text: "First part",
+                annotations: null,
+                logprobs: null,
               },
               {
                 type: "output_text",
                 text: "Second part",
+                annotations: null,
+                logprobs: null,
               },
             ],
           },
@@ -473,12 +477,51 @@ describe("parseXAIResponse", () => {
           {
             type: "message",
             role: "assistant",
-            content: [{ type: "output_text", text: "Test" }],
+            content: [
+              {
+                type: "output_text",
+                text: "Test",
+                annotations: null,
+                logprobs: null,
+              },
+            ],
           },
         ],
-        text: {},
         tool_choice: "auto",
         tools: [],
+        // Add required nullable fields
+        max_output_tokens: null,
+        metadata: null,
+        previous_response_id: null,
+        temperature: null,
+        top_p: null,
+        user: null,
+        incomplete_details: null,
+        debug_output: {
+          attempts: 1,
+          cache_read_count: 0,
+          cache_read_input_bytes: 0,
+          cache_write_count: 0,
+          cache_write_input_bytes: 0,
+          engine_request: "req_123",
+          lb_address: "10.0.0.1",
+          prompt: "Hello",
+          request: "original_request",
+          responses: [],
+          sampler_tag: "default",
+        },
+        reasoning: {
+          effort: null,
+          generate_summary: false,
+          summary: null,
+        },
+        store: false,
+        parallel_tool_calls: false,
+        text: {
+          format: {
+            type: "text",
+          },
+        },
       };
 
       const response = createMockResponse();
@@ -530,6 +573,8 @@ describe("parseXAIResponse", () => {
               {
                 type: "output_text",
                 text: "Special chars: 🤖 ñáéíóú \"quotes\" 'apostrophes' \\backslash",
+                annotations: null,
+                logprobs: null,
               },
             ],
           },

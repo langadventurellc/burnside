@@ -21,8 +21,8 @@ function convertXAIContentToContentParts(
   content: Array<{
     type: "output_text";
     text: string;
-    annotations?: unknown[];
-    logprobs?: unknown[];
+    annotations: unknown[] | null;
+    logprobs: unknown[] | null;
   }>,
 ): ContentPart[] {
   return content.map((part) => ({

@@ -200,7 +200,7 @@ describe("XAIV1Provider", () => {
       await provider.initialize(mockConfig);
 
       const mockHttpRequest = {
-        url: "https://api.x.ai/v1/chat/completions",
+        url: "https://api.x.ai/v1/responses",
         method: "POST" as const,
         headers: { Authorization: "Bearer xai-test123" },
         body: JSON.stringify({ model: "grok-3-mini" }),
@@ -223,7 +223,7 @@ describe("XAIV1Provider", () => {
 
       const modelCapabilities = { temperature: true };
       const mockHttpRequest = {
-        url: "https://api.x.ai/v1/chat/completions",
+        url: "https://api.x.ai/v1/responses",
         method: "POST" as const,
         headers: { Authorization: "Bearer xai-test123" },
         body: JSON.stringify({ model: "grok-3-mini" }),
