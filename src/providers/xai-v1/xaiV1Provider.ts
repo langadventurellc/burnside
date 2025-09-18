@@ -14,7 +14,10 @@ import type { StreamDelta } from "../../client/streamDelta";
 import type { Message } from "../../core/messages/message";
 import type { ProviderHttpRequest } from "../../core/transport/providerHttpRequest";
 import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse";
+import type { UnifiedTerminationSignal } from "../../core/agent/unifiedTerminationSignal";
+import type { ConversationContext } from "../../core/agent/conversationContext";
 import { BridgeError } from "../../core/errors/bridgeError";
+import { createTerminationSignal } from "../../core/agent/createTerminationSignal";
 import { XAIV1ConfigSchema, type XAIV1Config } from "./configSchema";
 import { translateChatRequest } from "./translator";
 import { parseXAIResponse } from "./responseParser";
@@ -191,12 +194,205 @@ export class XAIV1Provider implements ProviderPlugin {
   }
 
   /**
-   * Detect if streaming response has reached termination
+   * Detect termination status from xAI response or streaming delta
    *
-   * For non-streaming responses, always returns true.
-   * For streaming responses, checks delta for termination indicators.
+   * Maps xAI's status field and streaming eventType to standardized
+   * termination signals with appropriate confidence levels and metadata preservation.
    *
    * @param deltaOrResponse - Either a streaming delta or final response
+   * @param _conversationContext - Optional conversation context (unused for xAI)
+   * @returns Detailed termination signal with reasoning and confidence
+   */
+  detectTermination(
+    deltaOrResponse:
+      | StreamDelta
+      | {
+          message: Message;
+          usage?: {
+            promptTokens: number;
+            completionTokens: number;
+            totalTokens?: number;
+          };
+          model: string;
+          metadata?: Record<string, unknown>;
+        },
+    _conversationContext?: ConversationContext,
+  ): UnifiedTerminationSignal {
+    // Handle complete response object (non-streaming)
+    if ("message" in deltaOrResponse) {
+      const response = deltaOrResponse;
+      const status = response.metadata?.status as string | null | undefined;
+      const incompleteDetails = response.metadata?.incomplete_details as
+        | { reason: string }
+        | null
+        | undefined;
+
+      return this.createXAITerminationSignal(
+        status,
+        incompleteDetails,
+        true, // Non-streaming responses are always terminal
+        response.metadata || {},
+        undefined, // No eventType for non-streaming
+        undefined, // Non-streaming doesn't use usage as termination indicator
+      );
+    }
+
+    // Handle streaming delta
+    const delta = deltaOrResponse;
+    const eventType = delta.metadata?.eventType as string | null | undefined;
+    const status = delta.metadata?.status as string | null | undefined;
+
+    // Check if stream is finished
+    const isFinished =
+      delta.finished ||
+      eventType === "response.completed" ||
+      (delta.usage !== undefined && delta.usage !== null);
+
+    return this.createXAITerminationSignal(
+      status,
+      null, // Streaming deltas don't typically have incomplete_details
+      isFinished,
+      delta.metadata || {},
+      eventType,
+      delta.usage,
+    );
+  }
+
+  /**
+   * Create xAI-specific termination signal from status and eventType
+   *
+   * Maps xAI status values and streaming eventType to unified termination model
+   * with appropriate confidence levels and metadata preservation.
+   *
+   * @param status - xAI status value
+   * @param incompleteDetails - xAI incomplete_details object if present
+   * @param shouldTerminate - Whether termination should occur
+   * @param metadata - Original response metadata for preservation
+   * @param eventType - Optional streaming event type
+   * @returns Standardized termination signal
+   */
+  private createXAITerminationSignal(
+    status: string | null | undefined,
+    incompleteDetails: { reason: string } | null | undefined,
+    shouldTerminate: boolean,
+    metadata: Record<string, unknown>,
+    eventType?: string | null,
+    usage?: {
+      promptTokens: number;
+      completionTokens: number;
+      totalTokens?: number;
+    } | null,
+  ): UnifiedTerminationSignal {
+    // Handle streaming completion
+    if (eventType === "response.completed") {
+      return createTerminationSignal(
+        true,
+        "eventType",
+        eventType,
+        "natural_completion",
+        "high",
+        "Stream completed with response.completed event",
+        metadata,
+      );
+    }
+
+    // Handle termination indicated by usage information presence
+    if (usage && !eventType && !status) {
+      return createTerminationSignal(
+        true,
+        "usage",
+        "present",
+        "natural_completion",
+        "high",
+        "Stream completed with usage information",
+        metadata,
+      );
+    }
+
+    // Handle incomplete responses with specific reasons
+    if (incompleteDetails?.reason) {
+      return createTerminationSignal(
+        true,
+        "incomplete_details.reason",
+        incompleteDetails.reason,
+        "token_limit_reached", // Most common reason for incomplete responses
+        "high",
+        `Response incomplete: ${incompleteDetails.reason}`,
+        metadata,
+      );
+    }
+
+    // Handle cases where status is not available
+    if (!status || status === null) {
+      return createTerminationSignal(
+        shouldTerminate,
+        eventType ? "eventType" : "finished",
+        eventType || shouldTerminate.toString(),
+        "unknown",
+        "low",
+        shouldTerminate
+          ? "Stream marked as finished but no status provided"
+          : "Stream not finished and no status available",
+        metadata,
+      );
+    }
+
+    // Map xAI status values to unified termination signals
+    switch (status) {
+      case "completed":
+        return createTerminationSignal(
+          true,
+          "status",
+          status,
+          "natural_completion",
+          "high",
+          "xAI response completed successfully",
+          metadata,
+        );
+
+      case "incomplete":
+        return createTerminationSignal(
+          true,
+          "status",
+          status,
+          "token_limit_reached",
+          "high",
+          "xAI response incomplete (likely token limit)",
+          metadata,
+        );
+
+      case "failed":
+        return createTerminationSignal(
+          true,
+          "status",
+          status,
+          "error",
+          "high",
+          "xAI response failed",
+          metadata,
+        );
+
+      default:
+        return createTerminationSignal(
+          shouldTerminate,
+          "status",
+          status,
+          "unknown",
+          "medium",
+          `Unknown xAI status: ${status}`,
+          metadata,
+        );
+    }
+  }
+
+  /**
+   * Detect if streaming response has reached termination
+   *
+   * Delegates to detectTermination() method for consistent termination logic
+   * across all provider methods while maintaining backward compatibility.
+   *
+   * @param deltaOrResponse - Either a streaming delta or final response
+   * @param conversationContext - Optional conversation context for enhanced termination detection
    * @returns True if this indicates stream termination
    */
   isTerminal(
@@ -212,17 +408,10 @@ export class XAIV1Provider implements ProviderPlugin {
           model: string;
           metadata?: Record<string, unknown>;
         },
+    conversationContext?: ConversationContext,
   ): boolean {
-    // For non-streaming responses, always terminal
-    if (!("delta" in deltaOrResponse)) {
-      return true;
-    }
-
-    // For streaming responses, check termination conditions
-    return (
-      deltaOrResponse.finished ||
-      (deltaOrResponse.usage !== undefined && deltaOrResponse.usage !== null)
-    );
+    return this.detectTermination(deltaOrResponse, conversationContext)
+      .shouldTerminate;
   }
 
   /**

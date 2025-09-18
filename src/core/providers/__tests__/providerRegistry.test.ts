@@ -33,7 +33,6 @@ function createMockProvider(
         },
         model: "test-model",
       }),
-    isTerminal: () => true,
     normalizeError: (error: unknown) =>
       new BridgeError(String(error), "PROVIDER_ERROR"),
   };
@@ -129,7 +128,6 @@ describe("InMemoryProviderRegistry", () => {
             },
             model: "test-model",
           }),
-        isTerminal: () => true,
         normalizeError: (error: unknown) =>
           new BridgeError(String(error), "PROVIDER_ERROR"),
       };

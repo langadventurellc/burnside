@@ -99,7 +99,6 @@ describe("analyzeConversationTermination", () => {
         version: "1.0.0",
         translateRequest: jest.fn(),
         parseResponse: jest.fn(),
-        isTerminal: jest.fn(),
         normalizeError: jest.fn(),
         detectTermination: jest.fn().mockReturnValue(mockTerminationSignal),
       };
@@ -132,7 +131,6 @@ describe("analyzeConversationTermination", () => {
         version: "1.0.0",
         translateRequest: jest.fn(),
         parseResponse: jest.fn(),
-        isTerminal: jest.fn().mockReturnValue(false),
         normalizeError: jest
           .fn()
           .mockReturnValue(new BridgeError("Test error", "TEST_ERROR")),
@@ -162,7 +160,6 @@ describe("analyzeConversationTermination", () => {
 
       expect(result.shouldTerminate).toBe(false); // Default fallback behavior
       expect(result.confidence).toBe("low");
-      expect(result.providerSpecific.originalField).toBe("isTerminal");
     });
   });
 
@@ -215,7 +212,6 @@ describe("analyzeConversationTermination", () => {
         version: "1.0.0",
         translateRequest: jest.fn(),
         parseResponse: jest.fn(),
-        isTerminal: jest.fn(),
         normalizeError: jest.fn(),
         detectTermination: jest.fn().mockImplementation((_, context) => {
           // Verify context properties
@@ -281,7 +277,6 @@ describe("analyzeConversationTermination", () => {
         version: "1.0.0",
         translateRequest: jest.fn(),
         parseResponse: jest.fn(),
-        isTerminal: jest.fn(),
         normalizeError: jest.fn(),
         detectTermination: jest.fn().mockImplementation((response) => {
           // Verify it's the latest assistant message

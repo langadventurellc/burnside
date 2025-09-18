@@ -157,57 +157,6 @@ export interface ProviderPlugin {
     | AsyncIterable<StreamDelta>;
 
   /**
-   * Detect if streaming response has reached termination.
-   *
-   * Determines whether a streaming delta or final response indicates
-   * that the stream has completed and no more chunks will be sent.
-   *
-   * Enhanced with optional conversation context for providers to make
-   * intelligent termination decisions based on conversation history and patterns.
-   *
-   * @param deltaOrResponse - Either a streaming delta or final response
-   * @param conversationContext - Optional conversation context for intelligent termination detection
-   * @returns True if this indicates stream termination
-   *
-   * @example Basic termination detection (backward compatible)
-   * ```typescript
-   * for await (const delta of stream) {
-   *   console.log(delta.delta.content);
-   *   if (plugin.isTerminal(delta)) {
-   *     console.log("Stream completed");
-   *     break;
-   *   }
-   * }
-   * ```
-   *
-   * @example Conversation-aware termination detection
-   * ```typescript
-   * for await (const delta of stream) {
-   *   console.log(delta.delta.content);
-   *   if (plugin.isTerminal(delta, conversationContext)) {
-   *     console.log("Stream completed with conversation context");
-   *     break;
-   *   }
-   * }
-   * ```
-   */
-  isTerminal(
-    deltaOrResponse:
-      | StreamDelta
-      | {
-          message: Message;
-          usage?: {
-            promptTokens: number;
-            completionTokens: number;
-            totalTokens?: number;
-          };
-          model: string;
-          metadata?: Record<string, unknown>;
-        },
-    conversationContext?: ConversationContext,
-  ): boolean;
-
-  /**
    * Enhanced termination detection with provider-aware reasoning.
    *
    * Optional method that provides detailed termination analysis beyond the basic

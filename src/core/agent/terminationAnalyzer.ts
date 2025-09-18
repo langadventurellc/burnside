@@ -11,7 +11,6 @@ import type { MultiTurnState } from "./multiTurnState";
 import type { ProviderPlugin } from "../providers/providerPlugin";
 import type { UnifiedTerminationSignal } from "./unifiedTerminationSignal";
 import type { ConversationContext } from "./conversationContext";
-import { defaultDetectTermination } from "../providers/defaultTerminationDetection";
 import { BridgeError } from "../errors/bridgeError";
 
 /**
@@ -72,35 +71,31 @@ export function analyzeConversationTermination(
     metadata: latestAssistantMessage.metadata,
   };
 
-  // Use provider detectTermination if available, otherwise fallback
+  // Use provider detectTermination if available, otherwise throw error
   if (provider?.detectTermination) {
     try {
       return provider.detectTermination(response, conversationContext);
-    } catch {
-      // If provider detection fails, fall back to default detection
-      return defaultDetectTermination(provider, response, conversationContext);
+    } catch (error) {
+      throw new BridgeError(
+        `Provider termination detection failed: ${String(error)}`,
+        "PROVIDER_ERROR",
+      );
     }
   }
 
-  // Use default termination detection - we need a mock provider for fallback
-  const mockProvider: ProviderPlugin = {
-    id: "mock-fallback",
-    name: "Mock Fallback Provider",
-    version: "1.0.0",
-    translateRequest: () => {
-      throw new Error("Mock provider");
+  // If no provider or no detectTermination method, return a safe default signal
+  return {
+    shouldTerminate: false, // Default to continuing when no detection available
+    reason: "unknown",
+    confidence: "low",
+    providerSpecific: {
+      originalField: "fallback",
+      originalValue: "no_provider_detection",
+      metadata: { fallback: true },
     },
-    parseResponse: () => {
-      throw new Error("Mock provider");
-    },
-    isTerminal: () => false, // Default to not terminal
-    normalizeError: (error) =>
-      error instanceof BridgeError
-        ? error
-        : new BridgeError(String(error), "PROVIDER_ERROR"),
+    message:
+      "No provider termination detection available, defaulting to continuation",
   };
-
-  return defaultDetectTermination(mockProvider, response, conversationContext);
 }
 
 /**

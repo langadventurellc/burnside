@@ -426,28 +426,6 @@ function createBridgeError(
 ): BridgeError {
   const sanitizedMessage = sanitizeErrorMessage(message);
 
-  // Enhanced logging for validation errors to help with debugging
-  if (errorType === "ValidationError" || errorType === "TransportError") {
-    console.error("=== DETAILED ERROR DEBUG ===");
-    console.error("Error Type:", errorType);
-    console.error("Message:", sanitizedMessage);
-    console.error("Context Details:", JSON.stringify(context, null, 2));
-
-    // If this is a validation error, try to extract more details
-    if (
-      context.originalError &&
-      typeof context.originalError === "object" &&
-      context.originalError !== null &&
-      "context" in context.originalError
-    ) {
-      console.error(
-        "Original Error Context:",
-        JSON.stringify(context.originalError.context, null, 2),
-      );
-    }
-    console.error("=== END ERROR DEBUG ===");
-  }
-
   switch (errorType) {
     case "AuthError":
       return new AuthError(sanitizedMessage, context);

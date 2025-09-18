@@ -252,7 +252,6 @@ describe("BridgeClient", () => {
           },
           model: "gpt-x",
         }),
-        isTerminal: jest.fn(),
         normalizeError: jest.fn((e) => new TransportError(String(e))),
       } as jest.Mocked<ProviderPlugin>;
 
@@ -458,7 +457,6 @@ describe("BridgeClient", () => {
             };
           })(),
         ),
-        isTerminal: jest.fn(),
         normalizeError: jest.fn((e) => new TransportError(String(e))),
       } as unknown as jest.Mocked<ProviderPlugin>;
 
@@ -656,7 +654,6 @@ describe("BridgeClient", () => {
           body: '{"model":"gpt-4","messages":[]}',
         }),
         parseResponse: jest.fn(),
-        isTerminal: jest.fn().mockReturnValue(true),
         normalizeError: jest.fn(),
       };
 
@@ -677,7 +674,6 @@ describe("BridgeClient", () => {
           body: '{"model":"claude-sonnet-4-20250514","messages":[]}',
         }),
         parseResponse: jest.fn(),
-        isTerminal: jest.fn().mockReturnValue(true),
         normalizeError: jest.fn(),
       };
 

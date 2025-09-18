@@ -18,7 +18,6 @@ const providerPluginSchema = z.object({
   metadata: z.record(z.unknown()).optional(),
   translateRequest: z.function(),
   parseResponse: z.function().returns(z.union([z.promise(z.any()), z.any()])),
-  isTerminal: z.function(),
   normalizeError: z.function(),
   capabilities: z
     .object({
