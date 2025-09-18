@@ -174,19 +174,101 @@ export function parseXAIResponse(
     (item) => "type" in item && item.type === "message",
   );
 
-  if (!messageOutput) {
-    throw new ValidationError("No message type found in xAI response output", {
-      status: response.status,
-      statusText: response.statusText,
-      responseId: xaiResponse.id,
-      outputTypes: xaiResponse.output.map((item) =>
-        "type" in item ? item.type : "unknown",
-      ),
-    });
-  }
+  let message: Message & { toolCalls?: ToolCall[] };
 
-  // Convert the message output to unified message format
-  const message = convertXAIOutputToMessage(messageOutput, xaiResponse.id);
+  if (messageOutput) {
+    // Convert the message output to unified message format
+    message = convertXAIOutputToMessage(messageOutput, xaiResponse.id);
+  } else {
+    // Check if there are function_call outputs
+    const functionCallOutputs = xaiResponse.output.filter(
+      (item) => "type" in item && item.type === "function_call",
+    );
+
+    if (functionCallOutputs.length === 0) {
+      // Check if there are reasoning outputs - treat as assistant message with reasoning content
+      const reasoningOutputs = xaiResponse.output.filter(
+        (item) => "type" in item && item.type === "reasoning",
+      );
+
+      if (reasoningOutputs.length === 0) {
+        throw new ValidationError(
+          "No message, function_call, or reasoning type found in xAI response output",
+          {
+            status: response.status,
+            statusText: response.statusText,
+            responseId: xaiResponse.id,
+            outputTypes: xaiResponse.output.map((item) =>
+              "type" in item ? item.type : "unknown",
+            ),
+          },
+        );
+      }
+
+      // Create a synthetic assistant message for reasoning outputs
+      message = {
+        id: xaiResponse.id,
+        role: "assistant",
+        content: [
+          {
+            type: "text",
+            text: "Reasoning completed.", // Simple placeholder since reasoning doesn't have direct text content
+          },
+        ],
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // Convert function_call outputs to a message with tool calls
+      // This handles multi-turn scenarios where the API returns only function calls
+      const toolCalls: ToolCall[] = functionCallOutputs.map((output) => {
+        // Type guard to ensure we have the expected structure
+        if (!("type" in output) || output.type !== "function_call") {
+          throw new ValidationError(
+            "Unexpected output type in function call processing",
+          );
+        }
+
+        // Cast to the expected function_call structure
+        const functionCallOutput = output as {
+          type: "function_call";
+          id: string;
+          call_id?: string;
+          name: string;
+          arguments: string;
+        };
+
+        // Parse the arguments JSON string
+        let parameters: Record<string, unknown>;
+        try {
+          parameters = JSON.parse(functionCallOutput.arguments) as Record<
+            string,
+            unknown
+          >;
+        } catch (error) {
+          throw new ValidationError("Failed to parse function call arguments", {
+            functionName: functionCallOutput.name,
+            arguments: functionCallOutput.arguments,
+            parseError: error instanceof Error ? error.message : String(error),
+          });
+        }
+
+        return {
+          id: functionCallOutput.call_id || functionCallOutput.id,
+          name: functionCallOutput.name,
+          parameters,
+        };
+      });
+
+      // Create a synthetic assistant message with the tool calls
+      message = {
+        id: xaiResponse.id,
+        role: "assistant",
+        content: [], // Empty content for tool-only responses
+        timestamp: new Date().toISOString(),
+        toolCalls,
+      };
+    }
+  }
 
   // Extract usage and metadata
   const usage = extractUsageInformation(xaiResponse.usage);

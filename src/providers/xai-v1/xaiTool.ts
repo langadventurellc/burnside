@@ -1,15 +1,21 @@
 /**
  * xAI Tool Type
  *
- * Type definition for xAI tool format, which follows OpenAI compatibility.
+ * Type definition for xAI tool format, which follows OpenAI Responses API compatibility.
+ * Uses flat structure instead of nested function object.
  */
 
-import type { XAIToolFunction } from "./xaiToolFunction";
-
 /**
- * xAI tool type (matches OpenAI format)
+ * xAI tool type (matches OpenAI Responses API format)
  */
 export interface XAITool {
   type: "function";
-  function: XAIToolFunction;
+  name: string;
+  description?: string;
+  parameters: {
+    type: "object";
+    properties?: Record<string, unknown>;
+    required?: string[];
+    additionalProperties?: boolean;
+  };
 }

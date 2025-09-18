@@ -96,16 +96,14 @@ describe("XAIV1RequestSchema", () => {
         tools: [
           {
             type: "function",
-            function: {
-              name: "get_weather",
-              description: "Get current weather information",
-              parameters: {
-                type: "object",
-                properties: {
-                  location: { type: "string" },
-                },
-                required: ["location"],
+            name: "get_weather",
+            description: "Get current weather information",
+            parameters: {
+              type: "object",
+              properties: {
+                location: { type: "string" },
               },
+              required: ["location"],
             },
           },
         ],

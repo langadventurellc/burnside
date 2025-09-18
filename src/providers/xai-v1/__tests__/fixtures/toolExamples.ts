@@ -93,20 +93,18 @@ export const toolWithHintsDefinition: ToolDefinition = {
  */
 export const expectedXAIEchoTool: XAITool = {
   type: "function",
-  function: {
-    name: "echo_tool",
-    description: "Echo back the provided input data",
-    parameters: {
-      type: "object",
-      properties: {
-        data: {
-          type: "string",
-          description: "Data is required",
-        },
+  name: "echo_tool",
+  description: "Echo back the provided input data",
+  parameters: {
+    type: "object",
+    properties: {
+      data: {
+        type: "string",
+        description: "Data is required",
       },
-      required: ["data"],
-      additionalProperties: false,
     },
+    required: ["data"],
+    additionalProperties: false,
   },
 };
 
@@ -115,47 +113,45 @@ export const expectedXAIEchoTool: XAITool = {
  */
 export const expectedXAIWeatherTool: XAITool = {
   type: "function",
-  function: {
-    name: "get_weather_forecast",
-    description: "Get detailed weather forecast for a specific location",
-    parameters: {
-      type: "object",
-      properties: {
-        location: {
-          type: "string",
-          description: "Location is required",
-        },
-        units: {
-          type: "string",
-          enum: ["celsius", "fahrenheit"],
-        },
-        days: {
-          type: "number",
-          minimum: 1,
-          maximum: 7,
-          default: 3,
-        },
-        includeHourly: {
-          type: "boolean",
-        },
-        alerts: {
-          type: "object",
-          properties: {
-            severe: {
-              type: "boolean",
-              default: true,
-            },
-            precipitation: {
-              type: "boolean",
-              default: false,
-            },
-          },
-          additionalProperties: false,
-        },
+  name: "get_weather_forecast",
+  description: "Get detailed weather forecast for a specific location",
+  parameters: {
+    type: "object",
+    properties: {
+      location: {
+        type: "string",
+        description: "Location is required",
       },
-      required: ["location"],
-      additionalProperties: false,
+      units: {
+        type: "string",
+        enum: ["celsius", "fahrenheit"],
+      },
+      days: {
+        type: "number",
+        minimum: 1,
+        maximum: 7,
+        default: 3,
+      },
+      includeHourly: {
+        type: "boolean",
+      },
+      alerts: {
+        type: "object",
+        properties: {
+          severe: {
+            type: "boolean",
+            default: true,
+          },
+          precipitation: {
+            type: "boolean",
+            default: false,
+          },
+        },
+        additionalProperties: false,
+      },
     },
+    required: ["location"],
+    additionalProperties: false,
   },
 };
 
@@ -164,20 +160,18 @@ export const expectedXAIWeatherTool: XAITool = {
  */
 export const expectedXAIHintsTool: XAITool = {
   type: "function",
-  function: {
-    name: "calculate_math_expression",
-    description: "Execute a mathematical expression and return the result",
-    parameters: {
-      type: "object",
-      properties: {
-        expression: {
-          type: "string",
-          description: "Mathematical expression to evaluate",
-        },
+  name: "calculate_math_expression",
+  description: "Execute a mathematical expression and return the result",
+  parameters: {
+    type: "object",
+    properties: {
+      expression: {
+        type: "string",
+        description: "Mathematical expression to evaluate",
       },
-      required: ["expression"],
-      additionalProperties: false,
     },
+    required: ["expression"],
+    additionalProperties: false,
   },
 };
 

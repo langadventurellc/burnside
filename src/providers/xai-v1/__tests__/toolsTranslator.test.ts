@@ -44,9 +44,7 @@ describe("translateToolsForXAI", () => {
 
       expect(result).toHaveLength(toolDefinitionExamples.length);
       expect(result.every((tool) => tool.type === "function")).toBe(true);
-      expect(
-        result.every((tool) => typeof tool.function.name === "string"),
-      ).toBe(true);
+      expect(result.every((tool) => typeof tool.name === "string")).toBe(true);
     });
   });
 
@@ -190,7 +188,7 @@ describe("translateToolsForXAI", () => {
       // TypeScript type checking - these should compile without errors
       expect(Array.isArray(result)).toBe(true);
       expect(result[0].type).toBe("function");
-      expect(typeof result[0].function.name).toBe("string");
+      expect(typeof result[0].name).toBe("string");
     });
   });
 });

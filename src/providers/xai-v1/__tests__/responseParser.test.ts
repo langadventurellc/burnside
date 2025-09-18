@@ -20,7 +20,6 @@ import {
   invalidJsonResponse,
   nonObjectResponse,
   emptyOutputArrayResponse,
-  noMessageTypeResponse,
   malformedToolCallsResponse,
   invalidToolCallStructureResponse,
   missingRequiredFieldsResponse,
@@ -248,16 +247,38 @@ describe("parseXAIResponse", () => {
       );
     });
 
-    it("should throw ValidationError when no message type found", () => {
-      const response = createMockResponse();
-      const responseText = JSON.stringify(noMessageTypeResponse);
+    it("should handle response with only reasoning output by creating synthetic message", () => {
+      // Create a modified version of the existing fixture that has only reasoning output
+      const reasoningOnlyResponse = {
+        ...validResponseWithReasoningOutput,
+        output: [
+          {
+            id: "reasoning_output",
+            type: "reasoning",
+            summary: ["This is a reasoning step"],
+          },
+        ],
+      };
 
-      expect(() => parseXAIResponse(response, responseText)).toThrow(
-        ValidationError,
-      );
-      expect(() => parseXAIResponse(response, responseText)).toThrow(
-        "No message type found in xAI response output",
-      );
+      const response = createMockResponse();
+      const responseText = JSON.stringify(reasoningOnlyResponse);
+
+      const result = parseXAIResponse(response, responseText);
+
+      // Should create a synthetic assistant message for reasoning-only response
+      expect(result.message.role).toBe("assistant");
+      expect(result.message.content).toEqual([
+        {
+          type: "text",
+          text: "Reasoning completed.",
+        },
+      ]);
+      expect(result.message.id).toBe("resp_reasoning");
+      expect(result.usage).toEqual({
+        promptTokens: 10,
+        completionTokens: 15,
+        totalTokens: 25,
+      });
     });
 
     it("should throw ValidationError for malformed tool calls", () => {

@@ -25,13 +25,32 @@ affectedFiles:
   src/providers/openai-responses-v1/responseParser.ts: Enhanced parser to handle
     function-call-only responses and create synthetic assistant messages
   src/providers/openai-responses-v1/errorNormalizer.ts: Enhanced error logging for better debugging of validation failures
+  src/__tests__/e2e/xai/multiTurn.e2e.test.ts: "Created comprehensive xAI
+    multi-turn E2E test suite with 2 test scenarios: basic multi-turn flow and
+    maxIterations limit enforcement. Follows exact same patterns as existing xAI
+    tools.e2e.test.ts with proper imports, model filtering, and validation
+    logic."
+  src/providers/xai-v1/responseSchema.ts: Added function_call output schema
+    support for multi-turn responses using flat Responses API format
+  src/providers/xai-v1/responseParser.ts: Enhanced parser to handle
+    function-call-only responses, reasoning-only responses, and create synthetic
+    assistant messages for multi-turn scenarios
+  src/providers/xai-v1/errorNormalizer.ts: Enhanced error logging for better
+    debugging of validation failures and transport errors
+  src/providers/xai-v1/xaiTool.ts: Updated tool schema for flat Responses API
+    format (flat structure instead of nested function object)
+  src/providers/xai-v1/toolTranslator.ts: Fixed tool translator to use flat
+    Responses API format instead of nested Chat Completions format
+  src/providers/xai-v1/__tests__/fixtures/toolExamples.ts: Updated test fixtures to match flat Responses API tool format
+  src/providers/xai-v1/__tests__/fixtures/errorResponses.ts: Updated test fixture to properly test unsupported output types
+  src/providers/xai-v1/__tests__/responseParser.test.ts: Updated unit tests to validate new reasoning-only response handling behavior
 log: []
 schema: v1.0
 childrenIds:
   - T-create-google-multi-turn-e2e
-  - T-create-openai-multi-turn-e2e
   - T-create-xai-multi-turn-e2e
   - T-create-anthropic-multi-turn
+  - T-create-openai-multi-turn-e2e
 created: 2025-09-18T16:50:43.296Z
 updated: 2025-09-18T16:50:43.296Z
 ---
