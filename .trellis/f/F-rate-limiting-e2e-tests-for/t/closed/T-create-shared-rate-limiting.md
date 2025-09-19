@@ -1,12 +1,29 @@
 ---
 id: T-create-shared-rate-limiting
 title: Create shared rate limiting E2E test utilities
-status: open
+status: done
 priority: high
 parent: F-rate-limiting-e2e-tests-for
 prerequisites: []
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/__tests__/e2e/shared/createRateLimitedTestClient.ts: Created function to
+    build BridgeClient with rate limiting configuration for all providers
+  src/__tests__/e2e/shared/validateRateLimitingBehavior.ts: Created function to
+    validate request timing follows rate limiting rules with configurable
+    tolerance
+  src/__tests__/e2e/shared/measureRequestTiming.ts: Created function to execute
+    multiple requests and capture timing for rate limiting analysis
+  src/__tests__/e2e/shared/createMinimalTestRequest.ts: Created function to
+    generate minimal API requests for each provider to reduce testing costs
+  src/__tests__/e2e/shared/rateLimitingProvider.ts: Created type definition for supported rate limiting providers
+  src/__tests__/e2e/shared/rateLimitValidationResult.ts: Created interface for rate limiting validation results with detailed feedback
+log:
+  - Implemented shared rate limiting E2E test utilities for all providers
+    (OpenAI, Anthropic, Google, xAI). Created reusable functions for creating
+    rate-limited test clients, validating timing behavior, measuring request
+    timing, and creating minimal test requests. All utilities follow existing
+    E2E test patterns and support all 4 providers with proper TypeScript types
+    and error handling. Quality checks and tests all pass.
 schema: v1.0
 childrenIds: []
 created: 2025-09-19T16:47:33.007Z

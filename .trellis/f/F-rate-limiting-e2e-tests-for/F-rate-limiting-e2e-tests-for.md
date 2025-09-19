@@ -1,14 +1,34 @@
 ---
 id: F-rate-limiting-e2e-tests-for
 title: Rate Limiting E2E Tests for All Providers
-status: open
+status: in-progress
 priority: medium
 parent: none
 prerequisites: []
-affectedFiles: {}
+affectedFiles:
+  src/__tests__/e2e/shared/rateLimiting/createRateLimitedTestClient.ts:
+    Created function to
+    build BridgeClient with rate limiting configuration for all providers
+  src/__tests__/e2e/shared/rateLimiting/validateRateLimitingBehavior.ts:
+    Created function to
+    validate request timing follows rate limiting rules with configurable
+    tolerance
+  src/__tests__/e2e/shared/rateLimiting/measureRequestTiming.ts:
+    Created function to execute
+    multiple requests and capture timing for rate limiting analysis
+  src/__tests__/e2e/shared/rateLimiting/createMinimalTestRequest.ts:
+    Created function to
+    generate minimal API requests for each provider to reduce testing costs
+  src/__tests__/e2e/shared/rateLimiting/rateLimitingProvider.ts: Created type definition for supported rate limiting providers
+  src/__tests__/e2e/shared/rateLimiting/rateLimitValidationResult.ts: Created interface for rate limiting validation results with detailed feedback
 log: []
 schema: v1.0
-childrenIds: []
+childrenIds:
+  - T-create-anthropic-rate
+  - T-create-google-rate-limiting
+  - T-create-openai-rate-limiting
+  - T-create-shared-rate-limiting
+  - T-create-xai-rate-limiting-e2e
 created: 2025-09-19T16:45:37.914Z
 updated: 2025-09-19T16:45:37.914Z
 ---
