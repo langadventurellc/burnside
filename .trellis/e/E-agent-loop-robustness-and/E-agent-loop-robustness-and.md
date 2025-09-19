@@ -457,6 +457,13 @@ affectedFiles:
     Created comprehensive test suite with 39 tests covering all functionality
     including state management, cancellation detection, buffer management,
     stream wrapping, and integration scenarios
+  src/core/agent/cancellation/__tests__/cancellationIntegration.test.ts:
+    Created comprehensive integration test suite with 13 test cases covering
+    cancellation error creation from AbortSignal, AbortSignal integration
+    patterns, error type guards, infrastructure integration with BridgeClient,
+    and error serialization. Tests validate real cancellation scenarios using
+    actual BridgeClient components with AbortController signals, following
+    existing E2E test patterns without complex mocking.
 log: []
 schema: v1.0
 childrenIds:
