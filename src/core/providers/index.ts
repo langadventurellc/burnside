@@ -11,7 +11,10 @@
  * capabilities.
  */
 
+export { addCacheHeaders } from "./addCacheHeaders";
+export { applyCacheMarkers } from "./applyCacheMarkers";
 export { defaultDetectTermination } from "./defaultTerminationDetection";
+export { hasProviderCaching } from "./hasProviderCaching";
 export type { ModelCapabilities } from "./modelCapabilities";
 export type { ModelInfo } from "./modelInfo";
 export type { ProviderPlugin } from "./providerPlugin";
