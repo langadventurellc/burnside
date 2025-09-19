@@ -667,4 +667,114 @@ describe("BridgeConfigSchema", () => {
       expect(result.rateLimitPolicy?.burst).toBe(150);
     });
   });
+
+  describe("retry policy configuration integration", () => {
+    it("should accept configuration with retry policy enabled", () => {
+      const config = {
+        defaultProvider: "openai",
+        providers: {
+          openai: { apiKey: "sk-test" },
+        },
+        retryPolicy: {
+          attempts: 3,
+          backoff: "exponential" as const,
+          baseDelayMs: 1000,
+          maxDelayMs: 30000,
+          jitter: true,
+          retryableStatusCodes: [429, 500, 502, 503, 504],
+        },
+      };
+
+      const result = BridgeConfigSchema.parse(config);
+      expect(result.retryPolicy).toEqual({
+        attempts: 3,
+        backoff: "exponential",
+        baseDelayMs: 1000,
+        maxDelayMs: 30000,
+        jitter: true,
+        retryableStatusCodes: [429, 500, 502, 503, 504],
+      });
+    });
+
+    it("should accept configuration with tools, rate limiting, and retry policy", () => {
+      const config = {
+        providers: {
+          openai: { apiKey: "sk-test" },
+        },
+        tools: {
+          enabled: true,
+          builtinTools: ["echo"],
+          executionTimeoutMs: 5000,
+        },
+        rateLimitPolicy: {
+          enabled: true,
+          maxRps: 5,
+        },
+        retryPolicy: {
+          attempts: 2,
+          backoff: "linear" as const,
+        },
+      };
+
+      const result = BridgeConfigSchema.parse(config);
+      expect(result.tools?.enabled).toBe(true);
+      expect(result.rateLimitPolicy?.enabled).toBe(true);
+      expect(result.retryPolicy?.attempts).toBe(2);
+      expect(result.retryPolicy?.backoff).toBe("linear");
+      // Verify defaults are applied
+      expect(result.retryPolicy?.baseDelayMs).toBe(1000);
+      expect(result.retryPolicy?.maxDelayMs).toBe(30000);
+    });
+
+    it("should maintain existing validation with retry policy present", () => {
+      const config = {
+        defaultProvider: "missing", // Invalid - not in providers
+        providers: {
+          openai: { apiKey: "sk-test" },
+        },
+        retryPolicy: {
+          attempts: 3,
+        },
+      };
+
+      expect(() => BridgeConfigSchema.parse(config)).toThrow(
+        /Default provider 'missing' not found in providers configuration/,
+      );
+    });
+
+    it("should handle retry policy with complex configuration", () => {
+      const config = {
+        defaultProvider: "openai",
+        providers: {
+          openai: {
+            apiKey: "sk-test",
+            baseUrl: "https://api.openai.com/v1",
+          },
+          anthropic: {
+            apiKey: "sk-ant-test",
+          },
+        },
+        defaultModel: "gpt-4",
+        timeout: 30000,
+        rateLimitPolicy: {
+          enabled: true,
+          maxRps: 10,
+        },
+        retryPolicy: {
+          attempts: 5,
+          backoff: "exponential" as const,
+          baseDelayMs: 2000,
+          maxDelayMs: 60000,
+          jitter: false,
+          retryableStatusCodes: [429, 500, 503],
+        },
+      };
+
+      const result = BridgeConfigSchema.parse(config);
+      expect(result.defaultProvider).toBe("openai");
+      expect(result.retryPolicy?.attempts).toBe(5);
+      expect(result.retryPolicy?.jitter).toBe(false);
+      expect(result.retryPolicy?.retryableStatusCodes).toEqual([429, 500, 503]);
+    });
+  });
 });

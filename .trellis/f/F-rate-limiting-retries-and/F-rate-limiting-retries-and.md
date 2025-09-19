@@ -107,12 +107,21 @@ affectedFiles:
     to include promptCaching: false default in model loader test"
   src/core/config/bridgeConfig.ts: Extended BridgeConfig interface to add
     rateLimitPolicy field with enabled, maxRps, burst, and scope properties.
-    Updated JSDoc example to demonstrate rate limiting configuration usage.
+    Updated JSDoc example to demonstrate rate limiting configuration usage.;
+    Extended BridgeConfig interface to add optional retryPolicy field with
+    attempts, backoff strategy, timing parameters, jitter settings, and
+    retryable status codes. Updated JSDoc example to demonstrate retry
+    configuration usage.
   src/core/config/bridgeConfigSchema.ts: Extended BridgeConfigSchema Zod
     validation to add comprehensive rate limiting validation with proper error
     messages, default values, business logic refinements for auto-burst
     calculation, and required field validation when enabled. Updated example in
-    JSDoc documentation.
+    JSDoc documentation.; Extended BridgeConfigSchema Zod validation to add
+    comprehensive retry policy validation with proper error messages, default
+    values (attempts=2, backoff='exponential', baseDelayMs=1000,
+    maxDelayMs=30000, jitter=true, retryableStatusCodes=[429,500,502,503,504]),
+    and cross-field validation refinement for delay constraints. Updated JSDoc
+    example.
   src/core/config/__tests__/rateLimitingConfig.test.ts:
     Created comprehensive test
     suite with 67 test cases covering all rate limiting validation scenarios
@@ -122,11 +131,21 @@ affectedFiles:
   src/core/config/__tests__/bridgeConfigSchema.test.ts: Added integration tests
     for rate limiting configuration to ensure proper interaction with existing
     BridgeConfig validation, including tests for complex configurations with
-    tools and providers, validation preservation, and type compatibility.
+    tools and providers, validation preservation, and type compatibility.; Added
+    integration tests for retry policy configuration to ensure proper
+    interaction with existing BridgeConfig validation, including tests for
+    complex configurations with tools, providers, and rate limiting, validation
+    preservation, and type compatibility.
+  src/core/config/__tests__/retryConfig.test.ts:
+    Created comprehensive test suite
+    with 35 test cases covering all retry configuration validation scenarios
+    including valid configurations, validation rules, default value behavior,
+    backward compatibility, and edge cases. Tests verify delay constraints,
+    status code validation, backoff strategies, and integration with existing
+    configuration.
 log: []
 schema: v1.0
 childrenIds:
-  - T-add-rate-limiting-configuratio
   - T-add-retry-configuration
   - T-create-enhanced-http
   - T-create-prompt-cache
@@ -134,6 +153,7 @@ childrenIds:
   - T-implement-anthropic-provider
   - T-integrate-enhanced-transport
   - T-add-prompt-caching-capability
+  - T-add-rate-limiting-configuratio
   - T-create-rate-limiter-with
   - T-create-retry-policy-manager
   - T-implement-exponential-backoff

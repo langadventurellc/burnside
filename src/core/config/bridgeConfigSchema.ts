@@ -20,6 +20,12 @@ import { z } from "zod";
  *     enabled: true,
  *     maxRps: 10,
  *     scope: "provider:model"
+ *   },
+ *   retryPolicy: {
+ *     attempts: 3,
+ *     backoff: "exponential",
+ *     baseDelayMs: 1000,
+ *     maxDelayMs: 30000
  *   }
  * };
  *
@@ -160,6 +166,67 @@ export const BridgeConfigSchema = z
         }
         return policy;
       }),
+
+    /** Retry policy configuration */
+    retryPolicy: z
+      .object({
+        /** Number of retry attempts */
+        attempts: z
+          .number()
+          .int("Attempts must be an integer")
+          .min(0, "Attempts cannot be negative")
+          .max(10, "Attempts cannot exceed 10")
+          .default(2)
+          .describe("Number of retry attempts"),
+
+        /** Backoff strategy */
+        backoff: z
+          .enum(["exponential", "linear"])
+          .default("exponential")
+          .describe("Backoff strategy type"),
+
+        /** Base delay in milliseconds */
+        baseDelayMs: z
+          .number()
+          .positive("Base delay must be positive")
+          .max(60000, "Base delay cannot exceed 60 seconds")
+          .default(1000)
+          .describe("Base delay in milliseconds"),
+
+        /** Maximum delay in milliseconds */
+        maxDelayMs: z
+          .number()
+          .positive("Max delay must be positive")
+          .max(300000, "Max delay cannot exceed 5 minutes")
+          .default(30000)
+          .describe("Maximum delay in milliseconds"),
+
+        /** Enable jitter */
+        jitter: z
+          .boolean()
+          .default(true)
+          .describe("Enable jitter to prevent thundering herd"),
+
+        /** Retryable status codes */
+        retryableStatusCodes: z
+          .array(z.number().int().min(100).max(599))
+          .default([429, 500, 502, 503, 504])
+          .describe("HTTP status codes that trigger retries"),
+      })
+      .optional()
+      .describe("Retry policy configuration")
+      .refine(
+        (policy) => {
+          // Base delay must be less than or equal to max delay
+          if (policy && policy.baseDelayMs > policy.maxDelayMs) {
+            return false;
+          }
+          return true;
+        },
+        {
+          message: "baseDelayMs must be less than or equal to maxDelayMs",
+        },
+      ),
   })
   .superRefine((config, ctx) => {
     // At least one of defaultProvider or providers must be specified
