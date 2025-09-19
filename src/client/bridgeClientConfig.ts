@@ -1,4 +1,6 @@
 import type { ToolsConfig } from "../core/config/toolsConfig";
+import type { RateLimitConfig } from "../core/transport/rateLimiting/rateLimitConfig";
+import type { RetryConfig } from "../core/transport/retry/retryConfig";
 
 /**
  * Bridge Client Configuration
@@ -48,4 +50,8 @@ export interface BridgeClientConfig {
   };
   /** Indicates configuration has been validated */
   validated: boolean;
+  /** Rate limiting policy configuration */
+  rateLimitPolicy?: RateLimitConfig;
+  /** Retry policy configuration */
+  retryPolicy?: RetryConfig;
 }

@@ -20,7 +20,9 @@ import { ValidationError } from "../core/errors/validationError";
 import type { ModelInfo } from "../core/providers/modelInfo";
 import {
   HttpTransport,
+  EnhancedHttpTransport,
   InterceptorChain,
+  type Transport,
   type HttpClientConfig,
   type FetchFunction,
 } from "../core/transport/index";
@@ -75,7 +77,7 @@ export class BridgeClient {
   private readonly config: BridgeClientConfig;
   private readonly providerRegistry: ProviderRegistry;
   private readonly modelRegistry: ModelRegistry;
-  private readonly httpTransport: HttpTransport;
+  private readonly httpTransport: Transport;
   private readonly initializedProviders = new Set<string>();
   private toolRouter?: ToolRouter;
   private agentLoop?: AgentLoop;
@@ -91,7 +93,7 @@ export class BridgeClient {
   constructor(
     config: BridgeConfig,
     deps?: {
-      transport?: HttpTransport;
+      transport?: Transport;
       providerRegistry?: ProviderRegistry;
       modelRegistry?: ModelRegistry;
     },
@@ -112,11 +114,25 @@ export class BridgeClient {
       };
       const interceptors = new InterceptorChain();
       const errorNormalizer = new HttpErrorNormalizer();
-      this.httpTransport = new HttpTransport(
+      const baseTransport = new HttpTransport(
         httpClientConfig,
         interceptors,
         errorNormalizer,
       );
+
+      // Use enhanced transport if rate limiting or retry is enabled
+      const rateLimitEnabled = this.config.rateLimitPolicy?.enabled;
+      const retryEnabled = (this.config.retryPolicy?.attempts ?? 0) > 0;
+
+      if (rateLimitEnabled || retryEnabled) {
+        this.httpTransport = new EnhancedHttpTransport({
+          baseTransport,
+          rateLimitConfig: this.config.rateLimitPolicy,
+          retryConfig: this.config.retryPolicy,
+        });
+      } else {
+        this.httpTransport = baseTransport;
+      }
     }
 
     // Optionally seed model registry based on configuration

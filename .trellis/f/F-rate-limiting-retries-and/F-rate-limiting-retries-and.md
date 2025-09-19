@@ -1,7 +1,7 @@
 ---
 id: F-rate-limiting-retries-and
 title: Rate Limiting, Retries, and Provider-Native Prompt Caching
-status: in-progress
+status: done
 priority: medium
 parent: none
 prerequisites: []
@@ -207,11 +207,21 @@ affectedFiles:
     detection, header generation, cache marking, error handling, integration
     scenarios, and utility functions. Tests verify all Anthropic models support
     caching and content eligibility logic
-log: []
+  src/client/bridgeClient.ts: Updated transport creation logic to conditionally
+    use EnhancedHttpTransport when rate limiting or retry policies are enabled.
+    Added Transport interface import and changed httpTransport field type from
+    HttpTransport to Transport. Updated constructor parameter to accept
+    Transport interface. The client now checks for rateLimitPolicy.enabled and
+    retryPolicy.attempts to determine when to create enhanced transport vs
+    standard transport.
+  src/client/bridgeClientConfig.ts: Added imports for RateLimitConfig and
+    RetryConfig interfaces. Extended BridgeClientConfig interface to include
+    optional rateLimitPolicy and retryPolicy fields that store the validated
+    transport policy configuration passed from the public BridgeConfig.
+log:
+  - "Auto-completed: All child tasks are complete"
 schema: v1.0
 childrenIds:
-  - T-implement-anthropic-provider
-  - T-integrate-enhanced-transport
   - T-add-prompt-caching-capability
   - T-add-rate-limiting-configuratio
   - T-add-retry-configuration
@@ -220,8 +230,10 @@ childrenIds:
   - T-create-rate-limiter-with
   - T-create-retry-policy-manager
   - T-extend-provider-plugin
+  - T-implement-anthropic-provider
   - T-implement-exponential-backoff
   - T-implement-token-bucket
+  - T-integrate-enhanced-transport
 created: 2025-09-19T02:49:27.069Z
 updated: 2025-09-19T02:49:27.069Z
 ---
