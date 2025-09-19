@@ -140,6 +140,7 @@ export const defaultLlmModels = DefaultLlmModelsSchema.parse({
           toolCalls: true,
           images: true,
           documents: true,
+          promptCaching: true,
           supportedContentTypes: ["text", "image", "document"],
         },
         {
@@ -151,6 +152,7 @@ export const defaultLlmModels = DefaultLlmModelsSchema.parse({
           toolCalls: true,
           images: true,
           documents: true,
+          promptCaching: true,
           supportedContentTypes: ["text", "image", "document"],
         },
         {
@@ -162,6 +164,7 @@ export const defaultLlmModels = DefaultLlmModelsSchema.parse({
           toolCalls: true,
           images: true,
           documents: true,
+          promptCaching: true,
           supportedContentTypes: ["text", "image", "document"],
         },
         {
@@ -173,6 +176,7 @@ export const defaultLlmModels = DefaultLlmModelsSchema.parse({
           toolCalls: true,
           images: true,
           documents: true,
+          promptCaching: true,
           supportedContentTypes: ["text", "image", "document"],
         },
         {
@@ -184,6 +188,7 @@ export const defaultLlmModels = DefaultLlmModelsSchema.parse({
           toolCalls: true,
           images: true,
           documents: true,
+          promptCaching: true,
           supportedContentTypes: ["text", "image", "document"],
         },
       ],

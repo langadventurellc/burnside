@@ -82,6 +82,29 @@ affectedFiles:
     functionality including scope key generation, rate limiting logic, bucket
     management, configuration updates, concurrent access, edge cases, and
     performance characteristics
+  src/core/models/defaultLlmModelsSchema.ts: "Added promptCaching:
+    z.boolean().optional() field to model schema definition and updated JSDoc
+    example to include promptCaching capability"
+  src/core/providers/modelCapabilities.ts:
+    "Added promptCaching?: boolean field to
+    ModelCapabilities interface with JSDoc documentation and updated interface
+    example"
+  src/core/models/modelLoader.ts: "Added promptCaching: model.promptCaching ??
+    false mapping in capabilities object, updated function documentation to
+    mention promptCaching defaults to false, and updated JSDoc example"
+  src/data/defaultLlmModels.ts: "Added promptCaching: true to all 5 Anthropic
+    models (claude-3-haiku-20240307, claude-3-5-haiku-latest,
+    claude-sonnet-4-20250514, claude-opus-4-20250514, claude-opus-4-1-20250805)
+    to enable prompt caching support"
+  src/core/models/__tests__/promptCachingCapability.test.ts:
+    Created comprehensive
+    test suite with 15 tests covering promptCaching capability mapping, schema
+    validation, backward compatibility, and edge cases
+  src/data/__tests__/defaultLlmModels.test.ts: Updated existing model validation
+    tests to verify promptCaching capability and added test to verify other
+    providers don't have promptCaching field initially
+  src/core/models/__tests__/modelLoader.test.ts: "Updated capability expectation
+    to include promptCaching: false default in model loader test"
 log: []
 schema: v1.0
 childrenIds:
@@ -90,10 +113,10 @@ childrenIds:
   - T-add-retry-configuration
   - T-create-enhanced-http
   - T-create-prompt-cache
-  - T-create-rate-limiter-with
   - T-extend-provider-plugin
   - T-implement-anthropic-provider
   - T-integrate-enhanced-transport
+  - T-create-rate-limiter-with
   - T-create-retry-policy-manager
   - T-implement-exponential-backoff
   - T-implement-token-bucket

@@ -20,7 +20,8 @@ import { z } from "zod";
  *       providerPlugin: "openai-responses-v1",
  *       streaming: true,
  *       toolCalls: true,
- *       temperature: true
+ *       temperature: true,
+ *       promptCaching: true
  *     }]
  *   }]
  * };
@@ -46,6 +47,7 @@ export const DefaultLlmModelsSchema = z.object({
           documents: z.boolean().optional(),
           temperature: z.boolean().optional(),
           thinking: z.boolean().optional(),
+          promptCaching: z.boolean().optional(),
           supportedContentTypes: z.array(z.string()).optional(),
         }),
       ),

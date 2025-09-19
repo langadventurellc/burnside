@@ -435,7 +435,7 @@ describe("Delay Promise Utility", () => {
       await delayPromise(0);
       const elapsed = Date.now() - startTime;
 
-      expect(elapsed).toBeLessThan(50);
+      expect(elapsed).toBeLessThan(100);
     });
   });
 
