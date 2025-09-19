@@ -112,13 +112,17 @@ affectedFiles:
     test suite with 16 tests covering state transitions, streaming response
     processing, tool execution coordination, buffer management, and error
     handling with mock async iterables
-  src/client/chatRequest.ts: Added import for AgentExecutionOptions, enhanced
+  src/client/chatRequest.ts: "Added import for AgentExecutionOptions, enhanced
     JSDoc with multi-turn documentation and examples, added optional multiTurn
-    property of type Partial<AgentExecutionOptions>
+    property of type Partial<AgentExecutionOptions>; Added optional signal?:
+    AbortSignal property with comprehensive JSDoc documentation and usage
+    example showing external cancellation capabilities"
   src/client/streamRequest.ts: Enhanced JSDoc documentation with
     streaming-specific multi-turn behavior explanation, added examples for
     streaming interruption handling and tool execution during streaming
-    (multiTurn property inherited from ChatRequest)
+    (multiTurn property inherited from ChatRequest); Updated documentation to
+    reflect inherited AbortSignal support and added streaming-specific
+    cancellation example
   src/client/__tests__/chatRequest.test.ts: Added comprehensive multi-turn
     configuration test suite with 7 test cases covering partial configuration,
     comprehensive configuration, empty objects, backward compatibility,
@@ -226,7 +230,12 @@ affectedFiles:
     streams with StreamingInterruptionWrapper when tools are present in the
     request. Maintains backward compatibility by only enabling interruption for
     tool-enabled requests. Added proper type checking and context creation for
-    tool execution.
+    tool execution.; Enhanced createTimeoutSignal method to accept and combine
+    external AbortSignal with timeout signal using addEventListener pattern.
+    Updated chat() and stream() methods to pass external signal through to
+    multi-turn execution and provider calls. Added error handling to convert
+    AbortSignal cancellation to CancellationError using fromAbortSignal factory.
+    Added import for fromAbortSignal function.
   src/client/__tests__/shouldExecuteMultiTurn.test.ts:
     Created comprehensive unit
     tests for multi-turn detection logic covering all configuration combinations
@@ -404,6 +413,11 @@ affectedFiles:
     Created comprehensive test suite with 35 tests covering signal composition,
     cleanup handlers, periodic checks, cancellation detection, context
     integration, error scenarios, and real-world integration patterns
+  src/client/__tests__/bridgeClient.test.ts: Added comprehensive external
+    cancellation test suite with 6 test cases covering createTimeoutSignal
+    signal combination, pre-cancelled signal handling, chat() method
+    cancellation propagation, stream() method cancellation propagation, and
+    backward compatibility validation for both chat and stream methods
 log: []
 schema: v1.0
 childrenIds:

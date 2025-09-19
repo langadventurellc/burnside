@@ -31,6 +31,7 @@ import {
   type ToolDefinition,
 } from "../core/tools/index";
 import { AgentLoop } from "../core/agent/index";
+import { fromAbortSignal } from "../core/agent/cancellation/fromAbortSignal";
 import { extractToolCallsFromMessage } from "./extractToolCallsFromMessage";
 import { formatToolResultsAsMessages } from "./formatToolResultsAsMessages";
 import { shouldExecuteTools } from "./shouldExecuteTools";
@@ -215,13 +216,36 @@ export class BridgeClient {
 
   /**
    * Create timeout signal with cancellation
+   *
+   * Combines a timeout-based AbortSignal with an optional external AbortSignal.
+   * If an external signal is provided, cancellation from either the timeout
+   * or the external signal will trigger the returned signal.
+   *
+   * @param timeoutMs - Timeout in milliseconds for automatic cancellation
+   * @param externalSignal - Optional external AbortSignal to combine with timeout
+   * @returns Object with combined signal and cancel function
    */
-  private createTimeoutSignal(timeoutMs: number): {
+  private createTimeoutSignal(
+    timeoutMs: number,
+    externalSignal?: AbortSignal,
+  ): {
     signal: AbortSignal;
     cancel: () => void;
   } {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    // Combine with external signal if provided
+    if (externalSignal) {
+      if (externalSignal.aborted) {
+        controller.abort();
+      } else {
+        externalSignal.addEventListener("abort", () => controller.abort(), {
+          once: true,
+        });
+      }
+    }
+
     return {
       signal: controller.signal,
       cancel: () => clearTimeout(timer),
@@ -280,13 +304,16 @@ export class BridgeClient {
       stream: false,
     });
 
-    // Apply timeout
+    // Apply timeout and combine with external signal
     const providerTimeout =
       typeof providerConfig.timeout === "number"
         ? providerConfig.timeout
         : undefined;
     const timeoutMs = providerTimeout ?? this.config.timeout;
-    const { signal, cancel } = this.createTimeoutSignal(timeoutMs);
+    const { signal, cancel } = this.createTimeoutSignal(
+      timeoutMs,
+      request.signal,
+    );
 
     try {
       // Execute fetch
@@ -321,6 +348,7 @@ export class BridgeClient {
             {
               ...multiTurnOptions,
               timeoutMs: multiTurnOptions.timeoutMs || timeoutMs,
+              signal: request.signal,
             },
           );
 
@@ -341,6 +369,15 @@ export class BridgeClient {
 
       return result.message;
     } catch (error) {
+      // Check if this is a cancellation from external AbortSignal
+      if (
+        error instanceof DOMException &&
+        error.name === "AbortError" &&
+        request.signal?.aborted
+      ) {
+        throw fromAbortSignal(request.signal, "execution", false);
+      }
+
       let normalized;
       try {
         normalized = plugin.normalizeError(error);
@@ -401,13 +438,16 @@ export class BridgeClient {
       { temperature: modelInfo?.capabilities.temperature },
     );
 
-    // Apply timeout
+    // Apply timeout and combine with external signal
     const providerTimeout =
       typeof providerConfig.timeout === "number"
         ? providerConfig.timeout
         : undefined;
     const timeoutMs = providerTimeout ?? this.config.timeout;
-    const { signal, cancel } = this.createTimeoutSignal(timeoutMs);
+    const { signal, cancel } = this.createTimeoutSignal(
+      timeoutMs,
+      request.signal,
+    );
 
     try {
       // Execute fetch
@@ -445,6 +485,15 @@ export class BridgeClient {
       // Return unwrapped stream for non-tool requests
       return providerStream;
     } catch (error) {
+      // Check if this is a cancellation from external AbortSignal
+      if (
+        error instanceof DOMException &&
+        error.name === "AbortError" &&
+        request.signal?.aborted
+      ) {
+        throw fromAbortSignal(request.signal, "streaming", false);
+      }
+
       let normalized;
       try {
         normalized = plugin.normalizeError(error);

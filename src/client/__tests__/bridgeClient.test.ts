@@ -834,4 +834,276 @@ describe("BridgeClient", () => {
       ).rejects.toThrow(BridgeError);
     });
   });
+
+  describe("external cancellation", () => {
+    let client: BridgeClient;
+    let mockTransport: jest.Mocked<HttpTransport>;
+    let fakePlugin: jest.Mocked<ProviderPlugin>;
+
+    beforeEach(() => {
+      // Create mock transport
+      mockTransport = {
+        fetch: jest.fn(),
+      } as any;
+
+      // Create fake provider plugin
+      fakePlugin = {
+        id: "openai",
+        version: "responses-v1",
+        name: "OpenAI Provider",
+        initialize: jest.fn(),
+        translateRequest: jest.fn(),
+        parseResponse: jest.fn(),
+        normalizeError: jest.fn(),
+      };
+
+      // Create client with dependencies
+      const providerRegistry = new InMemoryProviderRegistry();
+      const modelRegistry = new InMemoryModelRegistry();
+
+      providerRegistry.register(fakePlugin);
+      modelRegistry.register("openai:model", {
+        id: "openai:model",
+        name: "OpenAI Test Model",
+        provider: "openai",
+        capabilities: {
+          streaming: true,
+          toolCalls: false,
+          images: false,
+          documents: false,
+          supportedContentTypes: ["text"],
+        },
+        metadata: { providerPlugin: "openai-responses-v1" },
+      });
+
+      client = new BridgeClient(validConfig, {
+        transport: mockTransport,
+        providerRegistry,
+        modelRegistry,
+      });
+    });
+
+    describe("createTimeoutSignal", () => {
+      it("should combine external signal with timeout signal", async () => {
+        // Arrange
+        const controller = new AbortController();
+        fakePlugin.translateRequest.mockReturnValue({
+          url: "https://api.test.com/chat",
+          method: "POST",
+          headers: {},
+          body: JSON.stringify({}),
+        });
+
+        let capturedSignal: AbortSignal | undefined;
+        mockTransport.fetch.mockImplementation((req) => {
+          capturedSignal = req.signal;
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            statusText: "OK",
+            headers: new Headers(),
+            body: null,
+          } as unknown as ProviderHttpResponse);
+        });
+
+        fakePlugin.parseResponse.mockResolvedValue({
+          message: {
+            role: "assistant",
+            content: [{ type: "text", text: "response" }],
+          },
+          model: "openai:model",
+        });
+
+        // Act
+        await client.chat({
+          model: "openai:model",
+          messages: [
+            { role: "user", content: [{ type: "text", text: "test" }] },
+          ],
+          signal: controller.signal,
+        });
+
+        // Assert
+        expect(capturedSignal).toBeDefined();
+        expect(capturedSignal?.aborted).toBe(false);
+      });
+
+      it("should handle pre-cancelled external signals", async () => {
+        // Arrange
+        const controller = new AbortController();
+        controller.abort("Pre-cancelled");
+
+        fakePlugin.translateRequest.mockReturnValue({
+          url: "https://api.test.com/chat",
+          method: "POST",
+          headers: {},
+          body: JSON.stringify({}),
+        });
+
+        let capturedSignal: AbortSignal | undefined;
+        mockTransport.fetch.mockImplementation((req) => {
+          capturedSignal = req.signal;
+          return Promise.reject(
+            new DOMException("Operation aborted", "AbortError"),
+          );
+        });
+
+        // Act & Assert
+        await expect(
+          client.chat({
+            model: "openai:model",
+            messages: [
+              { role: "user", content: [{ type: "text", text: "test" }] },
+            ],
+            signal: controller.signal,
+          }),
+        ).rejects.toThrow("Agent execution cancelled");
+
+        expect(capturedSignal?.aborted).toBe(true);
+      });
+    });
+
+    describe("chat() method", () => {
+      it("should propagate external signal cancellation as CancellationError", async () => {
+        // Arrange
+        const controller = new AbortController();
+
+        fakePlugin.translateRequest.mockReturnValue({
+          url: "https://api.test.com/chat",
+          method: "POST",
+          headers: {},
+          body: JSON.stringify({}),
+        });
+
+        mockTransport.fetch.mockImplementation(() => {
+          controller.abort("User cancelled");
+          return Promise.reject(
+            new DOMException("Operation aborted", "AbortError"),
+          );
+        });
+
+        // Act & Assert
+        await expect(
+          client.chat({
+            model: "openai:model",
+            messages: [
+              { role: "user", content: [{ type: "text", text: "test" }] },
+            ],
+            signal: controller.signal,
+          }),
+        ).rejects.toThrow("Agent execution cancelled");
+      });
+
+      it("should work without external signal (backward compatibility)", async () => {
+        // Arrange
+        fakePlugin.translateRequest.mockReturnValue({
+          url: "https://api.test.com/chat",
+          method: "POST",
+          headers: {},
+          body: JSON.stringify({}),
+        });
+
+        mockTransport.fetch.mockResolvedValue({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          headers: new Headers(),
+          body: null,
+        } as unknown as ProviderHttpResponse);
+
+        fakePlugin.parseResponse.mockResolvedValue({
+          message: {
+            role: "assistant",
+            content: [{ type: "text", text: "response" }],
+          },
+          model: "openai:model",
+        });
+
+        // Act
+        const result = await client.chat({
+          model: "openai:model",
+          messages: [
+            { role: "user", content: [{ type: "text", text: "test" }] },
+          ],
+          // No signal provided
+        });
+
+        // Assert
+        expect(result).toBeDefined();
+        expect(result.role).toBe("assistant");
+      });
+    });
+
+    describe("stream() method", () => {
+      it("should propagate external signal cancellation as CancellationError", async () => {
+        // Arrange
+        const controller = new AbortController();
+
+        fakePlugin.translateRequest.mockReturnValue({
+          url: "https://api.test.com/chat",
+          method: "POST",
+          headers: {},
+          body: JSON.stringify({}),
+        });
+
+        mockTransport.fetch.mockImplementation(() => {
+          controller.abort("User cancelled stream");
+          return Promise.reject(
+            new DOMException("Operation aborted", "AbortError"),
+          );
+        });
+
+        // Act & Assert
+        await expect(
+          client.stream({
+            model: "openai:model",
+            messages: [
+              { role: "user", content: [{ type: "text", text: "test" }] },
+            ],
+            signal: controller.signal,
+          }),
+        ).rejects.toThrow("Agent execution cancelled");
+      });
+
+      it("should work without external signal (backward compatibility)", async () => {
+        // Arrange
+        fakePlugin.translateRequest.mockReturnValue({
+          url: "https://api.test.com/chat",
+          method: "POST",
+          headers: {},
+          body: JSON.stringify({}),
+        });
+
+        const mockAsyncIterable = {
+          *[Symbol.asyncIterator]() {
+            yield { delta: "test", type: "content" };
+          },
+        };
+
+        mockTransport.fetch.mockResolvedValue({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          headers: new Headers(),
+          body: null,
+        } as unknown as ProviderHttpResponse);
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        fakePlugin.parseResponse.mockReturnValue(mockAsyncIterable as any);
+
+        // Act
+        const stream = await client.stream({
+          model: "openai:model",
+          messages: [
+            { role: "user", content: [{ type: "text", text: "test" }] },
+          ],
+          // No signal provided
+        });
+
+        // Assert
+        expect(stream).toBeDefined();
+        expect(Symbol.asyncIterator in stream).toBe(true);
+      });
+    });
+  });
 });

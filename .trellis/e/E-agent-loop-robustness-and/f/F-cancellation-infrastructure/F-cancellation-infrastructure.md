@@ -78,6 +78,22 @@ affectedFiles:
     Created comprehensive test suite with 35 tests covering signal composition,
     cleanup handlers, periodic checks, cancellation detection, context
     integration, error scenarios, and real-world integration patterns
+  src/client/chatRequest.ts: "Added optional signal?: AbortSignal property with
+    comprehensive JSDoc documentation and usage example showing external
+    cancellation capabilities"
+  src/client/streamRequest.ts: Updated documentation to reflect inherited
+    AbortSignal support and added streaming-specific cancellation example
+  src/client/bridgeClient.ts: Enhanced createTimeoutSignal method to accept and
+    combine external AbortSignal with timeout signal using addEventListener
+    pattern. Updated chat() and stream() methods to pass external signal through
+    to multi-turn execution and provider calls. Added error handling to convert
+    AbortSignal cancellation to CancellationError using fromAbortSignal factory.
+    Added import for fromAbortSignal function.
+  src/client/__tests__/bridgeClient.test.ts: Added comprehensive external
+    cancellation test suite with 6 test cases covering createTimeoutSignal
+    signal combination, pre-cancelled signal handling, chat() method
+    cancellation propagation, stream() method cancellation propagation, and
+    backward compatibility validation for both chat and stream methods
 log: []
 schema: v1.0
 childrenIds:
@@ -85,11 +101,11 @@ childrenIds:
   - T-add-tool-execution-cancellatio
   - T-create-resource-cleanup
   - T-enhance-bridgeclient-with
-  - T-implement-cancellationmanager
   - T-implement-streaming
   - T-integrate-cancellation
   - T-create-cancellation-error
   - T-extend-agentexecutionoptions-1
+  - T-implement-cancellationmanager
 created: 2025-09-18T02:17:29.151Z
 updated: 2025-09-18T02:17:29.151Z
 ---

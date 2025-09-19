@@ -14,6 +14,9 @@ import type { ChatRequest } from "./chatRequest";
  * In multi-turn mode, streaming interruption is handled seamlessly across iterations,
  * with each turn potentially involving multiple stream-pause-resume cycles.
  *
+ * External cancellation via AbortSignal (inherited from ChatRequest) will
+ * interrupt the stream and propagate through the entire execution chain.
+ *
  * @example
  * ```typescript
  * // Basic streaming request
@@ -29,6 +32,20 @@ import type { ChatRequest } from "./chatRequest";
  *     { name: "echo", description: "Echo input", inputSchema: { type: "object" } }
  *   ]
  * };
+ *
+ * // Streaming request with external cancellation
+ * const controller = new AbortController();
+ * const cancellableRequest: StreamRequest = {
+ *   messages: [
+ *     { role: "user", content: [{ type: "text", text: "Start streaming..." }] }
+ *   ],
+ *   model: "gpt-4",
+ *   stream: true,
+ *   signal: controller.signal // Inherited from ChatRequest
+ * };
+ *
+ * // Cancel the stream after 10 seconds
+ * setTimeout(() => controller.abort("User cancelled"), 10000);
  *
  * // Multi-turn streaming with interruption handling
  * const multiTurnStreamRequest: StreamRequest = {

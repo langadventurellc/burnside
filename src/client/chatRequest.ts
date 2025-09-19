@@ -56,6 +56,37 @@ export interface ChatRequest {
   /** Additional provider-specific options */
   options?: Record<string, unknown>;
   /**
+   * External cancellation signal for aborting running agent conversations
+   *
+   * When provided, the agent execution can be cancelled by aborting this signal.
+   * The cancellation will propagate through the entire execution chain including
+   * multi-turn conversations, tool execution, and streaming responses.
+   *
+   * @example
+   * ```typescript
+   * const controller = new AbortController();
+   *
+   * // Start a request with cancellation support
+   * const request: ChatRequest = {
+   *   messages: [{ role: "user", content: [{ type: "text", text: "Hello!" }] }],
+   *   model: "gpt-4",
+   *   signal: controller.signal
+   * };
+   *
+   * // Cancel the request after 5 seconds
+   * setTimeout(() => controller.abort("Request timeout"), 5000);
+   *
+   * try {
+   *   const response = await client.chat(request);
+   * } catch (error) {
+   *   if (error instanceof CancellationError) {
+   *     console.log("Request was cancelled:", error.reason);
+   *   }
+   * }
+   * ```
+   */
+  signal?: AbortSignal;
+  /**
    * Multi-turn conversation configuration options
    *
    * Enables multi-turn agent execution with configurable iteration limits,

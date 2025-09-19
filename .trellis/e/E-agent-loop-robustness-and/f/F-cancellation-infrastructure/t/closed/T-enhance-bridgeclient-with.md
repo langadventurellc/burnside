@@ -1,13 +1,39 @@
 ---
 id: T-enhance-bridgeclient-with
 title: Enhance BridgeClient with external cancellation support
-status: open
+status: done
 priority: high
 parent: F-cancellation-infrastructure
 prerequisites:
   - T-implement-cancellationmanager
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/client/chatRequest.ts: "Added optional signal?: AbortSignal property with
+    comprehensive JSDoc documentation and usage example showing external
+    cancellation capabilities"
+  src/client/streamRequest.ts: Updated documentation to reflect inherited
+    AbortSignal support and added streaming-specific cancellation example
+  src/client/bridgeClient.ts: Enhanced createTimeoutSignal method to accept and
+    combine external AbortSignal with timeout signal using addEventListener
+    pattern. Updated chat() and stream() methods to pass external signal through
+    to multi-turn execution and provider calls. Added error handling to convert
+    AbortSignal cancellation to CancellationError using fromAbortSignal factory.
+    Added import for fromAbortSignal function.
+  src/client/__tests__/bridgeClient.test.ts: Added comprehensive external
+    cancellation test suite with 6 test cases covering createTimeoutSignal
+    signal combination, pre-cancelled signal handling, chat() method
+    cancellation propagation, stream() method cancellation propagation, and
+    backward compatibility validation for both chat and stream methods
+log:
+  - Successfully enhanced BridgeClient with external cancellation support.
+    Implemented optional AbortSignal support in ChatRequest and StreamRequest
+    interfaces, enhanced createTimeoutSignal method to combine external signals
+    with timeout signals, and updated both chat() and stream() methods to
+    propagate external cancellation through the entire execution chain. Added
+    comprehensive error handling using fromAbortSignal factory for proper
+    CancellationError creation. All functionality maintains full backward
+    compatibility for requests without signals. Implementation includes
+    extensive test coverage validating signal combination, pre-cancelled signal
+    handling, cancellation propagation, and backward compatibility.
 schema: v1.0
 childrenIds: []
 created: 2025-09-18T23:30:35.998Z
