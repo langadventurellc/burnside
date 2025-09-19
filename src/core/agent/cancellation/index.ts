@@ -26,10 +26,13 @@
 
 // Types
 export type { CancellationPhase } from "./cancellationPhase";
+export type { CancellationOptions } from "./cancellationOptions";
+export type { CancellableExecutionContext } from "./cancellableExecutionContext";
 
 // Classes
 export { CancellationError } from "./cancellationError";
 export { GracefulCancellationTimeoutError } from "./gracefulCancellationTimeoutError";
+export { CancellationManager } from "./cancellationManager";
 
 // Factory Methods
 export { createCancellationError } from "./createCancellationError";

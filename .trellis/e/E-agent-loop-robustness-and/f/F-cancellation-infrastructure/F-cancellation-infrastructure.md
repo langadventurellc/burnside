@@ -32,7 +32,8 @@ affectedFiles:
     function for GracefulCancellationTimeoutError instance detection
   src/core/agent/cancellation/index.ts: Created barrel export file with
     comprehensive module documentation and organized exports by category (Types,
-    Classes, Factory Methods, Type Guards)
+    Classes, Factory Methods, Type Guards); Updated barrel exports to include
+    new CancellationManager class and related interfaces for public API access
   src/core/agent/cancellation/__tests__/cancellationErrors.test.ts:
     Created comprehensive test suite with 32 tests covering all error classes,
     factory methods, type guards, serialization, and integration scenarios
@@ -59,6 +60,24 @@ affectedFiles:
     tests, added cancellation example documentation validation, updated backward
     compatibility tests, and added edge cases for zero values. Total of 8 new
     test cases added, bringing total to 26 tests."
+  src/core/agent/cancellation/cancellationOptions.ts:
+    Created CancellationOptions
+    interface defining configuration for cancellation behavior including
+    external signal support, check intervals, graceful timeout, and cleanup
+    options
+  src/core/agent/cancellation/cancellableExecutionContext.ts: Created
+    CancellableExecutionContext interface providing cancellation-aware execution
+    context with AbortSignal integration, cancellation callbacks, and status
+    checking methods
+  src/core/agent/cancellation/cancellationManager.ts: Implemented core
+    CancellationManager class with signal composition, cleanup handler
+    management (LIFO order), periodic checks, cancellation detection, and
+    comprehensive error handling for both external and internal cancellation
+    scenarios
+  src/core/agent/cancellation/__tests__/cancellationManager.test.ts:
+    Created comprehensive test suite with 35 tests covering signal composition,
+    cleanup handlers, periodic checks, cancellation detection, context
+    integration, error scenarios, and real-world integration patterns
 log: []
 schema: v1.0
 childrenIds:
@@ -66,11 +85,11 @@ childrenIds:
   - T-add-tool-execution-cancellatio
   - T-create-resource-cleanup
   - T-enhance-bridgeclient-with
-  - T-extend-agentexecutionoptions-1
   - T-implement-cancellationmanager
   - T-implement-streaming
   - T-integrate-cancellation
   - T-create-cancellation-error
+  - T-extend-agentexecutionoptions-1
 created: 2025-09-18T02:17:29.151Z
 updated: 2025-09-18T02:17:29.151Z
 ---

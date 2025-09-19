@@ -1,14 +1,43 @@
 ---
 id: T-implement-cancellationmanager
 title: Implement CancellationManager core class
-status: open
+status: done
 priority: high
 parent: F-cancellation-infrastructure
 prerequisites:
   - T-extend-agentexecutionoptions-1
   - T-create-cancellation-error
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/agent/cancellation/cancellationOptions.ts:
+    Created CancellationOptions
+    interface defining configuration for cancellation behavior including
+    external signal support, check intervals, graceful timeout, and cleanup
+    options
+  src/core/agent/cancellation/cancellableExecutionContext.ts: Created
+    CancellableExecutionContext interface providing cancellation-aware execution
+    context with AbortSignal integration, cancellation callbacks, and status
+    checking methods
+  src/core/agent/cancellation/cancellationManager.ts: Implemented core
+    CancellationManager class with signal composition, cleanup handler
+    management (LIFO order), periodic checks, cancellation detection, and
+    comprehensive error handling for both external and internal cancellation
+    scenarios
+  src/core/agent/cancellation/index.ts: Updated barrel exports to include new
+    CancellationManager class and related interfaces for public API access
+  src/core/agent/cancellation/__tests__/cancellationManager.test.ts:
+    Created comprehensive test suite with 35 tests covering signal composition,
+    cleanup handlers, periodic checks, cancellation detection, context
+    integration, error scenarios, and real-world integration patterns
+log:
+  - Successfully implemented CancellationManager core class with comprehensive
+    functionality for AbortSignal composition, cleanup handlers, and
+    cancellation detection throughout agent execution. The implementation
+    provides signal composition that combines external and internal cancellation
+    signals, LIFO cleanup handler execution with timeout enforcement, periodic
+    cancellation checks, and proper error handling. All 35 unit tests pass,
+    demonstrating robust cancellation capabilities including mid-stream
+    scenarios, external AbortController integration, and graceful resource
+    cleanup.
 schema: v1.0
 childrenIds: []
 created: 2025-09-18T23:30:15.845Z

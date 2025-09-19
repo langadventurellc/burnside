@@ -381,10 +381,29 @@ affectedFiles:
     function for GracefulCancellationTimeoutError instance detection
   src/core/agent/cancellation/index.ts: Created barrel export file with
     comprehensive module documentation and organized exports by category (Types,
-    Classes, Factory Methods, Type Guards)
+    Classes, Factory Methods, Type Guards); Updated barrel exports to include
+    new CancellationManager class and related interfaces for public API access
   src/core/agent/cancellation/__tests__/cancellationErrors.test.ts:
     Created comprehensive test suite with 32 tests covering all error classes,
     factory methods, type guards, serialization, and integration scenarios
+  src/core/agent/cancellation/cancellationOptions.ts:
+    Created CancellationOptions
+    interface defining configuration for cancellation behavior including
+    external signal support, check intervals, graceful timeout, and cleanup
+    options
+  src/core/agent/cancellation/cancellableExecutionContext.ts: Created
+    CancellableExecutionContext interface providing cancellation-aware execution
+    context with AbortSignal integration, cancellation callbacks, and status
+    checking methods
+  src/core/agent/cancellation/cancellationManager.ts: Implemented core
+    CancellationManager class with signal composition, cleanup handler
+    management (LIFO order), periodic checks, cancellation detection, and
+    comprehensive error handling for both external and internal cancellation
+    scenarios
+  src/core/agent/cancellation/__tests__/cancellationManager.test.ts:
+    Created comprehensive test suite with 35 tests covering signal composition,
+    cleanup handlers, periodic checks, cancellation detection, context
+    integration, error scenarios, and real-world integration patterns
 log: []
 schema: v1.0
 childrenIds:
