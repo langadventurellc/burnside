@@ -22,7 +22,7 @@ See `docs/defaultLlmModels.json`.
 - Provider plugins implement versioned translators between the unified model and provider‑specific HTTP payloads and responses.
 - Tool system supports built‑in tools, provider‑native tools, and MCP tools with translation and fallback.
 - Runtime adapters abstract platform differences for HTTP, storage, and file access.
-- Cross‑cutting concerns (validation, caching, rate limiting, retries, logging/metrics) are centralized and configurable.
+- Cross‑cutting concerns (validation, rate limiting, retries, provider‑native prompt caching, logging/metrics) are centralized and configurable.
 
 ```
 App (Electron / RN / Node)
@@ -32,7 +32,7 @@ LLM Bridge (public API)
   ├── Core Domain (messages, tools, agent, streaming, config)
   ├── Provider Registry + Plugins (openai-responses-v1, anthropic-2023-06-01, ...)
   ├── Tool Router (native ↔ built‑in ↔ MCP)
-  ├── Transport (HTTP, streaming) + Policies (retry, rate, cache)
+  ├── Transport (HTTP, streaming) + Policies (retry, rate limiting)
   └── Runtime Adapters (platform I/O, storage, timers)
 ```
 
@@ -49,7 +49,7 @@ src/
     streaming/                 # Universal streaming interface + parsers/buffers
     transport/                 # HTTP client, interceptors, retry, rate limiting
     providers/                 # Provider base types, registry, capability model
-    performance/               # Cache interfaces, token optimization utilities
+    performance/               # Token optimization utilities, provider‑native prompt caching
     errors/                    # Error taxonomy + normalization
     observability/             # Logging, metrics, tracing hooks
     runtime/                   # Platform adapters (Node/Electron/RN)
@@ -213,7 +213,7 @@ Note: Types above illustrate shape; production types will be complete and strict
   - `providers`: array of provider entries `{ id, version, config }`. Multiple entries for the same provider with different versions are valid concurrently.
   - `models`: centralized model definitions with `providerPlugin` field specifying which provider implementation to use (e.g., "openai-responses-v1").
   - `tools`: built‑in, provider‑native enablement, and MCP endpoints.
-  - `policies`: retry, timeout, rate limit, caching strategy, and token budgets.
+  - `policies`: retry, timeout, rate limit, and token budgets.
 - Provider Registry resolves `(providerId, version)` to a concrete plugin.
 - Model Registry stores centralized model definitions and routes requests to appropriate provider plugins via `providerPlugin` field.
 - Dynamic Provider Resolution: BridgeClient automatically selects the correct provider plugin based on the model's `providerPlugin` configuration.
@@ -256,9 +256,6 @@ const BridgeConfig = z.object({
       timeoutMs: z.number().optional(),
       rateLimit: z
         .object({ maxRps: z.number(), burst: z.number().optional() })
-        .optional(),
-      caching: z
-        .object({ enabled: z.boolean(), ttlSec: z.number().optional() })
         .optional(),
     })
     .optional(),
@@ -314,9 +311,7 @@ const BridgeConfig = z.object({
   - Retries with backoff and circuit breakers.
   - Rate limiting and concurrency control.
   - Request/response redaction rules to avoid leaking secrets.
-- Caching layers:
-  - Response cache (hash of normalized request) when allowed by policy.
-  - Prompt caching surfaces provider‑specific features (e.g., Anthropic cache points) via capability flags.
+- Provider‑native prompt caching surfaces provider‑specific features (e.g., Anthropic cache points) via capability flags.
 - Token optimization utilities for compacting messages and content formatting hints.
 
 ### Rate Limiting
@@ -326,17 +321,11 @@ const BridgeConfig = z.object({
 - Respect provider 429s/`Retry‑After`; pacer backs off with jitter even if local counters lag.
 - Config shape (illustrative): `{ enabled: true, rps: 2, burst: 4, scope: 'provider:version:model:keyHash', store: 'memory'}`.
 
-### Caching
+### Provider‑Native Prompt Caching
 
-- Response caching (bridge‑managed):
-  - Cache only final, idempotent responses. Streaming deltas are not cached.
-  - Key by a normalized request hash (provider, version, model, messages, tool defs, params), excluding non‑deterministic inputs.
-  - Defaults: disabled; if enabled, use TTL + LRU caps to bound memory.
-  - Do not cache non‑deterministic requests (e.g., high temperature or tool‑calling turns) unless explicitly allowed by policy.
-- Provider‑native prompt caching:
-  - If a provider exposes prompt caching (e.g., Anthropic cache points), the plugin maps unified inputs to provider cache declarations and reuses provider‑issued cache IDs.
-  - Reuse works within the current process/session.
-  - Policy controls which segments are eligible and their lifetimes; capabilities flag (`promptCaching`) indicates support.
+- If a provider exposes prompt caching (e.g., Anthropic cache points), the plugin maps unified inputs to provider cache declarations and reuses provider‑issued cache IDs.
+- Reuse works within the current process/session.
+- Policy controls which segments are eligible and their lifetimes; capabilities flag (`promptCaching`) indicates support.
 
 ## Runtime Adapters (Platform)
 
@@ -353,7 +342,7 @@ const BridgeConfig = z.object({
 - Error normalization maps provider codes/status to the unified taxonomy.
 - Observability hooks:
   - Structured logs with redaction.
-  - Metrics (request counts, latency, tokens, cache hit rate, tool usage).
+  - Metrics (request counts, latency, tokens, prompt cache hits, tool usage).
   - Tracing (optional) via pluggable span interface.
 
 ## File and Content Handling
@@ -374,7 +363,7 @@ const BridgeConfig = z.object({
 
 - No hard‑coded secrets; all credentials flow through configuration.
 - Redaction in logs/metrics by default.
-- Optional encryption at rest for persisted conversation state or caches (host app responsibility; provide hooks).
+- Optional encryption at rest for persisted conversation state (host app responsibility; provide hooks).
 
 ## Testing Strategy
 
