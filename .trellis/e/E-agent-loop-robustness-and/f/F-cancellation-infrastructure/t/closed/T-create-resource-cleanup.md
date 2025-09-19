@@ -1,7 +1,7 @@
 ---
 id: T-create-resource-cleanup
 title: Create resource cleanup management system
-status: open
+status: wont-do
 priority: medium
 parent: F-cancellation-infrastructure
 prerequisites:

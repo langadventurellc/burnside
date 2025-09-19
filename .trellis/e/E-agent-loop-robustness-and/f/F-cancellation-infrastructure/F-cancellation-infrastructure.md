@@ -33,7 +33,9 @@ affectedFiles:
   src/core/agent/cancellation/index.ts: Created barrel export file with
     comprehensive module documentation and organized exports by category (Types,
     Classes, Factory Methods, Type Guards); Updated barrel exports to include
-    new CancellationManager class and related interfaces for public API access
+    new CancellationManager class and related interfaces for public API access;
+    Updated barrel exports to include StreamCancellationHandler and StreamState
+    for public API access
   src/core/agent/cancellation/__tests__/cancellationErrors.test.ts:
     Created comprehensive test suite with 32 tests covering all error classes,
     factory methods, type guards, serialization, and integration scenarios
@@ -126,14 +128,23 @@ affectedFiles:
     comprehensive test suite with 12 test cases covering ToolRouter cancellation
     validation, sequential/parallel strategy cancellation scenarios, graceful vs
     immediate cancellation modes, error handling, and metadata verification
+  src/core/agent/cancellation/streamCancellationHandler.ts:
+    Created comprehensive
+    StreamCancellationHandler class with stream state management, buffer
+    handling, cancellation detection, and integration with CancellationManager
+  src/core/agent/cancellation/streamState.ts: Created StreamState type definition for tracking streaming lifecycle states
+  src/core/agent/cancellation/__tests__/streamCancellationHandler.test.ts:
+    Created comprehensive test suite with 39 tests covering all functionality
+    including state management, cancellation detection, buffer management,
+    stream wrapping, and integration scenarios
 log: []
 schema: v1.0
 childrenIds:
   - T-add-comprehensive-cancellation
-  - T-add-tool-execution-cancellatio
-  - T-create-resource-cleanup
   - T-implement-streaming
+  - T-add-tool-execution-cancellatio
   - T-create-cancellation-error
+  - T-create-resource-cleanup
   - T-enhance-bridgeclient-with
   - T-extend-agentexecutionoptions-1
   - T-implement-cancellationmanager

@@ -28,11 +28,13 @@
 export type { CancellationPhase } from "./cancellationPhase";
 export type { CancellationOptions } from "./cancellationOptions";
 export type { CancellableExecutionContext } from "./cancellableExecutionContext";
+export type { StreamState } from "./streamState";
 
 // Classes
 export { CancellationError } from "./cancellationError";
 export { GracefulCancellationTimeoutError } from "./gracefulCancellationTimeoutError";
 export { CancellationManager } from "./cancellationManager";
+export { StreamCancellationHandler } from "./streamCancellationHandler";
 
 // Factory Methods
 export { createCancellationError } from "./createCancellationError";
