@@ -182,10 +182,34 @@ affectedFiles:
   src/core/providers/__tests__/simpleCaching.test.ts: Created comprehensive unit
     test suite with 17 tests covering all caching functionality, error handling,
     backward compatibility, and edge cases including primitive content types
+  src/providers/anthropic-2023-06-01/cacheUtils.ts: Created constants file with
+    ANTHROPIC_CACHE_HEADER and MINIMUM_CACHE_SIZE (4000 chars) for prompt
+    caching configuration
+  src/providers/anthropic-2023-06-01/createCacheControlObject.ts:
+    Created utility function that returns ephemeral cache control object for
+    Anthropic requests
+  src/providers/anthropic-2023-06-01/shouldCacheContent.ts: Created function to
+    determine if content meets minimum size requirement (4000+ chars) for
+    effective caching
+  src/providers/anthropic-2023-06-01/addCacheControlField.ts:
+    Created function to
+    add cache_control field to content items, handling both objects and
+    primitive types
+  src/providers/anthropic-2023-06-01/anthropicMessagesV1Provider.ts:
+    "Added three optional caching methods: supportsCaching() checks model
+    promptCaching capability, getCacheHeaders() returns anthropic-beta header,
+    markForCaching() adds cache control to eligible content. Includes private
+    helper findModelInDefaultModels() for capability lookup"
+  src/providers/anthropic-2023-06-01/index.ts: Updated barrel export to include
+    all new cache utility functions for external use
+  src/providers/anthropic-2023-06-01/__tests__/simpleCaching.test.ts:
+    Created comprehensive test suite with 25 test cases covering capability
+    detection, header generation, cache marking, error handling, integration
+    scenarios, and utility functions. Tests verify all Anthropic models support
+    caching and content eligibility logic
 log: []
 schema: v1.0
 childrenIds:
-  - T-extend-provider-plugin
   - T-implement-anthropic-provider
   - T-integrate-enhanced-transport
   - T-add-prompt-caching-capability
@@ -195,6 +219,7 @@ childrenIds:
   - T-create-prompt-cache
   - T-create-rate-limiter-with
   - T-create-retry-policy-manager
+  - T-extend-provider-plugin
   - T-implement-exponential-backoff
   - T-implement-token-bucket
 created: 2025-09-19T02:49:27.069Z

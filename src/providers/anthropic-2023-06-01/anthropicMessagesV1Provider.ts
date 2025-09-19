@@ -25,6 +25,9 @@ import { translateChatRequest } from "./translator";
 import { parseAnthropicResponse } from "./responseParser";
 import { parseAnthropicResponseStream } from "./streamingParser";
 import { normalizeAnthropicError } from "./errorNormalizer";
+import { shouldCacheContent } from "./shouldCacheContent";
+import { addCacheControlField } from "./addCacheControlField";
+import { defaultLlmModels } from "../../data/defaultLlmModels";
 
 /**
  * Anthropic Messages v1 Provider Plugin
@@ -391,5 +394,104 @@ export class AnthropicMessagesV1Provider implements ProviderPlugin {
     }
 
     return new TextDecoder().decode(combined);
+  }
+
+  /**
+   * Check if the model supports prompt caching
+   *
+   * Determines whether a specific model has prompt caching capabilities
+   * by checking the model's promptCaching flag in the default models configuration.
+   *
+   * @param modelId - The model identifier to check
+   * @returns True if the model supports prompt caching
+   */
+  supportsCaching(modelId: string): boolean {
+    try {
+      // Find the model in the default models configuration
+      const model = this.findModelInDefaultModels(modelId);
+      return model?.promptCaching ?? false;
+    } catch {
+      // If model lookup fails, assume no caching support
+      return false;
+    }
+  }
+
+  /**
+   * Get cache-related HTTP headers for Anthropic requests
+   *
+   * Returns the required beta header for enabling Anthropic's prompt caching feature.
+   *
+   * @returns Object containing the anthropic-beta header for caching
+   */
+  getCacheHeaders(): Record<string, string> {
+    return {
+      "anthropic-beta": "prompt-caching-2024-07-31",
+    };
+  }
+
+  /**
+   * Mark content for server-side caching
+   *
+   * Adds cache control markers to content that meets the minimum size requirements
+   * for effective caching. Only applies caching to content that is large enough
+   * to benefit from Anthropic's server-side caching system.
+   *
+   * @param content - Content to potentially mark for caching
+   * @returns Content with cache control markers added if eligible
+   */
+  markForCaching(content: unknown): unknown {
+    try {
+      // Only cache text content that meets minimum size requirement
+      if (typeof content === "string" && shouldCacheContent(content)) {
+        return addCacheControlField(content);
+      }
+
+      // For objects, check if they contain text content worth caching
+      if (typeof content === "object" && content !== null) {
+        const obj = content as Record<string, unknown>;
+
+        // Check for text content in common fields
+        if (typeof obj.text === "string" && shouldCacheContent(obj.text)) {
+          return addCacheControlField(content);
+        }
+
+        // Check for content array (system messages)
+        if (Array.isArray(obj.content)) {
+          const textContent = obj.content
+            .filter(
+              (item): item is { text: string } =>
+                typeof item === "object" &&
+                item !== null &&
+                typeof (item as { text?: unknown }).text === "string",
+            )
+            .map((item) => item.text)
+            .join("");
+
+          if (shouldCacheContent(textContent)) {
+            return addCacheControlField(content);
+          }
+        }
+      }
+
+      // Return original content if not eligible for caching
+      return content;
+    } catch {
+      // If cache marking fails, return original content
+      return content;
+    }
+  }
+
+  /**
+   * Find model configuration in default models data
+   *
+   * @param modelId - The model identifier to find
+   * @returns Model configuration object or undefined if not found
+   */
+  private findModelInDefaultModels(modelId: string) {
+    const anthropicProvider = defaultLlmModels.providers.find(
+      (provider) => provider.id === "anthropic",
+    );
+
+    return anthropicProvider?.models.find((model) => model.id === modelId);
   }
 }
