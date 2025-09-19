@@ -7,28 +7,34 @@ parent: none
 prerequisites: []
 affectedFiles:
   src/__tests__/e2e/shared/rateLimiting/createRateLimitedTestClient.ts:
-    Created function to
-    build BridgeClient with rate limiting configuration for all providers
+    Created function to build BridgeClient with rate limiting configuration for
+    all providers
   src/__tests__/e2e/shared/rateLimiting/validateRateLimitingBehavior.ts:
-    Created function to
-    validate request timing follows rate limiting rules with configurable
-    tolerance
+    Created function to validate request timing follows rate limiting rules with
+    configurable tolerance
   src/__tests__/e2e/shared/rateLimiting/measureRequestTiming.ts:
-    Created function to execute
-    multiple requests and capture timing for rate limiting analysis
+    Created function to execute multiple requests and capture timing for rate
+    limiting analysis
   src/__tests__/e2e/shared/rateLimiting/createMinimalTestRequest.ts:
-    Created function to
-    generate minimal API requests for each provider to reduce testing costs
+    Created function to generate minimal API requests for each provider to
+    reduce testing costs
   src/__tests__/e2e/shared/rateLimiting/rateLimitingProvider.ts: Created type definition for supported rate limiting providers
   src/__tests__/e2e/shared/rateLimiting/rateLimitValidationResult.ts: Created interface for rate limiting validation results with detailed feedback
+  src/__tests__/e2e/anthropic/rateLimiting.e2e.test.ts:
+    "Created comprehensive E2E
+    tests for Anthropic rate limiting functionality with 4 test scenarios: basic
+    throttling (2 RPS), disabled rate limiting validation, provider scope
+    isolation, and model scope testing. Tests use sequential request execution
+    to properly measure rate limiting delays and validate timing behavior using
+    shared utilities."
 log: []
 schema: v1.0
 childrenIds:
   - T-create-anthropic-rate
   - T-create-google-rate-limiting
   - T-create-openai-rate-limiting
-  - T-create-shared-rate-limiting
   - T-create-xai-rate-limiting-e2e
+  - T-create-shared-rate-limiting
 created: 2025-09-19T16:45:37.914Z
 updated: 2025-09-19T16:45:37.914Z
 ---

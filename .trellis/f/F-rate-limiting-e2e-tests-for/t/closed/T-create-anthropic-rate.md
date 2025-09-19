@@ -1,13 +1,28 @@
 ---
 id: T-create-anthropic-rate
 title: Create Anthropic rate limiting E2E tests
-status: open
+status: done
 priority: medium
 parent: F-rate-limiting-e2e-tests-for
 prerequisites:
   - T-create-shared-rate-limiting
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/__tests__/e2e/anthropic/rateLimiting.e2e.test.ts:
+    "Created comprehensive E2E
+    tests for Anthropic rate limiting functionality with 4 test scenarios: basic
+    throttling (2 RPS), disabled rate limiting validation, provider scope
+    isolation, and model scope testing. Tests use sequential request execution
+    to properly measure rate limiting delays and validate timing behavior using
+    shared utilities."
+log:
+  - Implemented comprehensive Anthropic rate limiting E2E tests that validate
+    rate limiting functionality works correctly with Anthropic provider APIs.
+    Created 4 test scenarios that verify basic throttling behavior (2 RPS
+    enforcement), configuration validation (disabled state), and scope isolation
+    (provider and model level scoping). Tests use real Anthropic API endpoints
+    with minimal requests to reduce costs while ensuring rate limiting prevents
+    provider-side 429 errors. All tests pass reliably with appropriate timing
+    tolerance for network variability.
 schema: v1.0
 childrenIds: []
 created: 2025-09-19T16:48:30.328Z
