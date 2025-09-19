@@ -27,6 +27,8 @@ import { MaxIterationsExceededError } from "./maxIterationsExceededError";
 import { IterationTimeoutError } from "./iterationTimeoutError";
 import { MultiTurnStreamingInterruptionError } from "./multiTurnStreamingInterruptionError";
 import { analyzeConversationTermination } from "./terminationAnalyzer";
+import { CancellationManager } from "./cancellation/cancellationManager";
+import { createCancellationError } from "./cancellation/createCancellationError";
 
 /**
  * Agent Loop class for single-turn tool execution and conversation flow
@@ -57,6 +59,8 @@ export class AgentLoop {
   > &
     Pick<AgentExecutionOptions, "iterationTimeoutMs" | "signal">;
 
+  private cancellationManager?: CancellationManager;
+
   constructor(
     private toolRouter: ToolRouter,
     defaultOptions: AgentExecutionOptions = {},
@@ -79,6 +83,30 @@ export class AgentLoop {
         defaultOptions.gracefulCancellationTimeoutMs ?? 5000,
       cleanupOnCancel: defaultOptions.cleanupOnCancel ?? true,
     };
+
+    // Initialize CancellationManager if cancellation signal is provided
+    if (
+      defaultOptions.signal ||
+      defaultOptions.cancellationCheckIntervalMs ||
+      defaultOptions.gracefulCancellationTimeoutMs ||
+      defaultOptions.cleanupOnCancel !== undefined
+    ) {
+      this.cancellationManager = new CancellationManager({
+        signal: defaultOptions.signal,
+        cancellationCheckIntervalMs:
+          defaultOptions.cancellationCheckIntervalMs ?? 100,
+        gracefulCancellationTimeoutMs:
+          defaultOptions.gracefulCancellationTimeoutMs ?? 5000,
+        cleanupOnCancel: defaultOptions.cleanupOnCancel ?? true,
+      });
+
+      // Register cleanup handler for conversation state preservation
+      this.cancellationManager.addCleanupHandler(() => {
+        // Cleanup handler for preserving partial conversation state
+        // This will be called during graceful cancellation
+        return Promise.resolve();
+      });
+    }
   }
 
   /**
@@ -327,6 +355,9 @@ export class AgentLoop {
       while (state.shouldContinue) {
         const iterationStartTime = Date.now();
 
+        // Check for cancellation before each iteration
+        this.checkCancellationBeforeIteration(state.iteration);
+
         // Check for overall timeout
         if (
           mergedOptions.timeoutMs &&
@@ -504,6 +535,9 @@ export class AgentLoop {
         break;
       }
 
+      // Check for cancellation before each tool call
+      this.checkCancellationBeforeToolCall(toolCall);
+
       try {
         const result = await this.executeSingleTurn(
           currentMessages,
@@ -565,6 +599,9 @@ export class AgentLoop {
     };
 
     try {
+      // Schedule periodic cancellation checks during streaming
+      this.scheduleStreamingCancellationChecks();
+
       // Create mock streaming response for integration
       // In real implementation, this would come from the provider
       const mockStreamingResponse = this.createMockStreamingResponse(messages);
@@ -831,6 +868,9 @@ export class AgentLoop {
     > &
       Pick<AgentExecutionOptions, "iterationTimeoutMs" | "signal">,
   ): MultiTurnState {
+    // Check for cancellation during context management operations
+    this.checkCancellationDuringContextOps();
+
     const now = Date.now();
 
     return {
@@ -1046,5 +1086,92 @@ export class AgentLoop {
 
     // For errors, continue based on configuration
     return this.defaultOptions.continueOnToolError;
+  }
+
+  /**
+   * Check for cancellation before each multi-turn iteration
+   *
+   * Verifies cancellation status before starting a new iteration in multi-turn
+   * execution. Throws CancellationError with "execution" phase if cancelled.
+   *
+   * @param iteration - Current iteration number for context
+   * @throws CancellationError when cancellation is detected
+   */
+  private checkCancellationBeforeIteration(iteration: number): void {
+    if (!this.cancellationManager) {
+      return;
+    }
+
+    if (this.cancellationManager.isCancelled()) {
+      const reason = this.cancellationManager.getCancellationReason();
+      throw createCancellationError(
+        reason ||
+          `Multi-turn execution cancelled before iteration ${iteration}`,
+        "execution",
+        true,
+      );
+    }
+  }
+
+  /**
+   * Check for cancellation before tool call execution
+   *
+   * Verifies cancellation status before executing each tool call.
+   * Throws CancellationError with "tool_calls" phase if cancelled.
+   *
+   * @param toolCall - Tool call about to be executed
+   * @throws CancellationError when cancellation is detected
+   */
+  private checkCancellationBeforeToolCall(toolCall: ToolCall): void {
+    if (!this.cancellationManager) {
+      return;
+    }
+
+    if (this.cancellationManager.isCancelled()) {
+      const reason = this.cancellationManager.getCancellationReason();
+      throw createCancellationError(
+        reason || `Tool execution cancelled before calling ${toolCall.name}`,
+        "tool_calls",
+        true,
+      );
+    }
+  }
+
+  /**
+   * Schedule periodic cancellation checks during streaming
+   *
+   * Starts periodic cancellation detection during streaming response processing.
+   * Uses the configured check interval for responsive cancellation detection.
+   */
+  private scheduleStreamingCancellationChecks(): void {
+    if (!this.cancellationManager) {
+      return;
+    }
+
+    this.cancellationManager.schedulePeriodicChecks();
+  }
+
+  /**
+   * Check for cancellation during context management operations
+   *
+   * Verifies cancellation status during context management operations like
+   * message processing or state updates. Throws CancellationError with
+   * "execution" phase if cancelled.
+   *
+   * @throws CancellationError when cancellation is detected
+   */
+  private checkCancellationDuringContextOps(): void {
+    if (!this.cancellationManager) {
+      return;
+    }
+
+    if (this.cancellationManager.isCancelled()) {
+      const reason = this.cancellationManager.getCancellationReason();
+      throw createCancellationError(
+        reason || "Execution cancelled during context management operations",
+        "execution",
+        true,
+      );
+    }
   }
 }

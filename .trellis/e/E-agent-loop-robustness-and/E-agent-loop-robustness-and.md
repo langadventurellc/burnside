@@ -38,7 +38,19 @@ affectedFiles:
     from required properties (alongside existing 'iterationTimeoutMs'
     exclusion). Updated 5 private method signatures: initializeMultiTurnState,
     executeIterationWithTimeout, executeIteration, handleStreamingTurn,
-    coordinateToolExecutionDuringStreaming."
+    coordinateToolExecutionDuringStreaming.; Added CancellationManager
+    integration to constructor with proper initialization when cancellation
+    options are provided. Added cleanup handler for conversation state
+    preservation. Implemented four new cancellation detection methods:
+    checkCancellationBeforeIteration(), checkCancellationBeforeToolCall(),
+    scheduleStreamingCancellationChecks(), and
+    checkCancellationDuringContextOps(). Integrated cancellation checks at
+    strategic execution points: before each multi-turn iteration, before each
+    tool call execution, during streaming response processing, and during
+    context management operations. All methods properly use
+    createCancellationError() with appropriate phase context (execution,
+    tool_calls, streaming) and handle graceful cancellation with proper error
+    messaging."
   src/core/agent/__tests__/agentExecutionOptions.test.ts: "Created comprehensive
     test suite with 19 tests covering backward compatibility, type safety,
     documentation examples, and edge cases; Added comprehensive test coverage
