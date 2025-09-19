@@ -25,6 +25,12 @@ import type { ToolsConfig } from "./toolsConfig";
  *     enabled: true,
  *     builtinTools: ["echo"],
  *     executionTimeoutMs: 5000
+ *   },
+ *   rateLimitPolicy: {
+ *     enabled: true,
+ *     maxRps: 10,
+ *     burst: 20,
+ *     scope: "provider:model"
  *   }
  * };
  * ```
@@ -57,4 +63,16 @@ export interface BridgeConfig {
 
   /** Tool system configuration */
   tools?: ToolsConfig;
+
+  /** Rate limiting policy configuration */
+  rateLimitPolicy?: {
+    /** Enable/disable rate limiting (default: false) */
+    enabled?: boolean;
+    /** Maximum requests per second */
+    maxRps?: number;
+    /** Burst capacity (default: maxRps * 2) */
+    burst?: number;
+    /** Rate limiting scope granularity */
+    scope?: "global" | "provider" | "provider:model" | "provider:model:key";
+  };
 }

@@ -572,4 +572,99 @@ describe("BridgeConfigSchema", () => {
       });
     });
   });
+
+  describe("rate limiting configuration integration", () => {
+    it("should accept configuration with rate limiting enabled", () => {
+      const config = {
+        defaultProvider: "openai",
+        providers: {
+          openai: { apiKey: "sk-test" },
+        },
+        rateLimitPolicy: {
+          enabled: true,
+          maxRps: 10,
+          burst: 20,
+          scope: "provider:model" as const,
+        },
+      };
+
+      const result = BridgeConfigSchema.parse(config);
+      expect(result.rateLimitPolicy).toEqual({
+        enabled: true,
+        maxRps: 10,
+        burst: 20,
+        scope: "provider:model",
+      });
+    });
+
+    it("should accept configuration with tools and rate limiting", () => {
+      const config = {
+        providers: {
+          openai: { apiKey: "sk-test" },
+        },
+        tools: {
+          enabled: true,
+          builtinTools: ["echo"],
+          executionTimeoutMs: 5000,
+        },
+        rateLimitPolicy: {
+          enabled: true,
+          maxRps: 5,
+        },
+      };
+
+      const result = BridgeConfigSchema.parse(config);
+      expect(result.tools?.enabled).toBe(true);
+      expect(result.rateLimitPolicy?.enabled).toBe(true);
+      expect(result.rateLimitPolicy?.maxRps).toBe(5);
+      expect(result.rateLimitPolicy?.burst).toBe(10); // Auto-calculated
+    });
+
+    it("should maintain existing validation with rate limiting present", () => {
+      const config = {
+        defaultProvider: "missing", // Invalid - not in providers
+        providers: {
+          openai: { apiKey: "sk-test" },
+        },
+        rateLimitPolicy: {
+          enabled: true,
+          maxRps: 10,
+        },
+      };
+
+      expect(() => BridgeConfigSchema.parse(config)).toThrow(
+        /Default provider 'missing' not found in providers configuration/,
+      );
+    });
+
+    it("should handle rate limiting with complex provider configuration", () => {
+      const config = {
+        defaultProvider: "openai",
+        providers: {
+          openai: {
+            apiKey: "sk-test",
+            baseUrl: "https://api.openai.com/v1",
+            maxRetries: 3,
+          },
+          anthropic: {
+            apiKey: "sk-ant-test",
+            version: "2023-06-01",
+          },
+        },
+        defaultModel: "gpt-4",
+        timeout: 30000,
+        rateLimitPolicy: {
+          enabled: true,
+          maxRps: 50,
+          burst: 150,
+          scope: "global" as const,
+        },
+      };
+
+      const result = BridgeConfigSchema.parse(config);
+      expect(result.defaultProvider).toBe("openai");
+      expect(result.rateLimitPolicy?.scope).toBe("global");
+      expect(result.rateLimitPolicy?.burst).toBe(150);
+    });
+  });
 });

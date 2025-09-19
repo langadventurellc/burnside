@@ -15,6 +15,11 @@ import { z } from "zod";
  *   defaultProvider: "openai",
  *   providers: {
  *     openai: { apiKey: "sk-..." }
+ *   },
+ *   rateLimitPolicy: {
+ *     enabled: true,
+ *     maxRps: 10,
+ *     scope: "provider:model"
  *   }
  * };
  *
@@ -99,6 +104,62 @@ export const BridgeConfigSchema = z
       })
       .optional()
       .describe("Tool system configuration"),
+
+    /** Rate limiting policy configuration */
+    rateLimitPolicy: z
+      .object({
+        /** Enable/disable rate limiting */
+        enabled: z
+          .boolean()
+          .default(false)
+          .describe("Enable rate limiting functionality"),
+
+        /** Maximum requests per second */
+        maxRps: z
+          .number()
+          .positive("Max RPS must be positive")
+          .max(1000, "Max RPS cannot exceed 1000")
+          .optional()
+          .describe("Maximum requests per second"),
+
+        /** Burst capacity */
+        burst: z
+          .number()
+          .positive("Burst capacity must be positive")
+          .max(10000, "Burst capacity cannot exceed 10000")
+          .optional()
+          .describe("Burst capacity for rate limiting"),
+
+        /** Rate limiting scope */
+        scope: z
+          .enum(["global", "provider", "provider:model", "provider:model:key"])
+          .default("provider:model:key")
+          .describe("Rate limiting scope granularity"),
+      })
+      .optional()
+      .describe("Rate limiting policy configuration")
+      .refine(
+        (policy) => {
+          // If enabled, maxRps is required
+          if (policy?.enabled && !policy.maxRps) {
+            return false;
+          }
+          return true;
+        },
+        {
+          message: "maxRps is required when rate limiting is enabled",
+        },
+      )
+      .transform((policy) => {
+        // Set default burst to maxRps * 2 if not specified
+        if (policy?.enabled && policy.maxRps && !policy.burst) {
+          return {
+            ...policy,
+            burst: policy.maxRps * 2,
+          };
+        }
+        return policy;
+      }),
   })
   .superRefine((config, ctx) => {
     // At least one of defaultProvider or providers must be specified

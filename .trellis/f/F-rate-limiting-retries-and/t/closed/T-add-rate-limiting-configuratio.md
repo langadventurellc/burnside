@@ -1,12 +1,61 @@
 ---
 id: T-add-rate-limiting-configuratio
 title: Add Rate Limiting Configuration Schema and Validation
-status: open
+status: done
 priority: medium
 parent: F-rate-limiting-retries-and
 prerequisites: []
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/config/bridgeConfig.ts: Extended BridgeConfig interface to add
+    rateLimitPolicy field with enabled, maxRps, burst, and scope properties.
+    Updated JSDoc example to demonstrate rate limiting configuration usage.
+  src/core/config/bridgeConfigSchema.ts: Extended BridgeConfigSchema Zod
+    validation to add comprehensive rate limiting validation with proper error
+    messages, default values, business logic refinements for auto-burst
+    calculation, and required field validation when enabled. Updated example in
+    JSDoc documentation.
+  src/core/config/__tests__/rateLimitingConfig.test.ts:
+    Created comprehensive test
+    suite with 67 test cases covering all rate limiting validation scenarios
+    including valid configurations, validation rules, default value behavior,
+    backward compatibility, and edge cases. Tests verify auto-burst calculation,
+    enum validation, boundary conditions, and error handling.
+  src/core/config/__tests__/bridgeConfigSchema.test.ts: Added integration tests
+    for rate limiting configuration to ensure proper interaction with existing
+    BridgeConfig validation, including tests for complex configurations with
+    tools and providers, validation preservation, and type compatibility.
+log:
+  - >-
+    Successfully implemented rate limiting configuration schema and validation
+    for the LLM Bridge Library. Extended the existing BridgeConfig interface to
+    include optional rateLimitPolicy configuration with proper Zod validation,
+    default values, business logic refinements, and comprehensive error
+    handling. 
+
+
+    Key features implemented:
+
+    - Optional rateLimitPolicy field with enabled/disabled control
+
+    - Maximum RPS validation with 1-1000 range enforcement
+
+    - Auto-calculated burst capacity (defaults to maxRps * 2) with manual
+    override support
+
+    - Scope granularity enum validation (global, provider, provider:model,
+    provider:model:key)
+
+    - Backward compatibility maintained - all fields optional
+
+    - Comprehensive validation rules including required maxRps when enabled
+
+    - Safe defaults and security limits to prevent misconfiguration
+
+
+    Created extensive unit test suite with 67 test cases covering valid
+    configurations, validation rules, default behaviors, backward compatibility,
+    and edge cases. All tests pass and quality checks (lint, format, type-check)
+    are clean.
 schema: v1.0
 childrenIds: []
 created: 2025-09-19T03:00:45.860Z
