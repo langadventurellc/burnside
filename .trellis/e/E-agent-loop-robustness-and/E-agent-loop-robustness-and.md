@@ -1,7 +1,7 @@
 ---
 id: E-agent-loop-robustness-and
 title: Agent Loop Robustness and Safety
-status: in-progress
+status: done
 priority: medium
 parent: none
 prerequisites: []
