@@ -16,6 +16,7 @@ import {
   type OpenAIResponsesV1Response,
 } from "./responseSchema";
 import { parseOpenAIToolCalls } from "./toolCallParser";
+import { logger } from "../../core/logging/simpleLogger";
 
 /**
  * Convert OpenAI content to unified ContentPart array (Responses API format)
@@ -157,6 +158,21 @@ export function parseOpenAIResponse(
   const validationResult =
     OpenAIResponsesV1ResponseSchema.safeParse(responseData);
   if (!validationResult.success) {
+    // Log response validation failure
+    logger.error("OpenAI response validation failed", {
+      provider: "openai",
+      status: response.status,
+      statusText: response.statusText,
+      validationErrors: validationResult.error.errors,
+      responseType: typeof responseData,
+    });
+
+    // Log response details for debugging (truncated)
+    logger.debug("OpenAI response details", {
+      provider: "openai",
+      responseText: responseText.substring(0, 1000),
+    });
+
     throw new ValidationError("Invalid OpenAI response structure", {
       status: response.status,
       statusText: response.statusText,

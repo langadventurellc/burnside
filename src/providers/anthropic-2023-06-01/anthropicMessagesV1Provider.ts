@@ -28,6 +28,7 @@ import { normalizeAnthropicError } from "./errorNormalizer";
 import { shouldCacheContent } from "./shouldCacheContent";
 import { addCacheControlField } from "./addCacheControlField";
 import { defaultLlmModels } from "../../data/defaultLlmModels";
+import { logger } from "../../core/logging/simpleLogger";
 
 /**
  * Anthropic Messages v1 Provider Plugin
@@ -263,6 +264,13 @@ export class AnthropicMessagesV1Provider implements ProviderPlugin {
    * @returns Standardized BridgeError with appropriate code and context
    */
   normalizeError(error: unknown): BridgeError {
+    // Log raw error before normalization
+    logger.error("Anthropic provider error before normalization", {
+      provider: "anthropic",
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+
     // Add provider context internally since interface doesn't accept context parameter
     const enhancedContext = {
       provider: this.id,
@@ -270,7 +278,20 @@ export class AnthropicMessagesV1Provider implements ProviderPlugin {
       timestamp: new Date().toISOString(),
     };
 
-    return normalizeAnthropicError(error, enhancedContext);
+    try {
+      return normalizeAnthropicError(error, enhancedContext);
+    } catch (normalizationError) {
+      // Log normalization failure
+      logger.error("Anthropic error normalization failed", {
+        provider: "anthropic",
+        originalError: error instanceof Error ? error.message : String(error),
+        normalizationError:
+          normalizationError instanceof Error
+            ? normalizationError.message
+            : String(normalizationError),
+      });
+      throw normalizationError;
+    }
   }
 
   /**

@@ -17,6 +17,7 @@ import {
   AnthropicErrorResponseSchema,
   type AnthropicMessagesResponseType,
 } from "./responseSchema";
+import { logger } from "../../core/logging/simpleLogger";
 
 /**
  * Convert Anthropic content blocks to unified ContentPart array
@@ -147,6 +148,21 @@ export function parseAnthropicResponse(
   // Validate and parse successful response
   const validationResult = AnthropicMessagesResponseSchema.safeParse(parsed);
   if (!validationResult.success) {
+    // Log response validation failure
+    logger.error("Anthropic response validation failed", {
+      provider: "anthropic",
+      status: response.status,
+      statusText: response.statusText,
+      validationErrors: validationResult.error.errors,
+      responseType: typeof parsed,
+    });
+
+    // Log response details for debugging (truncated)
+    logger.debug("Anthropic response details", {
+      provider: "anthropic",
+      responseText: responseText.substring(0, 1000),
+    });
+
     throw new ValidationError("Invalid Anthropic response structure", {
       status: response.status,
       statusText: response.statusText,

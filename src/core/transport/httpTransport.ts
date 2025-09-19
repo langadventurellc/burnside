@@ -46,6 +46,7 @@ import { HttpErrorNormalizer } from "../errors/httpErrorNormalizer";
 import { SseParser } from "../streaming/sseParser";
 import { ChunkParser } from "../streaming/chunkParser";
 import { TransportError } from "../errors/transportError";
+import { logger } from "../logging/simpleLogger";
 
 /**
  * Content types that indicate streaming responses
@@ -140,6 +141,14 @@ export class HttpTransport implements Transport {
    * Handles fetch errors with proper normalization.
    */
   private handleFetchError(error: unknown, signal?: AbortSignal): never {
+    // Log transport error details
+    logger.error("HTTP transport error", {
+      transport: "http",
+      error: error instanceof Error ? error.message : String(error),
+      aborted: signal?.aborted || false,
+      status: error instanceof Response ? error.status : undefined,
+    });
+
     // Handle AbortSignal cancellation
     if (signal?.aborted) {
       throw new TransportError("Request was aborted", {
@@ -151,6 +160,14 @@ export class HttpTransport implements Transport {
     // Handle Response errors
     if (error instanceof Response) {
       const response = this.convertFetchResponse(error);
+
+      // Log HTTP error details
+      logger.debug("HTTP error response details", {
+        transport: "http",
+        status: response.status,
+        statusText: response.statusText,
+      });
+
       throw new TransportError(
         `HTTP ${response.status}: ${response.statusText}`,
         {
@@ -247,6 +264,13 @@ export class HttpTransport implements Transport {
    * Handles streaming errors with proper normalization.
    */
   private handleStreamError(error: unknown, signal?: AbortSignal): never {
+    // Log streaming error details
+    logger.error("HTTP streaming error", {
+      transport: "http",
+      error: error instanceof Error ? error.message : String(error),
+      aborted: signal?.aborted || false,
+    });
+
     // Handle AbortSignal cancellation
     if (signal?.aborted) {
       throw new TransportError("Stream was aborted", {

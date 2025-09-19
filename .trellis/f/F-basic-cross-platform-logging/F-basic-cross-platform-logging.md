@@ -25,7 +25,8 @@ affectedFiles:
     configuration examples showing config.options.logging structure
   src/client/bridgeClient.ts: Added configureLogger method and integration in
     constructor to initialize logger with user settings during client
-    construction
+    construction; Added error and debug logging to provider operation error
+    normalization pipeline for both chat and stream operations
   src/client/__tests__/bridgeClient.test.ts:
     Added comprehensive tests for logging
     configuration including valid configs, invalid configs, different log
@@ -35,13 +36,38 @@ affectedFiles:
   src/core/config/__tests__/loggingConfigHelpers.test.ts: Created comprehensive
     unit tests for all helper functions covering edge cases, validation, and
     type safety
+  src/providers/google-gemini-v1/googleGeminiV1Provider.ts:
+    Added error logging to
+    normalizeError method with proper error context and normalization failure
+    handling
+  src/providers/google-gemini-v1/responseParser.ts:
+    Replaced console logging with
+    structured logger calls for response validation failures and debugging
+  src/providers/openai-responses-v1/openAIResponsesV1Provider.ts:
+    Added error logging to normalizeError method with provider context and error
+    details
+  src/providers/openai-responses-v1/responseParser.ts: Added error and debug
+    logging for response validation failures with truncated response data
+  src/providers/anthropic-2023-06-01/anthropicMessagesV1Provider.ts:
+    Added error logging to normalizeError method with proper error handling and
+    context
+  src/providers/anthropic-2023-06-01/responseParser.ts: Added error and debug
+    logging for response validation failures with provider context
+  src/providers/xai-v1/xaiV1Provider.ts: Added error logging to normalizeError
+    method with comprehensive error context and failure handling
+  src/providers/xai-v1/responseParser.ts: Added error and debug logging for
+    response validation failures with truncated response details
+  src/core/transport/httpTransport.ts: Added error and debug logging to
+    handleFetchError and handleStreamError methods for transport-level debugging
+  src/client/__tests__/bridgeClientErrorLogging.test.ts: Created test suite to
+    verify logging functionality is properly integrated and working
 log: []
 schema: v1.0
 childrenIds:
   - T-add-logging-to-provider-error
   - T-add-logging-to-tool-execution
-  - T-integrate-logging-configuratio
   - T-create-basic-cross-platform
+  - T-integrate-logging-configuratio
 created: 2025-09-19T17:59:24.678Z
 updated: 2025-09-19T17:59:24.678Z
 ---

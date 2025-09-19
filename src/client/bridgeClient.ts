@@ -401,11 +401,31 @@ export class BridgeClient {
 
       let normalized;
       try {
+        // Log raw error before normalization
+        logger.error("Provider operation failed", {
+          provider: plugin.id,
+          model: request.model,
+          operation: "chat",
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+        });
+
         normalized = plugin.normalizeError(error);
       } catch {
         // If normalization itself throws, fall back to original error
         throw error instanceof Error ? error : new Error(String(error));
       }
+
+      // Log normalized error with context
+      logger.error("Normalized error details", {
+        provider: plugin.id,
+        model: request.model,
+        operation: "chat",
+        errorCode:
+          normalized instanceof BridgeError ? normalized.code : "UNKNOWN",
+        errorMessage: normalized.message,
+      });
+
       throw normalized;
     } finally {
       cancel();
@@ -517,11 +537,31 @@ export class BridgeClient {
 
       let normalized;
       try {
+        // Log raw error before normalization
+        logger.error("Provider operation failed", {
+          provider: plugin.id,
+          model: request.model,
+          operation: "stream",
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+        });
+
         normalized = plugin.normalizeError(error);
       } catch {
         // If normalization itself throws, fall back to original error
         throw error instanceof Error ? error : new Error(String(error));
       }
+
+      // Log normalized error with context
+      logger.error("Normalized error details", {
+        provider: plugin.id,
+        model: request.model,
+        operation: "stream",
+        errorCode:
+          normalized instanceof BridgeError ? normalized.code : "UNKNOWN",
+        errorMessage: normalized.message,
+      });
+
       throw normalized;
     } finally {
       cancel();
