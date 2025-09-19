@@ -1,12 +1,41 @@
 ---
 id: T-extend-agentexecutionoptions-1
 title: Extend AgentExecutionOptions with cancellation parameters
-status: open
+status: done
 priority: high
 parent: F-cancellation-infrastructure
 prerequisites: []
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/agent/agentExecutionOptions.ts: "Extended interface with 4 new
+    cancellation properties: signal (AbortSignal), cancellationCheckIntervalMs
+    (number, default 100), gracefulCancellationTimeoutMs (number, default 5000),
+    cleanupOnCancel (boolean, default true). Added comprehensive JSDoc
+    documentation with external cancellation examples showing AbortController
+    usage patterns for chat applications."
+  src/core/agent/agentLoop.ts:
+    "Updated constructor to provide default values for
+    new cancellation properties. Modified all internal method type signatures to
+    exclude 'signal' from required properties (alongside existing
+    'iterationTimeoutMs' exclusion). Updated 5 private method signatures:
+    initializeMultiTurnState, executeIterationWithTimeout, executeIteration,
+    handleStreamingTurn, coordinateToolExecutionDuringStreaming."
+  src/core/agent/__tests__/agentExecutionOptions.test.ts: "Added comprehensive
+    test coverage for cancellation options including: new 'Cancellation Options'
+    test suite with 4 tests, updated 'Type Safety' section with cancellation
+    property validation, enhanced 'Optional Properties' and 'Combined Options'
+    tests, added cancellation example documentation validation, updated backward
+    compatibility tests, and added edge cases for zero values. Total of 8 new
+    test cases added, bringing total to 26 tests."
+log:
+  - Successfully extended AgentExecutionOptions interface with comprehensive
+    cancellation support. Added four new optional properties (signal,
+    cancellationCheckIntervalMs, gracefulCancellationTimeoutMs, cleanupOnCancel)
+    with detailed JSDoc documentation and usage examples. Updated AgentLoop
+    class to handle new cancellation properties with proper default values.
+    Implemented comprehensive test suite with 26 test cases covering type
+    safety, backward compatibility, edge cases, and documentation examples. All
+    quality checks pass and full test suite (2810 tests) passes without
+    regressions.
 schema: v1.0
 childrenIds: []
 created: 2025-09-18T23:29:40.800Z

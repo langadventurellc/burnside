@@ -40,6 +40,24 @@ describe("AgentExecutionOptions", () => {
       expect(options.timeoutMs).toBeUndefined();
       expect(options.toolTimeoutMs).toBeUndefined();
     });
+
+    it("should maintain backward compatibility with cancellation options absent", () => {
+      const options: AgentExecutionOptions = {
+        maxToolCalls: 1,
+        timeoutMs: 10000,
+        toolTimeoutMs: 5000,
+        continueOnToolError: true,
+      };
+
+      expect(options.maxToolCalls).toBe(1);
+      expect(options.timeoutMs).toBe(10000);
+      expect(options.toolTimeoutMs).toBe(5000);
+      expect(options.continueOnToolError).toBe(true);
+      expect(options.signal).toBeUndefined();
+      expect(options.cancellationCheckIntervalMs).toBeUndefined();
+      expect(options.gracefulCancellationTimeoutMs).toBeUndefined();
+      expect(options.cleanupOnCancel).toBeUndefined();
+    });
   });
 
   describe("Multi-Turn Options", () => {
@@ -88,8 +106,62 @@ describe("AgentExecutionOptions", () => {
     });
   });
 
+  describe("Cancellation Options", () => {
+    it("should compile with all cancellation options", () => {
+      const controller = new AbortController();
+      const options: AgentExecutionOptions = {
+        signal: controller.signal,
+        cancellationCheckIntervalMs: 50,
+        gracefulCancellationTimeoutMs: 3000,
+        cleanupOnCancel: false,
+      };
+
+      expect(options.signal).toBe(controller.signal);
+      expect(options.cancellationCheckIntervalMs).toBe(50);
+      expect(options.gracefulCancellationTimeoutMs).toBe(3000);
+      expect(options.cleanupOnCancel).toBe(false);
+    });
+
+    it("should compile with just AbortSignal", () => {
+      const controller = new AbortController();
+      const options: AgentExecutionOptions = {
+        signal: controller.signal,
+      };
+
+      expect(options.signal).toBe(controller.signal);
+      expect(options.cancellationCheckIntervalMs).toBeUndefined();
+      expect(options.gracefulCancellationTimeoutMs).toBeUndefined();
+      expect(options.cleanupOnCancel).toBeUndefined();
+    });
+
+    it("should compile with partial cancellation options", () => {
+      const options: AgentExecutionOptions = {
+        cancellationCheckIntervalMs: 200,
+        cleanupOnCancel: true,
+      };
+
+      expect(options.signal).toBeUndefined();
+      expect(options.cancellationCheckIntervalMs).toBe(200);
+      expect(options.gracefulCancellationTimeoutMs).toBeUndefined();
+      expect(options.cleanupOnCancel).toBe(true);
+    });
+
+    it("should handle pre-aborted signals", () => {
+      const controller = new AbortController();
+      controller.abort("Already cancelled");
+
+      const options: AgentExecutionOptions = {
+        signal: controller.signal,
+      };
+
+      expect(options.signal).toBe(controller.signal);
+      expect(options.signal?.aborted).toBe(true);
+    });
+  });
+
   describe("Combined Single-Turn and Multi-Turn Options", () => {
-    it("should compile with complete configuration", () => {
+    it("should compile with complete configuration including cancellation", () => {
+      const controller = new AbortController();
       const options: AgentExecutionOptions = {
         // Single-turn options
         maxToolCalls: 5,
@@ -102,6 +174,11 @@ describe("AgentExecutionOptions", () => {
         enableStreaming: false,
         toolExecutionStrategy: "parallel",
         maxConcurrentTools: 3,
+        // Cancellation options
+        signal: controller.signal,
+        cancellationCheckIntervalMs: 100,
+        gracefulCancellationTimeoutMs: 5000,
+        cleanupOnCancel: true,
       };
 
       // Verify single-turn options
@@ -116,6 +193,12 @@ describe("AgentExecutionOptions", () => {
       expect(options.enableStreaming).toBe(false);
       expect(options.toolExecutionStrategy).toBe("parallel");
       expect(options.maxConcurrentTools).toBe(3);
+
+      // Verify cancellation options
+      expect(options.signal).toBe(controller.signal);
+      expect(options.cancellationCheckIntervalMs).toBe(100);
+      expect(options.gracefulCancellationTimeoutMs).toBe(5000);
+      expect(options.cleanupOnCancel).toBe(true);
     });
 
     it("should compile with mixed single-turn and partial multi-turn options", () => {
@@ -158,10 +241,27 @@ describe("AgentExecutionOptions", () => {
       const options: AgentExecutionOptions = {
         continueOnToolError: false,
         enableStreaming: true,
+        cleanupOnCancel: false,
       };
 
       expect(typeof options.continueOnToolError).toBe("boolean");
       expect(typeof options.enableStreaming).toBe("boolean");
+      expect(typeof options.cleanupOnCancel).toBe("boolean");
+    });
+
+    it("should ensure cancellation properties accept correct types", () => {
+      const controller = new AbortController();
+      const options: AgentExecutionOptions = {
+        signal: controller.signal,
+        cancellationCheckIntervalMs: 100,
+        gracefulCancellationTimeoutMs: 5000,
+        cleanupOnCancel: true,
+      };
+
+      expect(options.signal).toBeInstanceOf(AbortSignal);
+      expect(typeof options.cancellationCheckIntervalMs).toBe("number");
+      expect(typeof options.gracefulCancellationTimeoutMs).toBe("number");
+      expect(typeof options.cleanupOnCancel).toBe("boolean");
     });
 
     it("should ensure toolExecutionStrategy accepts only valid union values", () => {
@@ -189,6 +289,10 @@ describe("AgentExecutionOptions", () => {
         enableStreaming: undefined,
         toolExecutionStrategy: undefined,
         maxConcurrentTools: undefined,
+        signal: undefined,
+        cancellationCheckIntervalMs: undefined,
+        gracefulCancellationTimeoutMs: undefined,
+        cleanupOnCancel: undefined,
       };
 
       // All properties should be undefined
@@ -247,6 +351,21 @@ describe("AgentExecutionOptions", () => {
       expect(multiTurnOptions.toolExecutionStrategy).toBe("parallel");
       expect(multiTurnOptions.maxConcurrentTools).toBe(2);
     });
+
+    it("should match the cancellation example from documentation", () => {
+      const abortController = new AbortController();
+      const cancellableOptions: AgentExecutionOptions = {
+        signal: abortController.signal,
+        cancellationCheckIntervalMs: 100,
+        gracefulCancellationTimeoutMs: 5000,
+        cleanupOnCancel: true,
+      };
+
+      expect(cancellableOptions.signal).toBe(abortController.signal);
+      expect(cancellableOptions.cancellationCheckIntervalMs).toBe(100);
+      expect(cancellableOptions.gracefulCancellationTimeoutMs).toBe(5000);
+      expect(cancellableOptions.cleanupOnCancel).toBe(true);
+    });
   });
 
   describe("Edge Cases", () => {
@@ -258,6 +377,8 @@ describe("AgentExecutionOptions", () => {
         maxIterations: 0,
         iterationTimeoutMs: 0,
         maxConcurrentTools: 0,
+        cancellationCheckIntervalMs: 0,
+        gracefulCancellationTimeoutMs: 0,
       };
 
       expect(options.maxToolCalls).toBe(0);
@@ -266,6 +387,8 @@ describe("AgentExecutionOptions", () => {
       expect(options.maxIterations).toBe(0);
       expect(options.iterationTimeoutMs).toBe(0);
       expect(options.maxConcurrentTools).toBe(0);
+      expect(options.cancellationCheckIntervalMs).toBe(0);
+      expect(options.gracefulCancellationTimeoutMs).toBe(0);
     });
 
     it("should handle large numeric values", () => {

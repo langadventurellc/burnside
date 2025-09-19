@@ -53,9 +53,9 @@ import { analyzeConversationTermination } from "./terminationAnalyzer";
  */
 export class AgentLoop {
   private defaultOptions: Required<
-    Omit<AgentExecutionOptions, "iterationTimeoutMs">
+    Omit<AgentExecutionOptions, "iterationTimeoutMs" | "signal">
   > &
-    Pick<AgentExecutionOptions, "iterationTimeoutMs">;
+    Pick<AgentExecutionOptions, "iterationTimeoutMs" | "signal">;
 
   constructor(
     private toolRouter: ToolRouter,
@@ -72,6 +72,12 @@ export class AgentLoop {
       toolExecutionStrategy:
         defaultOptions.toolExecutionStrategy ?? "sequential",
       maxConcurrentTools: defaultOptions.maxConcurrentTools ?? 3,
+      signal: defaultOptions.signal,
+      cancellationCheckIntervalMs:
+        defaultOptions.cancellationCheckIntervalMs ?? 100,
+      gracefulCancellationTimeoutMs:
+        defaultOptions.gracefulCancellationTimeoutMs ?? 5000,
+      cleanupOnCancel: defaultOptions.cleanupOnCancel ?? true,
     };
   }
 
@@ -403,8 +409,10 @@ export class AgentLoop {
   private async executeIterationWithTimeout(
     messages: Message[],
     state: MultiTurnState,
-    options: Required<Omit<AgentExecutionOptions, "iterationTimeoutMs">> &
-      Pick<AgentExecutionOptions, "iterationTimeoutMs">,
+    options: Required<
+      Omit<AgentExecutionOptions, "iterationTimeoutMs" | "signal">
+    > &
+      Pick<AgentExecutionOptions, "iterationTimeoutMs" | "signal">,
   ): Promise<{
     messages: Message[];
     state: MultiTurnState;
@@ -444,8 +452,10 @@ export class AgentLoop {
   private async executeIteration(
     messages: Message[],
     state: MultiTurnState,
-    options: Required<Omit<AgentExecutionOptions, "iterationTimeoutMs">> &
-      Pick<AgentExecutionOptions, "iterationTimeoutMs">,
+    options: Required<
+      Omit<AgentExecutionOptions, "iterationTimeoutMs" | "signal">
+    > &
+      Pick<AgentExecutionOptions, "iterationTimeoutMs" | "signal">,
   ): Promise<{
     messages: Message[];
     state: MultiTurnState;
@@ -542,8 +552,10 @@ export class AgentLoop {
   private async handleStreamingTurn(
     messages: Message[],
     streamingStateMachine: StreamingStateMachine,
-    options: Required<Omit<AgentExecutionOptions, "iterationTimeoutMs">> &
-      Pick<AgentExecutionOptions, "iterationTimeoutMs">,
+    options: Required<
+      Omit<AgentExecutionOptions, "iterationTimeoutMs" | "signal">
+    > &
+      Pick<AgentExecutionOptions, "iterationTimeoutMs" | "signal">,
   ): Promise<StreamingTurnResult> {
     const startTime = Date.now();
     let currentMessages = [...messages];
@@ -655,8 +667,10 @@ export class AgentLoop {
     toolCalls: ToolCall[],
     messages: Message[],
     state: MultiTurnState,
-    options: Required<Omit<AgentExecutionOptions, "iterationTimeoutMs">> &
-      Pick<AgentExecutionOptions, "iterationTimeoutMs">,
+    options: Required<
+      Omit<AgentExecutionOptions, "iterationTimeoutMs" | "signal">
+    > &
+      Pick<AgentExecutionOptions, "iterationTimeoutMs" | "signal">,
   ): Promise<{ messages: Message[]; state: MultiTurnState }> {
     try {
       let currentMessages = [...messages];
@@ -812,8 +826,10 @@ export class AgentLoop {
    */
   private initializeMultiTurnState(
     messages: Message[],
-    options: Required<Omit<AgentExecutionOptions, "iterationTimeoutMs">> &
-      Pick<AgentExecutionOptions, "iterationTimeoutMs">,
+    options: Required<
+      Omit<AgentExecutionOptions, "iterationTimeoutMs" | "signal">
+    > &
+      Pick<AgentExecutionOptions, "iterationTimeoutMs" | "signal">,
   ): MultiTurnState {
     const now = Date.now();
 

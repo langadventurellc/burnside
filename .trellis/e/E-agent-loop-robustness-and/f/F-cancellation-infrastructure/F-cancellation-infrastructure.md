@@ -39,18 +39,38 @@ affectedFiles:
   src/core/agent/index.ts: Updated main agent module to export cancellation
     infrastructure and enhanced module documentation to mention cancellation
     capabilities
+  src/core/agent/agentExecutionOptions.ts: "Extended interface with 4 new
+    cancellation properties: signal (AbortSignal), cancellationCheckIntervalMs
+    (number, default 100), gracefulCancellationTimeoutMs (number, default 5000),
+    cleanupOnCancel (boolean, default true). Added comprehensive JSDoc
+    documentation with external cancellation examples showing AbortController
+    usage patterns for chat applications."
+  src/core/agent/agentLoop.ts:
+    "Updated constructor to provide default values for
+    new cancellation properties. Modified all internal method type signatures to
+    exclude 'signal' from required properties (alongside existing
+    'iterationTimeoutMs' exclusion). Updated 5 private method signatures:
+    initializeMultiTurnState, executeIterationWithTimeout, executeIteration,
+    handleStreamingTurn, coordinateToolExecutionDuringStreaming."
+  src/core/agent/__tests__/agentExecutionOptions.test.ts: "Added comprehensive
+    test coverage for cancellation options including: new 'Cancellation Options'
+    test suite with 4 tests, updated 'Type Safety' section with cancellation
+    property validation, enhanced 'Optional Properties' and 'Combined Options'
+    tests, added cancellation example documentation validation, updated backward
+    compatibility tests, and added edge cases for zero values. Total of 8 new
+    test cases added, bringing total to 26 tests."
 log: []
 schema: v1.0
 childrenIds:
   - T-add-comprehensive-cancellation
   - T-add-tool-execution-cancellatio
-  - T-create-cancellation-error
   - T-create-resource-cleanup
   - T-enhance-bridgeclient-with
   - T-extend-agentexecutionoptions-1
   - T-implement-cancellationmanager
   - T-implement-streaming
   - T-integrate-cancellation
+  - T-create-cancellation-error
 created: 2025-09-18T02:17:29.151Z
 updated: 2025-09-18T02:17:29.151Z
 ---

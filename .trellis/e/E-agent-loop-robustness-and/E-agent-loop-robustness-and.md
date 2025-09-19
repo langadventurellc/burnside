@@ -7,8 +7,14 @@ parent: none
 prerequisites: []
 affectedFiles:
   src/core/agent/agentExecutionOptions.ts:
-    Extended interface with 5 new optional
-    multi-turn properties and comprehensive JSDoc documentation with examples
+    "Extended interface with 5 new optional
+    multi-turn properties and comprehensive JSDoc documentation with examples;
+    Extended interface with 4 new cancellation properties: signal (AbortSignal),
+    cancellationCheckIntervalMs (number, default 100),
+    gracefulCancellationTimeoutMs (number, default 5000), cleanupOnCancel
+    (boolean, default true). Added comprehensive JSDoc documentation with
+    external cancellation examples showing AbortController usage patterns for
+    chat applications."
   src/core/agent/agentLoop.ts: "Updated constructor to initialize new multi-turn
     options with proper defaults and fixed TypeScript typing for
     Required<AgentExecutionOptions>; Added executeMultiTurn() method with
@@ -27,10 +33,21 @@ affectedFiles:
     Replaced boolean termination logic with provider-aware detection,
     implemented smart continuation decisions based on termination reasons and
     confidence levels, and added fallback to original logic for uncertain
-    cases."
-  src/core/agent/__tests__/agentExecutionOptions.test.ts: Created comprehensive
+    cases.; Updated constructor to provide default values for new cancellation
+    properties. Modified all internal method type signatures to exclude 'signal'
+    from required properties (alongside existing 'iterationTimeoutMs'
+    exclusion). Updated 5 private method signatures: initializeMultiTurnState,
+    executeIterationWithTimeout, executeIteration, handleStreamingTurn,
+    coordinateToolExecutionDuringStreaming."
+  src/core/agent/__tests__/agentExecutionOptions.test.ts: "Created comprehensive
     test suite with 19 tests covering backward compatibility, type safety,
-    documentation examples, and edge cases
+    documentation examples, and edge cases; Added comprehensive test coverage
+    for cancellation options including: new 'Cancellation Options' test suite
+    with 4 tests, updated 'Type Safety' section with cancellation property
+    validation, enhanced 'Optional Properties' and 'Combined Options' tests,
+    added cancellation example documentation validation, updated backward
+    compatibility tests, and added edge cases for zero values. Total of 8 new
+    test cases added, bringing total to 26 tests."
   src/core/agent/multiTurnState.ts:
     Created new MultiTurnState interface extending
     AgentExecutionState with comprehensive multi-turn conversation state
