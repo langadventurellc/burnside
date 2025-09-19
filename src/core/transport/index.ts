@@ -76,6 +76,9 @@ export type { StreamingResponse } from "./streamingResponse";
 export type { StreamChunk } from "./streamChunk";
 export type { StreamingOptions } from "./streamingOptions";
 
+// Retry and backoff strategies
+export * from "./retry";
+
 // Request/Response redaction system
 export { RedactionProcessor, DEFAULT_REDACTION_CONFIG } from "./redactionHooks";
 

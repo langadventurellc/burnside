@@ -1,14 +1,52 @@
 ---
 id: F-rate-limiting-retries-and
 title: Rate Limiting, Retries, and Provider-Native Prompt Caching
-status: open
+status: in-progress
 priority: medium
 parent: none
 prerequisites: []
-affectedFiles: {}
+affectedFiles:
+  src/core/transport/retry/backoffConfig.ts: Created BackoffConfig interface
+    defining strategy configuration with strategy type, timing parameters, and
+    jitter settings
+  src/core/transport/retry/backoffCalculator.ts: Created BackoffCalculator
+    interface with calculateDelay and reset methods for strategy implementations
+  src/core/transport/retry/exponentialBackoffStrategy.ts: Implemented
+    ExponentialBackoffStrategy class with formula baseDelay * (multiplier ^
+    attempt), jitter support, overflow protection, and comprehensive validation
+  src/core/transport/retry/linearBackoffStrategy.ts: Implemented
+    LinearBackoffStrategy class with formula baseDelay * (attempt + 1), jitter
+    support, and validation
+  src/core/transport/retry/createBackoffStrategy.ts:
+    Created factory function for
+    instantiating appropriate strategy based on configuration
+  src/core/transport/retry/delayPromise.ts: Implemented Promise-based delay
+    utility with AbortSignal support for cancellation during retry delays
+  src/core/transport/retry/index.ts: Created barrel export file providing clean
+    public API for all retry functionality
+  src/core/transport/retry/backoffStrategy.ts: Updated to re-export from barrel
+    file for backward compatibility while maintaining deprecation notice
+  src/core/transport/retry/__tests__/backoffStrategy.test.ts: Created
+    comprehensive test suite with 34 tests covering exponential/linear
+    strategies, jitter, edge cases, validation, and AbortSignal integration
+  src/core/transport/index.ts:
+    Added retry module exports to main transport barrel
+    export for library-wide accessibility
 log: []
 schema: v1.0
-childrenIds: []
+childrenIds:
+  - T-add-prompt-caching-capability
+  - T-add-rate-limiting-configuratio
+  - T-add-retry-configuration
+  - T-create-enhanced-http
+  - T-create-prompt-cache
+  - T-create-rate-limiter-with
+  - T-create-retry-policy-manager
+  - T-extend-provider-plugin
+  - T-implement-anthropic-provider
+  - T-implement-exponential-backoff
+  - T-implement-token-bucket
+  - T-integrate-enhanced-transport
 created: 2025-09-19T02:49:27.069Z
 updated: 2025-09-19T02:49:27.069Z
 ---

@@ -1,12 +1,46 @@
 ---
 id: T-implement-exponential-backoff
 title: Implement Exponential Backoff Strategy with Jitter and Unit Tests
-status: open
+status: done
 priority: high
 parent: F-rate-limiting-retries-and
 prerequisites: []
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/transport/retry/backoffConfig.ts: Created BackoffConfig interface
+    defining strategy configuration with strategy type, timing parameters, and
+    jitter settings
+  src/core/transport/retry/backoffCalculator.ts: Created BackoffCalculator
+    interface with calculateDelay and reset methods for strategy implementations
+  src/core/transport/retry/exponentialBackoffStrategy.ts: Implemented
+    ExponentialBackoffStrategy class with formula baseDelay * (multiplier ^
+    attempt), jitter support, overflow protection, and comprehensive validation
+  src/core/transport/retry/linearBackoffStrategy.ts: Implemented
+    LinearBackoffStrategy class with formula baseDelay * (attempt + 1), jitter
+    support, and validation
+  src/core/transport/retry/createBackoffStrategy.ts:
+    Created factory function for
+    instantiating appropriate strategy based on configuration
+  src/core/transport/retry/delayPromise.ts: Implemented Promise-based delay
+    utility with AbortSignal support for cancellation during retry delays
+  src/core/transport/retry/index.ts: Created barrel export file providing clean
+    public API for all retry functionality
+  src/core/transport/retry/backoffStrategy.ts: Updated to re-export from barrel
+    file for backward compatibility while maintaining deprecation notice
+  src/core/transport/retry/__tests__/backoffStrategy.test.ts: Created
+    comprehensive test suite with 34 tests covering exponential/linear
+    strategies, jitter, edge cases, validation, and AbortSignal integration
+  src/core/transport/index.ts:
+    Added retry module exports to main transport barrel
+    export for library-wide accessibility
+log:
+  - Implemented exponential backoff strategy with jitter and comprehensive unit
+    tests. Created modular architecture following one-export-per-file rule with
+    ExponentialBackoffStrategy and LinearBackoffStrategy classes, factory
+    function, and delayPromise utility with AbortSignal support. All 34 unit
+    tests pass covering basic calculations, jitter implementation, edge cases,
+    configuration validation, and AbortSignal integration. Implementation
+    follows project patterns with proper error handling, input validation, and
+    TypeScript strict typing.
 schema: v1.0
 childrenIds: []
 created: 2025-09-19T03:01:18.091Z
