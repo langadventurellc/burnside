@@ -17,6 +17,12 @@ import type { ToolsConfig } from "./toolsConfig";
  *   },
  *   defaultModel: "gpt-4",
  *   timeout: 30000,
+ *   options: {
+ *     logging: {
+ *       enabled: true,
+ *       level: "debug"
+ *     }
+ *   },
  *   registryOptions: {
  *     providers: {},
  *     models: {}

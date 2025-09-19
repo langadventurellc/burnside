@@ -14,3 +14,4 @@ export {
   BridgeConfigSchema,
   type ValidatedBridgeConfig,
 } from "./bridgeConfigSchema";
+export { loggingConfigHelpers } from "./loggingConfigHelpers";

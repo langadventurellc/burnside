@@ -18,6 +18,8 @@ import { DefaultLlmModelsSchema } from "../core/models/defaultLlmModelsSchema";
 import { defaultLlmModels } from "../data/defaultLlmModels";
 import { ValidationError } from "../core/errors/validationError";
 import type { ModelInfo } from "../core/providers/modelInfo";
+import { logger } from "../core/logging";
+import { loggingConfigHelpers } from "../core/config";
 import {
   HttpTransport,
   EnhancedHttpTransport,
@@ -99,6 +101,9 @@ export class BridgeClient {
     },
   ) {
     this.config = this.validateAndTransformConfig(config);
+
+    // Configure logger with user settings
+    this.configureLogger(config);
 
     // Initialize registries
     this.providerRegistry =
@@ -805,6 +810,26 @@ export class BridgeClient {
     }
 
     return formatToolResultsAsMessages(toolResults);
+  }
+
+  /**
+   * Configure Logger
+   *
+   * Configures the global logger instance based on user settings
+   * in the BridgeConfig options. Uses safe defaults if no configuration
+   * is provided or if configuration is invalid.
+   *
+   * @param config - Input bridge configuration
+   */
+  private configureLogger(config: BridgeConfig): void {
+    const loggingConfig = loggingConfigHelpers.getLoggingConfig(config.options);
+
+    if (loggingConfig) {
+      const validatedConfig =
+        loggingConfigHelpers.validateLoggingConfig(loggingConfig);
+      logger.configure(validatedConfig);
+    }
+    // If no logging config provided, logger uses its built-in defaults
   }
 
   /**

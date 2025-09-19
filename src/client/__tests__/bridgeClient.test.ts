@@ -10,6 +10,7 @@ import { InMemoryProviderRegistry } from "../../core/providers/inMemoryProviderR
 import { InMemoryModelRegistry } from "../../core/models/inMemoryModelRegistry";
 import { TransportError } from "../../core/errors/transportError";
 import { AuthError } from "../../core/errors/authError";
+import { logger } from "../../core/logging";
 
 describe("BridgeClient", () => {
   const validConfig: BridgeConfig = {
@@ -65,6 +66,114 @@ describe("BridgeClient", () => {
       expect(() => new BridgeClient(invalidConfig)).toThrow(
         "Timeout must be between 1000ms and 300000ms",
       );
+    });
+
+    describe("logging configuration", () => {
+      let configureSpy: jest.SpyInstance;
+
+      beforeEach(() => {
+        configureSpy = jest.spyOn(logger, "configure");
+      });
+
+      afterEach(() => {
+        configureSpy.mockRestore();
+      });
+
+      it("should configure logger with valid logging configuration", () => {
+        const configWithLogging: BridgeConfig = {
+          ...validConfig,
+          options: {
+            logging: {
+              enabled: true,
+              level: "debug",
+            },
+          },
+        };
+
+        new BridgeClient(configWithLogging);
+
+        expect(configureSpy).toHaveBeenCalledWith({
+          enabled: true,
+          level: "debug",
+        });
+      });
+
+      it("should use default logger behavior when no logging config provided", () => {
+        new BridgeClient(validConfig);
+
+        expect(configureSpy).not.toHaveBeenCalled();
+      });
+
+      it("should handle invalid logging configuration gracefully", () => {
+        const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
+
+        const configWithInvalidLogging: BridgeConfig = {
+          ...validConfig,
+          options: {
+            logging: {
+              enabled: true,
+              level: "invalid-level" as any,
+            },
+          },
+        };
+
+        expect(() => new BridgeClient(configWithInvalidLogging)).not.toThrow();
+
+        expect(configureSpy).toHaveBeenCalledWith({
+          enabled: true,
+          level: "warn",
+        });
+
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+          "Invalid log level provided. Using default level:",
+          "warn",
+        );
+
+        consoleWarnSpy.mockRestore();
+      });
+
+      it("should configure logger with different log levels", () => {
+        const levels = ["error", "warn", "info", "debug"] as const;
+
+        levels.forEach((level) => {
+          configureSpy.mockClear();
+
+          const configWithLevel: BridgeConfig = {
+            ...validConfig,
+            options: {
+              logging: {
+                level,
+              },
+            },
+          };
+
+          new BridgeClient(configWithLevel);
+
+          expect(configureSpy).toHaveBeenCalledWith({
+            enabled: true,
+            level,
+          });
+        });
+      });
+
+      it("should configure logger with enabled false", () => {
+        const configWithDisabledLogging: BridgeConfig = {
+          ...validConfig,
+          options: {
+            logging: {
+              enabled: false,
+              level: "info",
+            },
+          },
+        };
+
+        new BridgeClient(configWithDisabledLogging);
+
+        expect(configureSpy).toHaveBeenCalledWith({
+          enabled: false,
+          level: "info",
+        });
+      });
     });
   });
 

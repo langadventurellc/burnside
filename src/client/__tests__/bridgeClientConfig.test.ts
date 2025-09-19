@@ -87,6 +87,51 @@ describe("BridgeClientConfig", () => {
       expect((config.options as any).logging.level).toBe("debug");
       expect((config.options as any).retries.count).toBe(3);
     });
+
+    it("should preserve logging configuration structure", () => {
+      const loggingConfig = {
+        enabled: true,
+        level: "info",
+      };
+
+      const config: BridgeClientConfig = {
+        timeout: 30000,
+        providers: new Map([["test", { apiKey: "test-key" }]]),
+        options: {
+          logging: loggingConfig,
+        },
+        registryOptions: {
+          providers: {},
+          models: {},
+        },
+        validated: true,
+      };
+
+      expect(config.options.logging).toEqual(loggingConfig);
+      expect((config.options as any).logging.enabled).toBe(true);
+      expect((config.options as any).logging.level).toBe("info");
+    });
+
+    it("should handle various logging level configurations", () => {
+      const levels = ["error", "warn", "info", "debug"];
+
+      levels.forEach((level) => {
+        const config: BridgeClientConfig = {
+          timeout: 30000,
+          providers: new Map([["test", { apiKey: "test-key" }]]),
+          options: {
+            logging: { level },
+          },
+          registryOptions: {
+            providers: {},
+            models: {},
+          },
+          validated: true,
+        };
+
+        expect((config.options as any).logging.level).toBe(level);
+      });
+    });
   });
 
   describe("providers Map behavior", () => {
