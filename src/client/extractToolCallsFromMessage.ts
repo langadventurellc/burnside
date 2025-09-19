@@ -1,5 +1,6 @@
 import type { Message } from "../core/messages/message";
 import type { ToolCall } from "../core/tools/toolCall";
+import { logger } from "../core/logging";
 
 /**
  * OpenAI tool call format interface for type safety
@@ -58,9 +59,19 @@ function isOpenAIToolCall(value: unknown): value is OpenAIToolCall {
 export function extractToolCallsFromMessage(message: Message): ToolCall[] {
   const toolCalls: ToolCall[] = [];
 
+  logger.debug("Tool call extraction started", {
+    messageRole: message.role,
+    hasMetadata: Boolean(message.metadata),
+    hasToolCalls: Boolean(message.metadata?.tool_calls),
+  });
+
   // Check message metadata for tool calls (OpenAI format)
   const toolCallsData = message.metadata?.tool_calls;
   if (toolCallsData && Array.isArray(toolCallsData)) {
+    logger.debug("Processing tool calls from message metadata", {
+      toolCallsCount: toolCallsData.length,
+    });
+
     for (const toolCallData of toolCallsData) {
       try {
         if (isOpenAIToolCall(toolCallData)) {
@@ -79,13 +90,41 @@ export function extractToolCallsFromMessage(message: Message): ToolCall[] {
               timestamp: new Date().toISOString(),
             },
           });
+
+          logger.debug("Tool call extracted successfully", {
+            toolName: toolCallData.function.name,
+            callId: toolCallData.id,
+            hasParameters: Boolean(
+              parameters && Object.keys(parameters).length > 0,
+            ),
+          });
         }
       } catch (error) {
         // Skip malformed tool calls but don't fail the entire extraction
-        console.warn("Failed to parse tool call:", toolCallData, error);
+        logger.warn("Failed to parse tool call from message", {
+          toolCallId:
+            typeof toolCallData === "object" &&
+            toolCallData !== null &&
+            "id" in toolCallData
+              ? (toolCallData as { id: unknown }).id
+              : "unknown",
+          error: error instanceof Error ? error.message : String(error),
+          toolCallDataType: typeof toolCallData,
+          isObject: typeof toolCallData === "object" && toolCallData !== null,
+        });
       }
     }
+  } else {
+    logger.debug("No tool calls found in message", {
+      messageRole: message.role,
+      hasMetadata: Boolean(message.metadata),
+    });
   }
+
+  logger.info("Tool call extraction completed", {
+    extractedToolCalls: toolCalls.length,
+    toolNames: toolCalls.map((tc) => tc.name),
+  });
 
   // TODO: Add support for other provider formats as needed
   // This can be extended to handle different provider-specific tool call formats

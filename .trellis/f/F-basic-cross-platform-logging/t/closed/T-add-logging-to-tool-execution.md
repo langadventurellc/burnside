@@ -1,13 +1,45 @@
 ---
 id: T-add-logging-to-tool-execution
 title: Add logging to tool execution and registration
-status: open
+status: done
 priority: medium
 parent: F-basic-cross-platform-logging
 prerequisites:
   - T-integrate-logging-configuratio
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/tools/inMemoryToolRegistry.ts: Added logger import and comprehensive
+    logging for tool registration (success/failure), validation failures, and
+    unregistration events with appropriate log levels and context
+  src/client/bridgeClient.ts:
+    Enhanced registerTool method with structured logging
+    for registration success, failures, and system not initialized errors with
+    tool context
+  src/core/tools/toolRouter.ts: Added comprehensive tool execution logging
+    including start/completion/failure events, timing information, registry
+    lookups, and null-safe error handling
+  src/core/tools/toolExecutionPipeline.ts: Implemented pipeline stage logging
+    (validation, preparation, execution, normalization) with debug-level stage
+    tracking and error reporting
+  src/providers/openai-responses-v1/toolCallParser.ts: Added tool call parsing
+    logging with validation failures, conversion tracking, argument parsing
+    errors, and truncated data safety measures
+  src/client/extractToolCallsFromMessage.ts:
+    Replaced console.warn with structured
+    logging and added comprehensive tool call extraction logging with
+    success/failure tracking
+  src/core/tools/__tests__/toolRegistry.test.ts: Added comprehensive logging
+    integration tests covering successful registration, validation failures,
+    unregistration, and proper log level usage with Jest spy mocking
+log:
+  - "Successfully implemented comprehensive logging to tool execution and
+    registration across the LLM Bridge library. Added structured logging at all
+    key points: tool registration (success/failure/validation), tool execution
+    (start/completion/errors), tool call parsing from provider responses, and
+    tool call extraction. Implemented appropriate log levels (info for success,
+    warn for validation issues, error for failures, debug for detailed data)
+    with proper data safety measures. All 3283 tests pass including new
+    comprehensive logging tests that verify the logging functionality works
+    correctly across all scenarios."
 schema: v1.0
 childrenIds: []
 created: 2025-09-19T18:10:56.081Z

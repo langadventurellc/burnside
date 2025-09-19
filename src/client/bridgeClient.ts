@@ -792,14 +792,33 @@ export class BridgeClient {
     handler: (params: Record<string, unknown>) => Promise<unknown>,
   ): void {
     if (!this.toolRouter) {
+      logger.error("Tool registration failed - system not initialized", {
+        toolName: definition.name,
+        error: "TOOL_SYSTEM_NOT_INITIALIZED",
+      });
       throw new BridgeError(
         "Tool system not initialized. Enable tools in configuration first.",
         "TOOL_SYSTEM_NOT_INITIALIZED",
       );
     }
 
-    validateToolDefinitions([definition]);
-    this.toolRouter.register(definition.name, definition, handler);
+    try {
+      validateToolDefinitions([definition]);
+      this.toolRouter.register(definition.name, definition, handler);
+
+      logger.info("Tool registered via BridgeClient", {
+        toolName: definition.name,
+        description: definition.description,
+        hasInputSchema: Boolean(definition.inputSchema),
+      });
+    } catch (error) {
+      logger.error("Tool registration failed in BridgeClient", {
+        toolName: definition.name,
+        error: error instanceof Error ? error.message : String(error),
+        errorCode: error instanceof BridgeError ? error.code : "UNKNOWN",
+      });
+      throw error;
+    }
   }
 
   /**
