@@ -31,10 +31,13 @@ import {
   type ToolDefinition,
 } from "../core/tools/index";
 import { AgentLoop } from "../core/agent/index";
+import { fromAbortSignal } from "../core/agent/cancellation/fromAbortSignal";
 import { extractToolCallsFromMessage } from "./extractToolCallsFromMessage";
 import { formatToolResultsAsMessages } from "./formatToolResultsAsMessages";
 import { shouldExecuteTools } from "./shouldExecuteTools";
 import { validateToolDefinitions } from "./validateToolDefinitions";
+import { shouldExecuteMultiTurn } from "./shouldExecuteMultiTurn";
+import { StreamingInterruptionWrapper } from "./streamingInterruptionWrapper";
 
 /**
  * Bridge Client Class
@@ -132,7 +135,11 @@ export class BridgeClient {
     if (model.includes(":")) {
       return model;
     }
-    return `${this.config.defaultProvider}:${model}`;
+    throw new BridgeError(
+      "Unqualified model IDs are not supported. Please specify the full model ID with provider prefix.",
+      "MODEL_NOT_REGISTERED",
+      { modelId: model },
+    );
   }
 
   /**
@@ -209,13 +216,36 @@ export class BridgeClient {
 
   /**
    * Create timeout signal with cancellation
+   *
+   * Combines a timeout-based AbortSignal with an optional external AbortSignal.
+   * If an external signal is provided, cancellation from either the timeout
+   * or the external signal will trigger the returned signal.
+   *
+   * @param timeoutMs - Timeout in milliseconds for automatic cancellation
+   * @param externalSignal - Optional external AbortSignal to combine with timeout
+   * @returns Object with combined signal and cancel function
    */
-  private createTimeoutSignal(timeoutMs: number): {
+  private createTimeoutSignal(
+    timeoutMs: number,
+    externalSignal?: AbortSignal,
+  ): {
     signal: AbortSignal;
     cancel: () => void;
   } {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    // Combine with external signal if provided
+    if (externalSignal) {
+      if (externalSignal.aborted) {
+        controller.abort();
+      } else {
+        externalSignal.addEventListener("abort", () => controller.abort(), {
+          once: true,
+        });
+      }
+    }
+
     return {
       signal: controller.signal,
       cancel: () => clearTimeout(timer),
@@ -274,13 +304,16 @@ export class BridgeClient {
       stream: false,
     });
 
-    // Apply timeout
+    // Apply timeout and combine with external signal
     const providerTimeout =
       typeof providerConfig.timeout === "number"
         ? providerConfig.timeout
         : undefined;
     const timeoutMs = providerTimeout ?? this.config.timeout;
-    const { signal, cancel } = this.createTimeoutSignal(timeoutMs);
+    const { signal, cancel } = this.createTimeoutSignal(
+      timeoutMs,
+      request.signal,
+    );
 
     try {
       // Execute fetch
@@ -300,17 +333,51 @@ export class BridgeClient {
 
       // Check for tool calls and execute if needed
       if (request.tools && request.tools.length > 0 && this.isToolsEnabled()) {
-        const toolResultMessages = await this.executeToolCallsInResponse(
-          result.message,
-        );
-        if (toolResultMessages.length > 0) {
-          // For now, return the original message. Full conversation continuation would need more complex logic
-          return result.message;
+        // Determine execution path: multi-turn vs single-turn
+        if (shouldExecuteMultiTurn(request, this.isToolsEnabled())) {
+          // Multi-turn execution path
+          if (!this.agentLoop) {
+            throw new ValidationError(
+              "Agent loop not initialized for multi-turn execution",
+            );
+          }
+
+          const multiTurnOptions = request.multiTurn || {};
+          const multiTurnResult = await this.agentLoop.executeMultiTurn(
+            request.messages,
+            {
+              ...multiTurnOptions,
+              timeoutMs: multiTurnOptions.timeoutMs || timeoutMs,
+              signal: request.signal,
+            },
+          );
+
+          // Return the last message from the multi-turn conversation
+          const finalMessages = multiTurnResult.finalMessages;
+          return finalMessages[finalMessages.length - 1];
+        } else {
+          // Single-turn execution path (backward compatibility)
+          const toolResultMessages = await this.executeToolCallsInResponse(
+            result.message,
+          );
+          if (toolResultMessages.length > 0) {
+            // For now, return the original message. Full conversation continuation would need more complex logic
+            return result.message;
+          }
         }
       }
 
       return result.message;
     } catch (error) {
+      // Check if this is a cancellation from external AbortSignal
+      if (
+        error instanceof DOMException &&
+        error.name === "AbortError" &&
+        request.signal?.aborted
+      ) {
+        throw fromAbortSignal(request.signal, "execution", false);
+      }
+
       let normalized;
       try {
         normalized = plugin.normalizeError(error);
@@ -371,21 +438,62 @@ export class BridgeClient {
       { temperature: modelInfo?.capabilities.temperature },
     );
 
-    // Apply timeout
+    // Apply timeout and combine with external signal
     const providerTimeout =
       typeof providerConfig.timeout === "number"
         ? providerConfig.timeout
         : undefined;
     const timeoutMs = providerTimeout ?? this.config.timeout;
-    const { signal, cancel } = this.createTimeoutSignal(timeoutMs);
+    const { signal, cancel } = this.createTimeoutSignal(
+      timeoutMs,
+      request.signal,
+    );
 
     try {
       // Execute fetch
       const httpRes = await this.httpTransport.fetch({ ...httpReq, signal });
 
       // Parse response - must be AsyncIterable<StreamDelta>
-      return plugin.parseResponse(httpRes, true) as AsyncIterable<StreamDelta>;
+      const providerStream = plugin.parseResponse(
+        httpRes,
+        true,
+      ) as AsyncIterable<StreamDelta>;
+
+      // Check if streaming interruption should be enabled
+      const hasTools = Boolean(request.tools && request.tools.length > 0);
+      if (
+        StreamingInterruptionWrapper.shouldEnableInterruption(hasTools) &&
+        this.toolRouter
+      ) {
+        // Create tool execution context
+        const context = {
+          userId: undefined,
+          sessionId: undefined,
+          environment: "production",
+          permissions: [],
+          metadata: {},
+        };
+
+        // Wrap with interruption handling
+        const wrapper = new StreamingInterruptionWrapper(
+          this.toolRouter,
+          context,
+        );
+        return wrapper.wrap(providerStream);
+      }
+
+      // Return unwrapped stream for non-tool requests
+      return providerStream;
     } catch (error) {
+      // Check if this is a cancellation from external AbortSignal
+      if (
+        error instanceof DOMException &&
+        error.name === "AbortError" &&
+        request.signal?.aborted
+      ) {
+        throw fromAbortSignal(request.signal, "streaming", false);
+      }
+
       let normalized;
       try {
         normalized = plugin.normalizeError(error);
@@ -697,7 +805,7 @@ export class BridgeClient {
     // Validate required configuration
     if (!config.defaultProvider && !config.providers) {
       throw new BridgeError(
-        "Configuration must specify either defaultProvider or providers",
+        "Configuration must specify providers",
         "INVALID_CONFIG",
         { config },
       );
@@ -736,7 +844,6 @@ export class BridgeClient {
       );
     }
 
-    const defaultModel = config.defaultModel || "gpt-3.5-turbo";
     const timeout = config.timeout || 30000;
 
     if (timeout < 1000 || timeout > 300000) {
@@ -748,8 +855,6 @@ export class BridgeClient {
     }
 
     return {
-      defaultProvider,
-      defaultModel,
       timeout,
       providers: providersMap,
       tools: config.tools,

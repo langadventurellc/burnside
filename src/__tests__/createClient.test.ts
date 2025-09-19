@@ -28,38 +28,17 @@ describe("createClient", () => {
 
       expect(client).toBeInstanceOf(BridgeClient);
       expect(client.getConfig()).toMatchObject({
-        defaultModel: "gpt-3.5-turbo",
         timeout: 30000,
         options: {},
       });
     });
 
-    it("should create client with minimal valid config (defaultProvider only)", () => {
-      const config = {
-        defaultProvider: "openai",
-        providers: {
-          openai: { apiKey: "sk-test" },
-        },
-      };
-
-      const client = createClient(config);
-
-      expect(client).toBeInstanceOf(BridgeClient);
-      expect(client.getConfig()).toMatchObject({
-        defaultProvider: "openai",
-        defaultModel: "gpt-3.5-turbo",
-        timeout: 30000,
-      });
-    });
-
     it("should create client with complete valid configuration", () => {
       const config = {
-        defaultProvider: "openai",
         providers: {
           openai: { apiKey: "sk-test", temperature: 0.7 },
           anthropic: { apiKey: "sk-ant-test" },
         },
-        defaultModel: "gpt-4",
         timeout: 60000,
         options: { retries: 3 },
       };
@@ -68,8 +47,6 @@ describe("createClient", () => {
 
       expect(client).toBeInstanceOf(BridgeClient);
       const clientConfig = client.getConfig();
-      expect(clientConfig.defaultProvider).toBe("openai");
-      expect(clientConfig.defaultModel).toBe("gpt-4");
       expect(clientConfig.timeout).toBe(60000);
       expect(clientConfig.options).toEqual({ retries: 3 });
     });
@@ -84,7 +61,6 @@ describe("createClient", () => {
       const client = createClient(config);
       const clientConfig = client.getConfig();
 
-      expect(clientConfig.defaultModel).toBe("gpt-3.5-turbo");
       expect(clientConfig.timeout).toBe(30000);
       expect(clientConfig.options).toEqual({});
       expect(clientConfig.registryOptions.providers).toEqual({});
@@ -96,7 +72,6 @@ describe("createClient", () => {
         providers: {
           openai: { apiKey: "sk-test" },
         },
-        defaultModel: "gpt-4",
         timeout: 45000,
         options: { customOption: "value" },
       };
@@ -104,7 +79,6 @@ describe("createClient", () => {
       const client = createClient(config);
       const clientConfig = client.getConfig();
 
-      expect(clientConfig.defaultModel).toBe("gpt-4");
       expect(clientConfig.timeout).toBe(45000);
       expect(clientConfig.options).toEqual({ customOption: "value" });
     });
@@ -156,19 +130,7 @@ describe("createClient", () => {
 
       expect(() => createClient(config)).toThrow(ValidationError);
       expect(() => createClient(config)).toThrow(
-        /Configuration must specify either defaultProvider or providers/,
-      );
-    });
-
-    it("should throw ValidationError for empty defaultProvider", () => {
-      const config = {
-        defaultProvider: "",
-        providers: { openai: { apiKey: "sk-test" } },
-      };
-
-      expect(() => createClient(config)).toThrow(ValidationError);
-      expect(() => createClient(config)).toThrow(
-        /Default provider cannot be empty/,
+        /Configuration must specify providers/,
       );
     });
 
@@ -183,20 +145,6 @@ describe("createClient", () => {
 
         expect(() => createClient(config)).toThrow(ValidationError);
       });
-    });
-
-    it("should throw ValidationError when defaultProvider not found in providers", () => {
-      const config = {
-        defaultProvider: "missing",
-        providers: {
-          openai: { apiKey: "sk-test" },
-        },
-      };
-
-      expect(() => createClient(config)).toThrow(ValidationError);
-      expect(() => createClient(config)).toThrow(
-        /Default provider 'missing' not found in providers configuration/,
-      );
     });
 
     it("should throw ValidationError for invalid field types", () => {
@@ -351,44 +299,9 @@ describe("createClient", () => {
         }
       }
     });
-
-    it("should handle BridgeClient constructor errors gracefully", () => {
-      // Test that createClient handles normal BridgeClient validation errors properly
-      // The BridgeClient constructor already validates provider existence
-      const config = {
-        defaultProvider: "nonexistent",
-        providers: {
-          openai: { apiKey: "sk-test" },
-        },
-      };
-
-      expect(() => createClient(config)).toThrow(ValidationError);
-      expect(() => createClient(config)).toThrow(
-        /Default provider 'nonexistent' not found in providers configuration/,
-      );
-    });
   });
 
   describe("integration with BridgeClient", () => {
-    it("should pass validated configuration to BridgeClient constructor", () => {
-      const config = {
-        defaultProvider: "openai",
-        providers: {
-          openai: { apiKey: "sk-test" },
-        },
-        defaultModel: "gpt-4",
-        timeout: 45000,
-      };
-
-      const client = createClient(config);
-      const clientConfig = client.getConfig();
-
-      expect(clientConfig.defaultProvider).toBe("openai");
-      expect(clientConfig.defaultModel).toBe("gpt-4");
-      expect(clientConfig.timeout).toBe(45000);
-      expect(clientConfig.providers.has("openai")).toBe(true);
-    });
-
     it("should create functional BridgeClient that can access configuration", () => {
       const config = {
         providers: {
@@ -451,7 +364,6 @@ describe("createClient", () => {
 
     it("should handle multiple providers with different configurations", () => {
       const config = {
-        defaultProvider: "anthropic",
         providers: {
           openai: { apiKey: "sk-openai", model: "gpt-4" },
           anthropic: { apiKey: "sk-ant-test", version: "2023-06-01" },
@@ -462,7 +374,6 @@ describe("createClient", () => {
       const client = createClient(config);
       const clientConfig = client.getConfig();
 
-      expect(clientConfig.defaultProvider).toBe("anthropic");
       expect(clientConfig.providers.size).toBe(3);
       expect(clientConfig.providers.has("openai")).toBe(true);
       expect(clientConfig.providers.has("anthropic")).toBe(true);

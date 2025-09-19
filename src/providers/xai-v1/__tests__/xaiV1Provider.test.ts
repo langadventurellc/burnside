@@ -437,4 +437,199 @@ describe("XAIV1Provider", () => {
       });
     });
   });
+
+  describe("detectTermination", () => {
+    beforeEach(() => {
+      provider = new XAIV1Provider();
+    });
+
+    it("should implement detectTermination method", () => {
+      expect(typeof provider.detectTermination).toBe("function");
+    });
+
+    it("should detect termination for non-streaming response", () => {
+      const response = {
+        message: {
+          id: "msg_test",
+          role: "assistant" as const,
+          content: [{ type: "text" as const, text: "Test message" }],
+          timestamp: "2024-01-01T00:00:00Z",
+        },
+        usage: {
+          promptTokens: 10,
+          completionTokens: 20,
+          totalTokens: 30,
+        },
+        model: "grok-3",
+        metadata: {
+          provider: "xai",
+          status: "completed",
+        },
+      };
+
+      const result = provider.detectTermination(response);
+
+      expect(result.shouldTerminate).toBe(true);
+      expect(result.reason).toBe("natural_completion");
+      expect(result.confidence).toBe("high");
+      expect(result.providerSpecific.originalField).toBe("status");
+      expect(result.providerSpecific.originalValue).toBe("completed");
+    });
+
+    it("should detect termination for streaming delta", () => {
+      const delta: StreamDelta = {
+        id: "delta_test",
+        delta: {
+          role: "assistant",
+          content: [{ type: "text", text: "Test delta" }],
+        },
+        finished: true,
+        metadata: {
+          provider: "xai",
+          eventType: "response.completed",
+        },
+      };
+
+      const result = provider.detectTermination(delta);
+
+      expect(result.shouldTerminate).toBe(true);
+      expect(result.reason).toBe("natural_completion");
+      expect(result.confidence).toBe("high");
+      expect(result.providerSpecific.originalField).toBe("eventType");
+      expect(result.providerSpecific.originalValue).toBe("response.completed");
+    });
+
+    it("should handle conversation context parameter", () => {
+      const response = {
+        message: {
+          id: "msg_test",
+          role: "assistant" as const,
+          content: [{ type: "text" as const, text: "Test message" }],
+          timestamp: "2024-01-01T00:00:00Z",
+        },
+        model: "grok-3",
+        metadata: {
+          provider: "xai",
+          status: "completed",
+        },
+      };
+
+      const conversationContext = {
+        conversationHistory: [],
+        currentIteration: 1,
+        totalIterations: 10,
+        startTime: Date.now() - 30000,
+        lastIterationTime: Date.now() - 5000,
+        streamingState: "streaming" as const,
+        toolExecutionHistory: [],
+        estimatedTokensUsed: 50,
+      };
+
+      const result = provider.detectTermination(response, conversationContext);
+
+      expect(result.shouldTerminate).toBe(true);
+      expect(result.reason).toBe("natural_completion");
+      expect(result.confidence).toBe("high");
+    });
+  });
+
+  describe("isTerminal integration with detectTermination", () => {
+    beforeEach(() => {
+      provider = new XAIV1Provider();
+    });
+
+    it("should delegate isTerminal to detectTermination for non-streaming", () => {
+      const response = {
+        message: {
+          id: "msg_test",
+          role: "assistant" as const,
+          content: [{ type: "text" as const, text: "Test message" }],
+          timestamp: "2024-01-01T00:00:00Z",
+        },
+        model: "grok-3",
+        metadata: {
+          provider: "xai",
+          status: "completed",
+        },
+      };
+
+      // Spy on detectTermination to verify delegation
+      const detectTerminationSpy = jest.spyOn(provider, "detectTermination");
+
+      const isTerminalResult = provider.isTerminal(response);
+
+      expect(detectTerminationSpy).toHaveBeenCalledWith(response, undefined);
+      expect(isTerminalResult).toBe(true);
+
+      detectTerminationSpy.mockRestore();
+    });
+
+    it("should delegate isTerminal to detectTermination for streaming", () => {
+      const delta: StreamDelta = {
+        id: "delta_test",
+        delta: {
+          role: "assistant",
+          content: [{ type: "text", text: "Test delta" }],
+        },
+        finished: true,
+        metadata: {
+          provider: "xai",
+          eventType: "response.completed",
+        },
+      };
+
+      // Spy on detectTermination to verify delegation
+      const detectTerminationSpy = jest.spyOn(provider, "detectTermination");
+
+      const isTerminalResult = provider.isTerminal(delta);
+
+      expect(detectTerminationSpy).toHaveBeenCalledWith(delta, undefined);
+      expect(isTerminalResult).toBe(true);
+
+      detectTerminationSpy.mockRestore();
+    });
+
+    it("should pass conversation context to detectTermination", () => {
+      const response = {
+        message: {
+          id: "msg_test",
+          role: "assistant" as const,
+          content: [{ type: "text" as const, text: "Test message" }],
+          timestamp: "2024-01-01T00:00:00Z",
+        },
+        model: "grok-3",
+        metadata: {
+          provider: "xai",
+          status: "completed",
+        },
+      };
+
+      const conversationContext = {
+        conversationHistory: [],
+        currentIteration: 1,
+        totalIterations: 10,
+        startTime: Date.now() - 30000,
+        lastIterationTime: Date.now() - 5000,
+        streamingState: "streaming" as const,
+        toolExecutionHistory: [],
+        estimatedTokensUsed: 50,
+      };
+
+      // Spy on detectTermination to verify delegation with context
+      const detectTerminationSpy = jest.spyOn(provider, "detectTermination");
+
+      const isTerminalResult = provider.isTerminal(
+        response,
+        conversationContext,
+      );
+
+      expect(detectTerminationSpy).toHaveBeenCalledWith(
+        response,
+        conversationContext,
+      );
+      expect(isTerminalResult).toBe(true);
+
+      detectTerminationSpy.mockRestore();
+    });
+  });
 });

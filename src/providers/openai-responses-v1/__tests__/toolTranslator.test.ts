@@ -35,9 +35,9 @@ describe("translateToolDefinitionToOpenAI", () => {
 
       expect(result).toEqual(expectedOpenAIEchoTool);
       expect(result.type).toBe("function");
-      expect(result.function.name).toBe("echo_tool");
-      expect(result.function.parameters.type).toBe("object");
-      expect(result.function.parameters.required).toContain("data");
+      expect(result.name).toBe("echo_tool");
+      expect(result.parameters.type).toBe("object");
+      expect(result.parameters.required).toContain("data");
     });
 
     it("should convert complex object schema with optional fields", () => {
@@ -46,10 +46,10 @@ describe("translateToolDefinitionToOpenAI", () => {
       );
 
       expect(result).toEqual(expectedOpenAIWeatherTool);
-      expect(result.function.parameters.properties).toHaveProperty("location");
-      expect(result.function.parameters.properties).toHaveProperty("units");
-      expect(result.function.parameters.required).toContain("location");
-      expect(result.function.parameters.required).not.toContain("days"); // days has default value
+      expect(result.parameters.properties).toHaveProperty("location");
+      expect(result.parameters.properties).toHaveProperty("units");
+      expect(result.parameters.required).toContain("location");
+      expect(result.parameters.required).not.toContain("days"); // days has default value
     });
 
     it("should handle Zod enum types correctly", () => {
@@ -63,7 +63,7 @@ describe("translateToolDefinitionToOpenAI", () => {
 
       const result = translateToolDefinitionToOpenAI(toolDef);
 
-      expect(result.function.parameters.properties?.priority).toEqual({
+      expect(result.parameters.properties?.priority).toEqual({
         type: "string",
         enum: ["low", "medium", "high"],
       });
@@ -80,7 +80,7 @@ describe("translateToolDefinitionToOpenAI", () => {
 
       const result = translateToolDefinitionToOpenAI(toolDef);
 
-      expect(result.function.parameters.properties?.count).toEqual({
+      expect(result.parameters.properties?.count).toEqual({
         type: "number",
         minimum: 1,
         maximum: 100,
@@ -98,7 +98,7 @@ describe("translateToolDefinitionToOpenAI", () => {
 
       const result = translateToolDefinitionToOpenAI(toolDef);
 
-      expect(result.function.parameters.properties?.enabled).toEqual({
+      expect(result.parameters.properties?.enabled).toEqual({
         type: "boolean",
       });
     });
@@ -114,7 +114,7 @@ describe("translateToolDefinitionToOpenAI", () => {
 
       const result = translateToolDefinitionToOpenAI(toolDef);
 
-      expect(result.function.parameters.properties?.tags).toEqual({
+      expect(result.parameters.properties?.tags).toEqual({
         type: "array",
         items: { type: "string" },
       });
@@ -131,7 +131,7 @@ describe("translateToolDefinitionToOpenAI", () => {
 
       const result = translateToolDefinitionToOpenAI(toolDef);
 
-      expect(result.function.parameters.properties?.retries).toEqual({
+      expect(result.parameters.properties?.retries).toEqual({
         type: "number",
         default: 3,
       });
@@ -151,7 +151,7 @@ describe("translateToolDefinitionToOpenAI", () => {
 
       const result = translateToolDefinitionToOpenAI(toolDef);
 
-      expect(result.function.parameters.properties?.config).toEqual({
+      expect(result.parameters.properties?.config).toEqual({
         type: "object",
         properties: {
           timeout: { type: "number" },
@@ -168,7 +168,7 @@ describe("translateToolDefinitionToOpenAI", () => {
       const result = translateToolDefinitionToOpenAI(toolWithHintsDefinition);
 
       expect(result).toEqual(expectedOpenAIHintsTool);
-      expect(result.function.name).toBe("calculate_math_expression");
+      expect(result.name).toBe("calculate_math_expression");
     });
 
     it("should validate hint-based functions against OpenAI schema", () => {
@@ -256,8 +256,8 @@ describe("translateToolDefinitionToOpenAI", () => {
 
       const result = translateToolDefinitionToOpenAI(jsonSchemaTool);
 
-      expect(result.function.parameters.properties).toHaveProperty("message");
-      expect(result.function.parameters.required).toContain("message");
+      expect(result.parameters.properties).toHaveProperty("message");
+      expect(result.parameters.required).toContain("message");
     });
   });
 });
@@ -324,9 +324,9 @@ describe("Integration Tests", () => {
     // Verify all results have correct structure
     result.forEach((tool) => {
       expect(tool.type).toBe("function");
-      expect(tool.function).toHaveProperty("name");
-      expect(tool.function).toHaveProperty("parameters");
-      expect(tool.function.parameters.type).toBe("object");
+      expect(tool).toHaveProperty("name");
+      expect(tool).toHaveProperty("parameters");
+      expect(tool.parameters.type).toBe("object");
     });
   });
 

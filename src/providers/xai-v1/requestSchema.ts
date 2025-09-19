@@ -131,20 +131,13 @@ const ToolChoiceSchema = z
   .optional();
 
 /**
- * xAI tool function schema
- */
-const ToolFunctionSchema = z.object({
-  name: z.string(),
-  description: z.string().optional(),
-  parameters: z.record(z.unknown()).optional(),
-});
-
-/**
- * xAI tool schema
+ * xAI tool schema (flat format for Responses API)
  */
 const ToolSchema = z.object({
   type: z.literal("function"),
-  function: ToolFunctionSchema,
+  name: z.string(),
+  description: z.string().optional(),
+  parameters: z.record(z.unknown()).optional(),
 });
 
 /**

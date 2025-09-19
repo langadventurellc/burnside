@@ -150,7 +150,6 @@ describe("BridgeClient Registry Integration", () => {
             },
             model: "test-model",
           }),
-          isTerminal: jest.fn().mockReturnValue(true),
           normalizeError: jest
             .fn()
             .mockImplementation(
@@ -187,7 +186,6 @@ describe("BridgeClient Registry Integration", () => {
             },
             model: "test-model",
           }),
-          isTerminal: jest.fn().mockReturnValue(true),
           normalizeError: jest
             .fn()
             .mockImplementation(
@@ -217,7 +215,6 @@ describe("BridgeClient Registry Integration", () => {
             },
             model: "test-model",
           }),
-          isTerminal: jest.fn().mockReturnValue(true),
           normalizeError: jest
             .fn()
             .mockImplementation(

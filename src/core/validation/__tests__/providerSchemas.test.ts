@@ -236,7 +236,6 @@ describe("providerSchemas", () => {
       version: "1.0.0",
       translateRequest: () => {},
       parseResponse: async () => {},
-      isTerminal: () => false,
       normalizeError: () => new Error(),
     };
 
@@ -260,7 +259,6 @@ describe("providerSchemas", () => {
       expect(result.plugin.version).toBe(mockPlugin.version);
       expect(typeof result.plugin.translateRequest).toBe("function");
       expect(typeof result.plugin.parseResponse).toBe("function");
-      expect(typeof result.plugin.isTerminal).toBe("function");
       expect(typeof result.plugin.normalizeError).toBe("function");
     });
 
@@ -362,7 +360,6 @@ describe("providerValidation", () => {
       version: "1.0.0",
       translateRequest: () => {},
       parseResponse: async () => {},
-      isTerminal: () => false,
       normalizeError: () => new Error(),
     };
 

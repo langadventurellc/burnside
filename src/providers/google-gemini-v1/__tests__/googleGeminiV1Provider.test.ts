@@ -113,7 +113,7 @@ describe("GoogleGeminiV1Provider", () => {
     it("should return false for non-Gemini models", () => {
       const unsupportedModels = [
         "gpt-4",
-        "gpt-3.5-turbo",
+        "gpt-5-nano-2025-08-07",
         "claude-3-opus",
         "claude-3-sonnet",
         "gemini-1.5-pro", // Different version
@@ -374,7 +374,7 @@ describe("GoogleGeminiV1Provider", () => {
           content: [{ type: "text", text: "Hello" }],
         },
         finished: false,
-        metadata: { finishReason: "LENGTH" },
+        metadata: { finishReason: "MAX_TOKENS" },
       };
 
       expect(provider.isTerminal(terminatedDelta)).toBe(true);
@@ -394,7 +394,7 @@ describe("GoogleGeminiV1Provider", () => {
       expect(provider.isTerminal(ongoingDelta)).toBe(false);
     });
 
-    it("should return false for streaming deltas with STOP finishReason but not finished", () => {
+    it("should return true for streaming deltas with STOP finishReason (natural completion)", () => {
       const stopDelta: StreamDelta = {
         id: "chunk-4",
         delta: {
@@ -405,7 +405,125 @@ describe("GoogleGeminiV1Provider", () => {
         metadata: { finishReason: "STOP" },
       };
 
-      expect(provider.isTerminal(stopDelta)).toBe(false);
+      expect(provider.isTerminal(stopDelta)).toBe(true);
+    });
+  });
+
+  describe("detectTermination() integration", () => {
+    it("should detect termination for non-streaming responses", () => {
+      const response = {
+        message: {
+          role: "assistant" as const,
+          content: [{ type: "text" as const, text: "Hello world" }],
+        },
+        usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 },
+        model: "gemini-2.0-flash",
+        metadata: { finishReason: "STOP" },
+      };
+
+      const signal = provider.detectTermination(response);
+
+      expect(signal.shouldTerminate).toBe(true);
+      expect(signal.reason).toBe("natural_completion");
+      expect(signal.confidence).toBe("high");
+      expect(signal.providerSpecific.originalField).toBe("finishReason");
+      expect(signal.providerSpecific.originalValue).toBe("STOP");
+    });
+
+    it("should detect termination for streaming responses", () => {
+      const delta: StreamDelta = {
+        id: "chunk_123",
+        delta: {
+          role: "assistant",
+          content: [{ type: "text", text: "Hello" }],
+        },
+        finished: true,
+        metadata: { finishReason: "MAX_TOKENS" },
+      };
+
+      const signal = provider.detectTermination(delta);
+
+      expect(signal.shouldTerminate).toBe(true);
+      expect(signal.reason).toBe("token_limit_reached");
+      expect(signal.confidence).toBe("high");
+      expect(signal.providerSpecific.originalField).toBe("finishReason");
+      expect(signal.providerSpecific.originalValue).toBe("MAX_TOKENS");
+    });
+
+    it("should handle conversation context parameter", () => {
+      const response = {
+        message: {
+          role: "assistant" as const,
+          content: [{ type: "text" as const, text: "Hello world" }],
+        },
+        usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 },
+        model: "gemini-2.0-flash",
+        metadata: { finishReason: "STOP" },
+      };
+
+      const conversationContext = {
+        conversationHistory: [],
+        currentIteration: 1,
+        totalIterations: 10,
+        startTime: Date.now() - 30000,
+        lastIterationTime: Date.now() - 5000,
+        streamingState: "streaming" as const,
+        toolExecutionHistory: [],
+        estimatedTokensUsed: 15,
+      };
+
+      const signal = provider.detectTermination(response, conversationContext);
+
+      expect(signal.shouldTerminate).toBe(true);
+      expect(signal.reason).toBe("natural_completion");
+    });
+
+    it("should ensure isTerminal() delegates to detectTermination()", () => {
+      const response = {
+        message: {
+          role: "assistant" as const,
+          content: [{ type: "text" as const, text: "Hello world" }],
+        },
+        usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 },
+        model: "gemini-2.0-flash",
+        metadata: { finishReason: "SAFETY" },
+      };
+
+      // Spy on detectTermination to ensure it's called
+      const detectTerminationSpy = jest.spyOn(provider, "detectTermination");
+
+      const isTerminal = provider.isTerminal(response);
+
+      expect(detectTerminationSpy).toHaveBeenCalledWith(response, undefined);
+      expect(isTerminal).toBe(true);
+
+      detectTerminationSpy.mockRestore();
+    });
+
+    it("should preserve finishReason mapping consistency", () => {
+      const testCases = [
+        { finishReason: "STOP", expectedReason: "natural_completion" },
+        { finishReason: "MAX_TOKENS", expectedReason: "token_limit_reached" },
+        { finishReason: "SAFETY", expectedReason: "content_filtered" },
+        { finishReason: "RECITATION", expectedReason: "content_filtered" },
+        { finishReason: "OTHER", expectedReason: "unknown" },
+      ];
+
+      testCases.forEach(({ finishReason, expectedReason }) => {
+        const response = {
+          message: {
+            role: "assistant" as const,
+            content: [{ type: "text" as const, text: "Test" }],
+          },
+          usage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 },
+          model: "gemini-2.0-flash",
+          metadata: { finishReason },
+        };
+
+        const signal = provider.detectTermination(response);
+        expect(signal.reason).toBe(expectedReason);
+        expect(signal.shouldTerminate).toBe(true);
+      });
     });
   });
 

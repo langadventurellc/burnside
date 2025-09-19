@@ -532,6 +532,92 @@ describe("AnthropicMessagesV1Provider", () => {
     });
   });
 
+  describe("detectTermination", () => {
+    beforeEach(async () => {
+      await provider.initialize({ apiKey: "sk-ant-test123" });
+    });
+
+    it("should detect termination from non-streaming response with stop_reason", () => {
+      const response = {
+        message: {
+          role: "assistant" as const,
+          content: [{ type: "text" as const, text: "Hello" }],
+        },
+        model: "claude-3-5-sonnet-20241022",
+        metadata: { stopReason: "end_turn" },
+      };
+
+      const signal = provider.detectTermination(response);
+      expect(signal.shouldTerminate).toBe(true);
+      expect(signal.reason).toBe("natural_completion");
+      expect(signal.confidence).toBe("high");
+      expect(signal.providerSpecific.originalField).toBe("stop_reason");
+      expect(signal.providerSpecific.originalValue).toBe("end_turn");
+    });
+
+    it("should detect termination from streaming delta", () => {
+      const delta: StreamDelta = {
+        id: "delta-123",
+        delta: {
+          content: [{ type: "text", text: "Hello" }],
+        },
+        finished: true,
+        metadata: { stopReason: "max_tokens" },
+      };
+
+      const signal = provider.detectTermination(delta);
+      expect(signal.shouldTerminate).toBe(true);
+      expect(signal.reason).toBe("token_limit_reached");
+      expect(signal.confidence).toBe("high");
+      expect(signal.providerSpecific.originalValue).toBe("max_tokens");
+    });
+
+    it("should integrate with isTerminal method", () => {
+      const response = {
+        message: {
+          role: "assistant" as const,
+          content: [{ type: "text" as const, text: "Hello" }],
+        },
+        model: "claude-3-5-sonnet-20241022",
+        metadata: { stopReason: "end_turn" },
+      };
+
+      // Both methods should return consistent results
+      const signal = provider.detectTermination(response);
+      const isTerminal = provider.isTerminal(response);
+
+      expect(signal.shouldTerminate).toBe(isTerminal);
+      expect(isTerminal).toBe(true);
+    });
+
+    it("should handle conversation context parameter", () => {
+      const response = {
+        message: {
+          role: "assistant" as const,
+          content: [{ type: "text" as const, text: "Hello" }],
+        },
+        model: "claude-3-5-sonnet-20241022",
+        metadata: { stopReason: "end_turn" },
+      };
+
+      const context = {
+        conversationHistory: [],
+        currentIteration: 1,
+        totalIterations: 5,
+        startTime: Date.now() - 30000,
+        lastIterationTime: Date.now() - 5000,
+        streamingState: "idle" as const,
+        toolExecutionHistory: [],
+        estimatedTokensUsed: 15,
+      };
+
+      expect(() => {
+        const signal = provider.detectTermination(response, context);
+        expect(signal.shouldTerminate).toBe(true);
+      }).not.toThrow();
+    });
+  });
+
   describe("normalizeError", () => {
     it("should return BridgeError as-is", () => {
       const bridgeError = new BridgeError("Test error", "TEST_ERROR");

@@ -12,9 +12,12 @@ import type { StreamDelta } from "../../client/streamDelta";
 import type { Message } from "../../core/messages/message";
 import type { ProviderHttpRequest } from "../../core/transport/providerHttpRequest";
 import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse";
+import type { UnifiedTerminationSignal } from "../../core/agent/unifiedTerminationSignal";
+import type { ConversationContext } from "../../core/agent/conversationContext";
 import { BridgeError } from "../../core/errors/bridgeError";
 import { ValidationError } from "../../core/errors/validationError";
 import { ProviderError } from "../../core/errors/providerError";
+import { createTerminationSignal } from "../../core/agent/createTerminationSignal";
 import {
   GoogleGeminiV1ConfigSchema,
   type GoogleGeminiV1Config,
@@ -196,16 +199,182 @@ export class GoogleGeminiV1Provider implements ProviderPlugin {
   }
 
   /**
-   * Detect if streaming response has reached termination
+   * Detect termination with comprehensive finishReason analysis
    *
-   * For streaming responses (StreamDelta), checks:
-   * - Primary indicator: finished flag set to true
-   * - Secondary indicator: finishReason metadata indicating completion
-   *
-   * For non-streaming responses (UnifiedResponse), always returns true.
+   * Analyzes Google Gemini responses to provide detailed termination signals
+   * with proper reason mapping and confidence levels. Supports both streaming
+   * and non-streaming response formats.
    *
    * @param deltaOrResponse - Either a streaming delta or final response
-   * @returns true if the response is terminal, false otherwise
+   * @param _conversationContext - Optional conversation context for enhanced analysis
+   * @returns Detailed termination signal with reasoning and confidence
+   */
+  detectTermination(
+    deltaOrResponse:
+      | StreamDelta
+      | {
+          message: Message;
+          usage?: {
+            promptTokens: number;
+            completionTokens: number;
+            totalTokens?: number;
+          };
+          model: string;
+          metadata?: Record<string, unknown>;
+        },
+    _conversationContext?: ConversationContext,
+  ): UnifiedTerminationSignal {
+    // Handle complete response object (non-streaming)
+    if ("message" in deltaOrResponse) {
+      const response = deltaOrResponse;
+      const finishReason = response.metadata?.finishReason as
+        | string
+        | null
+        | undefined;
+      return this.createGeminiTerminationSignal(
+        finishReason,
+        true, // Non-streaming responses are always terminal
+        response.metadata || {},
+      );
+    }
+
+    // Handle StreamDelta (streaming)
+    const delta = deltaOrResponse;
+    const finishReason = delta.metadata?.finishReason as
+      | string
+      | null
+      | undefined;
+    const shouldTerminate = delta.finished === true;
+    return this.createGeminiTerminationSignal(
+      finishReason,
+      shouldTerminate,
+      delta.metadata || {},
+    );
+  }
+
+  /**
+   * Create unified termination signal from Gemini finishReason
+   *
+   * Maps Google Gemini's finishReason values to unified termination signals
+   * with appropriate confidence levels and descriptive messages.
+   *
+   * @param finishReason - The finishReason from Gemini response metadata
+   * @param shouldTerminate - Whether termination should occur
+   * @param metadata - Additional metadata from the response
+   * @returns Unified termination signal with proper confidence and reasoning
+   */
+  private createGeminiTerminationSignal(
+    finishReason: string | null | undefined,
+    shouldTerminate: boolean,
+    metadata: Record<string, unknown>,
+  ): UnifiedTerminationSignal {
+    // Handle cases where finishReason is not available
+    if (!finishReason || finishReason === null) {
+      return createTerminationSignal(
+        shouldTerminate,
+        "finished", // Field name for streaming finished flag
+        shouldTerminate.toString(),
+        "unknown",
+        "low",
+        shouldTerminate
+          ? "Response terminated without finishReason"
+          : "Response continuing without finishReason",
+        metadata,
+      );
+    }
+
+    // Map Gemini finishReason values to unified termination signals
+    switch (finishReason) {
+      case "STOP":
+        return createTerminationSignal(
+          true,
+          "finishReason",
+          finishReason,
+          "natural_completion",
+          "high",
+          "Model completed response naturally",
+          metadata,
+        );
+
+      case "MAX_TOKENS":
+        return createTerminationSignal(
+          true,
+          "finishReason",
+          finishReason,
+          "token_limit_reached",
+          "high",
+          "Response terminated due to token limit",
+          metadata,
+        );
+
+      case "SAFETY":
+        return createTerminationSignal(
+          true,
+          "finishReason",
+          finishReason,
+          "content_filtered",
+          "high",
+          "Response terminated by safety filter",
+          metadata,
+        );
+
+      case "RECITATION":
+        return createTerminationSignal(
+          true,
+          "finishReason",
+          finishReason,
+          "content_filtered",
+          "high",
+          "Response terminated due to recitation/copyright concerns",
+          metadata,
+        );
+
+      case "OTHER":
+        return createTerminationSignal(
+          true,
+          "finishReason",
+          finishReason,
+          "unknown",
+          "medium",
+          "Response terminated for unspecified reason",
+          metadata,
+        );
+
+      case "FINISH_REASON_UNSPECIFIED":
+        return createTerminationSignal(
+          shouldTerminate,
+          "finishReason",
+          finishReason,
+          "unknown",
+          "low",
+          "Response with unspecified finish reason",
+          metadata,
+        );
+
+      default:
+        // Handle unknown finishReason values
+        return createTerminationSignal(
+          shouldTerminate,
+          "finishReason",
+          finishReason,
+          "unknown",
+          "medium",
+          `Response with unknown finishReason: ${finishReason}`,
+          metadata,
+        );
+    }
+  }
+
+  /**
+   * Detect if streaming response has reached termination
+   *
+   * Determines whether a streaming delta or final response indicates
+   * that the stream has completed. Delegates to detectTermination for
+   * backward compatibility.
+   *
+   * @param deltaOrResponse - Either a streaming delta or final response
+   * @param conversationContext - Optional conversation context
+   * @returns True if this indicates stream termination
    */
   isTerminal(
     deltaOrResponse:
@@ -220,27 +389,10 @@ export class GoogleGeminiV1Provider implements ProviderPlugin {
           model: string;
           metadata?: Record<string, unknown>;
         },
+    conversationContext?: ConversationContext,
   ): boolean {
-    // Check if it's a non-streaming response (has message property) - always terminal
-    if ("message" in deltaOrResponse) {
-      return true;
-    }
-
-    // Check StreamDelta for termination indicators
-    const delta = deltaOrResponse;
-
-    // Primary indicator: finished flag
-    if (delta.finished) {
-      return true;
-    }
-
-    // Secondary indicator: Gemini finishReason metadata
-    const finishReason = delta.metadata?.finishReason;
-    if (finishReason && finishReason !== "STOP") {
-      return true;
-    }
-
-    return false;
+    return this.detectTermination(deltaOrResponse, conversationContext)
+      .shouldTerminate;
   }
 
   /**

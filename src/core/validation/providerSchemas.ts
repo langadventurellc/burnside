@@ -106,7 +106,6 @@ const ProviderRegistrationSchema = z.object({
     version: z.string(),
     translateRequest: z.function(),
     parseResponse: z.function().returns(z.union([z.promise(z.any()), z.any()])),
-    isTerminal: z.function(),
     normalizeError: z.function(),
   }),
 });

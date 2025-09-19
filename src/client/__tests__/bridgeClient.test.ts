@@ -13,11 +13,9 @@ import { AuthError } from "../../core/errors/authError";
 
 describe("BridgeClient", () => {
   const validConfig: BridgeConfig = {
-    defaultProvider: "openai",
     providers: {
       openai: { apiKey: "sk-test" },
     },
-    defaultModel: "gpt-4",
     timeout: 30000,
   };
 
@@ -28,7 +26,6 @@ describe("BridgeClient", () => {
 
     it("should create instance with minimal configuration", () => {
       const minimalConfig: BridgeConfig = {
-        defaultProvider: "test",
         providers: {
           test: { apiKey: "test-key" },
         },
@@ -42,19 +39,8 @@ describe("BridgeClient", () => {
 
       expect(() => new BridgeClient(invalidConfig)).toThrow(BridgeError);
       expect(() => new BridgeClient(invalidConfig)).toThrow(
-        "Configuration must specify either defaultProvider or providers",
+        "Configuration must specify providers",
       );
-    });
-
-    it("should throw error when defaultProvider not found in providers", () => {
-      const invalidConfig: BridgeConfig = {
-        defaultProvider: "nonexistent",
-        providers: {
-          openai: { apiKey: "test" },
-        },
-      };
-
-      expect(() => new BridgeClient(invalidConfig)).toThrow(BridgeError);
     });
 
     it("should throw error for invalid timeout", () => {
@@ -80,21 +66,6 @@ describe("BridgeClient", () => {
         "Timeout must be between 1000ms and 300000ms",
       );
     });
-
-    it("should use providers as default when no defaultProvider specified", () => {
-      const config: BridgeConfig = {
-        providers: {
-          openai: { apiKey: "test" },
-          anthropic: { apiKey: "test" },
-        },
-      };
-
-      const client = new BridgeClient(config);
-      const clientConfig = client.getConfig();
-
-      expect(clientConfig.defaultProvider).toBeTruthy();
-      expect(["openai", "anthropic"]).toContain(clientConfig.defaultProvider);
-    });
   });
 
   describe("getConfig method", () => {
@@ -102,8 +73,6 @@ describe("BridgeClient", () => {
       const client = new BridgeClient(validConfig);
       const config = client.getConfig();
 
-      expect(config.defaultProvider).toBe("openai");
-      expect(config.defaultModel).toBe("gpt-4");
       expect(config.timeout).toBe(30000);
       expect(config.validated).toBe(true);
     });
@@ -124,23 +93,8 @@ describe("BridgeClient", () => {
       expect(config.providers.get("openai")).toEqual({ apiKey: "sk-test" });
     });
 
-    it("should set default model when not provided", () => {
-      const configWithoutModel: BridgeConfig = {
-        defaultProvider: "openai",
-        providers: {
-          openai: { apiKey: "test" },
-        },
-      };
-
-      const client = new BridgeClient(configWithoutModel);
-      const config = client.getConfig();
-
-      expect(config.defaultModel).toBe("gpt-3.5-turbo"); // Default fallback
-    });
-
     it("should set default timeout when not provided", () => {
       const configWithoutTimeout: BridgeConfig = {
-        defaultProvider: "openai",
         providers: {
           openai: { apiKey: "test" },
         },
@@ -156,7 +110,6 @@ describe("BridgeClient", () => {
   describe("configuration validation", () => {
     it("should validate and transform complex configuration", () => {
       const complexConfig: BridgeConfig = {
-        defaultProvider: "openai",
         providers: {
           openai: {
             apiKey: "sk-openai-test",
@@ -168,7 +121,6 @@ describe("BridgeClient", () => {
             baseURL: "https://api.anthropic.com",
           },
         },
-        defaultModel: "gpt-4-turbo",
         timeout: 45000,
         options: {
           retries: 3,
@@ -179,8 +131,6 @@ describe("BridgeClient", () => {
       const client = new BridgeClient(complexConfig);
       const config = client.getConfig();
 
-      expect(config.defaultProvider).toBe("openai");
-      expect(config.defaultModel).toBe("gpt-4-turbo");
       expect(config.timeout).toBe(45000);
       expect(config.providers.size).toBe(2);
       expect(config.options.retries).toBe(3);
@@ -189,7 +139,6 @@ describe("BridgeClient", () => {
 
     it("should handle empty options gracefully", () => {
       const configWithoutOptions: BridgeConfig = {
-        defaultProvider: "test",
         providers: {
           test: { apiKey: "test" },
         },
@@ -303,7 +252,6 @@ describe("BridgeClient", () => {
           },
           model: "gpt-x",
         }),
-        isTerminal: jest.fn(),
         normalizeError: jest.fn((e) => new TransportError(String(e))),
       } as jest.Mocked<ProviderPlugin>;
 
@@ -384,21 +332,6 @@ describe("BridgeClient", () => {
       expect(fakePlugin.parseResponse).toHaveBeenCalledWith(
         expect.objectContaining({ status: 200 }),
         false,
-      );
-    });
-
-    it("should qualify model ID with default provider", async () => {
-      // Act
-      await client.chat({
-        model: "test-model", // No provider prefix
-        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
-      });
-
-      // Assert - should call with qualified model
-      expect(fakePlugin.translateRequest).toHaveBeenCalledWith(
-        expect.objectContaining({
-          model: "test-model", // Provider prefix stripped for translation
-        }),
       );
     });
 
@@ -524,7 +457,6 @@ describe("BridgeClient", () => {
             };
           })(),
         ),
-        isTerminal: jest.fn(),
         normalizeError: jest.fn((e) => new TransportError(String(e))),
       } as unknown as jest.Mocked<ProviderPlugin>;
 
@@ -700,12 +632,10 @@ describe("BridgeClient", () => {
     let client: BridgeClient;
 
     const testConfig: BridgeConfig = {
-      defaultProvider: "openai",
       providers: {
         openai: { apiKey: "sk-test" },
         anthropic: { apiKey: "sk-ant-test" },
       },
-      defaultModel: "gpt-4",
       timeout: 30000,
     };
 
@@ -724,7 +654,6 @@ describe("BridgeClient", () => {
           body: '{"model":"gpt-4","messages":[]}',
         }),
         parseResponse: jest.fn(),
-        isTerminal: jest.fn().mockReturnValue(true),
         normalizeError: jest.fn(),
       };
 
@@ -745,7 +674,6 @@ describe("BridgeClient", () => {
           body: '{"model":"claude-sonnet-4-20250514","messages":[]}',
         }),
         parseResponse: jest.fn(),
-        isTerminal: jest.fn().mockReturnValue(true),
         normalizeError: jest.fn(),
       };
 
@@ -904,6 +832,278 @@ describe("BridgeClient", () => {
           messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
         }),
       ).rejects.toThrow(BridgeError);
+    });
+  });
+
+  describe("external cancellation", () => {
+    let client: BridgeClient;
+    let mockTransport: jest.Mocked<HttpTransport>;
+    let fakePlugin: jest.Mocked<ProviderPlugin>;
+
+    beforeEach(() => {
+      // Create mock transport
+      mockTransport = {
+        fetch: jest.fn(),
+      } as any;
+
+      // Create fake provider plugin
+      fakePlugin = {
+        id: "openai",
+        version: "responses-v1",
+        name: "OpenAI Provider",
+        initialize: jest.fn(),
+        translateRequest: jest.fn(),
+        parseResponse: jest.fn(),
+        normalizeError: jest.fn(),
+      };
+
+      // Create client with dependencies
+      const providerRegistry = new InMemoryProviderRegistry();
+      const modelRegistry = new InMemoryModelRegistry();
+
+      providerRegistry.register(fakePlugin);
+      modelRegistry.register("openai:model", {
+        id: "openai:model",
+        name: "OpenAI Test Model",
+        provider: "openai",
+        capabilities: {
+          streaming: true,
+          toolCalls: false,
+          images: false,
+          documents: false,
+          supportedContentTypes: ["text"],
+        },
+        metadata: { providerPlugin: "openai-responses-v1" },
+      });
+
+      client = new BridgeClient(validConfig, {
+        transport: mockTransport,
+        providerRegistry,
+        modelRegistry,
+      });
+    });
+
+    describe("createTimeoutSignal", () => {
+      it("should combine external signal with timeout signal", async () => {
+        // Arrange
+        const controller = new AbortController();
+        fakePlugin.translateRequest.mockReturnValue({
+          url: "https://api.test.com/chat",
+          method: "POST",
+          headers: {},
+          body: JSON.stringify({}),
+        });
+
+        let capturedSignal: AbortSignal | undefined;
+        mockTransport.fetch.mockImplementation((req) => {
+          capturedSignal = req.signal;
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            statusText: "OK",
+            headers: new Headers(),
+            body: null,
+          } as unknown as ProviderHttpResponse);
+        });
+
+        fakePlugin.parseResponse.mockResolvedValue({
+          message: {
+            role: "assistant",
+            content: [{ type: "text", text: "response" }],
+          },
+          model: "openai:model",
+        });
+
+        // Act
+        await client.chat({
+          model: "openai:model",
+          messages: [
+            { role: "user", content: [{ type: "text", text: "test" }] },
+          ],
+          signal: controller.signal,
+        });
+
+        // Assert
+        expect(capturedSignal).toBeDefined();
+        expect(capturedSignal?.aborted).toBe(false);
+      });
+
+      it("should handle pre-cancelled external signals", async () => {
+        // Arrange
+        const controller = new AbortController();
+        controller.abort("Pre-cancelled");
+
+        fakePlugin.translateRequest.mockReturnValue({
+          url: "https://api.test.com/chat",
+          method: "POST",
+          headers: {},
+          body: JSON.stringify({}),
+        });
+
+        let capturedSignal: AbortSignal | undefined;
+        mockTransport.fetch.mockImplementation((req) => {
+          capturedSignal = req.signal;
+          return Promise.reject(
+            new DOMException("Operation aborted", "AbortError"),
+          );
+        });
+
+        // Act & Assert
+        await expect(
+          client.chat({
+            model: "openai:model",
+            messages: [
+              { role: "user", content: [{ type: "text", text: "test" }] },
+            ],
+            signal: controller.signal,
+          }),
+        ).rejects.toThrow("Agent execution cancelled");
+
+        expect(capturedSignal?.aborted).toBe(true);
+      });
+    });
+
+    describe("chat() method", () => {
+      it("should propagate external signal cancellation as CancellationError", async () => {
+        // Arrange
+        const controller = new AbortController();
+
+        fakePlugin.translateRequest.mockReturnValue({
+          url: "https://api.test.com/chat",
+          method: "POST",
+          headers: {},
+          body: JSON.stringify({}),
+        });
+
+        mockTransport.fetch.mockImplementation(() => {
+          controller.abort("User cancelled");
+          return Promise.reject(
+            new DOMException("Operation aborted", "AbortError"),
+          );
+        });
+
+        // Act & Assert
+        await expect(
+          client.chat({
+            model: "openai:model",
+            messages: [
+              { role: "user", content: [{ type: "text", text: "test" }] },
+            ],
+            signal: controller.signal,
+          }),
+        ).rejects.toThrow("Agent execution cancelled");
+      });
+
+      it("should work without external signal (backward compatibility)", async () => {
+        // Arrange
+        fakePlugin.translateRequest.mockReturnValue({
+          url: "https://api.test.com/chat",
+          method: "POST",
+          headers: {},
+          body: JSON.stringify({}),
+        });
+
+        mockTransport.fetch.mockResolvedValue({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          headers: new Headers(),
+          body: null,
+        } as unknown as ProviderHttpResponse);
+
+        fakePlugin.parseResponse.mockResolvedValue({
+          message: {
+            role: "assistant",
+            content: [{ type: "text", text: "response" }],
+          },
+          model: "openai:model",
+        });
+
+        // Act
+        const result = await client.chat({
+          model: "openai:model",
+          messages: [
+            { role: "user", content: [{ type: "text", text: "test" }] },
+          ],
+          // No signal provided
+        });
+
+        // Assert
+        expect(result).toBeDefined();
+        expect(result.role).toBe("assistant");
+      });
+    });
+
+    describe("stream() method", () => {
+      it("should propagate external signal cancellation as CancellationError", async () => {
+        // Arrange
+        const controller = new AbortController();
+
+        fakePlugin.translateRequest.mockReturnValue({
+          url: "https://api.test.com/chat",
+          method: "POST",
+          headers: {},
+          body: JSON.stringify({}),
+        });
+
+        mockTransport.fetch.mockImplementation(() => {
+          controller.abort("User cancelled stream");
+          return Promise.reject(
+            new DOMException("Operation aborted", "AbortError"),
+          );
+        });
+
+        // Act & Assert
+        await expect(
+          client.stream({
+            model: "openai:model",
+            messages: [
+              { role: "user", content: [{ type: "text", text: "test" }] },
+            ],
+            signal: controller.signal,
+          }),
+        ).rejects.toThrow("Agent execution cancelled");
+      });
+
+      it("should work without external signal (backward compatibility)", async () => {
+        // Arrange
+        fakePlugin.translateRequest.mockReturnValue({
+          url: "https://api.test.com/chat",
+          method: "POST",
+          headers: {},
+          body: JSON.stringify({}),
+        });
+
+        const mockAsyncIterable = {
+          *[Symbol.asyncIterator]() {
+            yield { delta: "test", type: "content" };
+          },
+        };
+
+        mockTransport.fetch.mockResolvedValue({
+          ok: true,
+          status: 200,
+          statusText: "OK",
+          headers: new Headers(),
+          body: null,
+        } as unknown as ProviderHttpResponse);
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        fakePlugin.parseResponse.mockReturnValue(mockAsyncIterable as any);
+
+        // Act
+        const stream = await client.stream({
+          model: "openai:model",
+          messages: [
+            { role: "user", content: [{ type: "text", text: "test" }] },
+          ],
+          // No signal provided
+        });
+
+        // Assert
+        expect(stream).toBeDefined();
+        expect(Symbol.asyncIterator in stream).toBe(true);
+      });
     });
   });
 });

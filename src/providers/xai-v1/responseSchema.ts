@@ -56,12 +56,25 @@ const XAIResponseOutputReasoningSchema = z.object({
 });
 
 /**
+ * xAI function call output schema
+ */
+const XAIResponseOutputFunctionCallSchema = z.object({
+  id: z.string(),
+  type: z.literal("function_call"),
+  status: z.string(),
+  arguments: z.string(),
+  call_id: z.string(),
+  name: z.string(),
+});
+
+/**
  * xAI response output schema
- * Supports both message and reasoning outputs
+ * Supports message, reasoning, and function call outputs
  */
 const XAIResponseOutputSchema = z.union([
   XAIResponseOutputMessageSchema,
   XAIResponseOutputReasoningSchema,
+  XAIResponseOutputFunctionCallSchema,
 ]);
 
 /**

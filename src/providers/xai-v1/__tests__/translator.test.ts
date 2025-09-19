@@ -255,18 +255,16 @@ describe("xAI v1 Request Translator", () => {
       expect(body.tools).toEqual([
         {
           type: "function",
-          function: {
-            name: "get_weather",
-            description: "Get weather information",
-            parameters: {
-              type: "object",
-              properties: {
-                location: { type: "string", description: "City name" },
-                units: { type: "string", enum: ["celsius", "fahrenheit"] },
-              },
-              required: ["location"],
-              additionalProperties: false,
+          name: "get_weather",
+          description: "Get weather information",
+          parameters: {
+            type: "object",
+            properties: {
+              location: { type: "string", description: "City name" },
+              units: { type: "string", enum: ["celsius", "fahrenheit"] },
             },
+            required: ["location"],
+            additionalProperties: false,
           },
         },
       ]);
@@ -284,26 +282,24 @@ describe("xAI v1 Request Translator", () => {
       expect(body.tools).toEqual([
         {
           type: "function",
-          function: {
-            name: "calculate",
-            description: "Perform calculation",
-            parameters: {
-              type: "object",
-              properties: {
-                operation: {
-                  type: "string",
-                  enum: ["add", "subtract", "multiply", "divide"],
-                },
-                a: {
-                  type: "number",
-                },
-                b: {
-                  type: "number",
-                },
+          name: "calculate",
+          description: "Perform calculation",
+          parameters: {
+            type: "object",
+            properties: {
+              operation: {
+                type: "string",
+                enum: ["add", "subtract", "multiply", "divide"],
               },
-              required: ["operation", "a", "b"],
-              additionalProperties: false,
+              a: {
+                type: "number",
+              },
+              b: {
+                type: "number",
+              },
             },
+            required: ["operation", "a", "b"],
+            additionalProperties: false,
           },
         },
       ]);
@@ -323,9 +319,7 @@ describe("xAI v1 Request Translator", () => {
       const result = translateChatRequest(toolsRequest, mockConfig);
       const body = parseBody(result.body);
 
-      expect(body.tools[0].function.description).toBe(
-        "Execute simple_tool tool",
-      );
+      expect(body.tools[0].description).toBe("Execute simple_tool tool");
     });
 
     it("should handle multiple tools", () => {
@@ -338,8 +332,8 @@ describe("xAI v1 Request Translator", () => {
       const body = parseBody(result.body);
 
       expect(body.tools).toHaveLength(2);
-      expect(body.tools[0].function.name).toBe("get_weather");
-      expect(body.tools[1].function.name).toBe("calculate");
+      expect(body.tools[0].name).toBe("get_weather");
+      expect(body.tools[1].name).toBe("calculate");
     });
 
     it("should handle empty tools array", () => {

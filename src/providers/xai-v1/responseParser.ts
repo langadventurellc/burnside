@@ -107,26 +107,12 @@ function extractMetadata(response: XAIV1Response): Record<string, unknown> {
 }
 
 /**
- * Parse xAI v1 non-streaming response to unified format
- *
- * @param response - HTTP response from xAI API
- * @param responseText - Pre-read response body as text
- * @returns Parsed response with message, usage, model, and metadata
- * @throws {ValidationError} When response is invalid or malformed
+ * Validate and parse the raw response text
  */
-export function parseXAIResponse(
+function validateAndParseResponse(
   response: ProviderHttpResponse,
   responseText: string,
-): {
-  message: Message & { toolCalls?: ToolCall[] };
-  usage?: {
-    promptTokens: number;
-    completionTokens: number;
-    totalTokens?: number;
-  };
-  model: string;
-  metadata?: Record<string, unknown>;
-} {
+): XAIV1Response {
   if (!responseText.trim()) {
     throw new ValidationError("Response body is empty", {
       status: response.status,
@@ -169,24 +155,150 @@ export function parseXAIResponse(
     });
   }
 
+  return xaiResponse;
+}
+
+/**
+ * Process function call outputs to create tool calls
+ */
+function processFunctionCallOutputs(
+  functionCallOutputs: Array<{ type: string; [key: string]: unknown }>,
+): ToolCall[] {
+  return functionCallOutputs.map((output) => {
+    // Type guard to ensure we have the expected structure
+    if (!("type" in output) || output.type !== "function_call") {
+      throw new ValidationError(
+        "Unexpected output type in function call processing",
+      );
+    }
+
+    // Cast to the expected function_call structure
+    const functionCallOutput = output as {
+      type: "function_call";
+      id: string;
+      call_id?: string;
+      name: string;
+      arguments: string;
+    };
+
+    // Parse the arguments JSON string
+    let parameters: Record<string, unknown>;
+    try {
+      parameters = JSON.parse(functionCallOutput.arguments) as Record<
+        string,
+        unknown
+      >;
+    } catch (error) {
+      throw new ValidationError("Failed to parse function call arguments", {
+        functionName: functionCallOutput.name,
+        arguments: functionCallOutput.arguments,
+        parseError: error instanceof Error ? error.message : String(error),
+      });
+    }
+
+    return {
+      id: functionCallOutput.call_id || functionCallOutput.id,
+      name: functionCallOutput.name,
+      parameters,
+    };
+  });
+}
+
+/**
+ * Process xAI output array to create a unified message
+ */
+function processXAIOutput(
+  xaiResponse: XAIV1Response,
+  response: ProviderHttpResponse,
+): Message & { toolCalls?: ToolCall[] } {
   // Find the message type in the output array (it might not be the first item for future models)
   const messageOutput = xaiResponse.output.find(
     (item) => "type" in item && item.type === "message",
   );
 
-  if (!messageOutput) {
-    throw new ValidationError("No message type found in xAI response output", {
+  if (messageOutput) {
+    // Convert the message output to unified message format
+    return convertXAIOutputToMessage(messageOutput, xaiResponse.id);
+  }
+
+  // Check if there are function_call outputs
+  const functionCallOutputs = xaiResponse.output.filter(
+    (item) => "type" in item && item.type === "function_call",
+  );
+
+  if (functionCallOutputs.length > 0) {
+    // Convert function_call outputs to a message with tool calls
+    const toolCalls = processFunctionCallOutputs(functionCallOutputs);
+
+    // Create a synthetic assistant message with the tool calls
+    return {
+      id: xaiResponse.id,
+      role: "assistant",
+      content: [], // Empty content for tool-only responses
+      timestamp: new Date().toISOString(),
+      toolCalls,
+    };
+  }
+
+  // Check if there are reasoning outputs - treat as assistant message with reasoning content
+  const reasoningOutputs = xaiResponse.output.filter(
+    (item) => "type" in item && item.type === "reasoning",
+  );
+
+  if (reasoningOutputs.length > 0) {
+    // Create a synthetic assistant message for reasoning outputs
+    return {
+      id: xaiResponse.id,
+      role: "assistant",
+      content: [
+        {
+          type: "text",
+          text: "Reasoning completed.", // Simple placeholder since reasoning doesn't have direct text content
+        },
+      ],
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  throw new ValidationError(
+    "No message, function_call, or reasoning type found in xAI response output",
+    {
       status: response.status,
       statusText: response.statusText,
       responseId: xaiResponse.id,
       outputTypes: xaiResponse.output.map((item) =>
         "type" in item ? item.type : "unknown",
       ),
-    });
-  }
+    },
+  );
+}
 
-  // Convert the message output to unified message format
-  const message = convertXAIOutputToMessage(messageOutput, xaiResponse.id);
+/**
+ * Parse xAI v1 non-streaming response to unified format
+ *
+ * @param response - HTTP response from xAI API
+ * @param responseText - Pre-read response body as text
+ * @returns Parsed response with message, usage, model, and metadata
+ * @throws {ValidationError} When response is invalid or malformed
+ */
+export function parseXAIResponse(
+  response: ProviderHttpResponse,
+  responseText: string,
+): {
+  message: Message & { toolCalls?: ToolCall[] };
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens?: number;
+  };
+  model: string;
+  metadata?: Record<string, unknown>;
+} {
+  // Validate and parse the response
+  const xaiResponse = validateAndParseResponse(response, responseText);
+
+  // Process the output to create a unified message
+  const message = processXAIOutput(xaiResponse, response);
 
   // Extract usage and metadata
   const usage = extractUsageInformation(xaiResponse.usage);

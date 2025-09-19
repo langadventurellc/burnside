@@ -3,17 +3,20 @@
  *
  * This module contains provider base types and capability model including
  * ProviderPlugin interface, ModelInfo, ModelCapabilities, ProviderRegistry
- * interface and implementation, and the foundation for the extensible
- * provider system.
+ * interface and implementation, unified termination detection, and the
+ * foundation for the extensible provider system.
  *
- * These exports provide base contracts for all provider implementations
- * and registry management functionality.
+ * These exports provide base contracts for all provider implementations,
+ * registry management functionality, and enhanced termination detection
+ * capabilities.
  */
 
+export { defaultDetectTermination } from "./defaultTerminationDetection";
 export type { ModelCapabilities } from "./modelCapabilities";
 export type { ModelInfo } from "./modelInfo";
 export type { ProviderPlugin } from "./providerPlugin";
 export type { ProviderRegistry } from "./providerRegistry";
 export type { ProviderInfo } from "./providerInfo";
 export type { ProviderKey } from "./providerKey";
+export type { UnifiedTerminationSignal } from "../agent/unifiedTerminationSignal";
 export { InMemoryProviderRegistry } from "./inMemoryProviderRegistry";

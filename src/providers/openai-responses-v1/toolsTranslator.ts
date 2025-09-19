@@ -5,20 +5,21 @@
  * Separated from single tool translation to follow one-export-per-file rule.
  */
 
-import { z } from "zod";
 import { ValidationError } from "../../core/errors/validationError";
 import { translateToolDefinitionToOpenAI } from "./toolTranslator";
 import type { OpenAITool } from "./openAIToolSchema";
 
-// Temporary type definition - will be replaced with actual import once resolved
-type ToolDefinition = {
+import { z } from "zod";
+
+// Type definition compatible with the actual ToolDefinition from core
+interface ToolDefinition {
   name: string;
   description?: string;
   inputSchema: z.ZodTypeAny | object;
   outputSchema?: z.ZodTypeAny | object;
   hints?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
-};
+}
 
 /**
  * Convert multiple ToolDefinitions to OpenAI tools array

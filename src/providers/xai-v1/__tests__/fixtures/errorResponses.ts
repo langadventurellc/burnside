@@ -76,15 +76,15 @@ export const emptyOutputArrayResponse = {
 };
 
 export const noMessageTypeResponse = {
-  id: "resp_no_message",
+  id: "resp_no_supported_output",
   object: "completion",
   status: "completed",
   model: "grok-3",
   output: [
     {
-      id: "reasoning_only",
-      type: "reasoning",
-      summary: ["Only reasoning output"],
+      id: "unsupported_only",
+      type: "unsupported_type",
+      data: "Unknown output type",
     },
   ],
   tool_choice: "auto",

@@ -422,21 +422,23 @@ function createBridgeError(
   message: string,
   context: Record<string, unknown>,
 ): BridgeError {
+  const sanitizedMessage = sanitizeErrorMessage(message);
+
   switch (errorType) {
     case "AuthError":
-      return new AuthError(message, context);
+      return new AuthError(sanitizedMessage, context);
     case "RateLimitError":
-      return new RateLimitError(message, context);
+      return new RateLimitError(sanitizedMessage, context);
     case "ValidationError":
-      return new ValidationError(message, context);
+      return new ValidationError(sanitizedMessage, context);
     case "TimeoutError":
-      return new TimeoutError(message, context);
+      return new TimeoutError(sanitizedMessage, context);
     case "TransportError":
-      return new TransportError(message, context);
+      return new TransportError(sanitizedMessage, context);
     case "ProviderError":
-      return new ProviderError(message, context);
+      return new ProviderError(sanitizedMessage, context);
     default:
-      return new ProviderError(message, context);
+      return new ProviderError(sanitizedMessage, context);
   }
 }
 

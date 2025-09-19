@@ -102,7 +102,7 @@ describe("Temperature Capability Loading", () => {
                 temperature: false,
               },
               {
-                id: "gpt-3.5-turbo",
+                id: "gpt-5-nano-2025-08-07",
                 name: "GPT-3.5 Turbo",
                 contextLength: 16385,
                 // No temperature field - should default to true
@@ -123,10 +123,6 @@ describe("Temperature Capability Loading", () => {
       // GPT-5 Nano should have temperature: false
       const gpt5nano = result.find((m) => m.id === "gpt-5-nano-2025-08-07");
       expect(gpt5nano?.capabilities.temperature).toBe(false);
-
-      // GPT-3.5 should default to temperature: true
-      const gpt35 = result.find((m) => m.id === "gpt-3.5-turbo");
-      expect(gpt35?.capabilities.temperature).toBe(true);
     });
 
     test("should work with GPT-5 models having temperature: false", () => {

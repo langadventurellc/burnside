@@ -53,19 +53,17 @@ interface XAIFunctionHint {
 }
 
 /**
- * Zod schema for validating xAI tools
+ * Zod schema for validating xAI tools (flat format for Responses API)
  */
 const XAIToolSchema = z.object({
   type: z.literal("function"),
-  function: z.object({
-    name: z.string(),
-    description: z.string().optional(),
-    parameters: z.object({
-      type: z.literal("object"),
-      properties: z.record(z.unknown()).optional(),
-      required: z.array(z.string()).optional(),
-      additionalProperties: z.boolean().optional(),
-    }),
+  name: z.string(),
+  description: z.string().optional(),
+  parameters: z.object({
+    type: z.literal("object"),
+    properties: z.record(z.unknown()).optional(),
+    required: z.array(z.string()).optional(),
+    additionalProperties: z.boolean().optional(),
   }),
 });
 
@@ -84,7 +82,9 @@ export function translateToolDefinitionToXAI(toolDef: ToolDefinition): XAITool {
       const hintFunction = xaiHints.function as XAIFunctionHint;
       const xaiTool: XAITool = {
         type: "function",
-        function: hintFunction,
+        name: hintFunction.name,
+        description: hintFunction.description,
+        parameters: hintFunction.parameters,
       };
 
       // Validate the hint-based tool conforms to xAI schema
@@ -103,18 +103,16 @@ export function translateToolDefinitionToXAI(toolDef: ToolDefinition): XAITool {
   // Extract JSON Schema from the tool's input schema
   const parametersSchema = extractJSONSchemaFromZod(toolDef.inputSchema);
 
-  // Build xAI tool format
+  // Build xAI tool format (flat format for Responses API)
   const xaiTool: XAITool = {
     type: "function",
-    function: {
-      name: toolDef.name,
-      description: toolDef.description || `Execute ${toolDef.name} tool`,
-      parameters: {
-        type: "object",
-        properties: parametersSchema.properties || {},
-        required: parametersSchema.required || [],
-        additionalProperties: false,
-      },
+    name: toolDef.name,
+    description: toolDef.description || `Execute ${toolDef.name} tool`,
+    parameters: {
+      type: "object",
+      properties: parametersSchema.properties || {},
+      required: parametersSchema.required || [],
+      additionalProperties: false,
     },
   };
 

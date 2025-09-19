@@ -9,8 +9,6 @@ import type { ToolsConfig } from "../core/config/toolsConfig";
  * @example
  * ```typescript
  * const config: BridgeClientConfig = {
- *   defaultProvider: "openai",
- *   defaultModel: "gpt-4",
  *   timeout: 30000,
  *   providers: new Map([
  *     ["openai", { apiKey: "sk-..." }]
@@ -31,10 +29,6 @@ import type { ToolsConfig } from "../core/config/toolsConfig";
  * ```
  */
 export interface BridgeClientConfig {
-  /** Default provider to use when none specified */
-  defaultProvider: string;
-  /** Default model to use when none specified */
-  defaultModel: string;
   /** Request timeout in milliseconds */
   timeout: number;
   /** Validated provider configurations */

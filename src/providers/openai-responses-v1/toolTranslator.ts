@@ -20,15 +20,15 @@ import { z } from "zod";
 import { ValidationError } from "../../core/errors/validationError";
 import { OpenAIToolSchema, type OpenAITool } from "./openAIToolSchema";
 
-// Temporary type definition - will be replaced with actual import once resolved
-type ToolDefinition = {
+// Type definition compatible with the actual ToolDefinition from core
+interface ToolDefinition {
   name: string;
   description?: string;
   inputSchema: z.ZodTypeAny | object;
   outputSchema?: z.ZodTypeAny | object;
   hints?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
-};
+}
 
 /**
  * JSON Schema type definition for OpenAI parameters
@@ -77,7 +77,9 @@ export function translateToolDefinitionToOpenAI(
       const hintFunction = openaiHints.function as OpenAIFunctionHint;
       const openaiTool: OpenAITool = {
         type: "function",
-        function: hintFunction,
+        name: hintFunction.name,
+        description: hintFunction.description,
+        parameters: hintFunction.parameters,
       };
 
       // Validate the hint-based tool conforms to OpenAI schema
@@ -96,18 +98,16 @@ export function translateToolDefinitionToOpenAI(
   // Extract JSON Schema from the tool's input schema
   const parametersSchema = extractJSONSchemaFromZod(toolDef.inputSchema);
 
-  // Build OpenAI tool format
+  // Build OpenAI tool format (Responses API format)
   const openaiTool: OpenAITool = {
     type: "function",
-    function: {
-      name: toolDef.name,
-      description: toolDef.description || `Execute ${toolDef.name} tool`,
-      parameters: {
-        type: "object",
-        properties: parametersSchema.properties || {},
-        required: parametersSchema.required || [],
-        additionalProperties: false,
-      },
+    name: toolDef.name,
+    description: toolDef.description || `Execute ${toolDef.name} tool`,
+    parameters: {
+      type: "object",
+      properties: parametersSchema.properties || {},
+      required: parametersSchema.required || [],
+      additionalProperties: false,
     },
   };
 

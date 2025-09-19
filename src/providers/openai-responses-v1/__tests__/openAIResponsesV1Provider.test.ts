@@ -110,7 +110,7 @@ describe("OpenAIResponsesV1Provider", () => {
     });
 
     it("should support all models (model support determined by registry)", () => {
-      expect(provider.supportsModel("gpt-3.5-turbo")).toBe(true);
+      expect(provider.supportsModel("gpt-5-nano-2025-08-07")).toBe(true);
       expect(provider.supportsModel("claude-3")).toBe(true);
       expect(provider.supportsModel("non-existent-model")).toBe(true);
     });

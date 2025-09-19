@@ -72,15 +72,27 @@ export const OpenAIFunctionSchema = z.object({
 });
 
 /**
- * OpenAI tool schema for function calling.
- * Validates complete tool objects in OpenAI format.
+ * OpenAI tool schema for function calling in Responses API format.
+ * Validates complete tool objects in OpenAI Responses API format.
  */
 export const OpenAIToolSchema = z.object({
   /** Must be "function" for OpenAI tool calls */
   type: z.literal("function"),
 
-  /** Function definition */
-  function: OpenAIFunctionSchema,
+  /** Function name (must be valid identifier) */
+  name: z
+    .string()
+    .min(1, "Function name is required")
+    .regex(
+      /^[a-zA-Z_][a-zA-Z0-9_]*$/,
+      "Function name must be valid identifier (alphanumeric and underscore only)",
+    ),
+
+  /** Function description for LLM context */
+  description: z.string().optional(),
+
+  /** Function parameters in JSON Schema format */
+  parameters: OpenAIFunctionParametersSchema,
 });
 
 /**

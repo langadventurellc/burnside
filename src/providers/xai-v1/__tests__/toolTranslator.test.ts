@@ -25,27 +25,27 @@ describe("translateToolDefinitionToXAI", () => {
 
       expect(result).toEqual(expectedXAIEchoTool);
       expect(result.type).toBe("function");
-      expect(result.function.name).toBe("echo_tool");
-      expect(result.function.parameters.type).toBe("object");
-      expect(result.function.parameters.required).toContain("data");
+      expect(result.name).toBe("echo_tool");
+      expect(result.parameters.type).toBe("object");
+      expect(result.parameters.required).toContain("data");
     });
 
     it("should convert complex object schema with optional fields", () => {
       const result = translateToolDefinitionToXAI(complexWeatherToolDefinition);
 
       expect(result).toEqual(expectedXAIWeatherTool);
-      expect(result.function.parameters.properties).toHaveProperty("location");
-      expect(result.function.parameters.properties).toHaveProperty("units");
-      expect(result.function.parameters.properties).toHaveProperty("days");
-      expect(result.function.parameters.required).toEqual(["location"]);
+      expect(result.parameters.properties).toHaveProperty("location");
+      expect(result.parameters.properties).toHaveProperty("units");
+      expect(result.parameters.properties).toHaveProperty("days");
+      expect(result.parameters.required).toEqual(["location"]);
     });
 
     it("should handle provider hints with custom xAI function", () => {
       const result = translateToolDefinitionToXAI(toolWithHintsDefinition);
 
       expect(result).toEqual(expectedXAIHintsTool);
-      expect(result.function.name).toBe("calculate_math_expression");
-      expect(result.function.description).toBe(
+      expect(result.name).toBe("calculate_math_expression");
+      expect(result.description).toBe(
         "Execute a mathematical expression and return the result",
       );
     });
@@ -58,7 +58,7 @@ describe("translateToolDefinitionToXAI", () => {
 
       const result = translateToolDefinitionToXAI(toolWithoutDescription);
 
-      expect(result.function.description).toBe("Execute test_tool tool");
+      expect(result.description).toBe("Execute test_tool tool");
     });
   });
 
@@ -73,13 +73,13 @@ describe("translateToolDefinitionToXAI", () => {
 
       const result = translateToolDefinitionToXAI(tool);
 
-      expect(result.function.parameters.properties).toEqual({
+      expect(result.parameters.properties).toEqual({
         text: {
           type: "string",
           description: "Text is required",
         },
       });
-      expect(result.function.parameters.required).toEqual(["text"]);
+      expect(result.parameters.required).toEqual(["text"]);
     });
 
     it("should convert ZodNumber with min/max constraints", () => {
@@ -92,7 +92,7 @@ describe("translateToolDefinitionToXAI", () => {
 
       const result = translateToolDefinitionToXAI(tool);
 
-      expect(result.function.parameters.properties).toEqual({
+      expect(result.parameters.properties).toEqual({
         count: {
           type: "number",
           minimum: 1,
@@ -111,7 +111,7 @@ describe("translateToolDefinitionToXAI", () => {
 
       const result = translateToolDefinitionToXAI(tool);
 
-      expect(result.function.parameters.properties).toEqual({
+      expect(result.parameters.properties).toEqual({
         enabled: {
           type: "boolean",
         },
@@ -128,7 +128,7 @@ describe("translateToolDefinitionToXAI", () => {
 
       const result = translateToolDefinitionToXAI(tool);
 
-      expect(result.function.parameters.properties).toEqual({
+      expect(result.parameters.properties).toEqual({
         status: {
           type: "string",
           enum: ["active", "inactive", "pending"],
@@ -146,7 +146,7 @@ describe("translateToolDefinitionToXAI", () => {
 
       const result = translateToolDefinitionToXAI(tool);
 
-      expect(result.function.parameters.properties).toEqual({
+      expect(result.parameters.properties).toEqual({
         items: {
           type: "array",
           items: {
@@ -167,8 +167,8 @@ describe("translateToolDefinitionToXAI", () => {
 
       const result = translateToolDefinitionToXAI(tool);
 
-      expect(result.function.parameters.required).toEqual(["required"]);
-      expect(result.function.parameters.properties).toHaveProperty("optional");
+      expect(result.parameters.required).toEqual(["required"]);
+      expect(result.parameters.properties).toHaveProperty("optional");
     });
 
     it("should handle ZodDefault with default values", () => {
@@ -181,13 +181,13 @@ describe("translateToolDefinitionToXAI", () => {
 
       const result = translateToolDefinitionToXAI(tool);
 
-      expect(result.function.parameters.properties).toEqual({
+      expect(result.parameters.properties).toEqual({
         timeout: {
           type: "number",
           default: 30,
         },
       });
-      expect(result.function.parameters.required).toEqual([]);
+      expect(result.parameters.required).toEqual([]);
     });
   });
 
@@ -207,11 +207,11 @@ describe("translateToolDefinitionToXAI", () => {
 
       const result = translateToolDefinitionToXAI(tool);
 
-      expect(result.function.parameters.properties).toEqual({
+      expect(result.parameters.properties).toEqual({
         name: { type: "string" },
         age: { type: "number" },
       });
-      expect(result.function.parameters.required).toEqual(["name"]);
+      expect(result.parameters.required).toEqual(["name"]);
     });
   });
 
@@ -262,10 +262,10 @@ describe("translateToolDefinitionToXAI", () => {
 
       // TypeScript type checking - these should compile without errors
       expect(result.type).toBe("function");
-      expect(typeof result.function.name).toBe("string");
-      expect(typeof result.function.description).toBe("string");
-      expect(result.function.parameters.type).toBe("object");
-      expect(Array.isArray(result.function.parameters.required)).toBe(true);
+      expect(typeof result.name).toBe("string");
+      expect(typeof result.description).toBe("string");
+      expect(result.parameters.type).toBe("object");
+      expect(Array.isArray(result.parameters.required)).toBe(true);
     });
   });
 });

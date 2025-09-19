@@ -7,6 +7,7 @@ A TypeScript library that acts as a unified bridge to multiple LLM provider APIs
 **Applications:**
 
 - `src` - main library code
+- `src/data/defaultLlmModels.ts` - configured LLM providers, models and model capabilities. **ALL** provider and model information should come from this file and **NEVER EVER** hardcoded.
 
 ## Development
 
@@ -63,7 +64,8 @@ A TypeScript library that acts as a unified bridge to multiple LLM provider APIs
 - Dead code kept around
 - Shared “kitchen‑sink” modules
 - Hard‑coded secrets or env values
-- Never create integration or performance tests
+- **NEVER** create integration or performance tests
+- **NEVER** keep deprecated code for "backwards compatibility". Breaking old code is encouraged and preferred to keeping dead code for backwards compatibility. This is a greenfield project that's not being used anywhere, so there's no need for backwards compatibility.
 
 ---
 
