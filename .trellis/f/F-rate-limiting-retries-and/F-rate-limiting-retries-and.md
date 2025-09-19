@@ -188,7 +188,7 @@ Implement Phase 10 of the LLM Bridge Library architecture to add production-read
 
 1. **In-memory token-bucket rate limiting** with 429/Retry-After respect
 2. **Automatic retry logic** with exponential backoff and jitter
-3. **Provider-native prompt caching** hooks for session-based cache reuse
+3. **Provider-native prompt caching** markers for server-side cache optimization
 
 ## Architecture Context
 
@@ -251,12 +251,12 @@ retryPolicy?: {
 
 **Core Implementation:**
 
-- Add `promptCaching` capability flag to model definitions
-- Extend provider plugins with **optional** caching hooks to maintain backward compatibility
-- Implement Anthropic-style cache points mapping
-- Session-based cache ID reuse within process lifetime
+- Add `promptCaching` capability flag to model definitions (✅ already implemented)
+- Extend provider plugins with **optional** simple caching methods
+- Implement Anthropic cache control headers and JSON field markers
+- Server-side caching handled by providers (no client-side cache management)
 
-**Model Schema Extension:**
+**Model Schema Extension:** ✅ Already implemented
 
 ```typescript
 // Add to DefaultLlmModelsSchema (existing model capability pattern)
@@ -270,11 +270,10 @@ promptCaching: z.boolean().optional();
 interface ProviderPlugin {
   // ... existing required methods unchanged ...
 
-  // Optional caching hooks - plugins can implement if they support caching
+  // Optional simple caching hooks - providers implement if they support caching
   supportsCaching?(modelId: string): boolean;
-  createCacheRequest?(input: CacheableInput): CacheRequest | null;
-  extractCacheIds?(response: ProviderResponse): string[];
-  reuseCacheIds?(cacheIds: string[], input: CacheableInput): CacheableInput;
+  getCacheHeaders?(): Record<string, string>; // e.g., anthropic-beta header
+  markForCaching?(content: any): any; // e.g., add cache_control field
 }
 ```
 
@@ -296,12 +295,11 @@ interface ProviderPlugin {
 - `retryableHttpTransport.ts` - Transport wrapper with retry logic
 - `retryContext.ts` - Request context for retry attempts
 
-#### 3. Performance Module (`src/core/performance/`)
+#### 3. Simple Caching Support
 
-- `promptCache.ts` - Cache management and session storage
-- `cachePolicy.ts` - Cache eligibility and lifetime policies
-- `cacheableInput.ts` - Types for cacheable request inputs
-- `providerCaching/` - Provider-specific cache implementations
+- Extend provider plugin interface with optional caching methods
+- Implement Anthropic provider caching (headers + cache_control fields)
+- No complex client-side cache management needed (server-side only)
 
 #### 4. Configuration Extensions
 
@@ -339,11 +337,11 @@ interface ProviderPlugin {
 ### Provider-Native Prompt Caching
 
 - ✅ Existing provider plugins continue working without modification
-- ✅ Anthropic provider can optionally implement cache point mapping
-- ✅ Cache IDs are extracted from provider responses when supported
-- ✅ Cache reuse works within same session/process
+- ✅ Anthropic provider adds required headers and cache_control fields
+- ✅ Cache eligibility determined by content length and model capability
 - ✅ Models with `promptCaching: true` capability support caching
-- ✅ Cache misses gracefully fallback to normal requests
+- ✅ Server-side caching handled by providers automatically
+- ✅ No client-side cache complexity or session management
 
 ### Configuration & Integration
 
@@ -371,10 +369,10 @@ interface ProviderPlugin {
 
 ### Caching Implementation
 
-1. Add optional methods to provider plugin interface (backward compatible)
-2. Implement Anthropic cache control headers mapping in Anthropic provider
-3. Store cache IDs in session-scoped Map or similar
-4. Validate cache eligibility before applying cache points
+1. Add optional simple methods to provider plugin interface (backward compatible)
+2. Implement Anthropic cache control headers (`anthropic-beta: prompt-caching-2024-07-31`)
+3. Add `cache_control: {"type": "ephemeral"}` fields to eligible content
+4. Let providers handle all server-side caching logic automatically
 
 ### Error Handling
 
@@ -399,11 +397,11 @@ interface ProviderPlugin {
    - Retry attempt counting
    - Cancellation during delays
 
-3. **Prompt Caching Tests**
-   - Cache ID extraction (when provider supports it)
-   - Cache reuse logic
+3. **Simple Prompt Caching Tests**
+   - Cache header generation (Anthropic beta header)
+   - Cache field marking (cache_control JSON field)
    - Provider capability detection
-   - Cache eligibility policies
+   - Content eligibility for caching
 
 4. **Integration Tests**
    - Rate limiting + retry interaction
@@ -413,10 +411,10 @@ interface ProviderPlugin {
 
 ### Test Data Requirements
 
-- Mock provider responses with cache headers
+- Mock Anthropic requests with cache_control fields
 - HTTP error responses (429, 5xx) for retry testing
 - Various rate limiting scenarios and edge cases
-- Provider-specific caching examples (Anthropic format)
+- Cache-eligible content examples (long system prompts, tools)
 
 ## Backward Compatibility
 
@@ -443,8 +441,8 @@ interface ProviderPlugin {
 
 1. **Phase 1**: Rate limiting infrastructure and token bucket
 2. **Phase 2**: Retry logic with exponential backoff
-3. **Phase 3**: Provider-native prompt caching framework (optional hooks)
+3. **Phase 3**: Simple provider caching support (optional headers/markers)
 4. **Phase 4**: Transport integration and configuration updates
 5. **Phase 5**: Unit testing and validation
 
-This feature represents approximately 12-15 tasks of 1-2 hours each, covering the complete implementation of Phase 10 requirements with backward compatibility and no breaking changes.
+This feature represents approximately 9-11 tasks of 1-2 hours each (simplified from original 12-15), covering the complete implementation of Phase 10 requirements with backward compatibility and no breaking changes.
