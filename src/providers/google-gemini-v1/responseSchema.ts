@@ -55,6 +55,7 @@ const GeminiFinishReasonSchema = z.enum([
   "SAFETY",
   "RECITATION",
   "OTHER",
+  "UNEXPECTED_TOOL_CALL", // Model generated a tool call but no tools were enabled in the request
 ]);
 
 /**

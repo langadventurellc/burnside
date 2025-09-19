@@ -78,9 +78,46 @@ export function parseGeminiResponse(
   try {
     validatedResponse = GoogleGeminiV1ResponseSchema.parse(responseData);
   } catch (error: unknown) {
+    // Enhanced debugging for schema validation failures
+    console.error("❌ GOOGLE GEMINI RESPONSE VALIDATION FAILED");
+    console.error(
+      "📋 Full Response Data:",
+      JSON.stringify(responseData, null, 2),
+    );
+    console.error("🏷️  Response Type:", typeof responseData);
+    console.error(
+      "🔍 Response Keys:",
+      responseData && typeof responseData === "object"
+        ? Object.keys(responseData)
+        : "N/A",
+    );
+
+    // Extract Zod validation issues if available
+    let validationIssues: unknown;
+    if (error && typeof error === "object" && "issues" in error) {
+      validationIssues = error.issues;
+      console.error(
+        "⚠️  Zod Validation Issues:",
+        JSON.stringify(error.issues, null, 2),
+      );
+    }
+
+    console.error(
+      "🚨 Original Error:",
+      error instanceof Error ? error.message : String(error),
+    );
+    console.error("📊 Response Status:", response.status, response.statusText);
+    console.error("📝 Response Text Length:", responseText.length);
+    console.error("🔤 Response Text Preview:", responseText.substring(0, 500));
+
     throw new ValidationError("Invalid Gemini API response structure", {
       responseData,
       originalError: error instanceof Error ? error.message : String(error),
+      httpStatus: response.status,
+      httpStatusText: response.statusText,
+      responseTextLength: responseText.length,
+      responseTextPreview: responseText.substring(0, 500),
+      validationIssues,
     });
   }
 

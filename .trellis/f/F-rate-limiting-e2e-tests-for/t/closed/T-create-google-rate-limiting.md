@@ -1,13 +1,27 @@
 ---
 id: T-create-google-rate-limiting
 title: Create Google rate limiting E2E tests
-status: open
+status: done
 priority: medium
 parent: F-rate-limiting-e2e-tests-for
 prerequisites:
   - T-create-shared-rate-limiting
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/__tests__/e2e/google/rateLimiting.e2e.test.ts: "Created comprehensive E2E
+    tests for Google rate limiting functionality with 4 test scenarios: basic
+    throttling (2 RPS), disabled rate limiting validation, provider scope
+    isolation, and model scope testing. Tests use sequential request execution
+    to properly measure rate limiting delays and validate timing behavior using
+    shared utilities. Follows existing Google E2E test patterns with 30-second
+    timeouts and proper environment setup."
+log:
+  - "Implemented Google rate limiting E2E tests with comprehensive validation of
+    all 4 required scenarios: basic throttling (2 RPS), disabled rate limiting
+    validation, provider scope isolation, and model scope testing. Tests follow
+    existing Google E2E patterns, use shared rate limiting utilities, and
+    integrate with real Google Gemini API endpoints. All tests pass
+    successfully, validating that rate limiting works correctly with Google
+    provider through proper timing measurement and functional verification."
 schema: v1.0
 childrenIds: []
 created: 2025-09-19T16:48:52.408Z
