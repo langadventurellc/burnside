@@ -59,12 +59,29 @@ affectedFiles:
     including burst capacity, refill rate, and timing parameters
   src/core/transport/rateLimiting/index.ts: Created barrel export file providing
     clean public API for rate limiting functionality with comprehensive
-    documentation and usage examples
+    documentation and usage examples; Updated barrel exports to include
+    RateLimiter class and all related interfaces with comprehensive
+    documentation
   src/core/transport/rateLimiting/__tests__/tokenBucket.test.ts:
     Created comprehensive unit test suite with 28 tests covering constructor
     validation, basic functionality, refill mechanics, burst capacity, edge
     cases, memory management, performance characteristics, and real-world
     scenarios
+  src/core/transport/rateLimiting/rateLimiter.ts: Created RateLimiter class with
+    scope management, lazy bucket creation, automatic cleanup, memory
+    efficiency, and thread-safe operations
+  src/core/transport/rateLimiting/rateLimitConfig.ts: Created RateLimitConfig
+    interface defining configuration options for rate limiting behavior
+  src/core/transport/rateLimiting/rateLimitContext.ts: Created RateLimitContext
+    interface for request context information used in scope key generation
+  src/core/transport/rateLimiting/rateLimitStatus.ts: Created RateLimitStatus
+    interface for rate limiting status information including scope keys and
+    token availability
+  src/core/transport/rateLimiting/__tests__/rateLimiter.test.ts:
+    Created comprehensive unit test suite with 37 tests covering all
+    functionality including scope key generation, rate limiting logic, bucket
+    management, configuration updates, concurrent access, edge cases, and
+    performance characteristics
 log: []
 schema: v1.0
 childrenIds:
@@ -76,10 +93,10 @@ childrenIds:
   - T-create-rate-limiter-with
   - T-extend-provider-plugin
   - T-implement-anthropic-provider
-  - T-implement-token-bucket
   - T-integrate-enhanced-transport
   - T-create-retry-policy-manager
   - T-implement-exponential-backoff
+  - T-implement-token-bucket
 created: 2025-09-19T02:49:27.069Z
 updated: 2025-09-19T02:49:27.069Z
 ---

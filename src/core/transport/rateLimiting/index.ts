@@ -1,9 +1,10 @@
 /**
  * Rate Limiting Module
  *
- * Provides token bucket algorithm implementation for rate limiting HTTP requests
- * with configurable burst capacity and refill rates. Designed for integration
- * with HTTP transport layers to enforce provider-specific rate limits.
+ * Provides token bucket algorithm implementation and rate limiter coordinator
+ * for rate limiting HTTP requests with configurable burst capacity, refill rates,
+ * and scope management. Designed for integration with HTTP transport layers to
+ * enforce provider-specific rate limits.
  *
  * @example Creating and using a token bucket
  * ```typescript
@@ -22,15 +23,28 @@
  * }
  * ```
  *
- * @example High-frequency API with burst support
+ * @example High-level rate limiter with scope management
  * ```typescript
- * // Allow 100 RPS with burst capacity of 500
- * const highVolumeApi = new TokenBucket({
- *   maxTokens: 500,
- *   refillRate: 100
+ * import { RateLimiter } from "./rateLimiting";
+ *
+ * const limiter = new RateLimiter({
+ *   maxRps: 10,
+ *   scope: "provider:model:key",
+ *   enabled: true
  * });
+ *
+ * const context = { provider: "openai", model: "gpt-4", keyHash: "abc123" };
+ * if (limiter.checkLimit(context)) {
+ *   // Request allowed
+ * } else {
+ *   // Rate limited
+ * }
  * ```
  */
 
 export { TokenBucket } from "./tokenBucket";
 export type { TokenBucketConfig } from "./tokenBucketConfig";
+export { RateLimiter } from "./rateLimiter";
+export type { RateLimitConfig } from "./rateLimitConfig";
+export type { RateLimitContext } from "./rateLimitContext";
+export type { RateLimitStatus } from "./rateLimitStatus";

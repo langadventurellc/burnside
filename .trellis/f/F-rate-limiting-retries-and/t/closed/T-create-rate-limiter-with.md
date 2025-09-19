@@ -1,13 +1,42 @@
 ---
 id: T-create-rate-limiter-with
 title: Create Rate Limiter with Scope Management and Unit Tests
-status: open
+status: done
 priority: high
 parent: F-rate-limiting-retries-and
 prerequisites:
   - T-implement-token-bucket
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/transport/rateLimiting/rateLimiter.ts: Created RateLimiter class with
+    scope management, lazy bucket creation, automatic cleanup, memory
+    efficiency, and thread-safe operations
+  src/core/transport/rateLimiting/rateLimitConfig.ts: Created RateLimitConfig
+    interface defining configuration options for rate limiting behavior
+  src/core/transport/rateLimiting/rateLimitContext.ts: Created RateLimitContext
+    interface for request context information used in scope key generation
+  src/core/transport/rateLimiting/rateLimitStatus.ts: Created RateLimitStatus
+    interface for rate limiting status information including scope keys and
+    token availability
+  src/core/transport/rateLimiting/index.ts: Updated barrel exports to include
+    RateLimiter class and all related interfaces with comprehensive
+    documentation
+  src/core/transport/rateLimiting/__tests__/rateLimiter.test.ts:
+    Created comprehensive unit test suite with 37 tests covering all
+    functionality including scope key generation, rate limiting logic, bucket
+    management, configuration updates, concurrent access, edge cases, and
+    performance characteristics
+log:
+  - Successfully implemented RateLimiter class with comprehensive scope
+    management and unit tests. The implementation provides lazy bucket creation,
+    automatic cleanup after 5 minutes of inactivity, memory efficiency with max
+    1000 active buckets, and thread-safe concurrent access. All 37 unit tests
+    pass, covering scope key generation, rate limiting logic, bucket management,
+    configuration updates, concurrent access, edge cases, and performance
+    characteristics. The rate limiter supports global, provider, provider:model,
+    and provider:model:key scopes with configurable RPS limits and burst
+    capacity. Runtime configuration updates are supported, and the system can be
+    disabled for passthrough mode. Quality checks (lint, format, type-check) all
+    pass successfully.
 schema: v1.0
 childrenIds: []
 created: 2025-09-19T03:00:15.022Z
