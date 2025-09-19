@@ -61,6 +61,7 @@ export type { ProviderHttpResponse } from "./providerHttpResponse";
 // Transport interfaces
 export type { Transport } from "./transport";
 export { HttpTransport } from "./httpTransport";
+export { EnhancedHttpTransport } from "./enhancedHttpTransport";
 export type { HttpClient } from "./httpClient";
 
 // Interceptor chain system
@@ -78,6 +79,13 @@ export type { StreamingOptions } from "./streamingOptions";
 
 // Retry and backoff strategies
 export * from "./retry";
+
+// Rate limiting system
+export * from "./rateLimiting";
+
+// Enhanced transport utilities
+export type { RetryStats } from "./retryStats";
+export { extractRateLimitContext } from "./contextExtractor";
 
 // Request/Response redaction system
 export { RedactionProcessor, DEFAULT_REDACTION_CONFIG } from "./redactionHooks";

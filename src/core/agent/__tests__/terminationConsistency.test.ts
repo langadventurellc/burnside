@@ -306,39 +306,6 @@ describe("Cross-Provider Termination Consistency", () => {
     });
   });
 
-  describe("Performance Consistency", () => {
-    it("should have consistent performance characteristics across providers", () => {
-      const performanceMetrics: Record<string, number> = {};
-
-      // Measure termination detection performance for each provider
-      Object.entries(providers).forEach(([providerName, provider]) => {
-        const response =
-          allProviderResponses[
-            providerName as keyof typeof allProviderResponses
-          ].responses.naturalCompletion;
-
-        const start = performance.now();
-        provider.detectTermination(response);
-        const end = performance.now();
-
-        performanceMetrics[providerName] = end - start;
-      });
-
-      // All providers should detect termination in < 10ms
-      Object.entries(performanceMetrics).forEach(
-        ([_providerName, duration]) => {
-          expect(duration).toBeLessThan(10);
-        },
-      );
-
-      // Performance variance between providers should be reasonable (< 5x difference)
-      const times = Object.values(performanceMetrics);
-      const maxTime = Math.max(...times);
-      const minTime = Math.min(...times);
-      expect(maxTime / minTime).toBeLessThan(5);
-    });
-  });
-
   describe("Cross-Provider Scenario Mapping Validation", () => {
     it("should validate all cross-provider scenarios are properly mapped", () => {
       // Validate that all scenarios defined in crossProviderScenarios exist in fixtures

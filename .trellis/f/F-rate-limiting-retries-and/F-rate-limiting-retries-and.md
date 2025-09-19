@@ -32,7 +32,9 @@ affectedFiles:
     strategies, jitter, edge cases, validation, and AbortSignal integration
   src/core/transport/index.ts:
     Added retry module exports to main transport barrel
-    export for library-wide accessibility
+    export for library-wide accessibility; Updated transport module exports to
+    include EnhancedHttpTransport class, RetryStats interface, rate limiting
+    system exports, and context extraction utilities
   src/core/transport/retry/retryConfig.ts:
     Created RetryConfig interface defining
     retry behavior configuration with attempts, backoff strategy, timing
@@ -143,10 +145,25 @@ affectedFiles:
     backward compatibility, and edge cases. Tests verify delay constraints,
     status code validation, backoff strategies, and integration with existing
     configuration.
+  src/core/transport/retryStats.ts: Created RetryStats interface defining retry
+    operation statistics with totalAttempts, successfulRetries, failedRetries,
+    averageDelayMs, and maxDelayMs fields for monitoring and observability
+  src/core/transport/contextExtractor.ts: Created context extraction utilities
+    with extractRateLimitContext() function and helper functions to parse
+    provider, model, and key hash from HTTP requests for rate limiting scope
+    generation
+  src/core/transport/enhancedHttpTransport.ts: Implemented EnhancedHttpTransport
+    class wrapping HttpTransport with rate limiting and retry capabilities.
+    Supports both fetch() and stream() methods, configuration management,
+    monitoring, and maintains full Transport interface compatibility
+  src/core/transport/__tests__/enhancedHttpTransport.test.ts: Created
+    comprehensive test suite with 26 tests covering constructor configurations,
+    fetch/stream methods, rate limiting behavior, retry logic, configuration
+    management, monitoring capabilities, error handling, and integration
+    scenarios
 log: []
 schema: v1.0
 childrenIds:
-  - T-add-retry-configuration
   - T-create-enhanced-http
   - T-create-prompt-cache
   - T-extend-provider-plugin
@@ -154,6 +171,7 @@ childrenIds:
   - T-integrate-enhanced-transport
   - T-add-prompt-caching-capability
   - T-add-rate-limiting-configuratio
+  - T-add-retry-configuration
   - T-create-rate-limiter-with
   - T-create-retry-policy-manager
   - T-implement-exponential-backoff
