@@ -186,20 +186,32 @@ affectedFiles:
   src/core/tools/toolExecutionStrategy.ts: Created core strategy interface
     defining pluggable execution patterns for multiple tool calls
   src/core/tools/toolExecutionOptions.ts: Created configuration interface for
-    strategy behavior including error handling and concurrency options
+    strategy behavior including error handling and concurrency options; Added
+    cancellation options including signal (AbortSignal), cancellationMode
+    (graceful/immediate), and gracefulCancellationTimeoutMs with comprehensive
+    documentation and examples
   src/core/tools/toolExecutionResult.ts: Created result interface for strategy
     execution with ordered results and performance metadata
   src/core/tools/sequentialExecutionStrategy.ts:
     Implemented sequential execution
     strategy with ordered processing, fail-fast/continue-on-error modes, and
-    comprehensive error handling
+    comprehensive error handling; Added checkCancellation() method to detect
+    cancellation before each tool execution, implemented graceful handling of
+    cancellation errors with partial result preservation, and added cancellation
+    metadata to strategy results
   src/core/tools/parallelExecutionStrategy.ts: Implemented parallel execution
     strategy with configurable concurrency limiting, stable result ordering, and
-    performance metrics
+    performance metrics; Added cancellation checks before acquiring execution
+    slots, implemented cancellation propagation to all running tool executions,
+    added early cancellation detection, and enhanced result handling for
+    cancelled tools with partial completion support
   src/core/tools/toolRouter.ts:
     Extended ToolRouter with executeMultiple() method,
     strategy selection, caching, and validation while maintaining backward
-    compatibility
+    compatibility; Enhanced executeMultiple() method to accept and check
+    AbortSignal before execution, integrated with cancellation infrastructure
+    using createCancellationError, and added validation for new cancellation
+    options
   src/core/tools/index.ts: Updated module exports to include all strategy
     interfaces and implementations with proper documentation
   src/core/tools/__tests__/sequentialExecutionStrategy.test.ts:
@@ -430,6 +442,10 @@ affectedFiles:
     signal combination, pre-cancelled signal handling, chat() method
     cancellation propagation, stream() method cancellation propagation, and
     backward compatibility validation for both chat and stream methods
+  src/core/tools/__tests__/toolExecutionCancellation.test.ts: Created
+    comprehensive test suite with 12 test cases covering ToolRouter cancellation
+    validation, sequential/parallel strategy cancellation scenarios, graceful vs
+    immediate cancellation modes, error handling, and metadata verification
 log: []
 schema: v1.0
 childrenIds:

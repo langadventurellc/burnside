@@ -1,13 +1,42 @@
 ---
 id: T-add-tool-execution-cancellatio
 title: Add tool execution cancellation support
-status: open
+status: done
 priority: medium
 parent: F-cancellation-infrastructure
 prerequisites:
   - T-integrate-cancellation
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/tools/toolExecutionOptions.ts: Added cancellation options including
+    signal (AbortSignal), cancellationMode (graceful/immediate), and
+    gracefulCancellationTimeoutMs with comprehensive documentation and examples
+  src/core/tools/toolRouter.ts: Enhanced executeMultiple() method to accept and
+    check AbortSignal before execution, integrated with cancellation
+    infrastructure using createCancellationError, and added validation for new
+    cancellation options
+  src/core/tools/sequentialExecutionStrategy.ts:
+    Added checkCancellation() method
+    to detect cancellation before each tool execution, implemented graceful
+    handling of cancellation errors with partial result preservation, and added
+    cancellation metadata to strategy results
+  src/core/tools/parallelExecutionStrategy.ts: Added cancellation checks before
+    acquiring execution slots, implemented cancellation propagation to all
+    running tool executions, added early cancellation detection, and enhanced
+    result handling for cancelled tools with partial completion support
+  src/core/tools/__tests__/toolExecutionCancellation.test.ts: Created
+    comprehensive test suite with 12 test cases covering ToolRouter cancellation
+    validation, sequential/parallel strategy cancellation scenarios, graceful vs
+    immediate cancellation modes, error handling, and metadata verification
+log:
+  - Successfully implemented tool execution cancellation support with both
+    graceful and immediate cancellation modes. Enhanced ToolRouter to accept
+    AbortSignal, updated sequential and parallel execution strategies to check
+    cancellation before each tool execution, and implemented proper partial
+    result handling during cancellation. Added comprehensive test coverage with
+    12 new test cases. All acceptance criteria met including cancellation
+    detection, result preservation, metadata inclusion, and execution order
+    consistency. Integration with existing cancellation infrastructure completed
+    successfully.
 schema: v1.0
 childrenIds: []
 created: 2025-09-18T23:31:33.963Z

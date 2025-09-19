@@ -13,6 +13,7 @@ import type { ToolRouter } from "./toolRouter";
 import type { ToolExecutionStrategy } from "./toolExecutionStrategy";
 import type { ToolExecutionOptions } from "./toolExecutionOptions";
 import type { ToolExecutionResult } from "./toolExecutionResult";
+import { createCancellationError } from "../agent/cancellation";
 
 /**
  * Simple semaphore implementation for concurrency limiting
@@ -167,10 +168,28 @@ export class ParallelExecutionStrategy implements ToolExecutionStrategy {
     executionStartTimes: Map<string, number>,
   ): Promise<{ result: ToolResult; index: number; toolCall: ToolCall }>[] {
     return toolCalls.map(async (toolCall, index) => {
+      // Check for cancellation before acquiring semaphore
+      if (options.signal?.aborted) {
+        throw createCancellationError(
+          `Tool execution cancelled before starting tool '${toolCall.name}' (index ${index})`,
+          "tool_calls",
+          true,
+        );
+      }
+
       // Acquire semaphore slot
       await limiter.acquire();
 
       try {
+        // Check for cancellation after acquiring semaphore
+        if (options.signal?.aborted) {
+          throw createCancellationError(
+            `Tool execution cancelled after acquiring execution slot for tool '${toolCall.name}' (index ${index})`,
+            "tool_calls",
+            true,
+          );
+        }
+
         executionStartTimes.set(toolCall.id, Date.now());
 
         // Execute individual tool with timeout
@@ -247,6 +266,31 @@ export class ParallelExecutionStrategy implements ToolExecutionStrategy {
     const limiter = new ConcurrencyLimiter(maxConcurrency);
     const executionStartTimes = new Map<string, number>();
 
+    // Check for cancellation before starting execution
+    if (options.signal?.aborted) {
+      return {
+        results: new Array<ToolResult>(toolCalls.length),
+        success: false,
+        metadata: {
+          totalExecutionTime: Date.now() - startTime,
+          successCount: 0,
+          errorCount: 0,
+          strategyMetadata: {
+            strategy: "parallel",
+            executionMode: options.errorHandling,
+            maxConcurrency,
+            toolsProcessed: 0,
+            toolsRequested: toolCalls.length,
+            averageToolTime: 0,
+            concurrencyUtilization: 0,
+            parallelEfficiency: 0,
+            cancelled: true,
+            cancellationMode: options.cancellationMode || "graceful",
+          },
+        },
+      };
+    }
+
     // Create and execute all tool calls
     const executionPromises = this.createExecutionPromises(
       toolCalls,
@@ -257,8 +301,31 @@ export class ParallelExecutionStrategy implements ToolExecutionStrategy {
       executionStartTimes,
     );
 
-    // Wait for all executions to complete
-    const settledResults = await Promise.allSettled(executionPromises);
+    // Wait for all executions to complete or handle cancellation
+    let settledResults: PromiseSettledResult<{
+      result: ToolResult;
+      index: number;
+      toolCall: ToolCall;
+    }>[];
+    let cancelledDuringExecution = false;
+
+    try {
+      settledResults = await Promise.allSettled(executionPromises);
+    } catch (error) {
+      // Handle immediate cancellation scenario
+      if (
+        error &&
+        typeof error === "object" &&
+        "code" in error &&
+        error.code === "CANCELLATION_ERROR"
+      ) {
+        cancelledDuringExecution = true;
+        // Create empty settled results for partial handling
+        settledResults = [];
+      } else {
+        throw error;
+      }
+    }
 
     // Initialize results array and process settled results
     const results: ToolResult[] = new Array<ToolResult>(toolCalls.length);
@@ -274,10 +341,11 @@ export class ParallelExecutionStrategy implements ToolExecutionStrategy {
 
     const totalExecutionTime = Date.now() - startTime;
 
-    // Determine overall success based on error handling mode
+    // Determine overall success based on error handling mode and cancellation
     const success =
-      processedResults.errorCount === 0 ||
-      options.errorHandling === "continue-on-error";
+      (processedResults.errorCount === 0 ||
+        options.errorHandling === "continue-on-error") &&
+      !cancelledDuringExecution;
 
     return {
       results,
@@ -290,7 +358,7 @@ export class ParallelExecutionStrategy implements ToolExecutionStrategy {
           strategy: "parallel",
           executionMode: options.errorHandling,
           maxConcurrency,
-          toolsProcessed: results.length,
+          toolsProcessed: results.filter((r) => r !== undefined).length,
           toolsRequested: toolCalls.length,
           averageToolTime:
             toolExecutionTimes.length > 0
@@ -302,6 +370,8 @@ export class ParallelExecutionStrategy implements ToolExecutionStrategy {
             toolExecutionTimes.length > 0
               ? Math.max(...toolExecutionTimes) / totalExecutionTime
               : 0,
+          cancelled: cancelledDuringExecution,
+          cancellationMode: options.cancellationMode || "graceful",
         },
       },
       firstError: processedResults.firstError,

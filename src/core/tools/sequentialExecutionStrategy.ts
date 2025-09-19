@@ -13,6 +13,7 @@ import type { ToolRouter } from "./toolRouter";
 import type { ToolExecutionStrategy } from "./toolExecutionStrategy";
 import type { ToolExecutionOptions } from "./toolExecutionOptions";
 import type { ToolExecutionResult } from "./toolExecutionResult";
+import { createCancellationError } from "../agent/cancellation";
 
 /**
  * Sequential execution strategy implementation
@@ -35,6 +36,23 @@ import type { ToolExecutionResult } from "./toolExecutionResult";
  * ```
  */
 export class SequentialExecutionStrategy implements ToolExecutionStrategy {
+  /**
+   * Check for cancellation before tool execution
+   */
+  private checkCancellation(
+    options: ToolExecutionOptions,
+    toolCall: ToolCall,
+    index: number,
+  ): void {
+    if (options.signal?.aborted) {
+      throw createCancellationError(
+        `Tool execution cancelled before executing tool '${toolCall.name}' (index ${index})`,
+        "tool_calls",
+        true,
+      );
+    }
+  }
+
   /**
    * Handle execution of a single tool call
    */
@@ -123,6 +141,7 @@ export class SequentialExecutionStrategy implements ToolExecutionStrategy {
     let successCount = 0;
     let errorCount = 0;
     let firstError: ToolExecutionResult["firstError"];
+    let cancelledDuringExecution = false;
 
     // Handle empty array case
     if (toolCalls.length === 0) {
@@ -141,33 +160,53 @@ export class SequentialExecutionStrategy implements ToolExecutionStrategy {
       };
     }
 
-    // Execute tools one by one
-    for (let i = 0; i < toolCalls.length; i++) {
-      const toolCall = toolCalls[i];
-      const result = await this.executeSingleTool(
-        toolCall,
-        router,
-        context,
-        options,
-        i,
-      );
+    try {
+      // Execute tools one by one
+      for (let i = 0; i < toolCalls.length; i++) {
+        const toolCall = toolCalls[i];
 
-      results.push(result);
+        // Check for cancellation before each tool execution
+        this.checkCancellation(options, toolCall, i);
 
-      const processedResult = this.processResult(
-        result,
-        successCount,
-        errorCount,
-        firstError,
-      );
+        const result = await this.executeSingleTool(
+          toolCall,
+          router,
+          context,
+          options,
+          i,
+        );
 
-      successCount = processedResult.successCount;
-      errorCount = processedResult.errorCount;
-      firstError = processedResult.firstError;
+        results.push(result);
 
-      // Stop execution on first error in fail-fast mode
-      if (!result.success && options.errorHandling === "fail-fast") {
-        break;
+        const processedResult = this.processResult(
+          result,
+          successCount,
+          errorCount,
+          firstError,
+        );
+
+        successCount = processedResult.successCount;
+        errorCount = processedResult.errorCount;
+        firstError = processedResult.firstError;
+
+        // Stop execution on first error in fail-fast mode
+        if (!result.success && options.errorHandling === "fail-fast") {
+          break;
+        }
+      }
+    } catch (error) {
+      // Handle cancellation errors - preserve partial results
+      if (
+        error &&
+        typeof error === "object" &&
+        "code" in error &&
+        error.code === "CANCELLATION_ERROR"
+      ) {
+        cancelledDuringExecution = true;
+        // Partial results are already in the results array
+      } else {
+        // Re-throw non-cancellation errors
+        throw error;
       }
     }
 
@@ -177,7 +216,7 @@ export class SequentialExecutionStrategy implements ToolExecutionStrategy {
 
     return {
       results,
-      success,
+      success: success && !cancelledDuringExecution,
       metadata: {
         totalExecutionTime,
         successCount,
@@ -189,6 +228,8 @@ export class SequentialExecutionStrategy implements ToolExecutionStrategy {
           toolsRequested: toolCalls.length,
           averageToolTime:
             results.length > 0 ? totalExecutionTime / results.length : 0,
+          cancelled: cancelledDuringExecution,
+          cancellationMode: options.cancellationMode || "graceful",
         },
       },
       firstError,

@@ -21,6 +21,7 @@ import type { ToolExecutionResult } from "./toolExecutionResult";
 import { ExecutionPipeline } from "./toolExecutionPipeline";
 import { SequentialExecutionStrategy } from "./sequentialExecutionStrategy";
 import { ParallelExecutionStrategy } from "./parallelExecutionStrategy";
+import { createCancellationError } from "../agent/cancellation";
 
 /**
  * Central ToolRouter class that orchestrates tool execution
@@ -133,6 +134,15 @@ export class ToolRouter {
     context: ToolExecutionContext,
     options: ToolExecutionOptions,
   ): Promise<ToolExecutionResult> {
+    // Check for cancellation before starting
+    if (options.signal?.aborted) {
+      throw createCancellationError(
+        "Tool execution cancelled before starting",
+        "tool_calls",
+        true,
+      );
+    }
+
     // Validate options
     this.validateExecutionOptions(options);
 
@@ -214,6 +224,20 @@ export class ToolRouter {
       throw new Error(
         "errorHandling must be 'fail-fast' or 'continue-on-error'",
       );
+    }
+
+    if (
+      options.cancellationMode !== undefined &&
+      !["graceful", "immediate"].includes(options.cancellationMode)
+    ) {
+      throw new Error("cancellationMode must be 'graceful' or 'immediate'");
+    }
+
+    if (
+      options.gracefulCancellationTimeoutMs !== undefined &&
+      options.gracefulCancellationTimeoutMs < 0
+    ) {
+      throw new Error("gracefulCancellationTimeoutMs must be non-negative");
     }
   }
 }

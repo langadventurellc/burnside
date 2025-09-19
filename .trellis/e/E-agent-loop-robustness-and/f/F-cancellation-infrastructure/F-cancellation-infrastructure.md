@@ -106,6 +106,26 @@ affectedFiles:
     signal combination, pre-cancelled signal handling, chat() method
     cancellation propagation, stream() method cancellation propagation, and
     backward compatibility validation for both chat and stream methods
+  src/core/tools/toolExecutionOptions.ts: Added cancellation options including
+    signal (AbortSignal), cancellationMode (graceful/immediate), and
+    gracefulCancellationTimeoutMs with comprehensive documentation and examples
+  src/core/tools/toolRouter.ts: Enhanced executeMultiple() method to accept and
+    check AbortSignal before execution, integrated with cancellation
+    infrastructure using createCancellationError, and added validation for new
+    cancellation options
+  src/core/tools/sequentialExecutionStrategy.ts:
+    Added checkCancellation() method
+    to detect cancellation before each tool execution, implemented graceful
+    handling of cancellation errors with partial result preservation, and added
+    cancellation metadata to strategy results
+  src/core/tools/parallelExecutionStrategy.ts: Added cancellation checks before
+    acquiring execution slots, implemented cancellation propagation to all
+    running tool executions, added early cancellation detection, and enhanced
+    result handling for cancelled tools with partial completion support
+  src/core/tools/__tests__/toolExecutionCancellation.test.ts: Created
+    comprehensive test suite with 12 test cases covering ToolRouter cancellation
+    validation, sequential/parallel strategy cancellation scenarios, graceful vs
+    immediate cancellation modes, error handling, and metadata verification
 log: []
 schema: v1.0
 childrenIds:
@@ -113,11 +133,11 @@ childrenIds:
   - T-add-tool-execution-cancellatio
   - T-create-resource-cleanup
   - T-implement-streaming
-  - T-integrate-cancellation
   - T-create-cancellation-error
   - T-enhance-bridgeclient-with
   - T-extend-agentexecutionoptions-1
   - T-implement-cancellationmanager
+  - T-integrate-cancellation
 created: 2025-09-18T02:17:29.151Z
 updated: 2025-09-18T02:17:29.151Z
 ---
