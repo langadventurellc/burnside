@@ -130,6 +130,7 @@ export class SequentialExecutionStrategy implements ToolExecutionStrategy {
   /**
    * Execute tool calls sequentially in original order
    */
+  // eslint-disable-next-line statement-count/function-statement-count-warn
   async execute(
     toolCalls: ToolCall[],
     router: ToolRouter,

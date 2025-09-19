@@ -49,6 +49,22 @@ affectedFiles:
     unit test suite with 47 tests covering all retry policy functionality
     including decision logic, header parsing, delay calculation, configuration
     management, and edge cases
+  src/core/transport/rateLimiting/tokenBucket.ts: Created TokenBucket class with
+    high-precision timing using recursive setTimeout and performance.now(),
+    thread-safe token consumption, configurable burst capacity, and proper
+    memory management
+  src/core/transport/rateLimiting/tokenBucketConfig.ts:
+    Created TokenBucketConfig
+    interface defining configuration options for token bucket initialization
+    including burst capacity, refill rate, and timing parameters
+  src/core/transport/rateLimiting/index.ts: Created barrel export file providing
+    clean public API for rate limiting functionality with comprehensive
+    documentation and usage examples
+  src/core/transport/rateLimiting/__tests__/tokenBucket.test.ts:
+    Created comprehensive unit test suite with 28 tests covering constructor
+    validation, basic functionality, refill mechanics, burst capacity, edge
+    cases, memory management, performance characteristics, and real-world
+    scenarios
 log: []
 schema: v1.0
 childrenIds:
@@ -58,11 +74,11 @@ childrenIds:
   - T-create-enhanced-http
   - T-create-prompt-cache
   - T-create-rate-limiter-with
-  - T-create-retry-policy-manager
   - T-extend-provider-plugin
   - T-implement-anthropic-provider
   - T-implement-token-bucket
   - T-integrate-enhanced-transport
+  - T-create-retry-policy-manager
   - T-implement-exponential-backoff
 created: 2025-09-19T02:49:27.069Z
 updated: 2025-09-19T02:49:27.069Z

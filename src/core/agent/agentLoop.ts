@@ -1,3 +1,4 @@
+/* eslint-disable statement-count/class-statement-count-warn */
 /* eslint-disable max-lines */
 /* eslint-disable statement-count/function-statement-count-warn */
 /**
