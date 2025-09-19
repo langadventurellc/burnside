@@ -23,7 +23,8 @@ affectedFiles:
   src/core/transport/retry/delayPromise.ts: Implemented Promise-based delay
     utility with AbortSignal support for cancellation during retry delays
   src/core/transport/retry/index.ts: Created barrel export file providing clean
-    public API for all retry functionality
+    public API for all retry functionality; Updated barrel export file to
+    include all new retry policy interfaces and classes for clean public API
   src/core/transport/retry/backoffStrategy.ts: Updated to re-export from barrel
     file for backward compatibility while maintaining deprecation notice
   src/core/transport/retry/__tests__/backoffStrategy.test.ts: Created
@@ -32,6 +33,22 @@ affectedFiles:
   src/core/transport/index.ts:
     Added retry module exports to main transport barrel
     export for library-wide accessibility
+  src/core/transport/retry/retryConfig.ts:
+    Created RetryConfig interface defining
+    retry behavior configuration with attempts, backoff strategy, timing
+    parameters, jitter settings, and retryable status codes
+  src/core/transport/retry/retryContext.ts: Created RetryContext interface for
+    tracking retry attempt state including attempt number, error details,
+    response data, and abort signals
+  src/core/transport/retry/retryDecision.ts: Created RetryDecision interface for
+    retry outcomes containing shouldRetry flag, delay timing, and reasoning
+  src/core/transport/retry/retryPolicy.ts: Implemented RetryPolicy class with
+    comprehensive retry decision logic, Retry-After header parsing,
+    configuration validation, and backoff strategy integration
+  src/core/transport/retry/__tests__/retryPolicy.test.ts: Created comprehensive
+    unit test suite with 47 tests covering all retry policy functionality
+    including decision logic, header parsing, delay calculation, configuration
+    management, and edge cases
 log: []
 schema: v1.0
 childrenIds:
@@ -44,9 +61,9 @@ childrenIds:
   - T-create-retry-policy-manager
   - T-extend-provider-plugin
   - T-implement-anthropic-provider
-  - T-implement-exponential-backoff
   - T-implement-token-bucket
   - T-integrate-enhanced-transport
+  - T-implement-exponential-backoff
 created: 2025-09-19T02:49:27.069Z
 updated: 2025-09-19T02:49:27.069Z
 ---
