@@ -1,13 +1,26 @@
 ---
 id: T-update-toolsconfig-type-to
 title: Update ToolsConfig type to include MCP server definitions
-status: open
+status: done
 priority: medium
 parent: F-mcp-configuration-schema
 prerequisites:
   - T-extend-bridgeconfigschema
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/config/toolsConfig.ts: Updated JSDoc documentation to include
+    comprehensive MCP server configuration examples showing name and URL fields
+    with realistic usage scenarios
+  src/core/config/mcpServerTypes.ts: Created new file exporting McpServerConfig
+    type for individual MCP server configuration with proper type inference from
+    BridgeConfigSchema
+log:
+  - Successfully updated ToolsConfig type to include MCP server definitions
+    through enhanced JSDoc documentation and new type exports. The existing Zod
+    type inference automatically includes the mcpServers field from the updated
+    BridgeConfigSchema. Added comprehensive JSDoc examples demonstrating MCP
+    server configuration usage, and created a dedicated mcpServerTypes.ts file
+    for external type consumption. All TypeScript compilation and quality checks
+    pass.
 schema: v1.0
 childrenIds: []
 created: 2025-09-20T19:37:34.491Z

@@ -31,6 +31,12 @@ affectedFiles:
   src/core/config/__tests__/mcpServerConfig.test.ts: Created comprehensive test
     suite with 27 test cases covering schema validation, type guards, edge
     cases, and TypeScript type compatibility
+  src/core/config/toolsConfig.ts: Updated JSDoc documentation to include
+    comprehensive MCP server configuration examples showing name and URL fields
+    with realistic usage scenarios
+  src/core/config/mcpServerTypes.ts: Created new file exporting McpServerConfig
+    type for individual MCP server configuration with proper type inference from
+    BridgeConfigSchema
 log: []
 schema: v1.0
 childrenIds:
