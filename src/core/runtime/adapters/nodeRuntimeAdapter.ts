@@ -6,7 +6,6 @@
  * using Node built-in APIs.
  */
 
-import { promises as fs } from "node:fs";
 import type { RuntimeAdapter } from "../runtimeAdapter";
 import type { PlatformInfo } from "../platformInfo";
 import type { TimerHandle } from "../timerHandle";
@@ -82,27 +81,15 @@ export class NodeRuntimeAdapter implements RuntimeAdapter {
         );
       }
 
-      // Create AsyncIterable from ReadableStream
-      const stream: AsyncIterable<Uint8Array> = {
-        async *[Symbol.asyncIterator]() {
-          const reader = response.body!.getReader();
-          try {
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              yield value;
-            }
-          } finally {
-            reader.releaseLock();
-          }
-        },
-      };
-
+      // Return metadata + stream
       return {
         status: response.status,
         statusText: response.statusText,
         headers,
-        stream,
+        stream: this.createAsyncIterable(
+          response.body,
+          init?.signal ?? undefined,
+        ),
       };
     } catch (error) {
       throw new RuntimeError(
@@ -114,6 +101,34 @@ export class NodeRuntimeAdapter implements RuntimeAdapter {
           originalError: error,
         },
       );
+    }
+  }
+
+  private async *createAsyncIterable(
+    stream: ReadableStream<Uint8Array>,
+    signal?: AbortSignal,
+  ): AsyncIterable<Uint8Array> {
+    const reader = stream.getReader();
+
+    try {
+      while (true) {
+        // Check for cancellation
+        if (signal?.aborted) {
+          throw new Error("Stream was aborted");
+        }
+
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
+        }
+
+        if (value) {
+          yield value;
+        }
+      }
+    } finally {
+      reader.releaseLock();
     }
   }
 
@@ -188,6 +203,8 @@ export class NodeRuntimeAdapter implements RuntimeAdapter {
     options?: FileOperationOptions,
   ): Promise<string> {
     try {
+      // Lazy load to prevent React Native bundle issues
+      const { promises: fs } = await import("node:fs");
       const encoding = options?.encoding ?? "utf8";
       return await fs.readFile(path, { encoding });
     } catch (error) {
@@ -210,6 +227,8 @@ export class NodeRuntimeAdapter implements RuntimeAdapter {
     options?: FileOperationOptions,
   ): Promise<void> {
     try {
+      // Lazy load to prevent React Native bundle issues
+      const { promises: fs } = await import("node:fs");
       const encoding = options?.encoding ?? "utf8";
 
       // Create parent directories if requested
@@ -237,6 +256,8 @@ export class NodeRuntimeAdapter implements RuntimeAdapter {
 
   async fileExists(path: string): Promise<boolean> {
     try {
+      // Lazy load to prevent React Native bundle issues
+      const { promises: fs } = await import("node:fs");
       await fs.access(path);
       return true;
     } catch {

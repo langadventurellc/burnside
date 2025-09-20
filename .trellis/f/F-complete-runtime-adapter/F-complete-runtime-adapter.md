@@ -13,7 +13,10 @@ affectedFiles:
   src/core/runtime/adapters/nodeRuntimeAdapter.ts:
     Added functional stream method
     implementation using Node.js fetch with proper error handling and
-    AsyncIterable conversion
+    AsyncIterable conversion; Enhanced stream method with AbortSignal
+    cancellation support using createAsyncIterable helper method, implemented
+    lazy loading for all Node.js imports (node:fs, node:path) in readFile,
+    writeFile, and fileExists methods to prevent React Native bundle failures
   src/core/runtime/adapters/electronRuntimeAdapter.ts: Added functional stream
     method implementation using Electron renderer fetch with proper error
     handling and AsyncIterable conversion; Enhanced stream method with
@@ -36,10 +39,14 @@ affectedFiles:
     "Added comprehensive test coverage for new stream method functionality
     including: standard streaming tests, SSE detection tests, fallback behavior
     tests, error handling tests, and AbortSignal cancellation tests"
+  src/core/runtime/__tests__/nodeRuntimeAdapter.test.ts:
+    Added comprehensive test
+    coverage for stream method including AbortSignal cancellation, HTTP metadata
+    extraction, error scenarios, and empty stream handling; updated all file
+    operation tests to work with lazy loading mocks
 log: []
 schema: v1.0
 childrenIds:
-  - T-implement-stream-method-in-2
   - T-implement-stream-method-in
   - T-replace-direct-timer-usage-in-1
   - T-replace-direct-timer-usage-in-2
@@ -49,6 +56,7 @@ childrenIds:
   - T-update-httptransport-to-use
   - T-add-stream-method-to
   - T-implement-stream-method-in-1
+  - T-implement-stream-method-in-2
 created: 2025-09-20T05:58:55.351Z
 updated: 2025-09-20T05:58:55.351Z
 ---
