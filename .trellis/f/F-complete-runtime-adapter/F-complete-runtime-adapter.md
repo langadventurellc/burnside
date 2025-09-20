@@ -16,7 +16,10 @@ affectedFiles:
     AsyncIterable conversion
   src/core/runtime/adapters/electronRuntimeAdapter.ts: Added functional stream
     method implementation using Electron renderer fetch with proper error
-    handling and AsyncIterable conversion
+    handling and AsyncIterable conversion; Enhanced stream method with
+    AbortSignal cancellation support, added platform context to error messages,
+    and refactored to use helper method createAsyncIterable() for consistent
+    resource management
   src/core/runtime/adapters/reactNativeRuntimeAdapter.ts:
     Added functional stream
     method implementation using React Native fetch with notes for future
@@ -27,7 +30,6 @@ affectedFiles:
 log: []
 schema: v1.0
 childrenIds:
-  - T-add-stream-method-to
   - T-implement-stream-method-in-1
   - T-implement-stream-method-in-2
   - T-implement-stream-method-in
@@ -37,6 +39,7 @@ childrenIds:
   - T-replace-direct-timer-usage-in
   - T-update-bridgeclient-to-use
   - T-update-httptransport-to-use
+  - T-add-stream-method-to
 created: 2025-09-20T05:58:55.351Z
 updated: 2025-09-20T05:58:55.351Z
 ---

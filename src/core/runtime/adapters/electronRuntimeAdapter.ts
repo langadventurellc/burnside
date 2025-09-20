@@ -60,48 +60,35 @@ export class ElectronRuntimeAdapter implements RuntimeAdapter {
     stream: AsyncIterable<Uint8Array>;
   }> {
     try {
-      // Use global fetch to get the response
+      // Use global fetch (available in Electron renderer)
       const response = await globalThis.fetch(input, init);
 
-      // Extract headers into a plain object
+      // Extract HTTP metadata
       const headers: Record<string, string> = {};
       response.headers.forEach((value, key) => {
         headers[key] = value;
       });
 
-      // Convert response body to AsyncIterable
-      if (!response.body) {
+      // Validate response has body
+      const body = response.body;
+      if (!body) {
         throw new RuntimeError(
-          "Response body is null for streaming request",
+          "Response body is empty for streaming request",
           "RUNTIME_HTTP_ERROR",
           {
-            input: input.toString(),
-            init,
+            status: response.status,
+            statusText: response.statusText,
+            platform: "electron-renderer",
           },
         );
       }
 
-      // Create AsyncIterable from ReadableStream
-      const stream: AsyncIterable<Uint8Array> = {
-        async *[Symbol.asyncIterator]() {
-          const reader = response.body!.getReader();
-          try {
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              yield value;
-            }
-          } finally {
-            reader.releaseLock();
-          }
-        },
-      };
-
+      // Return metadata + stream
       return {
         status: response.status,
         statusText: response.statusText,
         headers,
-        stream,
+        stream: this.createAsyncIterable(body, init?.signal ?? undefined),
       };
     } catch (error) {
       throw new RuntimeError(
@@ -110,9 +97,38 @@ export class ElectronRuntimeAdapter implements RuntimeAdapter {
         {
           input: input.toString(),
           init,
+          platform: "electron-renderer",
           originalError: error,
         },
       );
+    }
+  }
+
+  private async *createAsyncIterable(
+    stream: ReadableStream<Uint8Array>,
+    signal?: AbortSignal,
+  ): AsyncIterable<Uint8Array> {
+    const reader = stream.getReader();
+
+    try {
+      while (true) {
+        // Check for cancellation
+        if (signal?.aborted) {
+          throw new Error("Stream was aborted");
+        }
+
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
+        }
+
+        if (value) {
+          yield value;
+        }
+      }
+    } finally {
+      reader.releaseLock();
     }
   }
 
