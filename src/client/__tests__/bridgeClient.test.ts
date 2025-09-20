@@ -6,6 +6,7 @@ import type { ProviderRegistry } from "../../core/providers/providerRegistry";
 import type { ModelRegistry } from "../../core/models/modelRegistry";
 import type { HttpTransport } from "../../core/transport/index";
 import type { ProviderHttpResponse } from "../../core/transport/providerHttpResponse";
+import type { StreamResponse } from "../../core/transport/streamResponse";
 import { InMemoryProviderRegistry } from "../../core/providers/inMemoryProviderRegistry";
 import { InMemoryModelRegistry } from "../../core/models/inMemoryModelRegistry";
 import { TransportError } from "../../core/errors/transportError";
@@ -372,11 +373,14 @@ describe("BridgeClient", () => {
           headers: {},
           body: new ReadableStream(),
         } as ProviderHttpResponse),
-        stream: jest.fn().mockResolvedValue(
-          (function* () {
+        stream: jest.fn().mockResolvedValue({
+          status: 200,
+          statusText: "OK",
+          headers: { "content-type": "text/event-stream" },
+          stream: (function* () {
             yield new Uint8Array([]);
           })(),
-        ),
+        }),
       } as unknown as jest.Mocked<HttpTransport>;
 
       // Create registries and register test data
@@ -577,11 +581,14 @@ describe("BridgeClient", () => {
           headers: {},
           body: new ReadableStream(),
         } as ProviderHttpResponse),
-        stream: jest.fn().mockResolvedValue(
-          (function* () {
+        stream: jest.fn().mockResolvedValue({
+          status: 200,
+          statusText: "OK",
+          headers: { "content-type": "text/event-stream" },
+          stream: (function* () {
             yield new Uint8Array([]);
           })(),
-        ),
+        }),
       } as unknown as jest.Mocked<HttpTransport>;
 
       // Create registries and register test data
@@ -650,7 +657,7 @@ describe("BridgeClient", () => {
         { temperature: undefined },
       );
 
-      expect(fakeTransport.fetch).toHaveBeenCalledWith(
+      expect(fakeTransport.stream).toHaveBeenCalledWith(
         expect.objectContaining({
           url: "https://api.openai.com/v1/responses",
           method: "POST",
@@ -660,7 +667,11 @@ describe("BridgeClient", () => {
       );
 
       expect(fakePlugin.parseResponse).toHaveBeenCalledWith(
-        expect.objectContaining({ status: 200 }),
+        expect.objectContaining({
+          status: 200,
+          statusText: "OK",
+          headers: { "content-type": "text/event-stream" },
+        }),
         true,
       );
     });
@@ -668,7 +679,7 @@ describe("BridgeClient", () => {
     it("should handle network errors during streaming", async () => {
       // Arrange
       const networkError = new Error("network down");
-      fakeTransport.fetch.mockRejectedValue(networkError);
+      fakeTransport.stream.mockRejectedValue(networkError);
       fakePlugin.normalizeError.mockReturnValue(
         new TransportError("Network connection failed"),
       );
@@ -688,13 +699,15 @@ describe("BridgeClient", () => {
 
     it("should handle provider errors from parse response", async () => {
       // Arrange
-      const providerHttpResponse = {
-        status: 401,
-        statusText: "Unauthorized",
-        headers: { "content-type": "application/json" },
-        body: new ReadableStream(),
+      const mockStreamResponse: StreamResponse = {
+        status: 200,
+        statusText: "OK",
+        headers: { "content-type": "text/event-stream" },
+        stream: (async function* () {
+          yield await Promise.resolve(new Uint8Array([]));
+        })(),
       };
-      fakeTransport.fetch.mockResolvedValue(providerHttpResponse);
+      fakeTransport.stream.mockResolvedValue(mockStreamResponse);
       const parseError = new AuthError("Invalid API key");
       fakePlugin.parseResponse.mockImplementation(() => {
         throw parseError;
@@ -711,7 +724,11 @@ describe("BridgeClient", () => {
 
       // Verify parseResponse was called and normalizeError was called
       expect(fakePlugin.parseResponse).toHaveBeenCalledWith(
-        providerHttpResponse,
+        expect.objectContaining({
+          status: 200,
+          statusText: "OK",
+          headers: { "content-type": "text/event-stream" },
+        }),
         true,
       );
       expect(fakePlugin.normalizeError).toHaveBeenCalledWith(parseError);
@@ -794,11 +811,14 @@ describe("BridgeClient", () => {
           headers: { "content-type": "application/json" },
           body: new ReadableStream(),
         } as ProviderHttpResponse),
-        stream: jest.fn().mockResolvedValue(
-          (function* () {
+        stream: jest.fn().mockResolvedValue({
+          status: 200,
+          statusText: "OK",
+          headers: { "content-type": "text/event-stream" },
+          stream: (function* () {
             yield new Uint8Array([]);
           })(),
-        ),
+        }),
       } as unknown as jest.Mocked<HttpTransport>;
 
       // Create registries and register test data
@@ -953,6 +973,7 @@ describe("BridgeClient", () => {
       // Create mock transport
       mockTransport = {
         fetch: jest.fn(),
+        stream: jest.fn(),
       } as any;
 
       // Create fake provider plugin
@@ -1155,7 +1176,7 @@ describe("BridgeClient", () => {
           body: JSON.stringify({}),
         });
 
-        mockTransport.fetch.mockImplementation(() => {
+        mockTransport.stream.mockImplementation(() => {
           controller.abort("User cancelled stream");
           return Promise.reject(
             new DOMException("Operation aborted", "AbortError"),
@@ -1189,13 +1210,15 @@ describe("BridgeClient", () => {
           },
         };
 
-        mockTransport.fetch.mockResolvedValue({
-          ok: true,
+        const mockStreamResponse: StreamResponse = {
           status: 200,
           statusText: "OK",
-          headers: new Headers(),
-          body: null,
-        } as unknown as ProviderHttpResponse);
+          headers: { "content-type": "text/event-stream" },
+          stream: (async function* () {
+            yield await Promise.resolve(new Uint8Array([]));
+          })(),
+        };
+        mockTransport.stream.mockResolvedValue(mockStreamResponse);
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         fakePlugin.parseResponse.mockReturnValue(mockAsyncIterable as any);

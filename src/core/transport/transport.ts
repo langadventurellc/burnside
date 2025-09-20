@@ -33,6 +33,7 @@
  */
 import type { ProviderHttpRequest } from "./providerHttpRequest";
 import type { ProviderHttpResponse } from "./providerHttpResponse";
+import type { StreamResponse } from "./streamResponse";
 
 /**
  * Main transport interface for HTTP operations with LLM providers.
@@ -58,16 +59,17 @@ export interface Transport {
   /**
    * Performs a streaming HTTP request to a provider API.
    *
-   * Returns an async iterable that yields data chunks as they arrive,
-   * enabling efficient processing of large or real-time responses.
+   * Returns a StreamResponse containing both HTTP metadata and raw stream content.
+   * For SSE responses (text/event-stream), preserves raw SSE framing for provider parsing.
+   * For other content types, maintains current parsing behavior.
    *
    * @param request - HTTP request configuration
    * @param signal - Optional AbortSignal for request cancellation
-   * @returns Promise resolving to async iterable of data chunks
+   * @returns Promise resolving to StreamResponse with HTTP metadata and stream
    * @throws TransportError for network or HTTP-level failures
    */
   stream(
     request: ProviderHttpRequest,
     signal?: AbortSignal,
-  ): Promise<AsyncIterable<Uint8Array>>;
+  ): Promise<StreamResponse>;
 }

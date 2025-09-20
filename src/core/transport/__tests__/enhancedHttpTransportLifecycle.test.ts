@@ -11,6 +11,7 @@ import { EnhancedHttpTransport } from "../enhancedHttpTransport";
 import type { Transport } from "../transport";
 import type { ProviderHttpRequest } from "../providerHttpRequest";
 import type { ProviderHttpResponse } from "../providerHttpResponse";
+import type { StreamResponse } from "../streamResponse";
 import type { RateLimitConfig } from "../rateLimiting/rateLimitConfig";
 import type { RetryConfig } from "../retry/retryConfig";
 
@@ -43,7 +44,7 @@ describe("EnhancedHttpTransport Lifecycle", () => {
     };
 
     mockBaseTransport.fetch.mockResolvedValue(mockResponse);
-    mockBaseTransport.stream.mockResolvedValue(mockAsyncIterable([]));
+    mockBaseTransport.stream.mockResolvedValue(mockStreamResponse([]));
 
     jest.clearAllMocks();
   });
@@ -216,17 +217,17 @@ describe("EnhancedHttpTransport Lifecycle", () => {
         rateLimitConfig: { enabled: true, maxRps: 10, scope: "global" },
       });
 
-      const mockStream = mockAsyncIterable([
+      const mockStream = mockStreamResponse([
         new Uint8Array([1, 2, 3]),
         new Uint8Array([4, 5, 6]),
       ]);
       mockBaseTransport.stream.mockResolvedValue(mockStream);
 
-      const stream = await transport.stream(mockRequest);
+      const streamResponse = await transport.stream(mockRequest);
 
       // Consume stream
       const chunks = [];
-      for await (const chunk of stream) {
+      for await (const chunk of streamResponse.stream) {
         chunks.push(chunk);
       }
 
@@ -331,5 +332,14 @@ function mockAsyncIterable<T>(items: T[]): AsyncIterable<T> {
         yield Promise.resolve(item);
       }
     },
+  };
+}
+
+function mockStreamResponse<T>(items: T[]): StreamResponse {
+  return {
+    status: 200,
+    statusText: "OK",
+    headers: { "content-type": "text/event-stream" },
+    stream: mockAsyncIterable(items) as AsyncIterable<Uint8Array>,
   };
 }

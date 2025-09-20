@@ -53,6 +53,7 @@
 import type { Transport } from "./transport";
 import type { ProviderHttpRequest } from "./providerHttpRequest";
 import type { ProviderHttpResponse } from "./providerHttpResponse";
+import type { StreamResponse } from "./streamResponse";
 import type { RateLimitConfig } from "./rateLimiting/rateLimitConfig";
 import type { RateLimitContext } from "./rateLimiting/rateLimitContext";
 import type { RateLimitStatus } from "./rateLimiting/rateLimitStatus";
@@ -157,13 +158,13 @@ export class EnhancedHttpTransport implements Transport {
    *
    * @param request - HTTP request configuration
    * @param signal - Optional AbortSignal for stream cancellation
-   * @returns Promise resolving to async iterable of data chunks
+   * @returns Promise resolving to StreamResponse with HTTP metadata and stream
    * @throws TransportError for network or HTTP-level failures
    */
   async stream(
     request: ProviderHttpRequest,
     signal?: AbortSignal,
-  ): Promise<AsyncIterable<Uint8Array>> {
+  ): Promise<StreamResponse> {
     // Check rate limits before proceeding
     await this.checkRateLimits(request);
 

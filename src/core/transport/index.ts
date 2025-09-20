@@ -74,6 +74,7 @@ export type { ResponseInterceptor } from "./responseInterceptorChain";
 
 // Streaming support
 export type { StreamingResponse } from "./streamingResponse";
+export type { StreamResponse } from "./streamResponse";
 export type { StreamChunk } from "./streamChunk";
 export type { StreamingOptions } from "./streamingOptions";
 

@@ -12,6 +12,7 @@ import { delayPromise } from "../retry/delayPromise";
 import type { Transport } from "../transport";
 import type { ProviderHttpRequest } from "../providerHttpRequest";
 import type { ProviderHttpResponse } from "../providerHttpResponse";
+import type { StreamResponse } from "../streamResponse";
 import type { RateLimitConfig } from "../rateLimiting/rateLimitConfig";
 import type { RetryConfig } from "../retry/retryConfig";
 
@@ -65,7 +66,7 @@ describe("EnhancedHttpTransport", () => {
     // Reset mocks
     mockDelayPromise.mockResolvedValue();
     mockBaseTransport.fetch.mockResolvedValue(mockResponse);
-    mockBaseTransport.stream.mockResolvedValue(mockAsyncIterable([]));
+    mockBaseTransport.stream.mockResolvedValue(mockStreamResponse([]));
 
     jest.clearAllMocks();
   });
@@ -184,7 +185,7 @@ describe("EnhancedHttpTransport", () => {
     });
 
     test("should delegate to base transport for streaming", async () => {
-      const mockStream = mockAsyncIterable([new Uint8Array([1, 2, 3])]);
+      const mockStream = mockStreamResponse([new Uint8Array([1, 2, 3])]);
       mockBaseTransport.stream.mockResolvedValue(mockStream);
 
       const result = await enhancedTransport.stream(mockRequest);
@@ -589,7 +590,7 @@ describe("EnhancedHttpTransport", () => {
         retryConfig,
       });
 
-      const mockStream = mockAsyncIterable([new Uint8Array([1, 2, 3])]);
+      const mockStream = mockStreamResponse([new Uint8Array([1, 2, 3])]);
       mockBaseTransport.stream
         .mockRejectedValueOnce(
           new TransportError("Server Error", { status: 500 }),
@@ -614,5 +615,14 @@ function mockAsyncIterable<T>(items: T[]): AsyncIterable<T> {
         yield Promise.resolve(item);
       }
     },
+  };
+}
+
+function mockStreamResponse<T>(items: T[]): StreamResponse {
+  return {
+    status: 200,
+    statusText: "OK",
+    headers: { "content-type": "text/event-stream" },
+    stream: mockAsyncIterable(items) as AsyncIterable<Uint8Array>,
   };
 }

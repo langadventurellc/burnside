@@ -127,9 +127,8 @@ describe("Platform Detection", () => {
     it("should return true when Electron process.versions.electron is available", () => {
       const cleanup = mockGlobalThis({
         process: {
-          ...globalThis.process,
           versions: {
-            ...globalThis.process.versions,
+            node: globalThis.process.versions.node,
             electron: "13.0.0",
           },
         },

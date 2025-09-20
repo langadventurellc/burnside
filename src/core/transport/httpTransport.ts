@@ -42,6 +42,7 @@ import type { HttpClientConfig } from "./httpClientConfig";
 import type { ProviderHttpRequest } from "./providerHttpRequest";
 import type { ProviderHttpResponse } from "./providerHttpResponse";
 import type { InterceptorContext } from "./interceptorContext";
+import type { StreamResponse } from "./streamResponse";
 import { InterceptorChain } from "./interceptorChain";
 import { HttpErrorNormalizer } from "../errors/httpErrorNormalizer";
 import { SseParser } from "../streaming/sseParser";
@@ -290,15 +291,19 @@ export class HttpTransport implements Transport {
   /**
    * Performs a streaming HTTP request with content-type detection.
    *
+   * Returns a StreamResponse containing both HTTP metadata and raw stream content.
+   * For SSE responses (text/event-stream), preserves raw SSE framing for provider parsing.
+   * For other content types, maintains current parsing behavior.
+   *
    * @param request - HTTP request configuration
    * @param signal - Optional AbortSignal for stream cancellation
-   * @returns Promise resolving to async iterable of data chunks
+   * @returns Promise resolving to StreamResponse with HTTP metadata and stream
    * @throws TransportError for network or HTTP-level failures
    */
   async stream(
     request: ProviderHttpRequest,
     signal?: AbortSignal,
-  ): Promise<AsyncIterable<Uint8Array>> {
+  ): Promise<StreamResponse> {
     try {
       return await this.executeStreamRequest(request, signal);
     } catch (error) {
@@ -312,7 +317,7 @@ export class HttpTransport implements Transport {
   private async executeStreamRequest(
     request: ProviderHttpRequest,
     signal?: AbortSignal,
-  ): Promise<AsyncIterable<Uint8Array>> {
+  ): Promise<StreamResponse> {
     // Create interceptor context
     const context = this.createInterceptorContext(request, signal);
 
@@ -339,12 +344,18 @@ export class HttpTransport implements Transport {
       },
     );
 
+    // Capture HTTP response metadata
+    const headers: Record<string, string> = {};
+    fetchResponse.headers.forEach((value, key) => {
+      headers[key] = value;
+    });
+
     // Log streaming response details for debugging
     logger.debug("HTTP streaming response details", {
       transport: "http",
       status: fetchResponse.status,
       statusText: fetchResponse.statusText,
-      headers: Object.fromEntries(fetchResponse.headers.entries()),
+      headers,
       hasBody: !!fetchResponse.body,
       note: "Body will be streamed - not logged here",
     });
@@ -367,10 +378,22 @@ export class HttpTransport implements Transport {
       throw new TransportError("Response body is empty for streaming request");
     }
 
-    // Detect content type and apply appropriate parser
+    // Detect content type and apply appropriate stream processing
     const contentType = fetchResponse.headers.get("content-type") || "";
+    const isSSE = contentType.includes(STREAMING_CONTENT_TYPES.SSE);
 
-    return this.createParsedStream(body, contentType, signal);
+    // For SSE responses, return raw stream to preserve SSE framing
+    // For other responses, maintain current parsing behavior
+    const stream = isSSE
+      ? this.createRawStreamIterator(body, signal)
+      : this.createParsedStream(body, contentType, signal);
+
+    return {
+      status: fetchResponse.status,
+      statusText: fetchResponse.statusText,
+      headers,
+      stream,
+    };
   }
 
   /**

@@ -1,3 +1,4 @@
+/* eslint-disable statement-count/class-statement-count-warn */
 /* eslint-disable statement-count/function-statement-count-warn */
 /* eslint-disable max-lines */
 import type { BridgeConfig } from "../core/config/bridgeConfig";
@@ -27,6 +28,7 @@ import {
   type Transport,
   type HttpClientConfig,
   type FetchFunction,
+  type StreamResponse,
 } from "../core/transport/index";
 import { HttpErrorNormalizer } from "../core/errors/httpErrorNormalizer";
 import {
@@ -491,8 +493,33 @@ export class BridgeClient {
     );
 
     try {
-      // Execute fetch
-      const httpRes = await this.httpTransport.fetch({ ...httpReq, signal });
+      // Execute stream
+      const streamResponse: StreamResponse = await this.httpTransport.stream({
+        ...httpReq,
+        signal,
+      });
+
+      // Create ProviderHttpResponse using real HTTP metadata from streamResponse
+      // Convert the async iterable stream to ReadableStream for parseResponse
+      const streamAsReadable = new ReadableStream<Uint8Array>({
+        async start(controller) {
+          try {
+            for await (const chunk of streamResponse.stream) {
+              controller.enqueue(chunk);
+            }
+            controller.close();
+          } catch (error) {
+            controller.error(error);
+          }
+        },
+      });
+
+      const httpRes = {
+        status: streamResponse.status,
+        statusText: streamResponse.statusText,
+        headers: streamResponse.headers,
+        body: streamAsReadable,
+      };
 
       // Parse response - must be AsyncIterable<StreamDelta>
       const providerStream = plugin.parseResponse(
@@ -559,10 +586,10 @@ export class BridgeClient {
         operation: "stream",
         errorCode:
           normalized instanceof BridgeError ? normalized.code : "UNKNOWN",
-        errorMessage: normalized.message,
+        errorMessage: normalized?.message ?? "Unknown error",
       });
 
-      throw normalized;
+      throw normalized ?? error;
     } finally {
       cancel();
     }
