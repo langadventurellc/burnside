@@ -16,6 +16,239 @@ import { RuntimeError } from "../runtimeError";
 import { getPlatformCapabilities } from "../getPlatformCapabilities";
 
 /**
+ * JSON-RPC 2.0 request structure for MCP communication.
+ */
+interface JsonRpcRequest {
+  jsonrpc: "2.0";
+  method: string;
+  params?: unknown;
+  id?: string | number;
+}
+
+/**
+ * JSON-RPC 2.0 response structure for MCP communication.
+ */
+interface JsonRpcResponse {
+  jsonrpc: "2.0";
+  result?: unknown;
+  error?: {
+    code: number;
+    message: string;
+    data?: unknown;
+  };
+  id: string | number | null;
+}
+
+/**
+ * Node.js-specific MCP connection implementation using JSON-RPC 2.0.
+ * Uses the NodeRuntimeAdapter's fetch method for transport.
+ */
+class NodeMcpConnection implements McpConnection {
+  private isConnectionActive = false;
+  private requestIdCounter = 0;
+  private readonly serverUrl: string;
+  private readonly fetchFn: (
+    input: string | URL,
+    init?: RequestInit,
+  ) => Promise<Response>;
+
+  constructor(
+    serverUrl: string,
+    fetchFn: (input: string | URL, init?: RequestInit) => Promise<Response>,
+    private readonly options?: McpConnectionOptions,
+  ) {
+    this.serverUrl = serverUrl;
+    this.fetchFn = fetchFn;
+  }
+
+  get isConnected(): boolean {
+    return this.isConnectionActive;
+  }
+
+  /**
+   * Initialize the connection by testing connectivity.
+   */
+  async initialize(signal?: AbortSignal): Promise<void> {
+    try {
+      // Test connection with a simple JSON-RPC request
+      const testRequest: JsonRpcRequest = {
+        jsonrpc: "2.0",
+        method: "initialize",
+        params: {
+          protocolVersion: "2024-11-05",
+          capabilities: {},
+          clientInfo: {
+            name: "llm-bridge-node",
+            version: "1.0.0",
+          },
+        },
+        id: this.generateRequestId(),
+      };
+
+      await this.sendRequest(testRequest, signal);
+
+      // If we get here without throwing, connection is working
+      this.isConnectionActive = true;
+    } catch (error) {
+      this.isConnectionActive = false;
+      throw error;
+    }
+  }
+
+  async call<T = unknown>(method: string, params?: unknown): Promise<T> {
+    if (!this.isConnectionActive) {
+      throw new RuntimeError(
+        "MCP connection is not active",
+        "RUNTIME_MCP_CONNECTION_INACTIVE",
+        { method, params },
+      );
+    }
+
+    const request: JsonRpcRequest = {
+      jsonrpc: "2.0",
+      method,
+      params,
+      id: this.generateRequestId(),
+    };
+
+    const response = await this.sendRequest(request, this.options?.signal);
+
+    if (response.error) {
+      const error = new Error(response.error.message) as Error & {
+        code?: number;
+        data?: unknown;
+      };
+      error.code = response.error.code;
+      error.data = response.error.data;
+      throw error;
+    }
+
+    return response.result as T;
+  }
+
+  async notify(method: string, params?: unknown): Promise<void> {
+    if (!this.isConnectionActive) {
+      throw new RuntimeError(
+        "MCP connection is not active",
+        "RUNTIME_MCP_CONNECTION_INACTIVE",
+        { method, params },
+      );
+    }
+
+    const notification: JsonRpcRequest = {
+      jsonrpc: "2.0",
+      method,
+      params,
+      // Notifications don't have an ID
+    };
+
+    // Send notification without expecting response
+    await this.sendRequest(notification, this.options?.signal, false);
+  }
+
+  close(): Promise<void> {
+    this.isConnectionActive = false;
+    // No additional cleanup needed for HTTP-based connections
+    return Promise.resolve();
+  }
+
+  /**
+   * Send a JSON-RPC request to the MCP server.
+   */
+  private async sendRequest(
+    request: JsonRpcRequest,
+    signal?: AbortSignal,
+    expectResponse = true,
+  ): Promise<JsonRpcResponse> {
+    try {
+      const body = JSON.stringify(request);
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        ...this.options?.headers,
+      };
+
+      const init: RequestInit = {
+        method: "POST",
+        headers,
+        body,
+        signal: signal || this.options?.signal,
+      };
+
+      const response = await this.fetchFn(this.serverUrl, init);
+
+      if (!response.ok) {
+        throw new RuntimeError(
+          `MCP server returned HTTP ${response.status}: ${response.statusText}`,
+          "RUNTIME_MCP_HTTP_ERROR",
+          {
+            status: response.status,
+            statusText: response.statusText,
+            serverUrl: this.serverUrl,
+          },
+        );
+      }
+
+      if (!expectResponse) {
+        // For notifications, we don't parse the response
+        return { jsonrpc: "2.0", id: null };
+      }
+
+      const responseText = await response.text();
+
+      let jsonResponse: JsonRpcResponse;
+      try {
+        jsonResponse = JSON.parse(responseText) as JsonRpcResponse;
+      } catch (parseError) {
+        throw new RuntimeError(
+          "Invalid JSON response from MCP server",
+          "RUNTIME_MCP_PARSE_ERROR",
+          {
+            responseText,
+            parseError,
+            serverUrl: this.serverUrl,
+          },
+        );
+      }
+
+      // Validate JSON-RPC 2.0 response structure
+      if (jsonResponse.jsonrpc !== "2.0") {
+        throw new RuntimeError(
+          "Invalid JSON-RPC 2.0 response",
+          "RUNTIME_MCP_PROTOCOL_ERROR",
+          {
+            response: jsonResponse,
+            serverUrl: this.serverUrl,
+          },
+        );
+      }
+
+      return jsonResponse;
+    } catch (error) {
+      if (error instanceof RuntimeError) {
+        throw error;
+      }
+
+      throw new RuntimeError(
+        `MCP request failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        "RUNTIME_MCP_REQUEST_ERROR",
+        {
+          request,
+          serverUrl: this.serverUrl,
+          originalError: error,
+        },
+      );
+    }
+  }
+
+  /**
+   * Generate a unique request ID for JSON-RPC requests.
+   */
+  private generateRequestId(): string {
+    return `node_${Date.now()}_${++this.requestIdCounter}`;
+  }
+}
+
+/**
  * Node implementation of the RuntimeAdapter interface.
  *
  * Uses Node built-in modules for HTTP (global fetch), timers (built-in timers),
@@ -135,21 +368,69 @@ export class NodeRuntimeAdapter implements RuntimeAdapter {
   }
 
   // MCP Operations
-  createMcpConnection(
-    _serverUrl: string,
-    _options?: McpConnectionOptions,
+  async createMcpConnection(
+    serverUrl: string,
+    options?: McpConnectionOptions,
   ): Promise<McpConnection> {
-    return Promise.reject(
-      new RuntimeError(
-        "MCP connection not yet implemented",
-        "RUNTIME_NOT_IMPLEMENTED",
+    try {
+      // Validate the server URL
+      this.validateMcpServerUrl(serverUrl);
+
+      // Create connection instance using this adapter's fetch method
+      const connection = new NodeMcpConnection(
+        serverUrl,
+        (input, init) => this.fetch(input, init),
+        options,
+      );
+
+      // Initialize the connection
+      await connection.initialize(options?.signal);
+
+      return connection;
+    } catch (error) {
+      throw new RuntimeError(
+        `Failed to create MCP connection: ${error instanceof Error ? error.message : "Unknown error"}`,
+        "RUNTIME_MCP_CONNECTION_ERROR",
         {
-          operation: "createMcpConnection",
-          serverUrl: _serverUrl,
-          options: _options,
+          serverUrl,
+          options,
+          originalError: error,
         },
-      ),
-    );
+      );
+    }
+  }
+
+  /**
+   * Validate MCP server URL for Node.js platform.
+   * Node.js has fewer restrictions than Electron renderer process.
+   */
+  private validateMcpServerUrl(serverUrl: string): void {
+    let url: URL;
+    try {
+      url = new URL(serverUrl);
+    } catch {
+      throw new RuntimeError(
+        "Invalid MCP server URL format",
+        "RUNTIME_MCP_INVALID_URL",
+        { serverUrl },
+      );
+    }
+
+    // Validate protocol - support both HTTP and HTTPS
+    if (!["http:", "https:"].includes(url.protocol)) {
+      throw new RuntimeError(
+        "MCP server URL must use HTTP or HTTPS protocol",
+        "RUNTIME_MCP_INVALID_PROTOCOL",
+        {
+          serverUrl,
+          protocol: url.protocol,
+          supportedProtocols: ["http:", "https:"],
+        },
+      );
+    }
+
+    // Node.js allows localhost and private IPs (unlike Electron renderer)
+    // No additional restrictions needed for Node.js platform
   }
 
   // Timer Operations

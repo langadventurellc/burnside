@@ -48,7 +48,11 @@ affectedFiles:
   src/core/runtime/index.ts: Added exports for new MCP types following existing patterns
   src/core/runtime/adapters/nodeRuntimeAdapter.ts:
     Added no-op createMcpConnection
-    implementation with proper error handling to prevent breaking changes
+    implementation with proper error handling to prevent breaking changes;
+    Implemented complete MCP connection functionality including
+    NodeMcpConnection class with JSON-RPC 2.0 support, URL validation with
+    Node.js-appropriate restrictions, createMcpConnection method with proper
+    error handling, and AbortSignal cancellation support
   src/core/runtime/adapters/electronRuntimeAdapter.ts: Added no-op
     createMcpConnection implementation with proper error handling to prevent
     breaking changes; Implemented complete MCP connection functionality
@@ -79,6 +83,11 @@ affectedFiles:
     creation, security validation (URL format, protocol validation, privileged
     port blocking), JSON-RPC operations (call, notify, close), error handling,
     and AbortSignal cancellation support
+  src/core/runtime/__tests__/nodeRuntimeAdapter.test.ts:
+    Added comprehensive test
+    suite with 18 new tests covering MCP connection creation, JSON-RPC protocol
+    operations (call/notify/close), URL validation, error handling, and
+    AbortSignal cancellation scenarios
 log: []
 schema: v1.0
 childrenIds:
