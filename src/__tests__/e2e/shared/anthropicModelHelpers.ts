@@ -21,7 +21,7 @@ export function createAnthropicTestClient(
     options: {
       logging: {
         enabled: true,
-        level: "debug",
+        // level: "debug",
       },
     },
     ...overrides,
