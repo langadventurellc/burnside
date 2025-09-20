@@ -32,4 +32,6 @@ export const ERROR_CODES = {
   STREAMING_ERROR: "STREAMING_ERROR",
   /** Tool execution failures */
   TOOL_ERROR: "TOOL_ERROR",
+  /** Service overloaded scenarios */
+  OVERLOADED_ERROR: "OVERLOADED_ERROR",
 } as const;

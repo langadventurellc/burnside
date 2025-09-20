@@ -1,12 +1,30 @@
 ---
 id: T-improve-anthropic-529
 title: Improve Anthropic 529 overloaded error handling and consumer visibility
-status: open
+status: done
 priority: medium
 parent: none
 prerequisites: []
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/errors/errorCodes.ts: Added OVERLOADED_ERROR constant to ERROR_CODES
+  src/core/errors/overloadedError.ts:
+    Created new OverloadedError class extending
+    BridgeError following existing patterns
+  src/core/errors/index.ts: Added OverloadedError export
+  src/providers/anthropic-2023-06-01/errorNormalizer.ts: Added 529 status code
+    mapping to OverloadedError, updated buildHttpErrorMessage for 529 case,
+    added retry context extraction for overload errors, updated
+    normalizeAnthropicError to handle OverloadedError instances, added
+    OverloadedError case to createBridgeError function
+  src/providers/anthropic-2023-06-01/__tests__/errorNormalizer.test.ts:
+    Added comprehensive unit tests for 529 error handling including basic
+    mapping, retry info extraction, and Anthropic error message handling
+log:
+  - Successfully implemented improved Anthropic 529 overloaded error handling
+    with clear consumer visibility. Added OverloadedError class extending
+    BridgeError, updated Anthropic error normalizer to handle 529 status codes
+    with proper message and retry context extraction, and added comprehensive
+    unit tests. All quality checks pass with no regressions.
 schema: v1.0
 childrenIds: []
 created: 2025-09-20T03:31:59.831Z
