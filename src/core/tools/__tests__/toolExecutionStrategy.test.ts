@@ -14,6 +14,7 @@ import type { ToolExecutionContext } from "../toolExecutionContext";
 import type { ToolExecutionOptions } from "../toolExecutionOptions";
 import type { ToolDefinition } from "../toolDefinition";
 import type { ToolHandler } from "../toolHandler";
+import type { RuntimeAdapter } from "../../runtime/runtimeAdapter";
 
 // Helper to create mock tool registration
 const setupMockTool = (registry: InMemoryToolRegistry) => {
@@ -50,10 +51,23 @@ describe("Tool Execution Strategy Integration", () => {
   let registry: InMemoryToolRegistry;
   let router: ToolRouter;
   let mockContext: ToolExecutionContext;
+  let mockRuntimeAdapter: RuntimeAdapter;
 
   beforeEach(() => {
     registry = new InMemoryToolRegistry();
-    router = new ToolRouter(registry);
+
+    // Create mock runtime adapter
+    mockRuntimeAdapter = {
+      setTimeout: jest.fn(() => "mock-timer-handle"),
+      clearTimeout: jest.fn(),
+      fetch: jest.fn(),
+      stream: jest.fn(),
+      readFile: jest.fn(),
+      writeFile: jest.fn(),
+      fileExists: jest.fn(),
+    } as unknown as RuntimeAdapter;
+
+    router = new ToolRouter(registry, 5000, mockRuntimeAdapter);
     mockContext = {
       userId: "test-user",
       sessionId: "test-session",
@@ -184,7 +198,11 @@ describe("Tool Execution Strategy Integration", () => {
   describe("error boundary", () => {
     it("should handle router-level execution errors", async () => {
       // Create a router with a broken registry that throws
-      const brokenRouter = new ToolRouter(createBrokenRegistry());
+      const brokenRouter = new ToolRouter(
+        createBrokenRegistry(),
+        5000,
+        mockRuntimeAdapter,
+      );
 
       const toolCalls: ToolCall[] = [
         { id: "1", name: "test-tool", parameters: {} },

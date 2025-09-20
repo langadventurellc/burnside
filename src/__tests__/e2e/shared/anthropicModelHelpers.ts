@@ -20,8 +20,8 @@ export function createAnthropicTestClient(
     },
     options: {
       logging: {
-        enabled: true,
-        level: "debug",
+        enabled: false,
+        // level: "debug",
       },
     },
     ...overrides,

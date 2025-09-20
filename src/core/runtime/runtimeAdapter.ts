@@ -47,6 +47,77 @@ export interface RuntimeAdapter {
    */
   fetch(input: string | URL, init?: RequestInit): Promise<Response>;
 
+  /**
+   * Perform HTTP streaming operation with metadata.
+   * Platform-specific streaming fetch implementations that return both
+   * HTTP response metadata and the streaming data.
+   *
+   * Returns complete HTTP response information including status, statusText,
+   * headers, and the raw streaming content as an AsyncIterable. This enables
+   * the transport layer to properly handle HTTP errors and access response
+   * metadata while streaming the response body.
+   *
+   * The stream method supports cancellation via AbortSignal in the init.signal
+   * parameter. When cancelled, the stream should stop producing data and clean
+   * up any platform-specific resources (network connections, event listeners).
+   *
+   * Platform-specific behavior:
+   * - Node.js: Uses standard fetch with Response.body stream conversion
+   * - Electron: Uses appropriate fetch based on main/renderer process
+   * - React Native: Integrates react-native-sse for SSE content, falls back to fetch
+   *
+   * @param input - URL or Request object for the streaming request
+   * @param init - Request configuration options including optional AbortSignal
+   * @returns Promise resolving to streaming response with HTTP metadata and stream
+   *
+   * @example Basic streaming usage
+   * ```typescript
+   * const streamResponse = await adapter.stream('https://api.example.com/stream', {
+   *   method: 'POST',
+   *   headers: { 'Accept': 'text/event-stream' },
+   *   signal: abortController.signal
+   * });
+   *
+   * console.log(`Status: ${streamResponse.status}`);
+   * for await (const chunk of streamResponse.stream) {
+   *   console.log(new TextDecoder().decode(chunk));
+   * }
+   * ```
+   *
+   * @example Error handling with metadata
+   * ```typescript
+   * const streamResponse = await adapter.stream(url, init);
+   * if (streamResponse.status !== 200) {
+   *   throw new Error(`HTTP ${streamResponse.status}: ${streamResponse.statusText}`);
+   * }
+   * // Process successful stream...
+   * ```
+   *
+   * @example Cancellation support
+   * ```typescript
+   * const controller = new AbortController();
+   * setTimeout(() => controller.abort(), 5000); // Cancel after 5s
+   *
+   * try {
+   *   const stream = await adapter.stream(url, { signal: controller.signal });
+   *   // Stream will be cancelled after 5 seconds
+   * } catch (error) {
+   *   if (error.name === 'AbortError') {
+   *     console.log('Stream was cancelled');
+   *   }
+   * }
+   * ```
+   */
+  stream(
+    input: string | URL,
+    init?: RequestInit,
+  ): Promise<{
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+    stream: AsyncIterable<Uint8Array>;
+  }>;
+
   // Timer Operations
   /**
    * Schedule a function to run after a delay.

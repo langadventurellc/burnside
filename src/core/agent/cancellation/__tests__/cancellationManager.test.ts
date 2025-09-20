@@ -12,6 +12,38 @@ import {
   GracefulCancellationTimeoutError,
   isCancellationError,
 } from "../index";
+import type { RuntimeAdapter } from "../../../runtime/runtimeAdapter";
+
+// Mock RuntimeAdapter for testing
+const createMockRuntimeAdapter = (): RuntimeAdapter => ({
+  platformInfo: {
+    platform: "node" as const,
+    capabilities: {
+      platform: "node" as const,
+      hasHttp: true,
+      hasTimers: true,
+      hasFileSystem: true,
+      features: {},
+    },
+  },
+  fetch: jest.fn(),
+  stream: jest.fn(),
+  setTimeout: jest.fn((callback: () => void, ms: number) => {
+    return setTimeout(callback, ms);
+  }),
+  setInterval: jest.fn((callback: () => void, ms: number) => {
+    return setInterval(callback, ms);
+  }),
+  clearTimeout: jest.fn((handle: unknown) => {
+    clearTimeout(handle as NodeJS.Timeout);
+  }),
+  clearInterval: jest.fn((handle: unknown) => {
+    clearInterval(handle as NodeJS.Timeout);
+  }),
+  readFile: jest.fn(),
+  writeFile: jest.fn(),
+  fileExists: jest.fn(),
+});
 
 describe("CancellationManager", () => {
   let manager: CancellationManager;
@@ -24,7 +56,7 @@ describe("CancellationManager", () => {
 
   describe("constructor", () => {
     it("should create manager with default options", () => {
-      manager = new CancellationManager();
+      manager = new CancellationManager(createMockRuntimeAdapter());
 
       expect(manager.isCancelled()).toBe(false);
       expect(manager.getCancellationReason()).toBeUndefined();
@@ -37,7 +69,7 @@ describe("CancellationManager", () => {
         cleanupOnCancel: false,
       };
 
-      manager = new CancellationManager(options);
+      manager = new CancellationManager(createMockRuntimeAdapter(), options);
 
       expect(manager.isCancelled()).toBe(false);
       expect(manager.getCancellationReason()).toBeUndefined();
@@ -49,7 +81,7 @@ describe("CancellationManager", () => {
         signal: controller.signal,
       };
 
-      manager = new CancellationManager(options);
+      manager = new CancellationManager(createMockRuntimeAdapter(), options);
 
       expect(manager.isCancelled()).toBe(false);
 
@@ -68,7 +100,7 @@ describe("CancellationManager", () => {
         signal: controller.signal,
       };
 
-      manager = new CancellationManager(options);
+      manager = new CancellationManager(createMockRuntimeAdapter(), options);
 
       expect(manager.isCancelled()).toBe(true);
       expect(manager.getCancellationReason()).toBe("Already cancelled");
@@ -78,7 +110,9 @@ describe("CancellationManager", () => {
   describe("signal composition", () => {
     it("should create composed signal that responds to external cancellation", () => {
       const controller = new AbortController();
-      manager = new CancellationManager({ signal: controller.signal });
+      manager = new CancellationManager(createMockRuntimeAdapter(), {
+        signal: controller.signal,
+      });
 
       const context = manager.createCancellableContext();
 
@@ -91,7 +125,7 @@ describe("CancellationManager", () => {
     });
 
     it("should create composed signal that responds to internal cancellation", () => {
-      manager = new CancellationManager();
+      manager = new CancellationManager(createMockRuntimeAdapter());
 
       const context = manager.createCancellableContext();
 
@@ -105,7 +139,9 @@ describe("CancellationManager", () => {
 
     it("should handle external signal with non-string reason", () => {
       const controller = new AbortController();
-      manager = new CancellationManager({ signal: controller.signal });
+      manager = new CancellationManager(createMockRuntimeAdapter(), {
+        signal: controller.signal,
+      });
 
       // AbortController.abort() can accept any value
       controller.abort(42 as any);
@@ -117,7 +153,7 @@ describe("CancellationManager", () => {
 
   describe("createCancellableContext", () => {
     beforeEach(() => {
-      manager = new CancellationManager();
+      manager = new CancellationManager(createMockRuntimeAdapter());
     });
 
     it("should create context with proper signal", () => {
@@ -154,7 +190,7 @@ describe("CancellationManager", () => {
 
   describe("cancel method", () => {
     beforeEach(() => {
-      manager = new CancellationManager();
+      manager = new CancellationManager(createMockRuntimeAdapter());
     });
 
     it("should cancel with reason", () => {
@@ -182,7 +218,9 @@ describe("CancellationManager", () => {
     });
 
     it("should not perform cleanup when cleanupOnCancel is false", () => {
-      manager = new CancellationManager({ cleanupOnCancel: false });
+      manager = new CancellationManager(createMockRuntimeAdapter(), {
+        cleanupOnCancel: false,
+      });
 
       const cleanupSpy = jest.fn();
       manager.addCleanupHandler(cleanupSpy);
@@ -199,7 +237,7 @@ describe("CancellationManager", () => {
 
   describe("cleanup handlers", () => {
     beforeEach(() => {
-      manager = new CancellationManager();
+      manager = new CancellationManager(createMockRuntimeAdapter());
     });
 
     it("should execute cleanup handlers in LIFO order", async () => {
@@ -252,7 +290,7 @@ describe("CancellationManager", () => {
 
     it("should timeout cleanup handlers", async () => {
       const shortTimeout = 100;
-      manager = new CancellationManager({
+      manager = new CancellationManager(createMockRuntimeAdapter(), {
         gracefulCancellationTimeoutMs: shortTimeout,
       });
 
@@ -273,7 +311,7 @@ describe("CancellationManager", () => {
 
   describe("periodic checks", () => {
     beforeEach(() => {
-      manager = new CancellationManager();
+      manager = new CancellationManager(createMockRuntimeAdapter());
     });
 
     it("should schedule and stop periodic checks", () => {
@@ -304,7 +342,7 @@ describe("CancellationManager", () => {
 
   describe("cancellation detection", () => {
     beforeEach(() => {
-      manager = new CancellationManager();
+      manager = new CancellationManager(createMockRuntimeAdapter());
     });
 
     it("should detect internal cancellation", () => {
@@ -317,7 +355,9 @@ describe("CancellationManager", () => {
 
     it("should detect external cancellation", () => {
       const controller = new AbortController();
-      manager = new CancellationManager({ signal: controller.signal });
+      manager = new CancellationManager(createMockRuntimeAdapter(), {
+        signal: controller.signal,
+      });
 
       expect(manager.isCancelled()).toBe(false);
 
@@ -336,7 +376,9 @@ describe("CancellationManager", () => {
 
     it("should throw appropriate error for external cancellation", () => {
       const controller = new AbortController();
-      manager = new CancellationManager({ signal: controller.signal });
+      manager = new CancellationManager(createMockRuntimeAdapter(), {
+        signal: controller.signal,
+      });
 
       const reason = "External cancellation";
       controller.abort(reason);
@@ -358,7 +400,7 @@ describe("CancellationManager", () => {
 
   describe("cancellation context integration", () => {
     beforeEach(() => {
-      manager = new CancellationManager();
+      manager = new CancellationManager(createMockRuntimeAdapter());
     });
 
     it("should provide working checkCancellation method", () => {
@@ -394,7 +436,7 @@ describe("CancellationManager", () => {
 
   describe("dispose", () => {
     it("should clean up resources", () => {
-      manager = new CancellationManager();
+      manager = new CancellationManager(createMockRuntimeAdapter());
 
       manager.schedulePeriodicChecks();
       manager.dispose();
@@ -404,7 +446,7 @@ describe("CancellationManager", () => {
     });
 
     it("should be safe to call multiple times", () => {
-      manager = new CancellationManager();
+      manager = new CancellationManager(createMockRuntimeAdapter());
 
       manager.dispose();
       manager.dispose(); // Should not error
@@ -416,7 +458,7 @@ describe("CancellationManager", () => {
   describe("error scenarios", () => {
     it("should handle cleanup timeout gracefully", async () => {
       const shortTimeout = 50;
-      manager = new CancellationManager({
+      manager = new CancellationManager(createMockRuntimeAdapter(), {
         gracefulCancellationTimeoutMs: shortTimeout,
       });
 
@@ -432,7 +474,9 @@ describe("CancellationManager", () => {
 
     it("should handle external signal without reason", () => {
       const controller = new AbortController();
-      manager = new CancellationManager({ signal: controller.signal });
+      manager = new CancellationManager(createMockRuntimeAdapter(), {
+        signal: controller.signal,
+      });
 
       controller.abort(); // No reason provided
 
@@ -444,7 +488,9 @@ describe("CancellationManager", () => {
   describe("integration scenarios", () => {
     it("should work with external AbortController patterns", async () => {
       const controller = new AbortController();
-      manager = new CancellationManager({ signal: controller.signal });
+      manager = new CancellationManager(createMockRuntimeAdapter(), {
+        signal: controller.signal,
+      });
 
       const context = manager.createCancellableContext();
 
@@ -472,7 +518,7 @@ describe("CancellationManager", () => {
     });
 
     it("should support complex cleanup scenarios", async () => {
-      manager = new CancellationManager();
+      manager = new CancellationManager(createMockRuntimeAdapter());
 
       const resources: string[] = [];
 

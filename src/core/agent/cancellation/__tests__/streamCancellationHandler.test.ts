@@ -8,6 +8,38 @@
 import { StreamCancellationHandler } from "../streamCancellationHandler";
 import { CancellationManager } from "../cancellationManager";
 import type { StreamDelta } from "../../../../client/streamDelta";
+import type { RuntimeAdapter } from "../../../runtime/runtimeAdapter";
+
+// Mock RuntimeAdapter for testing
+const createMockRuntimeAdapter = (): RuntimeAdapter => ({
+  platformInfo: {
+    platform: "node" as const,
+    capabilities: {
+      platform: "node" as const,
+      hasHttp: true,
+      hasTimers: true,
+      hasFileSystem: true,
+      features: {},
+    },
+  },
+  fetch: jest.fn(),
+  stream: jest.fn(),
+  setTimeout: jest.fn((callback: () => void, ms: number) => {
+    return setTimeout(callback, ms);
+  }),
+  setInterval: jest.fn((callback: () => void, ms: number) => {
+    return setInterval(callback, ms);
+  }),
+  clearTimeout: jest.fn((handle: unknown) => {
+    clearTimeout(handle as NodeJS.Timeout);
+  }),
+  clearInterval: jest.fn((handle: unknown) => {
+    clearInterval(handle as NodeJS.Timeout);
+  }),
+  readFile: jest.fn(),
+  writeFile: jest.fn(),
+  fileExists: jest.fn(),
+});
 
 // Mock console.error to avoid noise in tests
 const mockConsoleError = jest.spyOn(console, "error").mockImplementation();
@@ -40,7 +72,7 @@ const createMockCancellationManager = (
   cancelled: boolean = false,
   reason?: string,
 ): CancellationManager => {
-  const manager = new CancellationManager();
+  const manager = new CancellationManager(createMockRuntimeAdapter());
   if (cancelled) {
     manager.cancel(reason);
   }
@@ -53,7 +85,10 @@ describe("StreamCancellationHandler", () => {
 
   beforeEach(() => {
     cancellationManager = createMockCancellationManager();
-    handler = new StreamCancellationHandler(cancellationManager);
+    handler = new StreamCancellationHandler(
+      cancellationManager,
+      createMockRuntimeAdapter(),
+    );
   });
 
   afterEach(() => {
@@ -72,16 +107,23 @@ describe("StreamCancellationHandler", () => {
     });
 
     it("should accept custom cancellation check interval", () => {
-      const customHandler = new StreamCancellationHandler(cancellationManager, {
-        cancellationCheckIntervalMs: 50,
-      });
+      const customHandler = new StreamCancellationHandler(
+        cancellationManager,
+        createMockRuntimeAdapter(),
+        {
+          cancellationCheckIntervalMs: 50,
+        },
+      );
 
       expect(customHandler).toBeDefined();
       customHandler.dispose();
     });
 
     it("should use default check interval when not provided", () => {
-      const defaultHandler = new StreamCancellationHandler(cancellationManager);
+      const defaultHandler = new StreamCancellationHandler(
+        cancellationManager,
+        createMockRuntimeAdapter(),
+      );
 
       expect(defaultHandler).toBeDefined();
       defaultHandler.dispose();
@@ -430,11 +472,15 @@ describe("StreamCancellationHandler", () => {
   describe("Integration with CancellationManager", () => {
     it("should respect external cancellation signal", () => {
       const controller = new AbortController();
-      const managerWithSignal = new CancellationManager({
-        signal: controller.signal,
-      });
+      const managerWithSignal = new CancellationManager(
+        createMockRuntimeAdapter(),
+        {
+          signal: controller.signal,
+        },
+      );
       const handlerWithSignal = new StreamCancellationHandler(
         managerWithSignal,
+        createMockRuntimeAdapter(),
       );
 
       controller.abort("External abort");
@@ -449,11 +495,15 @@ describe("StreamCancellationHandler", () => {
       const controller = new AbortController();
       controller.abort("Pre-cancelled");
 
-      const managerWithCancelledSignal = new CancellationManager({
-        signal: controller.signal,
-      });
+      const managerWithCancelledSignal = new CancellationManager(
+        createMockRuntimeAdapter(),
+        {
+          signal: controller.signal,
+        },
+      );
       const handlerWithCancelledSignal = new StreamCancellationHandler(
         managerWithCancelledSignal,
+        createMockRuntimeAdapter(),
       );
 
       expect(() =>

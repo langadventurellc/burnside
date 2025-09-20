@@ -50,6 +50,88 @@ export class ElectronRuntimeAdapter implements RuntimeAdapter {
     }
   }
 
+  async stream(
+    input: string | URL,
+    init?: RequestInit,
+  ): Promise<{
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+    stream: AsyncIterable<Uint8Array>;
+  }> {
+    try {
+      // Use global fetch (available in Electron renderer)
+      const response = await globalThis.fetch(input, init);
+
+      // Extract HTTP metadata
+      const headers: Record<string, string> = {};
+      response.headers.forEach((value, key) => {
+        headers[key] = value;
+      });
+
+      // Validate response has body
+      const body = response.body;
+      if (!body) {
+        throw new RuntimeError(
+          "Response body is empty for streaming request",
+          "RUNTIME_HTTP_ERROR",
+          {
+            status: response.status,
+            statusText: response.statusText,
+            platform: "electron-renderer",
+          },
+        );
+      }
+
+      // Return metadata + stream
+      return {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+        stream: this.createAsyncIterable(body, init?.signal ?? undefined),
+      };
+    } catch (error) {
+      throw new RuntimeError(
+        `HTTP stream failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        "RUNTIME_HTTP_ERROR",
+        {
+          input: input.toString(),
+          init,
+          platform: "electron-renderer",
+          originalError: error,
+        },
+      );
+    }
+  }
+
+  private async *createAsyncIterable(
+    stream: ReadableStream<Uint8Array>,
+    signal?: AbortSignal,
+  ): AsyncIterable<Uint8Array> {
+    const reader = stream.getReader();
+
+    try {
+      while (true) {
+        // Check for cancellation
+        if (signal?.aborted) {
+          throw new Error("Stream was aborted");
+        }
+
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
+        }
+
+        if (value) {
+          yield value;
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  }
+
   // Timer Operations
   setTimeout(callback: () => void, ms: number): TimerHandle {
     try {

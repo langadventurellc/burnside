@@ -13,6 +13,7 @@ import type { ToolDefinition } from "./toolDefinition";
 import type { ToolHandler } from "./toolHandler";
 import type { PreparedContext } from "./preparedContext";
 import type { ExecutionContext } from "./executionContext";
+import type { RuntimeAdapter } from "../runtime/runtimeAdapter";
 import { validateToolCall } from "./pipelineValidation";
 import { prepareExecution } from "./pipelinePreparation";
 import { executeToolHandler } from "./pipelineExecution";
@@ -32,6 +33,7 @@ export class ExecutionPipeline {
     toolHandler: ToolHandler,
     executionContext: ToolExecutionContext,
     timeoutMs: number = 5000,
+    runtimeAdapter: RuntimeAdapter,
   ): Promise<ToolResult> {
     logger.debug("Pipeline execution started", {
       toolName: toolCall?.name || "unknown",
@@ -86,6 +88,7 @@ export class ExecutionPipeline {
         ...preparedContext,
         toolHandler,
         timeoutMs,
+        runtimeAdapter,
       };
 
       // Stage 3: Execution

@@ -46,7 +46,7 @@ export function createRateLimitedTestClient(
         },
         options: {
           logging: {
-            enabled: true,
+            enabled: false,
             // level: "debug",
           },
         },
@@ -63,7 +63,7 @@ export function createRateLimitedTestClient(
         },
         options: {
           logging: {
-            enabled: true,
+            enabled: false,
             // level: "debug",
           },
         },
@@ -80,7 +80,7 @@ export function createRateLimitedTestClient(
         },
         options: {
           logging: {
-            enabled: true,
+            enabled: false,
             // level: "debug",
           },
         },
@@ -97,7 +97,7 @@ export function createRateLimitedTestClient(
         },
         options: {
           logging: {
-            enabled: true,
+            enabled: false,
             // level: "debug",
           },
         },

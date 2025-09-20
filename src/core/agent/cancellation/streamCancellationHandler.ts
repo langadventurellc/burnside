@@ -9,6 +9,8 @@
 import type { CancellationManager } from "./cancellationManager";
 import type { StreamDelta } from "../../../client/streamDelta";
 import type { StreamState } from "./streamState";
+import type { RuntimeAdapter } from "../../runtime/runtimeAdapter";
+import type { TimerHandle } from "../../runtime/timerHandle";
 import { createCancellationError } from "./createCancellationError";
 
 /**
@@ -48,18 +50,21 @@ import { createCancellationError } from "./createCancellationError";
 export class StreamCancellationHandler {
   private streamState: StreamState = "active";
   private buffer: string = "";
-  private cancellationCheckInterval?: ReturnType<typeof setInterval>;
+  private cancellationCheckInterval?: TimerHandle;
   private readonly checkIntervalMs: number;
   private streamStartTime: number = 0;
   private lastActivity: number = 0;
   private pauseResolvers: Array<() => void> = [];
+  private readonly runtimeAdapter: RuntimeAdapter;
 
   constructor(
     private readonly cancellationManager: CancellationManager,
+    runtimeAdapter: RuntimeAdapter,
     options: {
       cancellationCheckIntervalMs?: number;
     } = {},
   ) {
+    this.runtimeAdapter = runtimeAdapter;
     this.checkIntervalMs = options.cancellationCheckIntervalMs ?? 100;
   }
 
@@ -341,7 +346,7 @@ export class StreamCancellationHandler {
       return; // Already started
     }
 
-    this.cancellationCheckInterval = setInterval(
+    this.cancellationCheckInterval = this.runtimeAdapter.setInterval(
       this.handlePeriodicCancellationCheck.bind(this),
       this.checkIntervalMs,
     );
@@ -352,7 +357,7 @@ export class StreamCancellationHandler {
    */
   private stopCancellationChecks(): void {
     if (this.cancellationCheckInterval) {
-      clearInterval(this.cancellationCheckInterval);
+      this.runtimeAdapter.clearInterval(this.cancellationCheckInterval);
       this.cancellationCheckInterval = undefined;
     }
   }

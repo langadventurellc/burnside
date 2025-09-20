@@ -38,26 +38,14 @@
  * ```
  */
 import type { Transport } from "./transport";
-import type { HttpClientConfig } from "./httpClientConfig";
 import type { ProviderHttpRequest } from "./providerHttpRequest";
 import type { ProviderHttpResponse } from "./providerHttpResponse";
 import type { InterceptorContext } from "./interceptorContext";
 import type { StreamResponse } from "./streamResponse";
+import type { RuntimeAdapter } from "../runtime/runtimeAdapter";
 import { InterceptorChain } from "./interceptorChain";
-import { HttpErrorNormalizer } from "../errors/httpErrorNormalizer";
-import { SseParser } from "../streaming/sseParser";
-import { ChunkParser } from "../streaming/chunkParser";
 import { TransportError } from "../errors/transportError";
 import { logger } from "../logging/simpleLogger";
-
-/**
- * Content types that indicate streaming responses
- */
-const STREAMING_CONTENT_TYPES = {
-  SSE: "text/event-stream",
-  JSON_STREAM: "application/x-ndjson",
-  CHUNKED: "application/json", // May be chunked
-} as const;
 
 /**
  * HTTP Transport implementation with streaming support.
@@ -102,18 +90,20 @@ export class HttpTransport implements Transport {
 
     return sanitized;
   }
+  private readonly runtimeAdapter: RuntimeAdapter;
+
   /**
    * Creates a new HttpTransport instance.
    *
-   * @param config - HTTP client configuration with injected fetch
+   * @param runtimeAdapter - Runtime adapter for platform operations
    * @param interceptors - Interceptor chain for request/response processing
-   * @param errorNormalizer - Error normalizer for consistent error handling
    */
   constructor(
-    private readonly config: HttpClientConfig,
+    runtimeAdapter: RuntimeAdapter,
     private readonly interceptors: InterceptorChain,
-    private readonly errorNormalizer: HttpErrorNormalizer,
-  ) {}
+  ) {
+    this.runtimeAdapter = runtimeAdapter;
+  }
 
   /**
    * Performs a standard HTTP request with interceptor processing.
@@ -157,7 +147,7 @@ export class HttpTransport implements Transport {
     });
 
     // Perform HTTP request
-    const fetchResponse = await this.config.fetch(
+    const fetchResponse = await this.runtimeAdapter.fetch(
       processedContext.request.url,
       {
         method: processedContext.request.method,
@@ -333,8 +323,8 @@ export class HttpTransport implements Transport {
       body: processedContext.request.body,
     });
 
-    // Perform HTTP request
-    const fetchResponse = await this.config.fetch(
+    // Use runtime adapter for streaming - single call with metadata and stream
+    const streamResponse = await this.runtimeAdapter.stream(
       processedContext.request.url,
       {
         method: processedContext.request.method,
@@ -344,55 +334,32 @@ export class HttpTransport implements Transport {
       },
     );
 
-    // Capture HTTP response metadata
-    const headers: Record<string, string> = {};
-    fetchResponse.headers.forEach((value, key) => {
-      headers[key] = value;
-    });
-
     // Log streaming response details for debugging
     logger.debug("HTTP streaming response details", {
       transport: "http",
-      status: fetchResponse.status,
-      statusText: fetchResponse.statusText,
-      headers,
-      hasBody: !!fetchResponse.body,
-      note: "Body will be streamed - not logged here",
+      status: streamResponse.status,
+      statusText: streamResponse.statusText,
+      headers: streamResponse.headers,
+      note: "Stream response received from runtime adapter",
     });
 
     // Check for HTTP errors before streaming
-    if (!fetchResponse.ok) {
-      const response = this.convertFetchResponse(fetchResponse);
+    if (streamResponse.status < 200 || streamResponse.status >= 400) {
       throw new TransportError(
-        `HTTP ${response.status}: ${response.statusText}`,
+        `HTTP ${streamResponse.status}: ${streamResponse.statusText}`,
         {
           provider: "http-transport",
-          status: response.status,
+          status: streamResponse.status,
         },
       );
     }
 
-    // Get response body stream
-    const body = fetchResponse.body;
-    if (!body) {
-      throw new TransportError("Response body is empty for streaming request");
-    }
-
-    // Detect content type and apply appropriate stream processing
-    const contentType = fetchResponse.headers.get("content-type") || "";
-    const isSSE = contentType.includes(STREAMING_CONTENT_TYPES.SSE);
-
-    // For SSE responses, return raw stream to preserve SSE framing
-    // For other responses, maintain current parsing behavior
-    const stream = isSSE
-      ? this.createRawStreamIterator(body, signal)
-      : this.createParsedStream(body, contentType, signal);
-
+    // Return stream response directly from adapter (already includes metadata + stream)
     return {
-      status: fetchResponse.status,
-      statusText: fetchResponse.statusText,
-      headers,
-      stream,
+      status: streamResponse.status,
+      statusText: streamResponse.statusText,
+      headers: streamResponse.headers,
+      stream: streamResponse.stream,
     };
   }
 
@@ -466,107 +433,5 @@ export class HttpTransport implements Transport {
       headers,
       body,
     };
-  }
-
-  /**
-   * Creates a parsed stream based on content type.
-   */
-  private createParsedStream(
-    body: ReadableStream<Uint8Array>,
-    contentType: string,
-    signal?: AbortSignal,
-  ): AsyncIterable<Uint8Array> {
-    // Convert ReadableStream to async iterable
-    const rawStream = this.createRawStreamIterator(body, signal);
-
-    // Apply appropriate parser based on content type
-    if (contentType.includes(STREAMING_CONTENT_TYPES.SSE)) {
-      return this.createSseStream(rawStream);
-    }
-
-    // For other content types, try JSON parsing with fallback to raw
-    if (contentType.includes("json")) {
-      return this.createJsonStreamWithFallback(rawStream);
-    }
-
-    // Return raw stream for unknown content types
-    return rawStream;
-  }
-
-  /**
-   * Converts ReadableStream to async iterable with cancellation support.
-   */
-  private async *createRawStreamIterator(
-    stream: ReadableStream<Uint8Array>,
-    signal?: AbortSignal,
-  ): AsyncIterable<Uint8Array> {
-    const reader = stream.getReader();
-
-    try {
-      while (true) {
-        // Check for cancellation
-        if (signal?.aborted) {
-          throw new Error("Stream was aborted");
-        }
-
-        const { done, value } = await reader.read();
-
-        if (done) {
-          break;
-        }
-
-        if (value) {
-          yield value;
-        }
-      }
-    } finally {
-      reader.releaseLock();
-    }
-  }
-
-  /**
-   * Creates SSE-parsed stream.
-   */
-  private async *createSseStream(
-    rawStream: AsyncIterable<Uint8Array>,
-  ): AsyncIterable<Uint8Array> {
-    for await (const event of SseParser.parse(rawStream)) {
-      if (event.data) {
-        // Return SSE data as UTF-8 bytes
-        yield new TextEncoder().encode(event.data);
-      }
-    }
-  }
-
-  /**
-   * Creates JSON-parsed stream.
-   */
-  private async *createJsonStream(
-    rawStream: AsyncIterable<Uint8Array>,
-  ): AsyncIterable<Uint8Array> {
-    for await (const parsed of ChunkParser.parseJsonLines(rawStream)) {
-      if (parsed.data !== undefined) {
-        // Return JSON data as UTF-8 bytes
-        const jsonString =
-          typeof parsed.data === "string"
-            ? parsed.data
-            : JSON.stringify(parsed.data);
-        yield new TextEncoder().encode(jsonString);
-      }
-    }
-  }
-
-  /**
-   * Creates JSON stream with fallback to raw chunks.
-   */
-  private async *createJsonStreamWithFallback(
-    rawStream: AsyncIterable<Uint8Array>,
-  ): AsyncIterable<Uint8Array> {
-    try {
-      yield* this.createJsonStream(rawStream);
-    } catch {
-      // Fallback to raw stream if JSON parsing fails
-      yield* rawStream;
-    }
   }
 }

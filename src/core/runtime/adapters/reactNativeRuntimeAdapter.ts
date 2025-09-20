@@ -14,6 +14,38 @@ import type { FileOperationOptions } from "../fileOperationOptions";
 import { RuntimeError } from "../runtimeError";
 import { getPlatformCapabilities } from "../getPlatformCapabilities";
 
+// Type definitions for react-native-sse library
+interface SSEEvent {
+  data: string;
+}
+
+interface SSEEventSource {
+  addEventListener(type: "message", listener: (event: SSEEvent) => void): void;
+  addEventListener(type: "error", listener: (error: Error) => void): void;
+  addEventListener(type: "close", listener: () => void): void;
+  removeEventListener(
+    type: "message",
+    listener: (event: SSEEvent) => void,
+  ): void;
+  removeEventListener(type: "error", listener: (error: Error) => void): void;
+  removeEventListener(type: "close", listener: () => void): void;
+  close(): void;
+}
+
+interface SSEEventSourceConstructor {
+  new (
+    url: string,
+    options?: {
+      headers?: Record<string, string>;
+      method?: string;
+    },
+  ): SSEEventSource;
+}
+
+interface _ReactNativeSSE {
+  EventSource: SSEEventSourceConstructor;
+}
+
 /**
  * React Native implementation of the RuntimeAdapter interface.
  *
@@ -45,6 +77,308 @@ export class ReactNativeRuntimeAdapter implements RuntimeAdapter {
         {
           input: input.toString(),
           init,
+          originalError: error,
+        },
+      );
+    }
+  }
+
+  /**
+   * Checks if the request should use Server-Sent Events based on Accept headers
+   */
+  private isSSERequest(headers?: HeadersInit): boolean {
+    if (!headers) return false;
+
+    // Convert HeadersInit to a searchable format
+    let acceptHeader = "";
+    if (headers instanceof Headers) {
+      acceptHeader = headers.get("accept") || headers.get("Accept") || "";
+    } else if (Array.isArray(headers)) {
+      // Handle array format [['accept', 'text/event-stream'], ...]
+      const acceptEntry = headers.find(
+        ([key]) => key.toLowerCase() === "accept",
+      );
+      acceptHeader = acceptEntry ? acceptEntry[1] : "";
+    } else {
+      // Handle object format { accept: 'text/event-stream' }
+      const headersObj = headers;
+      acceptHeader = headersObj.accept || headersObj.Accept || "";
+    }
+
+    return acceptHeader.includes("text/event-stream");
+  }
+
+  /**
+   * Attempts to create SSE stream using react-native-sse with lazy loading
+   */
+  private async tryCreateSSEStream(
+    input: string | URL,
+    init?: RequestInit,
+  ): Promise<{
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+    stream: AsyncIterable<Uint8Array>;
+  }> {
+    try {
+      // Lazy load react-native-sse to prevent bundle issues
+      const reactNativeSSE = (await import(
+        "react-native-sse"
+      )) as unknown as _ReactNativeSSE;
+      const { EventSource } = reactNativeSSE;
+
+      // Get HTTP metadata using HEAD request since EventSource doesn't provide it
+      const url = input.toString();
+      const headResponse = await globalThis.fetch(url, {
+        ...init,
+        method: "HEAD",
+      });
+
+      const headers = this.extractHTTPMetadata(headResponse);
+
+      return {
+        status: headResponse.status,
+        statusText: headResponse.statusText,
+        headers,
+        stream: this.createSSEAsyncIterable(url, init, EventSource),
+      };
+    } catch {
+      // Fallback to standard streaming if react-native-sse not available
+      console.warn(
+        "react-native-sse not available, falling back to standard streaming",
+      );
+      return await this.createStandardStream(input, init);
+    }
+  }
+
+  /**
+   * Creates standard fetch-based stream for non-SSE content
+   */
+  private async createStandardStream(
+    input: string | URL,
+    init?: RequestInit,
+  ): Promise<{
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+    stream: AsyncIterable<Uint8Array>;
+  }> {
+    // Use React Native's fetch to get the response
+    const response = await globalThis.fetch(input, init);
+
+    // Extract HTTP metadata
+    const headers = this.extractHTTPMetadata(response);
+
+    // Validate response has body
+    if (!response.body) {
+      throw new RuntimeError(
+        "Response body is null for streaming request",
+        "RUNTIME_HTTP_ERROR",
+        {
+          input: input.toString(),
+          init,
+          platform: "react-native",
+        },
+      );
+    }
+
+    return {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+      stream: this.createStandardAsyncIterable(
+        response.body,
+        init?.signal ?? undefined,
+      ),
+    };
+  }
+
+  /**
+   * Extracts HTTP metadata from Response object
+   */
+  private extractHTTPMetadata(response: Response): Record<string, string> {
+    const headers: Record<string, string> = {};
+    response.headers.forEach((value, key) => {
+      headers[key] = value;
+    });
+    return headers;
+  }
+
+  /**
+   * Creates AsyncIterable from SSE EventSource
+   */
+  private async *createSSEAsyncIterable(
+    url: string,
+    init?: RequestInit,
+    EventSource?: SSEEventSourceConstructor,
+  ): AsyncIterable<Uint8Array> {
+    if (!EventSource) {
+      throw new RuntimeError(
+        "EventSource not available for SSE streaming",
+        "RUNTIME_HTTP_ERROR",
+        {
+          url,
+          platform: "react-native",
+        },
+      );
+    }
+
+    const eventSource = new EventSource(url, {
+      headers: this.convertHeadersToObject(init?.headers),
+      method: init?.method || "GET",
+    });
+
+    try {
+      while (true) {
+        // Check for cancellation
+        if (init?.signal?.aborted) {
+          throw new RuntimeError("Stream was aborted", "RUNTIME_HTTP_ERROR", {
+            url,
+            platform: "react-native",
+          });
+        }
+
+        const event = await this.waitForSSEEvent(eventSource);
+        if (event.type === "close") {
+          break;
+        }
+
+        if (event.data) {
+          yield new TextEncoder().encode(event.data);
+        }
+      }
+    } finally {
+      eventSource.close();
+    }
+  }
+
+  /**
+   * Creates AsyncIterable from standard ReadableStream
+   */
+  private async *createStandardAsyncIterable(
+    stream: ReadableStream<Uint8Array>,
+    signal?: AbortSignal,
+  ): AsyncIterable<Uint8Array> {
+    const reader = stream.getReader();
+
+    try {
+      while (true) {
+        // Check for cancellation
+        if (signal?.aborted) {
+          throw new RuntimeError("Stream was aborted", "RUNTIME_HTTP_ERROR", {
+            platform: "react-native",
+          });
+        }
+
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
+        }
+
+        if (value) {
+          yield value;
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  }
+
+  /**
+   * Converts HeadersInit to plain object for EventSource
+   */
+  private convertHeadersToObject(
+    headers?: HeadersInit,
+  ): Record<string, string> {
+    if (!headers) return {};
+
+    if (headers instanceof Headers) {
+      const result: Record<string, string> = {};
+      headers.forEach((value, key) => {
+        result[key] = value;
+      });
+      return result;
+    } else if (Array.isArray(headers)) {
+      const result: Record<string, string> = {};
+      headers.forEach(([key, value]) => {
+        result[key] = value;
+      });
+      return result;
+    } else {
+      return headers;
+    }
+  }
+
+  /**
+   * Waits for the next SSE event from EventSource
+   */
+  private waitForSSEEvent(
+    eventSource: SSEEventSource,
+  ): Promise<{ type: string; data?: string }> {
+    return new Promise((resolve, reject) => {
+      const onMessage = (event: SSEEvent) => {
+        cleanup();
+        resolve({ type: "message", data: event.data });
+      };
+
+      const onError = (error: Error) => {
+        cleanup();
+        reject(
+          new RuntimeError(
+            `SSE stream error: ${error.message || "Unknown error"}`,
+            "RUNTIME_HTTP_ERROR",
+            {
+              platform: "react-native",
+              originalError: error,
+            },
+          ),
+        );
+      };
+
+      const onClose = () => {
+        cleanup();
+        resolve({ type: "close" });
+      };
+
+      const cleanup = () => {
+        eventSource.removeEventListener("message", onMessage);
+        eventSource.removeEventListener("error", onError);
+        eventSource.removeEventListener("close", onClose);
+      };
+
+      eventSource.addEventListener("message", onMessage);
+      eventSource.addEventListener("error", onError);
+      eventSource.addEventListener("close", onClose);
+    });
+  }
+
+  async stream(
+    input: string | URL,
+    init?: RequestInit,
+  ): Promise<{
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+    stream: AsyncIterable<Uint8Array>;
+  }> {
+    try {
+      // Detect if this should use SSE based on Accept headers
+      const isSSE = this.isSSERequest(init?.headers);
+
+      if (isSSE) {
+        return await this.tryCreateSSEStream(input, init);
+      } else {
+        return await this.createStandardStream(input, init);
+      }
+    } catch (error) {
+      throw new RuntimeError(
+        `HTTP stream failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        "RUNTIME_HTTP_ERROR",
+        {
+          input: input.toString(),
+          init,
+          platform: "react-native",
           originalError: error,
         },
       );

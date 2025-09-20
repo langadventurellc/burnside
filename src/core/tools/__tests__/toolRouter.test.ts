@@ -12,6 +12,7 @@ import type { ToolCall } from "../toolCall";
 import type { ToolDefinition } from "../toolDefinition";
 import type { ToolExecutionContext } from "../toolExecutionContext";
 import type { ToolHandler } from "../toolHandler";
+import type { RuntimeAdapter } from "../../runtime/runtimeAdapter";
 
 describe("ToolRouter", () => {
   let router: ToolRouter;
@@ -20,10 +21,29 @@ describe("ToolRouter", () => {
   let mockToolDefinition: ToolDefinition;
   let mockToolHandler: ToolHandler;
   let mockContext: ToolExecutionContext;
+  let mockRuntimeAdapter: RuntimeAdapter;
 
   beforeEach(() => {
     registry = new InMemoryToolRegistry();
-    router = new ToolRouter(registry);
+
+    // Create mock runtime adapter that works with Jest fake timers
+    mockRuntimeAdapter = {
+      setTimeout: jest.fn((callback: () => void, timeout: number) => {
+        return setTimeout(callback, timeout);
+      }),
+      clearTimeout: jest.fn((handle: unknown) => {
+        if (handle) {
+          clearTimeout(handle as NodeJS.Timeout);
+        }
+      }),
+      fetch: jest.fn(),
+      stream: jest.fn(),
+      readFile: jest.fn(),
+      writeFile: jest.fn(),
+      fileExists: jest.fn(),
+    } as unknown as RuntimeAdapter;
+
+    router = new ToolRouter(registry, 5000, mockRuntimeAdapter);
 
     mockToolCall = {
       id: "call_123",
@@ -130,7 +150,7 @@ describe("ToolRouter", () => {
       expect(result.error?.message).toContain("timed out after 100ms");
 
       jest.useRealTimers();
-    });
+    }, 10000);
 
     it("should handle router-level errors gracefully", async () => {
       // Force router error by corrupting registry

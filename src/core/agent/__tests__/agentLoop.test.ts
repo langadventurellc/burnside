@@ -17,6 +17,7 @@ import type { ToolCall } from "../../tools/toolCall";
 import type { ToolResult } from "../../tools/toolResult";
 import type { ToolDefinition } from "../../tools/toolDefinition";
 import type { ToolHandler } from "../../tools/toolHandler";
+import type { RuntimeAdapter } from "../../runtime/runtimeAdapter";
 
 describe("AgentLoop", () => {
   let agentLoop: AgentLoop;
@@ -26,11 +27,28 @@ describe("AgentLoop", () => {
   let mockToolCall: ToolCall;
   let mockToolDefinition: ToolDefinition;
   let mockToolHandler: ToolHandler;
+  let mockRuntimeAdapter: RuntimeAdapter;
 
   beforeEach(() => {
     registry = new InMemoryToolRegistry();
-    toolRouter = new ToolRouter(registry);
-    agentLoop = new AgentLoop(toolRouter, {
+
+    // Create mock runtime adapter that uses real timers for tests
+    mockRuntimeAdapter = {
+      setTimeout: jest.fn((callback: () => void, delay: number) => {
+        return setTimeout(callback, delay);
+      }),
+      clearTimeout: jest.fn((handle: unknown) => {
+        clearTimeout(handle as NodeJS.Timeout);
+      }),
+      fetch: jest.fn(),
+      stream: jest.fn(),
+      readFile: jest.fn(),
+      writeFile: jest.fn(),
+      fileExists: jest.fn(),
+    } as unknown as RuntimeAdapter;
+
+    toolRouter = new ToolRouter(registry, 5000, mockRuntimeAdapter);
+    agentLoop = new AgentLoop(toolRouter, mockRuntimeAdapter, {
       maxToolCalls: 1,
       timeoutMs: 10000,
       toolTimeoutMs: 5000,
@@ -71,7 +89,7 @@ describe("AgentLoop", () => {
 
   describe("constructor", () => {
     it("should create AgentLoop with default options", () => {
-      const loop = new AgentLoop(toolRouter);
+      const loop = new AgentLoop(toolRouter, mockRuntimeAdapter);
       expect(loop).toBeInstanceOf(AgentLoop);
     });
 
@@ -82,7 +100,7 @@ describe("AgentLoop", () => {
         toolTimeoutMs: 7500,
         continueOnToolError: false,
       };
-      const loop = new AgentLoop(toolRouter, customOptions);
+      const loop = new AgentLoop(toolRouter, mockRuntimeAdapter, customOptions);
       expect(loop).toBeInstanceOf(AgentLoop);
     });
   });
@@ -340,7 +358,7 @@ describe("AgentLoop", () => {
     });
 
     it("should handle router execution exception with continueOnToolError false", async () => {
-      const strictLoop = new AgentLoop(toolRouter, {
+      const strictLoop = new AgentLoop(toolRouter, mockRuntimeAdapter, {
         continueOnToolError: false,
       });
 
@@ -476,7 +494,7 @@ describe("AgentLoop", () => {
 
   describe("executeMultiTurn", () => {
     beforeEach(() => {
-      agentLoop = new AgentLoop(toolRouter, {
+      agentLoop = new AgentLoop(toolRouter, mockRuntimeAdapter, {
         maxToolCalls: 3,
         timeoutMs: 5000,
         iterationTimeoutMs: 1000,
@@ -516,10 +534,14 @@ describe("AgentLoop", () => {
     });
 
     it("should enforce maximum iteration limits", async () => {
-      const agentLoopWithLimits = new AgentLoop(toolRouter, {
-        maxIterations: 2,
-        timeoutMs: 10000,
-      });
+      const agentLoopWithLimits = new AgentLoop(
+        toolRouter,
+        mockRuntimeAdapter,
+        {
+          maxIterations: 2,
+          timeoutMs: 10000,
+        },
+      );
 
       const initialMessages: Message[] = [
         {
@@ -557,10 +579,14 @@ describe("AgentLoop", () => {
         ),
       } as unknown as ToolRouter;
 
-      const agentLoopWithTimeout = new AgentLoop(slowRouter, {
-        timeoutMs: 50, // Very short timeout
-        maxIterations: 10,
-      });
+      const agentLoopWithTimeout = new AgentLoop(
+        slowRouter,
+        mockRuntimeAdapter,
+        {
+          timeoutMs: 50, // Very short timeout
+          maxIterations: 10,
+        },
+      );
 
       const initialMessages: Message[] = [
         {
@@ -643,10 +669,14 @@ describe("AgentLoop", () => {
           .mockRejectedValue(new Error("Tool execution failed")),
       } as unknown as ToolRouter;
 
-      const agentLoopWithErrorHandling = new AgentLoop(errorRouter, {
-        continueOnToolError: true,
-        maxIterations: 2,
-      });
+      const agentLoopWithErrorHandling = new AgentLoop(
+        errorRouter,
+        mockRuntimeAdapter,
+        {
+          continueOnToolError: true,
+          maxIterations: 2,
+        },
+      );
 
       const initialMessages: Message[] = [
         {
@@ -746,7 +776,7 @@ describe("AgentLoop", () => {
   describe("Multi-Turn Error Handling Integration", () => {
     it("should throw MaxIterationsExceededError when conversation exceeds iteration limit", async () => {
       // Create a custom AgentLoop that forces multiple iterations
-      const customAgentLoop = new AgentLoop(toolRouter, {
+      const customAgentLoop = new AgentLoop(toolRouter, mockRuntimeAdapter, {
         maxToolCalls: 1,
         timeoutMs: 10000,
         toolTimeoutMs: 5000,
@@ -789,13 +819,17 @@ describe("AgentLoop", () => {
         },
       ];
 
-      const agentLoopWithTimeout = new AgentLoop(toolRouter, {
-        maxToolCalls: 1,
-        timeoutMs: 10000,
-        toolTimeoutMs: 5000,
-        continueOnToolError: true,
-        iterationTimeoutMs: 1, // Very short timeout to guarantee failure
-      });
+      const agentLoopWithTimeout = new AgentLoop(
+        toolRouter,
+        mockRuntimeAdapter,
+        {
+          maxToolCalls: 1,
+          timeoutMs: 10000,
+          toolTimeoutMs: 5000,
+          continueOnToolError: true,
+          iterationTimeoutMs: 1, // Very short timeout to guarantee failure
+        },
+      );
 
       // Mock executeIteration to take longer than the timeout
       const executeIterationSpy = jest
@@ -826,7 +860,7 @@ describe("AgentLoop", () => {
         },
       ];
 
-      const faultyAgentLoop = new AgentLoop(toolRouter, {
+      const faultyAgentLoop = new AgentLoop(toolRouter, mockRuntimeAdapter, {
         maxToolCalls: 1,
         timeoutMs: 10000,
         toolTimeoutMs: 5000,
@@ -855,13 +889,17 @@ describe("AgentLoop", () => {
         },
       ];
 
-      const agentLoopWithLowLimit = new AgentLoop(toolRouter, {
-        maxToolCalls: 1,
-        timeoutMs: 10000,
-        toolTimeoutMs: 5000,
-        continueOnToolError: true,
-        maxIterations: 1, // Very low limit
-      });
+      const agentLoopWithLowLimit = new AgentLoop(
+        toolRouter,
+        mockRuntimeAdapter,
+        {
+          maxToolCalls: 1,
+          timeoutMs: 10000,
+          toolTimeoutMs: 5000,
+          continueOnToolError: true,
+          maxIterations: 1, // Very low limit
+        },
+      );
 
       // Mock shouldContinueConversation to force multiple iterations
       let continueCallCount = 0;
@@ -917,7 +955,7 @@ describe("AgentLoop", () => {
         },
       ];
 
-      const faultyAgentLoop = new AgentLoop(toolRouter, {
+      const faultyAgentLoop = new AgentLoop(toolRouter, mockRuntimeAdapter, {
         maxToolCalls: 1,
         timeoutMs: 10000,
         toolTimeoutMs: 5000,
@@ -959,13 +997,17 @@ describe("AgentLoop", () => {
         },
       ];
 
-      const agentLoopWithLowLimit = new AgentLoop(toolRouter, {
-        maxToolCalls: 1,
-        timeoutMs: 10000,
-        toolTimeoutMs: 5000,
-        continueOnToolError: true,
-        maxIterations: 1,
-      });
+      const agentLoopWithLowLimit = new AgentLoop(
+        toolRouter,
+        mockRuntimeAdapter,
+        {
+          maxToolCalls: 1,
+          timeoutMs: 10000,
+          toolTimeoutMs: 5000,
+          continueOnToolError: true,
+          maxIterations: 1,
+        },
+      );
 
       // Mock shouldContinueConversation to force multiple iterations
       let continueCallCount = 0;

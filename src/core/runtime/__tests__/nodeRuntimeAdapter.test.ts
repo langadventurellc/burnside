@@ -8,20 +8,24 @@
 import { NodeRuntimeAdapter } from "../adapters/nodeRuntimeAdapter";
 import { RuntimeError } from "../runtimeError";
 
-// Mock fs/promises
+// Mock fs/promises for dynamic imports
+const mockFs = {
+  readFile: jest.fn(),
+  writeFile: jest.fn(),
+  access: jest.fn(),
+  mkdir: jest.fn(),
+};
+
 jest.mock("node:fs", () => ({
-  promises: {
-    readFile: jest.fn(),
-    writeFile: jest.fn(),
-    access: jest.fn(),
-    mkdir: jest.fn(),
-  },
+  promises: mockFs,
 }));
 
-// Mock node:path
-jest.mock("node:path", () => ({
+// Mock node:path for dynamic imports
+const mockPath = {
   dirname: jest.fn(),
-}));
+};
+
+jest.mock("node:path", () => mockPath);
 
 describe("NodeRuntimeAdapter", () => {
   let adapter: NodeRuntimeAdapter;
@@ -79,6 +83,194 @@ describe("NodeRuntimeAdapter", () => {
         await expect(adapter.fetch("https://example.com")).rejects.toThrow(
           "HTTP fetch failed",
         );
+      });
+    });
+
+    describe("stream", () => {
+      const createMockResponse = (body: ReadableStream | null) => ({
+        status: 200,
+        statusText: "OK",
+        headers: new Map([
+          ["content-type", "text/event-stream"],
+          ["cache-control", "no-cache"],
+        ]),
+        body,
+      });
+
+      const createMockStream = (
+        chunks: Uint8Array[],
+      ): ReadableStream<Uint8Array> => {
+        let index = 0;
+        return new ReadableStream({
+          start(controller) {
+            const pump = () => {
+              if (index < chunks.length) {
+                controller.enqueue(chunks[index++]);
+                pump();
+              } else {
+                controller.close();
+              }
+            };
+            pump();
+          },
+        });
+      };
+
+      it("should return stream response with HTTP metadata", async () => {
+        const chunks = [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])];
+        const mockStream = createMockStream(chunks);
+        const mockResponse = createMockResponse(mockStream);
+
+        const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+        (globalThis as unknown as { fetch: unknown }).fetch = mockFetch;
+
+        const result = await adapter.stream("https://example.com/stream");
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          "https://example.com/stream",
+          undefined,
+        );
+        expect(result.status).toBe(200);
+        expect(result.statusText).toBe("OK");
+        expect(result.headers).toEqual({
+          "content-type": "text/event-stream",
+          "cache-control": "no-cache",
+        });
+
+        // Collect stream chunks
+        const receivedChunks = [];
+        for await (const chunk of result.stream) {
+          receivedChunks.push(chunk);
+        }
+
+        expect(receivedChunks).toHaveLength(2);
+        expect(receivedChunks[0]).toEqual(new Uint8Array([1, 2, 3]));
+        expect(receivedChunks[1]).toEqual(new Uint8Array([4, 5, 6]));
+      });
+
+      it("should pass init options to fetch", async () => {
+        const mockStream = createMockStream([new Uint8Array([1, 2, 3])]);
+        const mockResponse = createMockResponse(mockStream);
+        const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+        (globalThis as unknown as { fetch: unknown }).fetch = mockFetch;
+
+        const init = {
+          method: "POST",
+          headers: { Accept: "text/event-stream" },
+        };
+
+        await adapter.stream("https://example.com/stream", init);
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          "https://example.com/stream",
+          init,
+        );
+      });
+
+      it("should support AbortSignal cancellation", async () => {
+        const controller = new AbortController();
+        const chunks = [
+          new Uint8Array([1, 2, 3]),
+          new Uint8Array([4, 5, 6]),
+          new Uint8Array([7, 8, 9]),
+        ];
+
+        // Create a stream that will be cancelled
+        let _streamController: ReadableStreamDefaultController<Uint8Array>;
+        const mockStream = new ReadableStream<Uint8Array>({
+          start(controller) {
+            _streamController = controller;
+            controller.enqueue(chunks[0]);
+          },
+        });
+
+        const mockResponse = createMockResponse(mockStream);
+        const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+        (globalThis as unknown as { fetch: unknown }).fetch = mockFetch;
+
+        const init = { signal: controller.signal };
+        const result = await adapter.stream("https://example.com/stream", init);
+
+        // Start consuming stream
+        const iterator = result.stream[Symbol.asyncIterator]();
+
+        // Get first chunk
+        const firstChunk = await iterator.next();
+        expect(firstChunk.value).toEqual(chunks[0]);
+        expect(firstChunk.done).toBe(false);
+
+        // Cancel the signal
+        controller.abort();
+
+        // Next iteration should throw error
+        await expect(iterator.next()).rejects.toThrow("Stream was aborted");
+      });
+
+      it("should throw RuntimeError when response body is null", async () => {
+        const mockResponse = createMockResponse(null);
+        const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+        (globalThis as unknown as { fetch: unknown }).fetch = mockFetch;
+
+        await expect(
+          adapter.stream("https://example.com/stream"),
+        ).rejects.toThrow(RuntimeError);
+        await expect(
+          adapter.stream("https://example.com/stream"),
+        ).rejects.toThrow("Response body is null for streaming request");
+      });
+
+      it("should throw RuntimeError when fetch fails", async () => {
+        const mockError = new Error("Network error");
+        const mockFetch = jest.fn().mockRejectedValue(mockError);
+        (globalThis as unknown as { fetch: unknown }).fetch = mockFetch;
+
+        await expect(
+          adapter.stream("https://example.com/stream"),
+        ).rejects.toThrow(RuntimeError);
+        await expect(
+          adapter.stream("https://example.com/stream"),
+        ).rejects.toThrow("HTTP stream failed: Network error");
+      });
+
+      it("should handle empty stream correctly", async () => {
+        const mockStream = createMockStream([]);
+        const mockResponse = createMockResponse(mockStream);
+        const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+        (globalThis as unknown as { fetch: unknown }).fetch = mockFetch;
+
+        const result = await adapter.stream("https://example.com/stream");
+
+        const receivedChunks = [];
+        for await (const chunk of result.stream) {
+          receivedChunks.push(chunk);
+        }
+
+        expect(receivedChunks).toHaveLength(0);
+      });
+
+      it("should properly extract headers from Response", async () => {
+        const mockStream = createMockStream([new Uint8Array([1])]);
+        const headers = new Map([
+          ["content-type", "application/json"],
+          ["x-custom-header", "custom-value"],
+          ["authorization", "Bearer token123"],
+        ]);
+
+        const mockResponse = {
+          ...createMockResponse(mockStream),
+          headers,
+        };
+
+        const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+        (globalThis as unknown as { fetch: unknown }).fetch = mockFetch;
+
+        const result = await adapter.stream("https://example.com/stream");
+
+        expect(result.headers).toEqual({
+          "content-type": "application/json",
+          "x-custom-header": "custom-value",
+          authorization: "Bearer token123",
+        });
       });
     });
   });
@@ -195,33 +387,31 @@ describe("NodeRuntimeAdapter", () => {
   });
 
   describe("File Operations", () => {
-    const { promises: fs } = require("node:fs");
-
     describe("readFile", () => {
       it("should read file with default encoding", async () => {
-        fs.readFile.mockResolvedValue("file content");
+        mockFs.readFile.mockResolvedValue("file content");
 
         const content = await adapter.readFile("/test/file.txt");
 
-        expect(fs.readFile).toHaveBeenCalledWith("/test/file.txt", {
+        expect(mockFs.readFile).toHaveBeenCalledWith("/test/file.txt", {
           encoding: "utf8",
         });
         expect(content).toBe("file content");
       });
 
       it("should read file with custom encoding", async () => {
-        fs.readFile.mockResolvedValue("file content");
+        mockFs.readFile.mockResolvedValue("file content");
 
         await adapter.readFile("/test/file.txt", { encoding: "base64" });
 
-        expect(fs.readFile).toHaveBeenCalledWith("/test/file.txt", {
+        expect(mockFs.readFile).toHaveBeenCalledWith("/test/file.txt", {
           encoding: "base64",
         });
       });
 
       it("should throw RuntimeError when readFile fails", async () => {
         const mockError = new Error("File not found");
-        fs.readFile.mockRejectedValue(mockError);
+        mockFs.readFile.mockRejectedValue(mockError);
 
         await expect(adapter.readFile("/test/file.txt")).rejects.toThrow(
           RuntimeError,
@@ -234,47 +424,58 @@ describe("NodeRuntimeAdapter", () => {
 
     describe("writeFile", () => {
       it("should write file with default encoding", async () => {
-        fs.writeFile.mockResolvedValue(undefined);
+        mockFs.writeFile.mockResolvedValue(undefined);
 
         await adapter.writeFile("/test/file.txt", "content");
 
-        expect(fs.writeFile).toHaveBeenCalledWith("/test/file.txt", "content", {
-          encoding: "utf8",
-        });
+        expect(mockFs.writeFile).toHaveBeenCalledWith(
+          "/test/file.txt",
+          "content",
+          {
+            encoding: "utf8",
+          },
+        );
       });
 
       it("should write file with custom encoding", async () => {
-        fs.writeFile.mockResolvedValue(undefined);
+        mockFs.writeFile.mockResolvedValue(undefined);
 
         await adapter.writeFile("/test/file.txt", "content", {
           encoding: "base64",
         });
 
-        expect(fs.writeFile).toHaveBeenCalledWith("/test/file.txt", "content", {
-          encoding: "base64",
-        });
+        expect(mockFs.writeFile).toHaveBeenCalledWith(
+          "/test/file.txt",
+          "content",
+          {
+            encoding: "base64",
+          },
+        );
       });
 
       it("should create directories when requested", async () => {
-        const { dirname } = require("node:path");
-        dirname.mockReturnValue("/test");
-        fs.mkdir.mockResolvedValue(undefined);
-        fs.writeFile.mockResolvedValue(undefined);
+        mockPath.dirname.mockReturnValue("/test");
+        mockFs.mkdir.mockResolvedValue(undefined);
+        mockFs.writeFile.mockResolvedValue(undefined);
 
         await adapter.writeFile("/test/file.txt", "content", {
           createDirectories: true,
         });
 
-        expect(dirname).toHaveBeenCalledWith("/test/file.txt");
-        expect(fs.mkdir).toHaveBeenCalledWith("/test", { recursive: true });
-        expect(fs.writeFile).toHaveBeenCalledWith("/test/file.txt", "content", {
-          encoding: "utf8",
-        });
+        expect(mockPath.dirname).toHaveBeenCalledWith("/test/file.txt");
+        expect(mockFs.mkdir).toHaveBeenCalledWith("/test", { recursive: true });
+        expect(mockFs.writeFile).toHaveBeenCalledWith(
+          "/test/file.txt",
+          "content",
+          {
+            encoding: "utf8",
+          },
+        );
       });
 
       it("should throw RuntimeError when writeFile fails", async () => {
         const mockError = new Error("Permission denied");
-        fs.writeFile.mockRejectedValue(mockError);
+        mockFs.writeFile.mockRejectedValue(mockError);
 
         await expect(
           adapter.writeFile("/test/file.txt", "content"),
@@ -287,20 +488,20 @@ describe("NodeRuntimeAdapter", () => {
 
     describe("fileExists", () => {
       it("should return true when file exists", async () => {
-        fs.access.mockResolvedValue(undefined);
+        mockFs.access.mockResolvedValue(undefined);
 
         const exists = await adapter.fileExists("/test/file.txt");
 
-        expect(fs.access).toHaveBeenCalledWith("/test/file.txt");
+        expect(mockFs.access).toHaveBeenCalledWith("/test/file.txt");
         expect(exists).toBe(true);
       });
 
       it("should return false when file does not exist", async () => {
-        fs.access.mockRejectedValue(new Error("File not found"));
+        mockFs.access.mockRejectedValue(new Error("File not found"));
 
         const exists = await adapter.fileExists("/test/file.txt");
 
-        expect(fs.access).toHaveBeenCalledWith("/test/file.txt");
+        expect(mockFs.access).toHaveBeenCalledWith("/test/file.txt");
         expect(exists).toBe(false);
       });
     });

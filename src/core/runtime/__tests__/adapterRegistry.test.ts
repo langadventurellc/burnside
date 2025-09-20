@@ -88,6 +88,7 @@ describe("AdapterRegistry", () => {
       },
     },
     fetch: jest.fn(),
+    stream: jest.fn(),
     setTimeout: jest.fn(),
     setInterval: jest.fn(),
     clearTimeout: jest.fn(),

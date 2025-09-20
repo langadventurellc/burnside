@@ -18,6 +18,12 @@ export function createGoogleTestClient(
       enabled: true,
       builtinTools: ["echo"], // Required when tools enabled per schema
     },
+    options: {
+      logging: {
+        enabled: false,
+        // level: "debug",
+      },
+    },
     ...overrides,
   };
 

@@ -6,7 +6,6 @@
  * using Node built-in APIs.
  */
 
-import { promises as fs } from "node:fs";
 import type { RuntimeAdapter } from "../runtimeAdapter";
 import type { PlatformInfo } from "../platformInfo";
 import type { TimerHandle } from "../timerHandle";
@@ -48,6 +47,88 @@ export class NodeRuntimeAdapter implements RuntimeAdapter {
           originalError: error,
         },
       );
+    }
+  }
+
+  async stream(
+    input: string | URL,
+    init?: RequestInit,
+  ): Promise<{
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+    stream: AsyncIterable<Uint8Array>;
+  }> {
+    try {
+      // Use global fetch to get the response
+      const response = await globalThis.fetch(input, init);
+
+      // Extract headers into a plain object
+      const headers: Record<string, string> = {};
+      response.headers.forEach((value, key) => {
+        headers[key] = value;
+      });
+
+      // Convert response body to AsyncIterable
+      if (!response.body) {
+        throw new RuntimeError(
+          "Response body is null for streaming request",
+          "RUNTIME_HTTP_ERROR",
+          {
+            input: input.toString(),
+            init,
+          },
+        );
+      }
+
+      // Return metadata + stream
+      return {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+        stream: this.createAsyncIterable(
+          response.body,
+          init?.signal ?? undefined,
+        ),
+      };
+    } catch (error) {
+      throw new RuntimeError(
+        `HTTP stream failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        "RUNTIME_HTTP_ERROR",
+        {
+          input: input.toString(),
+          init,
+          originalError: error,
+        },
+      );
+    }
+  }
+
+  private async *createAsyncIterable(
+    stream: ReadableStream<Uint8Array>,
+    signal?: AbortSignal,
+  ): AsyncIterable<Uint8Array> {
+    const reader = stream.getReader();
+
+    try {
+      while (true) {
+        // Check for cancellation
+        if (signal?.aborted) {
+          throw new Error("Stream was aborted");
+        }
+
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
+        }
+
+        if (value) {
+          yield value;
+        }
+      }
+    } finally {
+      reader.releaseLock();
     }
   }
 
@@ -122,6 +203,8 @@ export class NodeRuntimeAdapter implements RuntimeAdapter {
     options?: FileOperationOptions,
   ): Promise<string> {
     try {
+      // Lazy load to prevent React Native bundle issues
+      const { promises: fs } = await import("node:fs");
       const encoding = options?.encoding ?? "utf8";
       return await fs.readFile(path, { encoding });
     } catch (error) {
@@ -144,6 +227,8 @@ export class NodeRuntimeAdapter implements RuntimeAdapter {
     options?: FileOperationOptions,
   ): Promise<void> {
     try {
+      // Lazy load to prevent React Native bundle issues
+      const { promises: fs } = await import("node:fs");
       const encoding = options?.encoding ?? "utf8";
 
       // Create parent directories if requested
@@ -171,6 +256,8 @@ export class NodeRuntimeAdapter implements RuntimeAdapter {
 
   async fileExists(path: string): Promise<boolean> {
     try {
+      // Lazy load to prevent React Native bundle issues
+      const { promises: fs } = await import("node:fs");
       await fs.access(path);
       return true;
     } catch {

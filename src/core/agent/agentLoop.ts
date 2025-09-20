@@ -14,6 +14,8 @@ import type { ContentPart } from "../messages/contentPart";
 import type { ToolCall } from "../tools/toolCall";
 import type { ToolResult } from "../tools/toolResult";
 import type { ToolRouter } from "../tools/toolRouter";
+import type { RuntimeAdapter } from "../runtime/runtimeAdapter";
+import type { TimerHandle } from "../runtime/timerHandle";
 import type { AgentExecutionOptions } from "./agentExecutionOptions";
 import type { MultiTurnState } from "./multiTurnState";
 import type { StreamingTurnResult } from "./streamingTurnResult";
@@ -64,6 +66,7 @@ export class AgentLoop {
 
   constructor(
     private toolRouter: ToolRouter,
+    private runtimeAdapter: RuntimeAdapter,
     defaultOptions: AgentExecutionOptions = {},
   ) {
     this.defaultOptions = {
@@ -92,14 +95,17 @@ export class AgentLoop {
       defaultOptions.gracefulCancellationTimeoutMs ||
       defaultOptions.cleanupOnCancel !== undefined
     ) {
-      this.cancellationManager = new CancellationManager({
-        signal: defaultOptions.signal,
-        cancellationCheckIntervalMs:
-          defaultOptions.cancellationCheckIntervalMs ?? 100,
-        gracefulCancellationTimeoutMs:
-          defaultOptions.gracefulCancellationTimeoutMs ?? 5000,
-        cleanupOnCancel: defaultOptions.cleanupOnCancel ?? true,
-      });
+      this.cancellationManager = new CancellationManager(
+        this.toolRouter.getRuntimeAdapter(),
+        {
+          signal: defaultOptions.signal,
+          cancellationCheckIntervalMs:
+            defaultOptions.cancellationCheckIntervalMs ?? 100,
+          gracefulCancellationTimeoutMs:
+            defaultOptions.gracefulCancellationTimeoutMs ?? 5000,
+          cleanupOnCancel: defaultOptions.cleanupOnCancel ?? true,
+        },
+      );
 
       // Register cleanup handler for conversation state preservation
       this.cancellationManager.addCleanupHandler(() => {
@@ -456,23 +462,35 @@ export class AgentLoop {
 
     if (options.iterationTimeoutMs) {
       const iterationStartTime = Date.now();
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => {
-          const actualExecutionTime = Date.now() - iterationStartTime;
-          const metrics = this.buildExecutionMetrics(state, iterationStartTime);
-          reject(
-            new IterationTimeoutError(
-              state.iteration,
-              options.iterationTimeoutMs!,
-              actualExecutionTime,
-              state,
-              { metrics },
-            ),
-          );
-        }, options.iterationTimeoutMs);
-      });
+      let timeoutHandle: TimerHandle;
 
-      return Promise.race([executeIteration(), timeoutPromise]);
+      try {
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          timeoutHandle = this.runtimeAdapter.setTimeout(() => {
+            const actualExecutionTime = Date.now() - iterationStartTime;
+            const metrics = this.buildExecutionMetrics(
+              state,
+              iterationStartTime,
+            );
+            reject(
+              new IterationTimeoutError(
+                state.iteration,
+                options.iterationTimeoutMs!,
+                actualExecutionTime,
+                state,
+                { metrics },
+              ),
+            );
+          }, options.iterationTimeoutMs!);
+        });
+
+        return await Promise.race([executeIteration(), timeoutPromise]);
+      } finally {
+        // Clean up timeout
+        if (timeoutHandle !== undefined) {
+          this.runtimeAdapter.clearTimeout(timeoutHandle);
+        }
+      }
     }
 
     return executeIteration();
@@ -855,7 +873,9 @@ export class AgentLoop {
     for (const chunk of chunks) {
       yield chunk;
       // Simulate streaming delay
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await new Promise<void>((resolve) => {
+        this.runtimeAdapter.setTimeout(resolve, 10);
+      });
     }
   }
 

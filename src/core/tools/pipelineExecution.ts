@@ -7,6 +7,7 @@
 
 import type { ToolResult } from "./toolResult";
 import type { ExecutionContext } from "./executionContext";
+import type { TimerHandle } from "../runtime/timerHandle";
 
 /**
  * Execution stage - executes tool handler with timeout protection using AbortController
@@ -15,12 +16,12 @@ export async function executeToolHandler(
   context: ExecutionContext,
 ): Promise<ToolResult> {
   const controller = new AbortController();
-  let timeoutId: NodeJS.Timeout | undefined;
+  let timeoutHandle: TimerHandle;
 
   try {
     // Set up timeout promise
     const timeoutPromise = new Promise<never>((_, reject) => {
-      timeoutId = setTimeout(() => {
+      timeoutHandle = context.runtimeAdapter.setTimeout(() => {
         controller.abort();
         reject(new Error(`Timeout after ${context.timeoutMs}ms`));
       }, context.timeoutMs);
@@ -36,7 +37,9 @@ export async function executeToolHandler(
     ]);
 
     // Clear timeout on successful completion
-    clearTimeout(timeoutId);
+    if (timeoutHandle) {
+      context.runtimeAdapter.clearTimeout(timeoutHandle);
+    }
 
     // Return success result
     return {
@@ -49,8 +52,8 @@ export async function executeToolHandler(
     };
   } catch (error) {
     // Clear timeout
-    if (timeoutId) {
-      clearTimeout(timeoutId);
+    if (timeoutHandle) {
+      context.runtimeAdapter.clearTimeout(timeoutHandle);
     }
 
     // Check if error was due to timeout
