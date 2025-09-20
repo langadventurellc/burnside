@@ -1,12 +1,20 @@
 ---
 id: T-fix-detectplatform-test
 title: Fix detectPlatform test process mocking to prevent TTYWRAP handles
-status: open
+status: done
 priority: medium
 parent: none
 prerequisites: []
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/runtime/__tests__/detectPlatform.test.ts: Updated isElectron test to
+    use mockGlobalThis helper instead of direct globalThis.process manipulation,
+    preventing TTYWRAP handles and ensuring consistent test cleanup pattern
+log:
+  - Fixed process mocking in detectPlatform test to prevent TTYWRAP handles.
+    Updated the isElectron test to use the existing mockGlobalThis helper
+    consistently with other tests in the file. This eliminates manual process
+    object manipulation that was creating open handles preventing Jest from
+    exiting cleanly. All 19 tests pass and quality checks are clean.
 schema: v1.0
 childrenIds: []
 created: 2025-09-19T23:54:54.868Z
