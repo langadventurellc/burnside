@@ -98,6 +98,53 @@ affectedFiles:
     Added comprehensive test coverage for MCP functionality with 16 new tests
     covering connection creation, URL validation, JSON-RPC operations, error
     handling, and localhost/private IP acceptance for testing
+  src/tools/mcp/mcpError.ts: Created base MCP error class extending BridgeError
+    with MCP-specific error codes and context information
+  src/tools/mcp/mcpErrorCodes.ts:
+    Defined standardized error codes for connection,
+    capability, tool, and protocol errors
+  src/tools/mcp/mcpConnectionError.ts:
+    Implemented connection-specific error class
+    with static factory methods for timeout, refusal, loss, and reconnection
+    failures
+  src/tools/mcp/mcpCapabilityError.ts:
+    Created capability negotiation error class
+    with tools-only enforcement and rejection of prompts/resources
+  src/tools/mcp/mcpToolError.ts: Implemented tool operation error class for
+    discovery, execution, and parameter validation failures
+  src/tools/mcp/createMcpError.ts:
+    Created error factory functions for convenient
+    error creation with proper context
+  src/tools/mcp/mcpClientOptions.ts: Defined comprehensive client options
+    interface extending base connection options with retry, health monitoring,
+    and logging configuration
+  src/tools/mcp/mcpClientCapabilities.ts: Created client capabilities interface for tools-only MCP requests
+  src/tools/mcp/mcpServerCapabilities.ts: Defined server capabilities interface
+    for validation and capability negotiation
+  src/tools/mcp/mcpInitializeRequest.ts: Created initialize request interface following MCP protocol specification
+  src/tools/mcp/mcpInitializeResponse.ts: Defined initialize response interface for capability negotiation validation
+  src/tools/mcp/createToolsOnlyRequest.ts: Implemented function to create
+    tools-only capability requests with explicit rejection of prompts/resources
+  src/tools/mcp/mcpCapabilities.ts:
+    Core capability validation function enforcing
+    tools-only scope with comprehensive error handling
+  src/tools/mcp/validateInitializeResponse.ts: Response validation function
+    ensuring protocol compliance and capability requirements
+  src/tools/mcp/mcpClient.ts: Main MCP client class with connection lifecycle
+    management, capability negotiation, health monitoring, exponential backoff
+    reconnection, and tool operations
+  src/tools/mcp/index.ts: Barrel export file providing clean API surface for all MCP functionality
+  src/tools/index.ts: Updated main tools exports to include MCP module for Model
+    Context Protocol integration
+  src/tools/mcp/__tests__/mcpError.test.ts: Comprehensive test suite for all MCP
+    error classes with 24 test cases covering error creation, serialization, and
+    factory methods
+  src/tools/mcp/__tests__/mcpCapabilities.test.ts: Thorough test coverage for
+    capability negotiation with 16 test cases covering validation, rejection
+    scenarios, and response parsing
+  src/tools/mcp/__tests__/mcpClient.test.ts: Complete test suite for McpClient
+    with 28 test cases covering connection lifecycle, tool operations, health
+    monitoring, error handling, and AbortSignal support
 log: []
 schema: v1.0
 childrenIds:
