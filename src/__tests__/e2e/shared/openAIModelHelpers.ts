@@ -20,7 +20,7 @@ export function createTestClient(
     },
     options: {
       logging: {
-        enabled: true,
+        enabled: false,
         // level: "debug",
       },
     },
