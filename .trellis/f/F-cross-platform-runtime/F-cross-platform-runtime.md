@@ -1,7 +1,7 @@
 ---
 id: F-cross-platform-runtime
 title: Cross-Platform Runtime Adapters
-status: in-progress
+status: done
 priority: medium
 parent: none
 prerequisites: []
@@ -70,15 +70,22 @@ affectedFiles:
     updated fallback logic tests to reflect removal of electron→node fallback,
     added mock implementations for new adapters, and verified proper adapter
     selection for each platform.
-log: []
+  README.md:
+    Added comprehensive React Native installation documentation including
+    peer dependency requirements, why react-native-sse is needed for streaming
+    functionality, step-by-step installation instructions, version compatibility
+    matrix, platform support table, and troubleshooting section for common React
+    Native issues
+log:
+  - "Auto-completed: All child tasks are complete"
 schema: v1.0
 childrenIds:
   - T-add-package-dependencies-for
-  - T-update-adapter-registry-for
   - T-fix-platform-detection-for
   - T-implement-electron-renderer
   - T-implement-react-native
   - T-improve-react-native-platform
+  - T-update-adapter-registry-for
 created: 2025-09-20T04:17:17.477Z
 updated: 2025-09-20T04:17:17.477Z
 ---

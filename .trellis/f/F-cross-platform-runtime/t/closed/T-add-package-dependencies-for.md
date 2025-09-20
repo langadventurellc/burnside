@@ -1,12 +1,24 @@
 ---
 id: T-add-package-dependencies-for
 title: Add package dependencies for React Native support
-status: open
+status: done
 priority: low
 parent: F-cross-platform-runtime
 prerequisites: []
-affectedFiles: {}
-log: []
+affectedFiles:
+  README.md:
+    Added comprehensive React Native installation documentation including
+    peer dependency requirements, why react-native-sse is needed for streaming
+    functionality, step-by-step installation instructions, version compatibility
+    matrix, platform support table, and troubleshooting section for common React
+    Native issues
+log:
+  - Added comprehensive React Native peer dependency documentation to README.md.
+    The react-native-sse peer dependency was already correctly configured in
+    package.json. Documentation explains why react-native-sse is required for
+    Server-Sent Events streaming, provides clear installation instructions for
+    React Native users, includes version compatibility information, and offers
+    troubleshooting guidance. All quality checks pass.
 schema: v1.0
 childrenIds: []
 created: 2025-09-20T04:33:32.311Z
