@@ -6,7 +6,6 @@
  */
 import { HttpTransport } from "../httpTransport";
 import { InterceptorChain } from "../interceptorChain";
-import { HttpErrorNormalizer } from "../../errors/httpErrorNormalizer";
 import { TransportError } from "../../errors/transportError";
 import type { ProviderHttpRequest } from "../providerHttpRequest";
 import type { RuntimeAdapter } from "../../runtime/runtimeAdapter";
@@ -16,7 +15,6 @@ describe("HttpTransport", () => {
   let mockFetch: jest.MockedFunction<FetchFunction>;
   let mockRuntimeAdapter: jest.Mocked<RuntimeAdapter>;
   let mockInterceptorChain: jest.Mocked<InterceptorChain>;
-  let mockErrorNormalizer: jest.Mocked<HttpErrorNormalizer>;
   let httpTransport: HttpTransport;
 
   beforeEach(() => {
@@ -47,18 +45,8 @@ describe("HttpTransport", () => {
       addRequestInterceptor: jest.fn(),
       addResponseInterceptor: jest.fn(),
     } as unknown as jest.Mocked<InterceptorChain>;
-
-    // Create mock error normalizer
-    mockErrorNormalizer = {
-      normalize: jest.fn(),
-    } as unknown as jest.Mocked<HttpErrorNormalizer>;
-
     // Create HttpTransport instance
-    httpTransport = new HttpTransport(
-      mockRuntimeAdapter,
-      mockInterceptorChain,
-      mockErrorNormalizer,
-    );
+    httpTransport = new HttpTransport(mockRuntimeAdapter, mockInterceptorChain);
   });
 
   describe("constructor", () => {

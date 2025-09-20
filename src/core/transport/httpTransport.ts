@@ -38,15 +38,12 @@
  * ```
  */
 import type { Transport } from "./transport";
-import type { HttpClientConfig } from "./httpClientConfig";
 import type { ProviderHttpRequest } from "./providerHttpRequest";
 import type { ProviderHttpResponse } from "./providerHttpResponse";
 import type { InterceptorContext } from "./interceptorContext";
 import type { StreamResponse } from "./streamResponse";
 import type { RuntimeAdapter } from "../runtime/runtimeAdapter";
-import type { FileOperationOptions } from "../runtime/fileOperationOptions";
 import { InterceptorChain } from "./interceptorChain";
-import { HttpErrorNormalizer } from "../errors/httpErrorNormalizer";
 import { TransportError } from "../errors/transportError";
 import { logger } from "../logging/simpleLogger";
 
@@ -98,77 +95,14 @@ export class HttpTransport implements Transport {
   /**
    * Creates a new HttpTransport instance.
    *
-   * @param runtimeAdapterOrConfig - Runtime adapter for platform operations, or legacy HttpClientConfig
+   * @param runtimeAdapter - Runtime adapter for platform operations
    * @param interceptors - Interceptor chain for request/response processing
-   * @param errorNormalizer - Error normalizer for consistent error handling
    */
   constructor(
-    runtimeAdapterOrConfig: RuntimeAdapter | HttpClientConfig,
+    runtimeAdapter: RuntimeAdapter,
     private readonly interceptors: InterceptorChain,
-    private readonly errorNormalizer: HttpErrorNormalizer,
   ) {
-    // Handle backward compatibility with HttpClientConfig
-    // Check if it's HttpClientConfig (has fetch but not platformInfo) vs RuntimeAdapter (has both)
-    if (
-      "fetch" in runtimeAdapterOrConfig &&
-      typeof runtimeAdapterOrConfig.fetch === "function" &&
-      !("platformInfo" in runtimeAdapterOrConfig)
-    ) {
-      // Legacy HttpClientConfig - create a minimal RuntimeAdapter wrapper
-      const config = runtimeAdapterOrConfig;
-      this.runtimeAdapter = {
-        fetch: config.fetch!,
-        stream: async (_input: string | URL, _init?: RequestInit) => {
-          return Promise.reject(
-            new Error(
-              "Stream method not available in legacy HttpClientConfig mode. Please use RuntimeAdapter instead.",
-            ),
-          );
-        },
-        setTimeout: (callback: () => void, ms: number) =>
-          setTimeout(callback, ms),
-        setInterval: (callback: () => void, ms: number) =>
-          setInterval(callback, ms),
-        clearTimeout: (handle: NodeJS.Timeout) => clearTimeout(handle),
-        clearInterval: (handle: NodeJS.Timeout) => clearInterval(handle),
-        readFile: async (_path: string, _options?: FileOperationOptions) => {
-          return Promise.reject(
-            new Error(
-              "File operations not available in legacy HttpClientConfig mode. Please use RuntimeAdapter instead.",
-            ),
-          );
-        },
-        writeFile: async (
-          _path: string,
-          _content: string,
-          _options?: FileOperationOptions,
-        ) => {
-          return Promise.reject(
-            new Error(
-              "File operations not available in legacy HttpClientConfig mode. Please use RuntimeAdapter instead.",
-            ),
-          );
-        },
-        fileExists: async (_path: string) => {
-          return Promise.reject(
-            new Error(
-              "File operations not available in legacy HttpClientConfig mode. Please use RuntimeAdapter instead.",
-            ),
-          );
-        },
-        platformInfo: {
-          platform: "unknown",
-          capabilities: {
-            hasHttp: true,
-            hasTimers: true,
-            hasFileSystem: false,
-          },
-        },
-      } as unknown as RuntimeAdapter;
-    } else {
-      // Modern RuntimeAdapter
-      this.runtimeAdapter = runtimeAdapterOrConfig as RuntimeAdapter;
-    }
+    this.runtimeAdapter = runtimeAdapter;
   }
 
   /**

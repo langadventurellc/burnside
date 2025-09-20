@@ -30,7 +30,6 @@ import {
   type Transport,
   type StreamResponse,
 } from "../core/transport/index";
-import { HttpErrorNormalizer } from "../core/errors/httpErrorNormalizer";
 import {
   ToolRouter,
   InMemoryToolRegistry,
@@ -139,11 +138,9 @@ export class BridgeClient {
       this.httpTransport = deps.transport;
     } else {
       const interceptors = new InterceptorChain();
-      const errorNormalizer = new HttpErrorNormalizer();
       const baseTransport = new HttpTransport(
         this.runtimeAdapter,
         interceptors,
-        errorNormalizer,
       );
 
       // Use enhanced transport if rate limiting or retry is enabled
