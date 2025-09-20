@@ -359,4 +359,426 @@ describe("ElectronRuntimeAdapter", () => {
       });
     });
   });
+
+  describe("MCP Operations", () => {
+    describe("createMcpConnection", () => {
+      beforeEach(() => {
+        // Mock console.warn to avoid noise in tests
+        jest.spyOn(console, "warn").mockImplementation(() => {});
+      });
+
+      afterEach(() => {
+        jest.restoreAllMocks();
+      });
+
+      it("should create MCP connection with valid HTTPS URL", async () => {
+        // Mock successful fetch responses for initialization
+        const mockInitResponse = {
+          ok: true,
+          text: jest.fn().mockResolvedValue(
+            JSON.stringify({
+              jsonrpc: "2.0",
+              result: { protocolVersion: "2024-11-05", capabilities: {} },
+              id: 1,
+            }),
+          ),
+        };
+        const mockFetch = jest.fn().mockResolvedValue(mockInitResponse);
+        globalThis.fetch = mockFetch;
+
+        const connection = await adapter.createMcpConnection(
+          "https://example.com/mcp",
+        );
+
+        expect(connection.isConnected).toBe(true);
+        expect(mockFetch).toHaveBeenCalledWith(
+          "https://example.com/mcp",
+          expect.objectContaining({
+            method: "POST",
+            headers: expect.objectContaining({
+              "Content-Type": "application/json",
+            }),
+            body: expect.stringContaining('"method":"initialize"'),
+          }),
+        );
+      });
+
+      it("should create MCP connection with HTTP localhost URL", async () => {
+        const mockInitResponse = {
+          ok: true,
+          text: jest.fn().mockResolvedValue(
+            JSON.stringify({
+              jsonrpc: "2.0",
+              result: { protocolVersion: "2024-11-05", capabilities: {} },
+              id: 1,
+            }),
+          ),
+        };
+        const mockFetch = jest.fn().mockResolvedValue(mockInitResponse);
+        globalThis.fetch = mockFetch;
+
+        const connection = await adapter.createMcpConnection(
+          "http://localhost:3000/mcp",
+        );
+
+        expect(connection.isConnected).toBe(true);
+      });
+
+      it("should warn about HTTP usage for remote servers", async () => {
+        const mockInitResponse = {
+          ok: true,
+          text: jest.fn().mockResolvedValue(
+            JSON.stringify({
+              jsonrpc: "2.0",
+              result: { protocolVersion: "2024-11-05", capabilities: {} },
+              id: 1,
+            }),
+          ),
+        };
+        const mockFetch = jest.fn().mockResolvedValue(mockInitResponse);
+        globalThis.fetch = mockFetch;
+
+        await adapter.createMcpConnection("http://example.com/mcp");
+
+        expect(console.warn).toHaveBeenCalledWith(
+          expect.stringContaining(
+            "Warning: Using HTTP for remote MCP server. HTTPS is recommended",
+          ),
+        );
+      });
+
+      it("should throw error for invalid URL format", async () => {
+        await expect(
+          adapter.createMcpConnection("invalid-url"),
+        ).rejects.toThrow(RuntimeError);
+        await expect(
+          adapter.createMcpConnection("invalid-url"),
+        ).rejects.toThrow("Invalid MCP server URL format");
+      });
+
+      it("should throw error for invalid protocol", async () => {
+        await expect(
+          adapter.createMcpConnection("ftp://example.com/mcp"),
+        ).rejects.toThrow(RuntimeError);
+        await expect(
+          adapter.createMcpConnection("ftp://example.com/mcp"),
+        ).rejects.toThrow("MCP server URL must use HTTP or HTTPS protocol");
+      });
+
+      it("should block privileged ports on localhost", async () => {
+        // Test multiple privileged ports
+        const privilegedPorts = ["80", "443", "22", "25"];
+
+        for (const port of privilegedPorts) {
+          await expect(
+            adapter.createMcpConnection(`http://localhost:${port}/mcp`),
+          ).rejects.toThrow(RuntimeError);
+
+          try {
+            await adapter.createMcpConnection(`http://localhost:${port}/mcp`);
+          } catch (error) {
+            const runtimeError = error as RuntimeError;
+            expect(runtimeError.message).toContain(
+              "Failed to create MCP connection",
+            );
+            expect(runtimeError.context?.originalError).toBeInstanceOf(
+              RuntimeError,
+            );
+            const originalError = runtimeError.context
+              ?.originalError as RuntimeError;
+            expect(originalError.message).toBe(
+              "MCP server on privileged port blocked for security",
+            );
+            expect(originalError.code).toBe("RUNTIME_MCP_SECURITY_VIOLATION");
+          }
+        }
+      });
+
+      it("should allow non-privileged ports on localhost", async () => {
+        const mockInitResponse = {
+          ok: true,
+          text: jest.fn().mockResolvedValue(
+            JSON.stringify({
+              jsonrpc: "2.0",
+              result: { protocolVersion: "2024-11-05", capabilities: {} },
+              id: 1,
+            }),
+          ),
+        };
+        const mockFetch = jest.fn().mockResolvedValue(mockInitResponse);
+        globalThis.fetch = mockFetch;
+
+        const connection = await adapter.createMcpConnection(
+          "http://localhost:3000/mcp",
+        );
+
+        expect(connection.isConnected).toBe(true);
+      });
+
+      it("should handle connection failure during initialization", async () => {
+        const mockFetch = jest
+          .fn()
+          .mockRejectedValue(new Error("Network error"));
+        globalThis.fetch = mockFetch;
+
+        await expect(
+          adapter.createMcpConnection("https://example.com/mcp"),
+        ).rejects.toThrow(RuntimeError);
+        await expect(
+          adapter.createMcpConnection("https://example.com/mcp"),
+        ).rejects.toThrow("Failed to create MCP connection");
+      });
+
+      it("should handle HTTP error during initialization", async () => {
+        const mockResponse = {
+          ok: false,
+          status: 500,
+          statusText: "Internal Server Error",
+        };
+        const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+        globalThis.fetch = mockFetch;
+
+        await expect(
+          adapter.createMcpConnection("https://example.com/mcp"),
+        ).rejects.toThrow(RuntimeError);
+        await expect(
+          adapter.createMcpConnection("https://example.com/mcp"),
+        ).rejects.toThrow("Failed to create MCP connection");
+      });
+
+      it("should propagate AbortSignal to connection", async () => {
+        const controller = new AbortController();
+        const mockFetch = jest.fn().mockImplementation(() => {
+          return new Promise((_, reject) => {
+            controller.signal.addEventListener("abort", () => {
+              reject(new Error("Aborted"));
+            });
+          });
+        });
+        globalThis.fetch = mockFetch;
+
+        const connectionPromise = adapter.createMcpConnection(
+          "https://example.com/mcp",
+          { signal: controller.signal },
+        );
+
+        controller.abort();
+
+        await expect(connectionPromise).rejects.toThrow(
+          "Failed to create MCP connection",
+        );
+      });
+
+      it("should include custom headers in connection options", async () => {
+        const mockInitResponse = {
+          ok: true,
+          text: jest.fn().mockResolvedValue(
+            JSON.stringify({
+              jsonrpc: "2.0",
+              result: { protocolVersion: "2024-11-05", capabilities: {} },
+              id: 1,
+            }),
+          ),
+        };
+        const mockFetch = jest.fn().mockResolvedValue(mockInitResponse);
+        globalThis.fetch = mockFetch;
+
+        const customHeaders = {
+          Authorization: "Bearer token123",
+          "User-Agent": "TestClient/1.0",
+        };
+
+        await adapter.createMcpConnection("https://example.com/mcp", {
+          headers: customHeaders,
+        });
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          "https://example.com/mcp",
+          expect.objectContaining({
+            headers: expect.objectContaining(customHeaders),
+          }),
+        );
+      });
+    });
+
+    describe("MCP Connection Operations", () => {
+      let connection: Awaited<ReturnType<typeof adapter.createMcpConnection>>;
+      let mockFetch: jest.Mock;
+
+      beforeEach(async () => {
+        // Mock successful initialization
+        const mockInitResponse = {
+          ok: true,
+          text: jest.fn().mockResolvedValue(
+            JSON.stringify({
+              jsonrpc: "2.0",
+              result: { protocolVersion: "2024-11-05", capabilities: {} },
+              id: 1,
+            }),
+          ),
+        };
+        mockFetch = jest.fn().mockResolvedValue(mockInitResponse);
+        globalThis.fetch = mockFetch;
+
+        connection = await adapter.createMcpConnection(
+          "https://example.com/mcp",
+        );
+        jest.clearAllMocks();
+      });
+
+      describe("call", () => {
+        it("should make JSON-RPC request and return result", async () => {
+          const mockResponse = {
+            ok: true,
+            text: jest.fn().mockResolvedValue(
+              JSON.stringify({
+                jsonrpc: "2.0",
+                result: { tools: [{ name: "calculator" }] },
+                id: 2,
+              }),
+            ),
+          };
+          mockFetch.mockResolvedValue(mockResponse);
+
+          const result = await connection.call("tools/list");
+
+          expect(result).toEqual({ tools: [{ name: "calculator" }] });
+          expect(mockFetch).toHaveBeenCalledWith(
+            "https://example.com/mcp",
+            expect.objectContaining({
+              method: "POST",
+              body: expect.stringContaining('"method":"tools/list"'),
+            }),
+          );
+        });
+
+        it("should make JSON-RPC request with parameters", async () => {
+          const mockResponse = {
+            ok: true,
+            text: jest.fn().mockResolvedValue(
+              JSON.stringify({
+                jsonrpc: "2.0",
+                result: { success: true },
+                id: 2,
+              }),
+            ),
+          };
+          mockFetch.mockResolvedValue(mockResponse);
+
+          const params = { name: "calculator", arguments: { a: 1, b: 2 } };
+          await connection.call("tools/call", params);
+
+          expect(mockFetch).toHaveBeenCalledWith(
+            "https://example.com/mcp",
+            expect.objectContaining({
+              body: expect.stringContaining('"params":{"name":"calculator"'),
+            }),
+          );
+        });
+
+        it("should throw error for JSON-RPC error response", async () => {
+          const mockResponse = {
+            ok: true,
+            text: jest.fn().mockResolvedValue(
+              JSON.stringify({
+                jsonrpc: "2.0",
+                error: { code: -32601, message: "Method not found" },
+                id: 2,
+              }),
+            ),
+          };
+          mockFetch.mockResolvedValue(mockResponse);
+
+          await expect(connection.call("invalid/method")).rejects.toThrow(
+            "Method not found",
+          );
+        });
+
+        it("should throw error when connection is not active", async () => {
+          await connection.close();
+
+          await expect(connection.call("tools/list")).rejects.toThrow(
+            RuntimeError,
+          );
+          await expect(connection.call("tools/list")).rejects.toThrow(
+            "MCP connection is not active",
+          );
+        });
+      });
+
+      describe("notify", () => {
+        it("should send JSON-RPC notification without expecting response", async () => {
+          const mockResponse = {
+            ok: true,
+            text: jest.fn().mockResolvedValue(""),
+          };
+          mockFetch.mockResolvedValue(mockResponse);
+
+          await connection.notify("client/ready");
+
+          expect(mockFetch).toHaveBeenCalledWith(
+            "https://example.com/mcp",
+            expect.objectContaining({
+              method: "POST",
+              body: expect.stringContaining('"method":"client/ready"'),
+            }),
+          );
+
+          // Should not contain ID for notifications
+          const requestBody = JSON.parse(
+            mockFetch.mock.calls[0][1].body as string,
+          );
+          expect(requestBody.id).toBeUndefined();
+        });
+
+        it("should send notification with parameters", async () => {
+          const mockResponse = {
+            ok: true,
+            text: jest.fn().mockResolvedValue(""),
+          };
+          mockFetch.mockResolvedValue(mockResponse);
+
+          const params = { operation: "processing", percentage: 50 };
+          await connection.notify("client/progress", params);
+
+          expect(mockFetch).toHaveBeenCalledWith(
+            "https://example.com/mcp",
+            expect.objectContaining({
+              body: expect.stringContaining(
+                '"params":{"operation":"processing"',
+              ),
+            }),
+          );
+        });
+
+        it("should throw error when connection is not active", async () => {
+          await connection.close();
+
+          await expect(connection.notify("client/ready")).rejects.toThrow(
+            RuntimeError,
+          );
+          await expect(connection.notify("client/ready")).rejects.toThrow(
+            "MCP connection is not active",
+          );
+        });
+      });
+
+      describe("close", () => {
+        it("should mark connection as inactive", async () => {
+          expect(connection.isConnected).toBe(true);
+
+          await connection.close();
+
+          expect(connection.isConnected).toBe(false);
+        });
+
+        it("should allow multiple close calls", async () => {
+          await connection.close();
+          await connection.close();
+
+          expect(connection.isConnected).toBe(false);
+        });
+      });
+    });
+  });
 });
