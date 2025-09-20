@@ -132,8 +132,12 @@ affectedFiles:
     ensuring protocol compliance and capability requirements
   src/tools/mcp/mcpClient.ts: Main MCP client class with connection lifecycle
     management, capability negotiation, health monitoring, exponential backoff
-    reconnection, and tool operations
-  src/tools/mcp/index.ts: Barrel export file providing clean API surface for all MCP functionality
+    reconnection, and tool operations; Enhanced existing McpClient with
+    discoverTools() and getToolDefinition() methods for Bridge-compatible tool
+    discovery
+  src/tools/mcp/index.ts: Barrel export file providing clean API surface for all
+    MCP functionality; Updated module exports to include new tool types and
+    schema translation functions
   src/tools/index.ts: Updated main tools exports to include MCP module for Model
     Context Protocol integration
   src/tools/mcp/__tests__/mcpError.test.ts: Comprehensive test suite for all MCP
@@ -145,6 +149,24 @@ affectedFiles:
   src/tools/mcp/__tests__/mcpClient.test.ts: Complete test suite for McpClient
     with 28 test cases covering connection lifecycle, tool operations, health
     monitoring, error handling, and AbortSignal support
+  src/tools/mcp/mcpJsonSchema.ts: Created MCP JSON Schema interface aligned with
+    ToolDefinition JSON schema format for compatibility
+  src/tools/mcp/mcpToolDefinition.ts: Created MCP tool definition interface
+    matching MCP protocol specification for tool discovery
+  src/tools/mcp/mcpToolCall.ts: Created MCP tool call interface for tool invocation parameters
+  src/tools/mcp/mcpToolResultContent.ts: Created MCP tool result content interface for individual content items
+  src/tools/mcp/mcpToolResult.ts: Created MCP tool result interface for tool execution responses
+  src/tools/mcp/translateMcpToToolDefinition.ts: Implemented function to convert
+    MCP tool definitions to Bridge ToolDefinition format with validation
+  src/tools/mcp/translateToolDefinitionToMcp.ts: Implemented reverse translation
+    function from ToolDefinition to MCP format handling both Zod and JSON
+    schemas
+  src/tools/mcp/validateMcpToolDefinition.ts:
+    Created validation function for MCP
+    tool definitions with JSON Schema validation
+  src/tools/mcp/__tests__/translateMcpToToolDefinition.test.ts:
+    Created comprehensive test suite covering translation scenarios, validation
+    errors, and edge cases with 11 passing tests
 log: []
 schema: v1.0
 childrenIds:

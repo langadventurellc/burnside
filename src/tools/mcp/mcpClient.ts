@@ -30,6 +30,9 @@ import { createMcpError } from "./createMcpError";
 import { createToolsOnlyRequest } from "./createToolsOnlyRequest";
 import { validateInitializeResponse } from "./validateInitializeResponse";
 import type { McpInitializeResponse } from "./mcpInitializeResponse";
+import type { ToolDefinition } from "../../core/tools/toolDefinition";
+import { translateMcpToToolDefinition } from "./translateMcpToToolDefinition";
+import type { McpToolDefinition as ExternalMcpToolDefinition } from "./mcpToolDefinition";
 
 /**
  * MCP tool definition from server
@@ -287,6 +290,52 @@ export class McpClient {
       const message = error instanceof Error ? error.message : "Unknown error";
       throw McpToolError.executionFailed(toolName, message);
     }
+  }
+
+  /**
+   * Discover tools from MCP server and convert to ToolDefinition format
+   *
+   * This method provides tool discovery with automatic schema translation
+   * to Bridge ToolDefinition format for seamless integration with the
+   * existing tool system.
+   */
+  async discoverTools(): Promise<ToolDefinition[]> {
+    const mcpTools = await this.listTools();
+    return mcpTools.map((mcpTool) =>
+      translateMcpToToolDefinition(this.convertToExternalMcpTool(mcpTool)),
+    );
+  }
+
+  /**
+   * Get a single tool definition by name in ToolDefinition format
+   *
+   * @param toolName - Name of the tool to retrieve
+   * @returns ToolDefinition object or null if not found
+   */
+  async getToolDefinition(toolName: string): Promise<ToolDefinition | null> {
+    const mcpTools = await this.listTools();
+    const mcpTool = mcpTools.find((tool) => tool.name === toolName);
+
+    if (!mcpTool) {
+      return null;
+    }
+
+    return translateMcpToToolDefinition(this.convertToExternalMcpTool(mcpTool));
+  }
+
+  /**
+   * Convert internal McpToolDefinition to external format
+   */
+  private convertToExternalMcpTool(
+    internalTool: McpToolDefinition,
+  ): ExternalMcpToolDefinition {
+    return {
+      name: internalTool.name,
+      description: internalTool.description,
+      inputSchema: internalTool.inputSchema
+        ? (internalTool.inputSchema as ExternalMcpToolDefinition["inputSchema"])
+        : undefined,
+    };
   }
 
   /**

@@ -1,13 +1,43 @@
 ---
 id: T-implement-tool-discovery-and
 title: Implement tool discovery and MCP-to-Bridge schema translation
-status: open
+status: done
 priority: high
 parent: F-mcp-protocol-core-implementati
 prerequisites:
   - T-create-mcp-client-class-with
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/tools/mcp/mcpJsonSchema.ts: Created MCP JSON Schema interface aligned with
+    ToolDefinition JSON schema format for compatibility
+  src/tools/mcp/mcpToolDefinition.ts: Created MCP tool definition interface
+    matching MCP protocol specification for tool discovery
+  src/tools/mcp/mcpToolCall.ts: Created MCP tool call interface for tool invocation parameters
+  src/tools/mcp/mcpToolResultContent.ts: Created MCP tool result content interface for individual content items
+  src/tools/mcp/mcpToolResult.ts: Created MCP tool result interface for tool execution responses
+  src/tools/mcp/translateMcpToToolDefinition.ts: Implemented function to convert
+    MCP tool definitions to Bridge ToolDefinition format with validation
+  src/tools/mcp/translateToolDefinitionToMcp.ts: Implemented reverse translation
+    function from ToolDefinition to MCP format handling both Zod and JSON
+    schemas
+  src/tools/mcp/validateMcpToolDefinition.ts:
+    Created validation function for MCP
+    tool definitions with JSON Schema validation
+  src/tools/mcp/mcpClient.ts:
+    Enhanced existing McpClient with discoverTools() and
+    getToolDefinition() methods for Bridge-compatible tool discovery
+  src/tools/mcp/index.ts: Updated module exports to include new tool types and
+    schema translation functions
+  src/tools/mcp/__tests__/translateMcpToToolDefinition.test.ts:
+    Created comprehensive test suite covering translation scenarios, validation
+    errors, and edge cases with 11 passing tests
+log:
+  - Successfully implemented tool discovery and MCP-to-Bridge schema translation
+    functionality. Added tool discovery methods to existing McpClient class with
+    automatic schema translation to unified ToolDefinition format for seamless
+    integration with the existing tool system. Created comprehensive type
+    definitions, bidirectional translation functions, validation utilities, and
+    thorough test coverage. All quality checks pass and implementation follows
+    project conventions.
 schema: v1.0
 childrenIds: []
 created: 2025-09-20T22:55:15.482Z
