@@ -141,6 +141,8 @@ Acceptance
 
 - Implement MCP client connection lifecycle and tool discovery from config.
 - Map MCP tool schemas ↔ unified tool schema; route calls via `ToolRouter`.
+- React Native uses remote MCP servers only - use `react-native-sse` (lazy-loaded).
+- Only support MCP tools - do not support prompts or resources.
 
 Acceptance
 
