@@ -21,7 +21,7 @@ export function createTestClient(
     options: {
       logging: {
         enabled: true,
-        // level: "debug",
+        level: "debug",
       },
     },
     ...overrides,

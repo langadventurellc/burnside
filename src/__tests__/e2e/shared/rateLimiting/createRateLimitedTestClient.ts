@@ -44,6 +44,12 @@ export function createRateLimitedTestClient(
         providers: {
           openai: { apiKey: testConfig.openaiApiKey },
         },
+        options: {
+          logging: {
+            enabled: true,
+            // level: "debug",
+          },
+        },
       };
       providerInstance = new OpenAIResponsesV1Provider();
       break;
@@ -54,6 +60,12 @@ export function createRateLimitedTestClient(
         defaultProvider: "anthropic",
         providers: {
           anthropic: { apiKey: testConfig.anthropicApiKey },
+        },
+        options: {
+          logging: {
+            enabled: true,
+            // level: "debug",
+          },
         },
       };
       providerInstance = new AnthropicMessagesV1Provider();
@@ -66,6 +78,12 @@ export function createRateLimitedTestClient(
         providers: {
           google: { apiKey: testConfig.googleApiKey },
         },
+        options: {
+          logging: {
+            enabled: true,
+            // level: "debug",
+          },
+        },
       };
       providerInstance = new GoogleGeminiV1Provider();
       break;
@@ -76,6 +94,12 @@ export function createRateLimitedTestClient(
         defaultProvider: "xai",
         providers: {
           xai: { apiKey: testConfig.xaiApiKey },
+        },
+        options: {
+          logging: {
+            enabled: true,
+            // level: "debug",
+          },
         },
       };
       providerInstance = new XAIV1Provider();

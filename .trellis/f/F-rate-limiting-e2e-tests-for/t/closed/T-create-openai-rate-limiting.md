@@ -1,13 +1,27 @@
 ---
 id: T-create-openai-rate-limiting
 title: Create OpenAI rate limiting E2E tests
-status: open
+status: done
 priority: medium
 parent: F-rate-limiting-e2e-tests-for
 prerequisites:
   - T-create-shared-rate-limiting
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/__tests__/e2e/openai/rateLimiting.e2e.test.ts: "Created comprehensive E2E
+    tests for OpenAI rate limiting functionality with 4 test scenarios: basic
+    throttling (2 RPS), disabled rate limiting validation, provider scope
+    isolation, and model scope testing. Tests use sequential request execution
+    to properly measure rate limiting delays and validate timing behavior using
+    shared utilities. Fixed OpenAI-specific maxTokens requirement (>= 16) for
+    proper API compliance. All tests pass successfully validating rate limiting
+    integration with OpenAI provider."
+log:
+  - Successfully implemented OpenAI rate limiting E2E tests with comprehensive
+    test coverage including basic throttling validation, disabled rate limiting
+    behavior, provider scope isolation, and model scope testing. All 4 test
+    scenarios pass successfully, validating that the rate limiting system works
+    correctly with OpenAI's API. Fixed OpenAI-specific API requirement for
+    maxTokens >= 16 to ensure proper request handling.
 schema: v1.0
 childrenIds: []
 created: 2025-09-19T16:48:06.872Z
