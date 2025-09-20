@@ -8,17 +8,17 @@
 import { isNodeJs } from "./isNodeJs";
 
 /**
- * Check if running in Electron environment.
+ * Check if running in Electron main process.
+ * Main process has Node APIs but no window object.
  *
- * @returns True if running in Electron
+ * @returns True if running in Electron main process
  */
 export function isElectron(): boolean {
   try {
-    // Electron has both Node APIs and browser-like environment
     return (
       isNodeJs() &&
-      (typeof process.versions.electron !== "undefined" ||
-        typeof window !== "undefined")
+      typeof process.versions.electron !== "undefined" &&
+      typeof window === "undefined"
     );
   } catch {
     return false;

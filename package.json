@@ -28,6 +28,9 @@
   "dependencies": {
     "zod": "^3.22.0"
   },
+  "peerDependencies": {
+    "react-native-sse": "^1.2.1"
+  },
   "devDependencies": {
     "@langadventurellc/tsla-linter": "^2.1.3",
     "@types/jest": "^30.0.0",

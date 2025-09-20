@@ -7,6 +7,8 @@
 
 import { AdapterRegistry } from "../adapterRegistry";
 import { NodeRuntimeAdapter } from "../adapters/nodeRuntimeAdapter";
+import { ElectronRuntimeAdapter } from "../adapters/electronRuntimeAdapter";
+import { ReactNativeRuntimeAdapter } from "../adapters/reactNativeRuntimeAdapter";
 import { RuntimeError } from "../runtimeError";
 import type { RuntimeAdapter, Platform } from "../index";
 
@@ -21,6 +23,42 @@ jest.mock("../adapters/nodeRuntimeAdapter", () => ({
     platformInfo: {
       platform: "node",
       capabilities: { hasHttp: true, hasTimers: true, hasFileSystem: true },
+    },
+    fetch: jest.fn(),
+    setTimeout: jest.fn(),
+    setInterval: jest.fn(),
+    clearTimeout: jest.fn(),
+    clearInterval: jest.fn(),
+    readFile: jest.fn(),
+    writeFile: jest.fn(),
+    fileExists: jest.fn(),
+  })),
+}));
+
+// Mock ElectronRuntimeAdapter
+jest.mock("../adapters/electronRuntimeAdapter", () => ({
+  ElectronRuntimeAdapter: jest.fn().mockImplementation(() => ({
+    platformInfo: {
+      platform: "electron-renderer",
+      capabilities: { hasHttp: true, hasTimers: true, hasFileSystem: false },
+    },
+    fetch: jest.fn(),
+    setTimeout: jest.fn(),
+    setInterval: jest.fn(),
+    clearTimeout: jest.fn(),
+    clearInterval: jest.fn(),
+    readFile: jest.fn(),
+    writeFile: jest.fn(),
+    fileExists: jest.fn(),
+  })),
+}));
+
+// Mock ReactNativeRuntimeAdapter
+jest.mock("../adapters/reactNativeRuntimeAdapter", () => ({
+  ReactNativeRuntimeAdapter: jest.fn().mockImplementation(() => ({
+    platformInfo: {
+      platform: "react-native",
+      capabilities: { hasHttp: true, hasTimers: true, hasFileSystem: false },
     },
     fetch: jest.fn(),
     setTimeout: jest.fn(),
@@ -90,6 +128,42 @@ describe("AdapterRegistry", () => {
       expect(NodeRuntimeAdapter).toHaveBeenCalled();
       expect(newRegistry.hasAdapter("node")).toBe(true);
     });
+
+    it("should initialize ElectronRuntimeAdapter for electron-renderer platform", () => {
+      detectPlatform.mockReturnValue("electron-renderer");
+
+      // Reset singleton to test initialization
+      (AdapterRegistry as unknown as { instance: undefined }).instance =
+        undefined;
+      const newRegistry = AdapterRegistry.getInstance();
+
+      expect(ElectronRuntimeAdapter).toHaveBeenCalled();
+      expect(newRegistry.hasAdapter("electron-renderer")).toBe(true);
+    });
+
+    it("should initialize ReactNativeRuntimeAdapter for react-native platform", () => {
+      detectPlatform.mockReturnValue("react-native");
+
+      // Reset singleton to test initialization
+      (AdapterRegistry as unknown as { instance: undefined }).instance =
+        undefined;
+      const newRegistry = AdapterRegistry.getInstance();
+
+      expect(ReactNativeRuntimeAdapter).toHaveBeenCalled();
+      expect(newRegistry.hasAdapter("react-native")).toBe(true);
+    });
+
+    it("should initialize NodeRuntimeAdapter for electron main process", () => {
+      detectPlatform.mockReturnValue("electron");
+
+      // Reset singleton to test initialization
+      (AdapterRegistry as unknown as { instance: undefined }).instance =
+        undefined;
+      const newRegistry = AdapterRegistry.getInstance();
+
+      expect(NodeRuntimeAdapter).toHaveBeenCalled();
+      expect(newRegistry.hasAdapter("electron")).toBe(true);
+    });
   });
 
   describe("Adapter Registration", () => {
@@ -142,12 +216,11 @@ describe("AdapterRegistry", () => {
     });
 
     it("should use fallback adapter when available", () => {
-      const nodeAdapter = new NodeRuntimeAdapter();
-      registry.registerAdapter("node", nodeAdapter);
+      registry.registerAdapter("browser", mockAdapter);
 
-      // Electron should fallback to Node adapter
-      const adapter = registry.getAdapter("electron");
-      expect(adapter).toBe(nodeAdapter);
+      // React Native should fallback to browser adapter
+      const adapter = registry.getAdapter("react-native");
+      expect(adapter).toBe(mockAdapter);
     });
   });
 
@@ -207,12 +280,26 @@ describe("AdapterRegistry", () => {
   });
 
   describe("Fallback Logic", () => {
-    it("should provide Node fallback for Electron", () => {
-      const nodeAdapter = new NodeRuntimeAdapter();
-      registry.registerAdapter("node", nodeAdapter);
+    it("should not provide fallback for Electron", () => {
+      // Clear any auto-registered adapters
+      (AdapterRegistry as unknown as { instance: undefined }).instance =
+        undefined;
+      detectPlatform.mockReturnValue("browser");
+      const cleanRegistry = AdapterRegistry.getInstance();
 
-      const electronAdapter = registry.getAdapter("electron");
-      expect(electronAdapter).toBe(nodeAdapter);
+      expect(() => cleanRegistry.getAdapter("electron")).toThrow(RuntimeError);
+    });
+
+    it("should not provide fallback for Electron Renderer", () => {
+      // Clear any auto-registered adapters
+      (AdapterRegistry as unknown as { instance: undefined }).instance =
+        undefined;
+      detectPlatform.mockReturnValue("browser");
+      const cleanRegistry = AdapterRegistry.getInstance();
+
+      expect(() => cleanRegistry.getAdapter("electron-renderer")).toThrow(
+        RuntimeError,
+      );
     });
 
     it("should provide browser fallback for React Native", () => {

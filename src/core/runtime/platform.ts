@@ -9,4 +9,9 @@
 /**
  * Platform types supported by the runtime adapter system.
  */
-export type Platform = "node" | "browser" | "electron" | "react-native";
+export type Platform =
+  | "node"
+  | "browser"
+  | "electron"
+  | "electron-renderer"
+  | "react-native";
