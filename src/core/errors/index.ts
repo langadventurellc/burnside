@@ -33,6 +33,7 @@ export { ValidationError } from "./validationError";
 export { ProviderError } from "./providerError";
 export { StreamingError } from "./streamingError";
 export { ToolError } from "./toolError";
+export { OverloadedError } from "./overloadedError";
 
 // Error Normalization
 export { HttpErrorNormalizer } from "./httpErrorNormalizer";

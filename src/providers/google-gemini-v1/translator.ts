@@ -14,6 +14,7 @@ import { ValidationError } from "../../core/errors/validationError";
 import type { GoogleGeminiV1Config } from "./configSchema";
 import { GoogleGeminiV1RequestSchema } from "./requestSchema";
 import type { ModelCapabilities } from "../../core/providers/modelCapabilities";
+import { toolTranslator } from "./toolTranslator";
 
 /**
  * Convert unified ContentPart to Gemini content part format
@@ -183,15 +184,22 @@ function buildGeminiRequestBody(
 
   geminiRequest.generationConfig = generationConfig;
 
-  // Tools will be handled by separate tool translator when implemented
-  // For now, leave empty if tools are provided
+  // Add tools if provided
   if (
     request.tools &&
     Array.isArray(request.tools) &&
     request.tools.length > 0
   ) {
-    // TODO: Implement tool translation when tool translator is available
-    // geminiRequest.tools = translateToolsForGemini(request.tools);
+    const functionDeclarations = toolTranslator.translateToolDefinitions(
+      request.tools,
+    );
+    if (functionDeclarations.length > 0) {
+      geminiRequest.tools = [
+        {
+          function_declarations: functionDeclarations,
+        },
+      ];
+    }
   }
 
   return geminiRequest;

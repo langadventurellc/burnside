@@ -11,6 +11,13 @@ export { parseAnthropicResponse } from "./responseParser";
 export { translateToolDefinitions } from "./toolTranslator";
 export { parseAnthropicToolCalls } from "./toolCallParser";
 export { formatToolResultMessage } from "./toolResultFormatter";
+
+// Export cache utilities
+export { ANTHROPIC_CACHE_HEADER, MINIMUM_CACHE_SIZE } from "./cacheUtils";
+export { createCacheControlObject } from "./createCacheControlObject";
+export { shouldCacheContent } from "./shouldCacheContent";
+export { addCacheControlField } from "./addCacheControlField";
+
 export type { AnthropicMessagesConfigType as AnthropicMessagesConfig } from "./configSchema";
 
 // Export schemas for advanced usage

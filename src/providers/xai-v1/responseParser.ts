@@ -13,6 +13,7 @@ import type { ProviderHttpResponse } from "../../core/transport/providerHttpResp
 import { ValidationError } from "../../core/errors/validationError";
 import { XAIV1ResponseSchema, type XAIV1Response } from "./responseSchema";
 import { parseXAIToolCalls } from "./toolCallParser";
+import { logger } from "../../core/logging/simpleLogger";
 
 /**
  * Convert xAI content to unified ContentPart array (Responses API format)
@@ -135,6 +136,21 @@ function validateAndParseResponse(
   // Validate response structure
   const validationResult = XAIV1ResponseSchema.safeParse(responseData);
   if (!validationResult.success) {
+    // Log response validation failure
+    logger.error("xAI response validation failed", {
+      provider: "xai",
+      status: response.status,
+      statusText: response.statusText,
+      validationErrors: validationResult.error.errors,
+      responseType: typeof responseData,
+    });
+
+    // Log response details for debugging (truncated)
+    logger.debug("xAI response details", {
+      provider: "xai",
+      responseText: responseText.substring(0, 1000),
+    });
+
     throw new ValidationError("Invalid xAI response structure", {
       status: response.status,
       statusText: response.statusText,

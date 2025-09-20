@@ -23,6 +23,7 @@ import { translateChatRequest } from "./translator";
 import { parseXAIResponse } from "./responseParser";
 import { parseXAIV1ResponseStream } from "./streamingParser";
 import { normalizeXAIError } from "./errorNormalizer";
+import { logger } from "../../core/logging/simpleLogger";
 
 /**
  * xAI v1 Provider Plugin
@@ -448,7 +449,27 @@ export class XAIV1Provider implements ProviderPlugin {
    * @returns Standardized BridgeError with appropriate code and context
    */
   normalizeError(error: unknown): BridgeError {
-    return normalizeXAIError(error);
+    try {
+      // Log raw error before normalization
+      logger.error("xAI provider error before normalization", {
+        provider: "xai",
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+
+      return normalizeXAIError(error);
+    } catch (normalizationError) {
+      // Log normalization failure
+      logger.error("xAI error normalization failed", {
+        provider: "xai",
+        originalError: error instanceof Error ? error.message : String(error),
+        normalizationError:
+          normalizationError instanceof Error
+            ? normalizationError.message
+            : String(normalizationError),
+      });
+      throw normalizationError;
+    }
   }
 
   /**

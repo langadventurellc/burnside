@@ -22,6 +22,7 @@ import { ExecutionPipeline } from "./toolExecutionPipeline";
 import { SequentialExecutionStrategy } from "./sequentialExecutionStrategy";
 import { ParallelExecutionStrategy } from "./parallelExecutionStrategy";
 import { createCancellationError } from "../agent/cancellation";
+import { logger } from "../logging";
 
 /**
  * Central ToolRouter class that orchestrates tool execution
@@ -57,18 +58,39 @@ export class ToolRouter {
     context: ToolExecutionContext,
     timeoutMs?: number,
   ): Promise<ToolResult> {
+    const startTime = Date.now();
+    const executionTimeout = timeoutMs ?? this.defaultTimeoutMs;
+
+    logger.debug("Tool execution started", {
+      toolName: toolCall?.name || "unknown",
+      callId: toolCall?.id || "unknown",
+      timeout: executionTimeout,
+      hasParameters: Boolean(
+        toolCall?.parameters && Object.keys(toolCall.parameters).length > 0,
+      ),
+    });
+
     try {
       // Check if tool exists in registry
       const registryEntry = this.registry.get(toolCall.name);
       if (!registryEntry) {
+        const toolName = toolCall?.name || "unknown";
+        const callId = toolCall?.id || "unknown";
+
+        logger.warn("Tool not found in registry", {
+          toolName,
+          callId,
+          availableTools: this.registry.getNames(),
+        });
+
         return {
-          callId: toolCall.id,
+          callId,
           success: false,
           error: {
             code: "tool_not_found",
-            message: `Tool '${toolCall.name}' not found`,
+            message: `Tool '${toolName}' not found`,
             details: {
-              toolName: toolCall.name,
+              toolName,
               availableTools: this.registry.getNames(),
             },
           },
@@ -78,18 +100,50 @@ export class ToolRouter {
         };
       }
 
-      // Use provided timeout or default
-      const executionTimeout = timeoutMs ?? this.defaultTimeoutMs;
+      logger.info("Tool execution started", {
+        toolName: toolCall.name,
+        callId: toolCall.id,
+        timeout: executionTimeout,
+      });
 
       // Execute using pipeline
-      return await this.pipeline.execute(
+      const result = await this.pipeline.execute(
         toolCall,
         registryEntry.definition,
         registryEntry.handler,
         context,
         executionTimeout,
       );
+
+      const executionTime = Date.now() - startTime;
+
+      if (result.success) {
+        logger.info("Tool execution completed successfully", {
+          toolName: toolCall.name,
+          callId: toolCall.id,
+          executionTime,
+        });
+      } else {
+        logger.error("Tool execution failed", {
+          toolName: toolCall.name,
+          callId: toolCall.id,
+          executionTime,
+          errorCode: result.error?.code,
+          errorMessage: result.error?.message,
+        });
+      }
+
+      return result;
     } catch (error) {
+      const executionTime = Date.now() - startTime;
+      logger.error("Tool router execution failed", {
+        toolName: toolCall?.name || "unknown",
+        callId: toolCall?.id || "unknown",
+        executionTime,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+
       // Router-level error boundary
       return {
         callId: toolCall?.id || "unknown",
@@ -105,7 +159,7 @@ export class ToolRouter {
           },
         },
         metadata: {
-          executionTime: 0,
+          executionTime,
         },
       };
     }

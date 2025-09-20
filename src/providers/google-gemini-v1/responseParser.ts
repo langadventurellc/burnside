@@ -24,6 +24,7 @@ import {
   type GoogleGeminiV1Response,
 } from "./responseSchema";
 import { toolTranslator } from "./toolTranslator";
+import { logger } from "../../core/logging/simpleLogger";
 
 // Type alias for Gemini candidate to avoid repetitive typing
 type GeminiCandidate = NonNullable<GoogleGeminiV1Response["candidates"]>[0];
@@ -78,9 +79,44 @@ export function parseGeminiResponse(
   try {
     validatedResponse = GoogleGeminiV1ResponseSchema.parse(responseData);
   } catch (error: unknown) {
+    // Log response validation failure with structured data
+    logger.error("Google Gemini response validation failed", {
+      provider: "google",
+      status: response.status,
+      statusText: response.statusText,
+      responseType: typeof responseData,
+      responseKeys:
+        responseData && typeof responseData === "object"
+          ? Object.keys(responseData)
+          : "N/A",
+      errorMessage: error instanceof Error ? error.message : String(error),
+      responseTextLength: responseText.length,
+    });
+
+    // Log detailed response data for debugging (truncated)
+    logger.debug("Google Gemini response details", {
+      provider: "google",
+      responseText: responseText.substring(0, 1000),
+      validationIssues:
+        error && typeof error === "object" && "issues" in error
+          ? error.issues
+          : undefined,
+    });
+
+    // Extract Zod validation issues if available
+    const validationIssues =
+      error && typeof error === "object" && "issues" in error
+        ? error.issues
+        : undefined;
+
     throw new ValidationError("Invalid Gemini API response structure", {
       responseData,
       originalError: error instanceof Error ? error.message : String(error),
+      httpStatus: response.status,
+      httpStatusText: response.statusText,
+      responseTextLength: responseText.length,
+      responseTextPreview: responseText.substring(0, 500),
+      validationIssues,
     });
   }
 

@@ -323,4 +323,57 @@ export interface ProviderPlugin {
    * feature compatibility.
    */
   capabilities?: ModelCapabilities;
+
+  /**
+   * Check if the provider supports caching for a specific model.
+   *
+   * Optional method that providers can implement to indicate whether
+   * they support server-side prompt caching for the given model.
+   * This is used to determine if cache headers and markers should be applied.
+   *
+   * @param modelId - The model identifier to check for caching support
+   * @returns true if the model supports caching, false otherwise
+   *
+   * @example
+   * ```typescript
+   * const supportsCaching = plugin.supportsCaching?.("claude-3-5-sonnet-20241022");
+   * console.log(supportsCaching); // true for Anthropic models with caching
+   * ```
+   */
+  supportsCaching?(modelId: string): boolean;
+
+  /**
+   * Get cache-related HTTP headers for requests.
+   *
+   * Optional method that providers can implement to add cache-specific
+   * headers to HTTP requests. For Anthropic, this includes beta headers
+   * for prompt caching feature enablement.
+   *
+   * @returns Record of header names to values for caching
+   *
+   * @example Anthropic cache headers
+   * ```typescript
+   * const headers = plugin.getCacheHeaders?.();
+   * console.log(headers); // { "anthropic-beta": "prompt-caching-2024-07-31" }
+   * ```
+   */
+  getCacheHeaders?(): Record<string, string>;
+
+  /**
+   * Mark content for server-side caching.
+   *
+   * Optional method that providers can implement to add cache control
+   * markers to request content. This typically involves adding
+   * cache_control fields to messages or tools that should be cached.
+   *
+   * @param content - The content to mark for caching (messages, tools, etc.)
+   * @returns Modified content with cache control markers
+   *
+   * @example Anthropic cache control markers
+   * ```typescript
+   * const markedContent = plugin.markForCaching?.(content);
+   * // Adds { cache_control: { type: "ephemeral" } } to eligible content
+   * ```
+   */
+  markForCaching?(content: unknown): unknown;
 }

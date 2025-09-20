@@ -1,3 +1,4 @@
+/* eslint-disable statement-count/class-statement-count-warn */
 /* eslint-disable statement-count/function-statement-count-warn */
 /* eslint-disable max-lines */
 import type { BridgeConfig } from "../core/config/bridgeConfig";
@@ -18,11 +19,16 @@ import { DefaultLlmModelsSchema } from "../core/models/defaultLlmModelsSchema";
 import { defaultLlmModels } from "../data/defaultLlmModels";
 import { ValidationError } from "../core/errors/validationError";
 import type { ModelInfo } from "../core/providers/modelInfo";
+import { logger } from "../core/logging";
+import { loggingConfigHelpers } from "../core/config";
 import {
   HttpTransport,
+  EnhancedHttpTransport,
   InterceptorChain,
+  type Transport,
   type HttpClientConfig,
   type FetchFunction,
+  type StreamResponse,
 } from "../core/transport/index";
 import { HttpErrorNormalizer } from "../core/errors/httpErrorNormalizer";
 import {
@@ -75,7 +81,7 @@ export class BridgeClient {
   private readonly config: BridgeClientConfig;
   private readonly providerRegistry: ProviderRegistry;
   private readonly modelRegistry: ModelRegistry;
-  private readonly httpTransport: HttpTransport;
+  private readonly httpTransport: Transport;
   private readonly initializedProviders = new Set<string>();
   private toolRouter?: ToolRouter;
   private agentLoop?: AgentLoop;
@@ -91,12 +97,15 @@ export class BridgeClient {
   constructor(
     config: BridgeConfig,
     deps?: {
-      transport?: HttpTransport;
+      transport?: Transport;
       providerRegistry?: ProviderRegistry;
       modelRegistry?: ModelRegistry;
     },
   ) {
     this.config = this.validateAndTransformConfig(config);
+
+    // Configure logger with user settings
+    this.configureLogger(config);
 
     // Initialize registries
     this.providerRegistry =
@@ -112,11 +121,25 @@ export class BridgeClient {
       };
       const interceptors = new InterceptorChain();
       const errorNormalizer = new HttpErrorNormalizer();
-      this.httpTransport = new HttpTransport(
+      const baseTransport = new HttpTransport(
         httpClientConfig,
         interceptors,
         errorNormalizer,
       );
+
+      // Use enhanced transport if rate limiting or retry is enabled
+      const rateLimitEnabled = this.config.rateLimitPolicy?.enabled;
+      const retryEnabled = (this.config.retryPolicy?.attempts ?? 0) > 0;
+
+      if (rateLimitEnabled || retryEnabled) {
+        this.httpTransport = new EnhancedHttpTransport({
+          baseTransport,
+          rateLimitConfig: this.config.rateLimitPolicy,
+          retryConfig: this.config.retryPolicy,
+        });
+      } else {
+        this.httpTransport = baseTransport;
+      }
     }
 
     // Optionally seed model registry based on configuration
@@ -380,11 +403,31 @@ export class BridgeClient {
 
       let normalized;
       try {
+        // Log raw error before normalization
+        logger.error("Provider operation failed", {
+          provider: plugin.id,
+          model: request.model,
+          operation: "chat",
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+        });
+
         normalized = plugin.normalizeError(error);
       } catch {
         // If normalization itself throws, fall back to original error
         throw error instanceof Error ? error : new Error(String(error));
       }
+
+      // Log normalized error with context
+      logger.error("Normalized error details", {
+        provider: plugin.id,
+        model: request.model,
+        operation: "chat",
+        errorCode:
+          normalized instanceof BridgeError ? normalized.code : "UNKNOWN",
+        errorMessage: normalized.message,
+      });
+
       throw normalized;
     } finally {
       cancel();
@@ -450,8 +493,33 @@ export class BridgeClient {
     );
 
     try {
-      // Execute fetch
-      const httpRes = await this.httpTransport.fetch({ ...httpReq, signal });
+      // Execute stream
+      const streamResponse: StreamResponse = await this.httpTransport.stream({
+        ...httpReq,
+        signal,
+      });
+
+      // Create ProviderHttpResponse using real HTTP metadata from streamResponse
+      // Convert the async iterable stream to ReadableStream for parseResponse
+      const streamAsReadable = new ReadableStream<Uint8Array>({
+        async start(controller) {
+          try {
+            for await (const chunk of streamResponse.stream) {
+              controller.enqueue(chunk);
+            }
+            controller.close();
+          } catch (error) {
+            controller.error(error);
+          }
+        },
+      });
+
+      const httpRes = {
+        status: streamResponse.status,
+        statusText: streamResponse.statusText,
+        headers: streamResponse.headers,
+        body: streamAsReadable,
+      };
 
       // Parse response - must be AsyncIterable<StreamDelta>
       const providerStream = plugin.parseResponse(
@@ -496,12 +564,32 @@ export class BridgeClient {
 
       let normalized;
       try {
+        // Log raw error before normalization
+        logger.error("Provider operation failed", {
+          provider: plugin.id,
+          model: request.model,
+          operation: "stream",
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+        });
+
         normalized = plugin.normalizeError(error);
       } catch {
         // If normalization itself throws, fall back to original error
         throw error instanceof Error ? error : new Error(String(error));
       }
-      throw normalized;
+
+      // Log normalized error with context
+      logger.error("Normalized error details", {
+        provider: plugin.id,
+        model: request.model,
+        operation: "stream",
+        errorCode:
+          normalized instanceof BridgeError ? normalized.code : "UNKNOWN",
+        errorMessage: normalized?.message ?? "Unknown error",
+      });
+
+      throw normalized ?? error;
     } finally {
       cancel();
     }
@@ -731,14 +819,33 @@ export class BridgeClient {
     handler: (params: Record<string, unknown>) => Promise<unknown>,
   ): void {
     if (!this.toolRouter) {
+      logger.error("Tool registration failed - system not initialized", {
+        toolName: definition.name,
+        error: "TOOL_SYSTEM_NOT_INITIALIZED",
+      });
       throw new BridgeError(
         "Tool system not initialized. Enable tools in configuration first.",
         "TOOL_SYSTEM_NOT_INITIALIZED",
       );
     }
 
-    validateToolDefinitions([definition]);
-    this.toolRouter.register(definition.name, definition, handler);
+    try {
+      validateToolDefinitions([definition]);
+      this.toolRouter.register(definition.name, definition, handler);
+
+      logger.info("Tool registered via BridgeClient", {
+        toolName: definition.name,
+        description: definition.description,
+        hasInputSchema: Boolean(definition.inputSchema),
+      });
+    } catch (error) {
+      logger.error("Tool registration failed in BridgeClient", {
+        toolName: definition.name,
+        error: error instanceof Error ? error.message : String(error),
+        errorCode: error instanceof BridgeError ? error.code : "UNKNOWN",
+      });
+      throw error;
+    }
   }
 
   /**
@@ -789,6 +896,26 @@ export class BridgeClient {
     }
 
     return formatToolResultsAsMessages(toolResults);
+  }
+
+  /**
+   * Configure Logger
+   *
+   * Configures the global logger instance based on user settings
+   * in the BridgeConfig options. Uses safe defaults if no configuration
+   * is provided or if configuration is invalid.
+   *
+   * @param config - Input bridge configuration
+   */
+  private configureLogger(config: BridgeConfig): void {
+    const loggingConfig = loggingConfigHelpers.getLoggingConfig(config.options);
+
+    if (loggingConfig) {
+      const validatedConfig =
+        loggingConfigHelpers.validateLoggingConfig(loggingConfig);
+      logger.configure(validatedConfig);
+    }
+    // If no logging config provided, logger uses its built-in defaults
   }
 
   /**

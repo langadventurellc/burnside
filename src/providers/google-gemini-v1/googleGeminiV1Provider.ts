@@ -27,6 +27,7 @@ import { parseGeminiResponse } from "./responseParser";
 import { parseGeminiResponseStream } from "./streamingParser";
 import { normalizeGeminiError } from "./errorNormalizer";
 import type { ModelCapabilities } from "../../core/providers/modelCapabilities";
+import { logger } from "../../core/logging/simpleLogger";
 
 /**
  * Google Gemini v1 Provider Plugin
@@ -406,8 +407,25 @@ export class GoogleGeminiV1Provider implements ProviderPlugin {
    */
   normalizeError(error: unknown): BridgeError {
     try {
+      // Log raw error before normalization
+      logger.error("Google provider error before normalization", {
+        provider: "google",
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+
       return normalizeGeminiError(error);
     } catch (normalizationError) {
+      // Log normalization failure
+      logger.error("Google error normalization failed", {
+        provider: "google",
+        originalError: error instanceof Error ? error.message : String(error),
+        normalizationError:
+          normalizationError instanceof Error
+            ? normalizationError.message
+            : String(normalizationError),
+      });
+
       // Fallback to generic ProviderError if normalization fails
       return new ProviderError("Error normalization failed", {
         originalError: error,

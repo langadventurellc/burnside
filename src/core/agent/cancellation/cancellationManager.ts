@@ -269,8 +269,10 @@ export class CancellationManager {
     }
 
     const timeoutMs = this.options.gracefulCancellationTimeoutMs;
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => {
+      timeoutHandle = setTimeout(() => {
         reject(
           createTimeoutError(
             timeoutMs,
@@ -293,6 +295,11 @@ export class CancellationManager {
       // Log the error but don't re-throw - cleanup failure shouldn't prevent cancellation
       console.error("Cleanup execution failed:", error);
       throw error;
+    } finally {
+      // Always clear the timeout to prevent handle leaks
+      if (timeoutHandle !== undefined) {
+        clearTimeout(timeoutHandle);
+      }
     }
   }
 

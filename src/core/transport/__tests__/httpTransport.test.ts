@@ -187,6 +187,7 @@ describe("HttpTransport", () => {
 
       const mockResponse = new Response(mockStream, {
         status: 200,
+        statusText: "OK",
         headers: { "content-type": "text/event-stream" },
       });
 
@@ -196,12 +197,15 @@ describe("HttpTransport", () => {
         metadata: { timestamp: new Date(), requestId: "req_123" },
       });
 
-      const stream = await httpTransport.stream(mockStreamRequest);
-      expect(stream).toBeDefined();
+      const streamResponse = await httpTransport.stream(mockStreamRequest);
+      expect(streamResponse).toBeDefined();
+      expect(streamResponse.status).toBe(200);
+      expect(streamResponse.statusText).toBe("OK");
+      expect(streamResponse.headers["content-type"]).toBe("text/event-stream");
 
       // Consume stream
       const chunks: Uint8Array[] = [];
-      for await (const chunk of stream) {
+      for await (const chunk of streamResponse.stream) {
         chunks.push(chunk);
       }
 
@@ -230,8 +234,12 @@ describe("HttpTransport", () => {
         metadata: { timestamp: new Date(), requestId: "req_123" },
       });
 
-      const stream = await httpTransport.stream(mockStreamRequest);
-      expect(stream).toBeDefined();
+      const streamResponse = await httpTransport.stream(mockStreamRequest);
+      expect(streamResponse).toBeDefined();
+      expect(streamResponse.status).toBe(200);
+      expect(streamResponse.headers["content-type"]).toBe(
+        "application/x-ndjson",
+      );
     });
 
     it("should handle raw streaming for unknown content types", async () => {
@@ -254,8 +262,10 @@ describe("HttpTransport", () => {
         metadata: { timestamp: new Date(), requestId: "req_123" },
       });
 
-      const stream = await httpTransport.stream(mockStreamRequest);
-      expect(stream).toBeDefined();
+      const streamResponse = await httpTransport.stream(mockStreamRequest);
+      expect(streamResponse).toBeDefined();
+      expect(streamResponse.status).toBe(200);
+      expect(streamResponse.headers["content-type"]).toBe("text/plain");
     });
 
     it("should handle HTTP errors in streaming", async () => {

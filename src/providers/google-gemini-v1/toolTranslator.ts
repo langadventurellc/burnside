@@ -33,7 +33,6 @@ interface JSONSchema {
   maximum?: number;
   default?: unknown;
   description?: string;
-  additionalProperties?: boolean;
 }
 
 /**
@@ -170,7 +169,6 @@ function translateSingleTool(
       type: "object",
       properties: parametersSchema.properties,
       required: parametersSchema.required || [],
-      additionalProperties: false,
     };
   }
 
@@ -287,7 +285,6 @@ function convertZodObject(zodSchema: z.ZodTypeAny): JSONSchema | null {
   const result: JSONSchema = {
     type: "object",
     properties,
-    additionalProperties: false,
   };
 
   if (required.length > 0) {

@@ -16,6 +16,9 @@ export * from "./validation/index";
 // Model management
 export * from "./models/index";
 
+// Logging utilities
+export * from "./logging/index";
+
 // TODO: Export configuration interfaces when implemented
 // TODO: Export message and content model types when implemented
 // TODO: Export tool definitions and handlers when implemented

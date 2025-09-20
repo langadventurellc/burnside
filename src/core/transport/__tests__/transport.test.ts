@@ -7,6 +7,7 @@
 import type { Transport } from "../transport";
 import type { ProviderHttpRequest } from "../providerHttpRequest";
 import type { ProviderHttpResponse } from "../providerHttpResponse";
+import type { StreamResponse } from "../streamResponse";
 
 describe("Transport", () => {
   // Mock implementation for testing interface compliance
@@ -31,7 +32,7 @@ describe("Transport", () => {
     stream(
       _request: ProviderHttpRequest,
       _signal?: AbortSignal,
-    ): Promise<AsyncIterable<Uint8Array>> {
+    ): Promise<StreamResponse> {
       // Return a simple async iterable
       const asyncIterable: AsyncIterable<Uint8Array> = {
         [Symbol.asyncIterator]() {
@@ -52,7 +53,14 @@ describe("Transport", () => {
         },
       };
 
-      return Promise.resolve(asyncIterable);
+      const streamResponse: StreamResponse = {
+        status: 200,
+        statusText: "OK",
+        headers: { "content-type": "text/event-stream" },
+        stream: asyncIterable,
+      };
+
+      return Promise.resolve(streamResponse);
     }
   }
 
@@ -112,12 +120,15 @@ describe("Transport", () => {
         headers: { accept: "text/event-stream" },
       };
 
-      const stream = await transport.stream(request);
-      expect(stream).toBeDefined();
+      const streamResponse = await transport.stream(request);
+      expect(streamResponse).toBeDefined();
+      expect(streamResponse.status).toBeDefined();
+      expect(streamResponse.headers).toBeDefined();
+      expect(streamResponse.stream).toBeDefined();
 
       // Verify it's actually iterable
       const chunks: Uint8Array[] = [];
-      for await (const chunk of stream) {
+      for await (const chunk of streamResponse.stream) {
         chunks.push(chunk);
       }
 

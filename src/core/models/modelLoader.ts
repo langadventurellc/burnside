@@ -16,6 +16,7 @@ type DefaultLlmModelsJson = z.infer<typeof DefaultLlmModelsSchema>;
  * Maps the nested provider/model JSON structure to ModelInfo objects,
  * inferring provider IDs from parent objects and setting default capabilities
  * for all models. Temperature capability defaults to true if not specified.
+ * Prompt caching capability defaults to false if not specified.
  * Providers can later enrich capabilities as needed.
  *
  * @param jsonData - Validated JSON data from defaultLlmModelson
@@ -41,7 +42,7 @@ type DefaultLlmModelsJson = z.infer<typeof DefaultLlmModelsSchema>;
  * //   id: "gpt-4o-2024-08-06",
  * //   name: "GPT-4o",
  * //   provider: "openai",
- * //   capabilities: { streaming: false, toolCalls: false, temperature: true, ... },
+ * //   capabilities: { streaming: false, toolCalls: false, temperature: true, promptCaching: false, ... },
  * //   metadata: { contextLength: 128000, providerPlugin: "openai-responses-v1" }
  * // }]
  * ```
@@ -63,6 +64,7 @@ export function mapJsonToModelInfo(
           images: model.images ?? false,
           documents: model.documents ?? false,
           temperature: model.temperature ?? true, // Default true for backward compatibility
+          promptCaching: model.promptCaching ?? false,
           maxTokens: model.contextLength,
           supportedContentTypes: model.supportedContentTypes ?? [],
         };

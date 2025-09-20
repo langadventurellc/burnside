@@ -13,6 +13,7 @@
  *   documents: false,
  *   temperature: true,
  *   thinking: false,
+ *   promptCaching: true,
  *   maxTokens: 128000,
  *   supportedContentTypes: ["text", "image"]
  * };
@@ -31,6 +32,8 @@ export interface ModelCapabilities {
   temperature?: boolean;
   /** Whether the model supports thinking capability */
   thinking?: boolean;
+  /** Whether the model supports provider-native prompt caching */
+  promptCaching?: boolean;
   /** Maximum number of tokens the model can handle */
   maxTokens?: number;
   /** Array of supported content types */

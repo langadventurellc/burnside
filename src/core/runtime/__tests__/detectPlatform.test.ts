@@ -125,18 +125,17 @@ describe("Platform Detection", () => {
     });
 
     it("should return true when Electron process.versions.electron is available", () => {
-      const originalProcess = globalThis.process;
-      (globalThis as unknown as { process: unknown }).process = {
-        ...originalProcess,
-        versions: {
-          ...originalProcess.versions,
-          electron: "13.0.0",
+      const cleanup = mockGlobalThis({
+        process: {
+          versions: {
+            node: globalThis.process.versions.node,
+            electron: "13.0.0",
+          },
         },
-      };
+      });
 
       expect(isElectron()).toBe(true);
-
-      (globalThis as unknown as { process: unknown }).process = originalProcess;
+      cleanup();
     });
 
     it("should return true when Node + window are both available", () => {

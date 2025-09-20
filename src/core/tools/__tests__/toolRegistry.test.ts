@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { describe, it, expect, beforeEach } from "@jest/globals";
+import { describe, it, expect, beforeEach, jest } from "@jest/globals";
 import { z } from "zod";
 import { InMemoryToolRegistry } from "../inMemoryToolRegistry";
 import type { ToolRegistry, ToolDefinition, ToolHandler } from "../index";
 import { ToolError } from "../../errors/toolError";
+import { logger } from "../../logging";
 
 /**
  * Creates a mock ToolDefinition for testing purposes
@@ -535,6 +536,161 @@ describe("InMemoryToolRegistry", () => {
         registry.register(`tool${i}`, definition, handler);
         expect(registry.size()).toBe(initialSize + i + 1);
       }
+    });
+  });
+
+  describe("logging integration", () => {
+    let loggerInfoSpy: ReturnType<typeof jest.fn>;
+    let loggerWarnSpy: ReturnType<typeof jest.fn>;
+    let loggerDebugSpy: ReturnType<typeof jest.fn>;
+    let originalInfo: typeof logger.info;
+    let originalWarn: typeof logger.warn;
+    let originalDebug: typeof logger.debug;
+
+    beforeEach(() => {
+      originalInfo = logger.info;
+      originalWarn = logger.warn;
+      originalDebug = logger.debug;
+
+      loggerInfoSpy = jest.fn();
+      loggerWarnSpy = jest.fn();
+      loggerDebugSpy = jest.fn();
+
+      logger.info = loggerInfoSpy;
+      logger.warn = loggerWarnSpy;
+      logger.debug = loggerDebugSpy;
+    });
+
+    afterEach(() => {
+      logger.info = originalInfo;
+      logger.warn = originalWarn;
+      logger.debug = originalDebug;
+    });
+
+    it("logs successful tool registration", () => {
+      const definition = createMockToolDefinition("echo", "Test echo tool");
+      const handler = createMockToolHandler();
+
+      registry.register("echo", definition, handler);
+
+      expect(loggerInfoSpy).toHaveBeenCalledWith(
+        "Tool registered successfully",
+        expect.objectContaining({
+          toolName: "echo",
+          description: "Test echo tool",
+          inputSchema: "defined",
+          totalToolsRegistered: 1,
+        }),
+      );
+
+      expect(loggerDebugSpy).toHaveBeenCalledWith(
+        "Tool registration details",
+        expect.objectContaining({
+          toolName: "echo",
+          definitionKeys: expect.arrayContaining([
+            "name",
+            "description",
+            "inputSchema",
+          ]),
+          hasInputSchema: true,
+          hasOutputSchema: true,
+        }),
+      );
+    });
+
+    it("logs tool validation failures", () => {
+      const invalidDefinition = {
+        name: "test",
+        // Missing required inputSchema
+      } as ToolDefinition;
+      const handler = createMockToolHandler();
+
+      expect(() => {
+        registry.register("test", invalidDefinition, handler);
+      }).toThrow(ToolError);
+
+      expect(loggerWarnSpy).toHaveBeenCalledWith(
+        "Tool definition validation failed",
+        expect.objectContaining({
+          toolName: "test",
+          validationError: expect.stringContaining("inputSchema"),
+          definitionKeys: ["name"],
+        }),
+      );
+    });
+
+    it("logs tool name validation failures", () => {
+      const definition = createMockToolDefinition("test");
+      const handler = createMockToolHandler();
+
+      expect(() => {
+        registry.register("invalid@name", definition, handler);
+      }).toThrow(ToolError);
+
+      expect(loggerWarnSpy).toHaveBeenCalledWith(
+        "Tool name validation failed",
+        expect.objectContaining({
+          toolName: "invalid@name",
+          validationError: expect.stringContaining("alphanumeric"),
+          nameLength: 12,
+        }),
+      );
+    });
+
+    it("logs successful tool unregistration", () => {
+      const definition = createMockToolDefinition("echo");
+      const handler = createMockToolHandler();
+
+      // Register and then unregister
+      registry.register("echo", definition, handler);
+      loggerInfoSpy.mockClear(); // Clear registration logs
+
+      const result = registry.unregister("echo");
+
+      expect(result).toBe(true);
+      expect(loggerInfoSpy).toHaveBeenCalledWith(
+        "Tool unregistered successfully",
+        expect.objectContaining({
+          toolName: "echo",
+          remainingToolsRegistered: 0,
+        }),
+      );
+    });
+
+    it("does not log when unregistering non-existent tool", () => {
+      const result = registry.unregister("nonexistent");
+
+      expect(result).toBe(false);
+      expect(loggerInfoSpy).not.toHaveBeenCalledWith(
+        "Tool unregistered successfully",
+        expect.anything(),
+      );
+    });
+
+    it("includes correct tool count in registration logs", () => {
+      const definition = createMockToolDefinition("test");
+      const handler = createMockToolHandler();
+
+      registry.register("tool1", definition, handler);
+      registry.register("tool2", definition, handler);
+
+      expect(loggerInfoSpy).toHaveBeenNthCalledWith(
+        1,
+        "Tool registered successfully",
+        expect.objectContaining({
+          toolName: "tool1",
+          totalToolsRegistered: 1,
+        }),
+      );
+
+      expect(loggerInfoSpy).toHaveBeenNthCalledWith(
+        2, // Second call for tool registration
+        "Tool registered successfully",
+        expect.objectContaining({
+          toolName: "tool2",
+          totalToolsRegistered: 2,
+        }),
+      );
     });
   });
 });

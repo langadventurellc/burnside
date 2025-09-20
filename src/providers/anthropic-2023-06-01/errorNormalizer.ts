@@ -24,6 +24,7 @@ import {
   ProviderError,
   TransportError,
   TimeoutError,
+  OverloadedError,
 } from "../../core/errors/index";
 
 /**
@@ -86,6 +87,7 @@ const STATUS_CODE_MAPPING = {
   502: "ProviderError",
   503: "ProviderError",
   504: "ProviderError",
+  529: "OverloadedError",
 } as const;
 
 /**
@@ -106,7 +108,8 @@ export function normalizeAnthropicError(
     error instanceof RateLimitError ||
     error instanceof ProviderError ||
     error instanceof TransportError ||
-    error instanceof TimeoutError
+    error instanceof TimeoutError ||
+    error instanceof OverloadedError
   ) {
     const ErrorClass = error.constructor as new (
       message: string,
@@ -312,6 +315,11 @@ function buildHttpErrorMessage(response: HttpResponseLike): string {
       return anthropicMessage || `Service unavailable: ${statusText}`;
     case 504:
       return anthropicMessage || `Gateway timeout: ${statusText}`;
+    case 529:
+      return (
+        anthropicMessage ||
+        "Anthropic service is overloaded, please retry later"
+      );
     default:
       return anthropicMessage || `HTTP ${statusCode}: ${statusText}`;
   }
@@ -336,10 +344,18 @@ function buildHttpErrorContext(
     context.anthropicErrorType = anthropicError.type;
   }
 
-  // Extract retry information for rate limits
-  if (response.status === 429 && response.headers) {
+  // Extract retry information for rate limits and overload errors
+  if (
+    (response.status === 429 || response.status === 529) &&
+    response.headers
+  ) {
     const retryInfo = extractRetryInfo(response.headers);
     Object.assign(context, retryInfo);
+  }
+
+  // Add retry recommendation for overload errors
+  if (response.status === 529) {
+    context.shouldRetry = true;
   }
 
   // Sanitize headers if present
@@ -495,6 +511,8 @@ function createBridgeError(
       return new TimeoutError(sanitizedMessage, context);
     case "TransportError":
       return new TransportError(sanitizedMessage, context);
+    case "OverloadedError":
+      return new OverloadedError(sanitizedMessage, context);
     case "ProviderError":
     default:
       return new ProviderError(sanitizedMessage, context);

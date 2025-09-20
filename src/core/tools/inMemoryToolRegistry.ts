@@ -46,6 +46,7 @@ import { ToolDefinitionSchema } from "./toolDefinitionSchema";
 import { validateOrThrow } from "../validation/validateOrThrow";
 import { ToolError } from "../errors/toolError";
 import { commonSchemas } from "../validation/commonSchemas";
+import { logger } from "../logging";
 
 /**
  * In-memory implementation of ToolRegistry interface
@@ -73,6 +74,11 @@ export class InMemoryToolRegistry implements ToolRegistry {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
+      logger.warn("Tool definition validation failed", {
+        toolName: definition.name,
+        validationError: errorMessage,
+        definitionKeys: Object.keys(definition),
+      });
       throw new ToolError(
         `Tool definition validation failed for ${definition.name}: ${errorMessage}`,
         {
@@ -99,6 +105,11 @@ export class InMemoryToolRegistry implements ToolRegistry {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
+      logger.warn("Tool name validation failed", {
+        toolName: name,
+        validationError: errorMessage,
+        nameLength: name?.length,
+      });
       throw new ToolError(`Tool name validation failed: ${errorMessage}`, {
         toolName: name,
         originalError: error,
@@ -183,6 +194,20 @@ export class InMemoryToolRegistry implements ToolRegistry {
 
     this.tools.set(name, registryEntry);
     this.registrationTimes.set(name, new Date());
+
+    logger.info("Tool registered successfully", {
+      toolName: name,
+      description: definition.description,
+      inputSchema: definition.inputSchema ? "defined" : "undefined",
+      totalToolsRegistered: this.tools.size,
+    });
+
+    logger.debug("Tool registration details", {
+      toolName: name,
+      definitionKeys: Object.keys(definition),
+      hasInputSchema: Boolean(definition.inputSchema),
+      hasOutputSchema: Boolean(definition.outputSchema),
+    });
   }
 
   /**
@@ -199,6 +224,10 @@ export class InMemoryToolRegistry implements ToolRegistry {
     const removed = this.tools.delete(name);
     if (removed) {
       this.registrationTimes.delete(name);
+      logger.info("Tool unregistered successfully", {
+        toolName: name,
+        remainingToolsRegistered: this.tools.size,
+      });
     }
 
     return removed;

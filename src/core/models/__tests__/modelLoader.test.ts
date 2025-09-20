@@ -200,6 +200,7 @@ describe("modelLoader", () => {
         images: false,
         documents: false,
         temperature: true, // Default value when not specified
+        promptCaching: false, // Default value when not specified
         maxTokens: 50000, // From createProviderData contextLength
         supportedContentTypes: [],
       });

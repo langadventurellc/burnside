@@ -54,6 +54,7 @@ describe("defaultLlmModels", () => {
         expect(model.toolCalls).toBe(true);
         expect(model.images).toBe(true);
         expect(model.documents).toBe(true);
+        expect(model.promptCaching).toBe(true);
 
         // Verify supported content types
         expect(model.supportedContentTypes).toEqual([
@@ -92,6 +93,28 @@ describe("defaultLlmModels", () => {
       );
       expect(claudeOpus41?.name).toBe("Claude Opus 4.1");
     });
+
+    it("should have promptCaching: true for all Anthropic models", () => {
+      const anthropicModels = anthropicProvider!.models;
+
+      anthropicModels.forEach((model) => {
+        expect(model.promptCaching).toBe(true);
+      });
+
+      // Verify specific models have prompt caching enabled
+      const expectedModelIds = [
+        "claude-3-haiku-20240307",
+        "claude-3-5-haiku-latest",
+        "claude-sonnet-4-20250514",
+        "claude-opus-4-20250514",
+        "claude-opus-4-1-20250805",
+      ];
+
+      expectedModelIds.forEach((modelId) => {
+        const model = anthropicModels.find((m) => m.id === modelId);
+        expect(model?.promptCaching).toBe(true);
+      });
+    });
   });
 
   describe("Provider Plugin Validation", () => {
@@ -124,6 +147,19 @@ describe("defaultLlmModels", () => {
 
       expect(uniqueProviderPlugins.size).toBe(1);
       expect(uniqueProviderPlugins.has("anthropic-2023-06-01")).toBe(true);
+    });
+
+    it("should verify other providers do not have promptCaching field initially", () => {
+      const nonAnthropicProviders = defaultLlmModels.providers.filter(
+        (provider) => provider.id !== "anthropic",
+      );
+
+      nonAnthropicProviders.forEach((provider) => {
+        provider.models.forEach((model) => {
+          // Other providers should not have promptCaching field defined yet
+          expect(model.promptCaching).toBeUndefined();
+        });
+      });
     });
   });
 

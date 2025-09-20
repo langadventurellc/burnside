@@ -11,6 +11,7 @@ import type { RequestInterceptor } from "../requestInterceptor";
 import type { ResponseInterceptor } from "../responseInterceptor";
 import type { ProviderHttpRequest } from "../providerHttpRequest";
 import type { ProviderHttpResponse } from "../providerHttpResponse";
+import type { StreamResponse } from "../streamResponse";
 
 describe("HttpClient", () => {
   const mockFetch: FetchFunction = () => {
@@ -50,7 +51,7 @@ describe("HttpClient", () => {
     stream(
       _request: ProviderHttpRequest,
       _signal?: AbortSignal,
-    ): Promise<AsyncIterable<Uint8Array>> {
+    ): Promise<StreamResponse> {
       const asyncIterable: AsyncIterable<Uint8Array> = {
         [Symbol.asyncIterator]() {
           return {
@@ -60,7 +61,15 @@ describe("HttpClient", () => {
           };
         },
       };
-      return Promise.resolve(asyncIterable);
+
+      const streamResponse: StreamResponse = {
+        status: 200,
+        statusText: "OK",
+        headers: { "content-type": "text/event-stream" },
+        stream: asyncIterable,
+      };
+
+      return Promise.resolve(streamResponse);
     }
   }
 
@@ -144,9 +153,13 @@ describe("HttpClient", () => {
         method: "POST",
       };
 
-      const stream = await client.stream(request);
-      expect(stream).toBeDefined();
-      expect(typeof stream[Symbol.asyncIterator]).toBe("function");
+      const streamResponse = await client.stream(request);
+      expect(streamResponse).toBeDefined();
+      expect(streamResponse.status).toBeDefined();
+      expect(streamResponse.stream).toBeDefined();
+      expect(typeof streamResponse.stream[Symbol.asyncIterator]).toBe(
+        "function",
+      );
     });
   });
 

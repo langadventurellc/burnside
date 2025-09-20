@@ -29,6 +29,7 @@ import { parseOpenAIResponseStream } from "./streamingParser";
 import { normalizeOpenAIError } from "./errorNormalizer";
 import { defaultEstimateTokenUsage } from "../../core/providers/defaultEstimateTokenUsage";
 import { defaultShouldContinueConversation } from "../../core/providers/defaultShouldContinueConversation";
+import { logger } from "../../core/logging/simpleLogger";
 
 /**
  * OpenAI Responses v1 Provider Plugin
@@ -398,8 +399,25 @@ export class OpenAIResponsesV1Provider implements ProviderPlugin {
    */
   normalizeError(error: unknown): BridgeError {
     try {
+      // Log raw error before normalization
+      logger.error("OpenAI provider error before normalization", {
+        provider: "openai",
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+
       return normalizeOpenAIError(error);
     } catch (normalizationError) {
+      // Log normalization failure
+      logger.error("OpenAI error normalization failed", {
+        provider: "openai",
+        originalError: error instanceof Error ? error.message : String(error),
+        normalizationError:
+          normalizationError instanceof Error
+            ? normalizationError.message
+            : String(normalizationError),
+      });
+
       // Fallback to generic ProviderError if normalization fails
       return new ProviderError("Error normalization failed", {
         originalError: error,

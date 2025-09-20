@@ -12,6 +12,7 @@ import {
   ProviderError,
   TransportError,
   TimeoutError,
+  OverloadedError,
 } from "../../../core/errors/index";
 
 describe("Anthropic Error Normalizer", () => {
@@ -183,6 +184,72 @@ describe("Anthropic Error Normalizer", () => {
       expect(result.code).toBe("PROVIDER_ERROR");
       expect(result.message).toContain("Gateway timeout");
       expect(result.context?.httpStatus).toBe(504);
+    });
+
+    test("should map 529 to OverloadedError", () => {
+      const httpError = {
+        status: 529,
+        statusText: "Overloaded",
+        headers: {},
+      };
+
+      const result = normalizeAnthropicError(httpError);
+
+      expect(result).toBeInstanceOf(OverloadedError);
+      expect(result.code).toBe("OVERLOADED_ERROR");
+      expect(result.message).toBe(
+        "Anthropic service is overloaded, please retry later",
+      );
+      expect(result.context?.httpStatus).toBe(529);
+      expect(result.context?.provider).toBe("anthropic");
+      expect(result.context?.version).toBe("2023-06-01");
+      expect(result.context?.shouldRetry).toBe(true);
+    });
+
+    test("should map 529 to OverloadedError with retry info", () => {
+      const httpError = {
+        status: 529,
+        statusText: "Overloaded",
+        headers: { "retry-after": "30" },
+      };
+
+      const result = normalizeAnthropicError(httpError);
+
+      expect(result).toBeInstanceOf(OverloadedError);
+      expect(result.code).toBe("OVERLOADED_ERROR");
+      expect(result.message).toBe(
+        "Anthropic service is overloaded, please retry later",
+      );
+      expect(result.context?.httpStatus).toBe(529);
+      expect(result.context?.retryAfter).toBe(30);
+      expect(result.context?.retryAfterType).toBe("seconds");
+      expect(result.context?.shouldRetry).toBe(true);
+    });
+
+    test("should map 529 with Anthropic error message", () => {
+      const httpError = {
+        status: 529,
+        statusText: "Overloaded",
+        headers: {},
+        data: {
+          type: "error",
+          error: {
+            type: "overloaded_error",
+            message: "Service temporarily overloaded, please wait and retry",
+          },
+        },
+      };
+
+      const result = normalizeAnthropicError(httpError);
+
+      expect(result).toBeInstanceOf(OverloadedError);
+      expect(result.code).toBe("OVERLOADED_ERROR");
+      expect(result.message).toBe(
+        "Service temporarily overloaded, please wait and retry",
+      );
+      expect(result.context?.httpStatus).toBe(529);
+      expect(result.context?.anthropicErrorType).toBe("overloaded_error");
+      expect(result.context?.shouldRetry).toBe(true);
     });
 
     test("should default 4xx to ValidationError", () => {

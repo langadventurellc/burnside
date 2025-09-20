@@ -17,6 +17,12 @@ import type { ToolsConfig } from "./toolsConfig";
  *   },
  *   defaultModel: "gpt-4",
  *   timeout: 30000,
+ *   options: {
+ *     logging: {
+ *       enabled: true,
+ *       level: "debug"
+ *     }
+ *   },
  *   registryOptions: {
  *     providers: {},
  *     models: {}
@@ -25,6 +31,20 @@ import type { ToolsConfig } from "./toolsConfig";
  *     enabled: true,
  *     builtinTools: ["echo"],
  *     executionTimeoutMs: 5000
+ *   },
+ *   rateLimitPolicy: {
+ *     enabled: true,
+ *     maxRps: 10,
+ *     burst: 20,
+ *     scope: "provider:model"
+ *   },
+ *   retryPolicy: {
+ *     attempts: 3,
+ *     backoff: "exponential",
+ *     baseDelayMs: 1000,
+ *     maxDelayMs: 30000,
+ *     jitter: true,
+ *     retryableStatusCodes: [429, 500, 502, 503, 504]
  *   }
  * };
  * ```
@@ -57,4 +77,32 @@ export interface BridgeConfig {
 
   /** Tool system configuration */
   tools?: ToolsConfig;
+
+  /** Rate limiting policy configuration */
+  rateLimitPolicy?: {
+    /** Enable/disable rate limiting (default: false) */
+    enabled?: boolean;
+    /** Maximum requests per second */
+    maxRps?: number;
+    /** Burst capacity (default: maxRps * 2) */
+    burst?: number;
+    /** Rate limiting scope granularity */
+    scope?: "global" | "provider" | "provider:model" | "provider:model:key";
+  };
+
+  /** Retry policy configuration */
+  retryPolicy?: {
+    /** Number of retry attempts (default: 2) */
+    attempts?: number;
+    /** Backoff strategy type */
+    backoff?: "exponential" | "linear";
+    /** Base delay in milliseconds */
+    baseDelayMs?: number;
+    /** Maximum delay in milliseconds */
+    maxDelayMs?: number;
+    /** Enable jitter to prevent thundering herd */
+    jitter?: boolean;
+    /** HTTP status codes that trigger retries */
+    retryableStatusCodes?: number[];
+  };
 }

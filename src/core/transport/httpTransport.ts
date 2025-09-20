@@ -1,3 +1,4 @@
+/* eslint-disable statement-count/function-statement-count-warn */
 /**
  * HTTP Transport Implementation
  *
@@ -41,11 +42,13 @@ import type { HttpClientConfig } from "./httpClientConfig";
 import type { ProviderHttpRequest } from "./providerHttpRequest";
 import type { ProviderHttpResponse } from "./providerHttpResponse";
 import type { InterceptorContext } from "./interceptorContext";
+import type { StreamResponse } from "./streamResponse";
 import { InterceptorChain } from "./interceptorChain";
 import { HttpErrorNormalizer } from "../errors/httpErrorNormalizer";
 import { SseParser } from "../streaming/sseParser";
 import { ChunkParser } from "../streaming/chunkParser";
 import { TransportError } from "../errors/transportError";
+import { logger } from "../logging/simpleLogger";
 
 /**
  * Content types that indicate streaming responses
@@ -64,6 +67,41 @@ const STREAMING_CONTENT_TYPES = {
  * interceptor chains, and platform compatibility.
  */
 export class HttpTransport implements Transport {
+  /**
+   * Sanitizes headers for logging by removing authentication information.
+   */
+  private sanitizeHeadersForLogging(
+    headers: Record<string, string> | undefined,
+  ): Record<string, string> {
+    if (!headers) {
+      return {};
+    }
+
+    const sanitized = { ...headers };
+
+    // Remove common authentication headers
+    const authHeaders = [
+      "authorization",
+      "x-api-key",
+      "x-goog-api-key",
+      "api-key",
+      "bearer",
+      "token",
+      "auth-token",
+      "access-token",
+    ];
+
+    authHeaders.forEach((header) => {
+      // Case-insensitive removal
+      Object.keys(sanitized).forEach((key) => {
+        if (key.toLowerCase() === header.toLowerCase()) {
+          sanitized[key] = "[REDACTED]";
+        }
+      });
+    });
+
+    return sanitized;
+  }
   /**
    * Creates a new HttpTransport instance.
    *
@@ -109,6 +147,15 @@ export class HttpTransport implements Transport {
     // Execute request interceptors
     const processedContext = await this.interceptors.executeRequest(context);
 
+    // Log request details for debugging
+    logger.debug("HTTP request details", {
+      transport: "http",
+      method: processedContext.request.method,
+      url: processedContext.request.url,
+      headers: this.sanitizeHeadersForLogging(processedContext.request.headers),
+      body: processedContext.request.body,
+    });
+
     // Perform HTTP request
     const fetchResponse = await this.config.fetch(
       processedContext.request.url,
@@ -122,6 +169,55 @@ export class HttpTransport implements Transport {
 
     // Convert to ProviderHttpResponse
     const response = this.convertFetchResponse(fetchResponse);
+
+    // Log response details for debugging (including body)
+    let responseBodyForLogging: string | null = null;
+    if (response.body) {
+      try {
+        // Read the response body for logging
+        const reader = response.body.getReader();
+        const chunks: Uint8Array[] = [];
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+        }
+
+        // Combine chunks and decode to string for logging
+        const totalLength = chunks.reduce(
+          (sum, chunk) => sum + chunk.length,
+          0,
+        );
+        const combined = new Uint8Array(totalLength);
+        let offset = 0;
+        for (const chunk of chunks) {
+          combined.set(chunk, offset);
+          offset += chunk.length;
+        }
+        responseBodyForLogging = new TextDecoder().decode(combined);
+
+        // Create a new ReadableStream from the chunks for actual use
+        response.body = new ReadableStream({
+          start(controller) {
+            for (const chunk of chunks) {
+              controller.enqueue(chunk);
+            }
+            controller.close();
+          },
+        });
+      } catch (error) {
+        logger.debug("Failed to read response body for logging", { error });
+      }
+    }
+
+    logger.debug("HTTP response details", {
+      transport: "http",
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+      body: responseBodyForLogging,
+    });
 
     // Update context with response
     const responseContext: InterceptorContext = {
@@ -140,6 +236,14 @@ export class HttpTransport implements Transport {
    * Handles fetch errors with proper normalization.
    */
   private handleFetchError(error: unknown, signal?: AbortSignal): never {
+    // Log transport error details
+    logger.error("HTTP transport error", {
+      transport: "http",
+      error: error instanceof Error ? error.message : String(error),
+      aborted: signal?.aborted || false,
+      status: error instanceof Response ? error.status : undefined,
+    });
+
     // Handle AbortSignal cancellation
     if (signal?.aborted) {
       throw new TransportError("Request was aborted", {
@@ -151,6 +255,14 @@ export class HttpTransport implements Transport {
     // Handle Response errors
     if (error instanceof Response) {
       const response = this.convertFetchResponse(error);
+
+      // Log HTTP error details
+      logger.debug("HTTP error response details", {
+        transport: "http",
+        status: response.status,
+        statusText: response.statusText,
+      });
+
       throw new TransportError(
         `HTTP ${response.status}: ${response.statusText}`,
         {
@@ -179,15 +291,19 @@ export class HttpTransport implements Transport {
   /**
    * Performs a streaming HTTP request with content-type detection.
    *
+   * Returns a StreamResponse containing both HTTP metadata and raw stream content.
+   * For SSE responses (text/event-stream), preserves raw SSE framing for provider parsing.
+   * For other content types, maintains current parsing behavior.
+   *
    * @param request - HTTP request configuration
    * @param signal - Optional AbortSignal for stream cancellation
-   * @returns Promise resolving to async iterable of data chunks
+   * @returns Promise resolving to StreamResponse with HTTP metadata and stream
    * @throws TransportError for network or HTTP-level failures
    */
   async stream(
     request: ProviderHttpRequest,
     signal?: AbortSignal,
-  ): Promise<AsyncIterable<Uint8Array>> {
+  ): Promise<StreamResponse> {
     try {
       return await this.executeStreamRequest(request, signal);
     } catch (error) {
@@ -201,12 +317,21 @@ export class HttpTransport implements Transport {
   private async executeStreamRequest(
     request: ProviderHttpRequest,
     signal?: AbortSignal,
-  ): Promise<AsyncIterable<Uint8Array>> {
+  ): Promise<StreamResponse> {
     // Create interceptor context
     const context = this.createInterceptorContext(request, signal);
 
     // Execute request interceptors
     const processedContext = await this.interceptors.executeRequest(context);
+
+    // Log streaming request details for debugging
+    logger.debug("HTTP streaming request details", {
+      transport: "http",
+      method: processedContext.request.method,
+      url: processedContext.request.url,
+      headers: this.sanitizeHeadersForLogging(processedContext.request.headers),
+      body: processedContext.request.body,
+    });
 
     // Perform HTTP request
     const fetchResponse = await this.config.fetch(
@@ -218,6 +343,22 @@ export class HttpTransport implements Transport {
         signal,
       },
     );
+
+    // Capture HTTP response metadata
+    const headers: Record<string, string> = {};
+    fetchResponse.headers.forEach((value, key) => {
+      headers[key] = value;
+    });
+
+    // Log streaming response details for debugging
+    logger.debug("HTTP streaming response details", {
+      transport: "http",
+      status: fetchResponse.status,
+      statusText: fetchResponse.statusText,
+      headers,
+      hasBody: !!fetchResponse.body,
+      note: "Body will be streamed - not logged here",
+    });
 
     // Check for HTTP errors before streaming
     if (!fetchResponse.ok) {
@@ -237,16 +378,35 @@ export class HttpTransport implements Transport {
       throw new TransportError("Response body is empty for streaming request");
     }
 
-    // Detect content type and apply appropriate parser
+    // Detect content type and apply appropriate stream processing
     const contentType = fetchResponse.headers.get("content-type") || "";
+    const isSSE = contentType.includes(STREAMING_CONTENT_TYPES.SSE);
 
-    return this.createParsedStream(body, contentType, signal);
+    // For SSE responses, return raw stream to preserve SSE framing
+    // For other responses, maintain current parsing behavior
+    const stream = isSSE
+      ? this.createRawStreamIterator(body, signal)
+      : this.createParsedStream(body, contentType, signal);
+
+    return {
+      status: fetchResponse.status,
+      statusText: fetchResponse.statusText,
+      headers,
+      stream,
+    };
   }
 
   /**
    * Handles streaming errors with proper normalization.
    */
   private handleStreamError(error: unknown, signal?: AbortSignal): never {
+    // Log streaming error details
+    logger.error("HTTP streaming error", {
+      transport: "http",
+      error: error instanceof Error ? error.message : String(error),
+      aborted: signal?.aborted || false,
+    });
+
     // Handle AbortSignal cancellation
     if (signal?.aborted) {
       throw new TransportError("Stream was aborted", {

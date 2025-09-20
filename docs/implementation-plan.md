@@ -118,16 +118,15 @@ Acceptance
 
 - Unit tests for loop termination, interruption on tool calls mid‑stream, and cancellation.
 
-### Phase 10 — Caching, Rate Limiting, and Retries (Optional, In‑Memory by Default)
+### Phase 10 — Rate Limiting, Retries, and Provider‑Native Prompt Caching
 
-- Add in‑memory response cache with TTL + LRU and deterministic request hashing.
 - Add in‑memory token‑bucket rate limiter; respect 429/Retry‑After with jitter backoff.
-- Add error handling for non-success responses with automatic retries.
+- Add error handling for non-success responses with automatic retries and exponential backoff.
 - Provider‑native prompt caching hooks (e.g., Anthropic cache points) via plugin capability; reuse within session.
 
 Acceptance
 
-- Unit tests for cache keys/TTL, limiter behavior, and retry policies.
+- Unit tests for rate limiter behavior, retry policies, and provider‑native prompt caching integration.
 
 ### Phase 11 — Runtime Adapters (Platform)
 

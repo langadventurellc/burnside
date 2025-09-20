@@ -9,6 +9,7 @@
 import { z } from "zod";
 import type { ToolCall } from "../../core/tools/toolCall";
 import { ValidationError } from "../../core/errors/validationError";
+import { logger } from "../../core/logging";
 
 /**
  * OpenAI tool call function schema
@@ -45,13 +46,29 @@ type OpenAIToolCall = z.infer<typeof OpenAIToolCallSchema>;
  * @throws ValidationError for malformed tool calls or invalid JSON
  */
 export function parseOpenAIToolCalls(toolCalls: unknown): ToolCall[] {
+  const toolCallsArray = Array.isArray(toolCalls) ? toolCalls : [];
+
+  logger.debug("OpenAI tool call parsing started", {
+    provider: "openai",
+    toolCallsCount: toolCallsArray.length,
+    hasToolCalls: toolCallsArray.length > 0,
+  });
+
   // Validate input structure
   const validatedToolCalls = validateToolCallsStructure(toolCalls);
 
   // Convert each tool call to unified format
-  return validatedToolCalls.map((toolCall) =>
+  const unifiedToolCalls = validatedToolCalls.map((toolCall) =>
     convertOpenAIToolCallToUnified(toolCall),
   );
+
+  logger.info("OpenAI tool call parsing completed", {
+    provider: "openai",
+    parsedToolCalls: unifiedToolCalls.length,
+    toolNames: unifiedToolCalls.map((tc) => tc.name),
+  });
+
+  return unifiedToolCalls;
 }
 
 /**
@@ -65,6 +82,13 @@ function validateToolCallsStructure(toolCalls: unknown): OpenAIToolCall[] {
   try {
     return OpenAIToolCallsArraySchema.parse(toolCalls);
   } catch (error) {
+    logger.warn("OpenAI tool calls validation failed", {
+      provider: "openai",
+      validationError: error instanceof Error ? error.message : String(error),
+      inputType: typeof toolCalls,
+      isArray: Array.isArray(toolCalls),
+    });
+
     throw new ValidationError("Invalid OpenAI tool calls structure", {
       cause: error,
       input: toolCalls,
@@ -83,6 +107,13 @@ function validateToolCallsStructure(toolCalls: unknown): OpenAIToolCall[] {
 function convertOpenAIToolCallToUnified(
   openAIToolCall: OpenAIToolCall,
 ): ToolCall {
+  logger.debug("Converting OpenAI tool call to unified format", {
+    provider: "openai",
+    toolName: openAIToolCall.function.name,
+    callId: openAIToolCall.id,
+    hasArguments: Boolean(openAIToolCall.function.arguments?.trim()),
+  });
+
   const parameters = parseToolCallArguments(
     openAIToolCall.function.arguments,
     openAIToolCall.id,
@@ -135,6 +166,18 @@ function parseToolCallArguments(
 
     return parsed as Record<string, unknown>;
   } catch (error) {
+    const truncatedArgs =
+      argumentsJson.length > 500
+        ? argumentsJson.substring(0, 500) + "..."
+        : argumentsJson;
+
+    logger.warn("OpenAI tool call argument parsing failed", {
+      provider: "openai",
+      callId: toolCallId,
+      error: error instanceof Error ? error.message : String(error),
+      argumentsSnippet: truncatedArgs,
+    });
+
     if (error instanceof ValidationError) {
       throw error;
     }
