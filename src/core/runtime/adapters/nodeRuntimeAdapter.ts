@@ -51,6 +51,72 @@ export class NodeRuntimeAdapter implements RuntimeAdapter {
     }
   }
 
+  async stream(
+    input: string | URL,
+    init?: RequestInit,
+  ): Promise<{
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+    stream: AsyncIterable<Uint8Array>;
+  }> {
+    try {
+      // Use global fetch to get the response
+      const response = await globalThis.fetch(input, init);
+
+      // Extract headers into a plain object
+      const headers: Record<string, string> = {};
+      response.headers.forEach((value, key) => {
+        headers[key] = value;
+      });
+
+      // Convert response body to AsyncIterable
+      if (!response.body) {
+        throw new RuntimeError(
+          "Response body is null for streaming request",
+          "RUNTIME_HTTP_ERROR",
+          {
+            input: input.toString(),
+            init,
+          },
+        );
+      }
+
+      // Create AsyncIterable from ReadableStream
+      const stream: AsyncIterable<Uint8Array> = {
+        async *[Symbol.asyncIterator]() {
+          const reader = response.body!.getReader();
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              yield value;
+            }
+          } finally {
+            reader.releaseLock();
+          }
+        },
+      };
+
+      return {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+        stream,
+      };
+    } catch (error) {
+      throw new RuntimeError(
+        `HTTP stream failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        "RUNTIME_HTTP_ERROR",
+        {
+          input: input.toString(),
+          init,
+          originalError: error,
+        },
+      );
+    }
+  }
+
   // Timer Operations
   setTimeout(callback: () => void, ms: number): TimerHandle {
     try {

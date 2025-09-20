@@ -29,6 +29,38 @@ describe("RuntimeAdapter Interface", () => {
     fetch(_input: string | URL, _init?: RequestInit): Promise<Response> {
       return Promise.resolve(new Response("mock response"));
     },
+    stream(
+      _input: string | URL,
+      _init?: RequestInit,
+    ): Promise<{
+      status: number;
+      statusText: string;
+      headers: Record<string, string>;
+      stream: AsyncIterable<Uint8Array>;
+    }> {
+      return Promise.resolve({
+        status: 200,
+        statusText: "OK",
+        headers: { "content-type": "text/plain" },
+        stream: {
+          [Symbol.asyncIterator]() {
+            let yielded = false;
+            return {
+              next() {
+                if (!yielded) {
+                  yielded = true;
+                  return Promise.resolve({
+                    value: new Uint8Array([109, 111, 99, 107]), // "mock"
+                    done: false,
+                  });
+                }
+                return Promise.resolve({ value: undefined, done: true });
+              },
+            };
+          },
+        },
+      });
+    },
     setTimeout(_callback: () => void, _ms: number): TimerHandle {
       return "mock-timer-handle";
     },
