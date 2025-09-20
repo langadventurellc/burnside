@@ -91,6 +91,8 @@ function detectTimerCapability(): boolean {
  */
 function detectFileSystemCapability(): boolean {
   const platform = detectPlatform();
+  // Only Node.js and Electron main process have file system access
+  // Electron renderer and other platforms do not
   return platform === "node" || platform === "electron";
 }
 
