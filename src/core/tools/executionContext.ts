@@ -6,6 +6,7 @@
 
 import type { ToolHandler } from "./toolHandler";
 import type { PreparedContext } from "./preparedContext";
+import type { RuntimeAdapter } from "../runtime/runtimeAdapter";
 
 /**
  * Complete pipeline context with handler and timeout
@@ -13,4 +14,5 @@ import type { PreparedContext } from "./preparedContext";
 export interface ExecutionContext extends PreparedContext {
   toolHandler: ToolHandler;
   timeoutMs: number;
+  runtimeAdapter: RuntimeAdapter;
 }

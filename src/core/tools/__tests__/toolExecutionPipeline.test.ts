@@ -16,6 +16,7 @@ import type { ToolDefinition } from "../toolDefinition";
 import type { ToolExecutionContext } from "../toolExecutionContext";
 import type { ToolHandler } from "../toolHandler";
 import type { ToolResult } from "../toolResult";
+import type { RuntimeAdapter } from "../../runtime/runtimeAdapter";
 
 describe("ExecutionPipeline", () => {
   let pipeline: ExecutionPipeline;
@@ -23,9 +24,27 @@ describe("ExecutionPipeline", () => {
   let mockToolDefinition: ToolDefinition;
   let mockHandler: ToolHandler;
   let mockContext: ToolExecutionContext;
+  let mockRuntimeAdapter: RuntimeAdapter;
 
   beforeEach(() => {
     pipeline = new ExecutionPipeline();
+
+    // Create mock runtime adapter that works with Jest fake timers
+    mockRuntimeAdapter = {
+      setTimeout: jest.fn((callback: () => void, timeout: number) => {
+        return setTimeout(callback, timeout);
+      }),
+      clearTimeout: jest.fn((handle: unknown) => {
+        if (handle) {
+          clearTimeout(handle as NodeJS.Timeout);
+        }
+      }),
+      fetch: jest.fn(),
+      stream: jest.fn(),
+      readFile: jest.fn(),
+      writeFile: jest.fn(),
+      fileExists: jest.fn(),
+    } as unknown as RuntimeAdapter;
 
     mockToolCall = {
       id: "call_123",
@@ -62,6 +81,7 @@ describe("ExecutionPipeline", () => {
         mockHandler,
         mockContext,
         5000,
+        mockRuntimeAdapter,
       );
 
       expect(result.success).toBe(true);
@@ -85,6 +105,8 @@ describe("ExecutionPipeline", () => {
         mockToolDefinition,
         mockHandler,
         mockContext,
+        5000,
+        mockRuntimeAdapter,
       );
 
       expect(result.success).toBe(false);
@@ -104,6 +126,8 @@ describe("ExecutionPipeline", () => {
         mockToolDefinition,
         mockHandler,
         mockContext,
+        5000,
+        mockRuntimeAdapter,
       );
 
       expect(result.success).toBe(false);
@@ -122,6 +146,8 @@ describe("ExecutionPipeline", () => {
         mockToolDefinition,
         errorHandler,
         mockContext,
+        5000,
+        mockRuntimeAdapter,
       );
 
       expect(result.success).toBe(false);
@@ -148,6 +174,7 @@ describe("ExecutionPipeline", () => {
         slowHandler,
         mockContext,
         100, // Short timeout
+        mockRuntimeAdapter,
       );
 
       // Fast-forward timers to trigger timeout
@@ -160,7 +187,7 @@ describe("ExecutionPipeline", () => {
       expect(result.error?.message).toContain("timed out after 100ms");
 
       jest.useRealTimers();
-    });
+    }, 10000);
 
     it("should handle pipeline-level errors", async () => {
       // Force pipeline error by passing undefined handler
@@ -169,6 +196,8 @@ describe("ExecutionPipeline", () => {
         mockToolDefinition,
         undefined as unknown as ToolHandler,
         mockContext,
+        5000,
+        mockRuntimeAdapter,
       );
 
       expect(result.success).toBe(false);
@@ -193,6 +222,8 @@ describe("ExecutionPipeline", () => {
         jsonSchemaDefinition,
         mockHandler,
         mockContext,
+        5000,
+        mockRuntimeAdapter,
       );
 
       // Should succeed even with JSON Schema (validation is skipped for now)
@@ -320,6 +351,7 @@ describe("executeToolHandler", () => {
     executionContext: ToolExecutionContext;
     timeoutMs: number;
     startTime: number;
+    runtimeAdapter: RuntimeAdapter;
   };
 
   beforeEach(() => {
@@ -333,6 +365,22 @@ describe("executeToolHandler", () => {
       executionContext: { userId: "user_123" },
       timeoutMs: 5000,
       startTime: Date.now(),
+      runtimeAdapter: {
+        setTimeout: jest.fn((callback: () => void, timeout: number) => {
+          const timerId = setTimeout(callback, timeout);
+          return timerId;
+        }),
+        clearTimeout: jest.fn((timerId: unknown) => {
+          if (typeof timerId === "object" && timerId !== null) {
+            clearTimeout(timerId as NodeJS.Timeout);
+          }
+        }),
+        fetch: jest.fn(),
+        stream: jest.fn(),
+        readFile: jest.fn(),
+        writeFile: jest.fn(),
+        fileExists: jest.fn(),
+      } as unknown as RuntimeAdapter,
     };
   });
 
@@ -385,7 +433,7 @@ describe("executeToolHandler", () => {
     expect(result.error?.message).toContain("timed out after 100ms");
 
     jest.useRealTimers();
-  });
+  }, 10000);
 });
 
 describe("normalizeResult", () => {

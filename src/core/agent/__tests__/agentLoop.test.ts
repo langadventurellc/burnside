@@ -17,6 +17,7 @@ import type { ToolCall } from "../../tools/toolCall";
 import type { ToolResult } from "../../tools/toolResult";
 import type { ToolDefinition } from "../../tools/toolDefinition";
 import type { ToolHandler } from "../../tools/toolHandler";
+import type { RuntimeAdapter } from "../../runtime/runtimeAdapter";
 
 describe("AgentLoop", () => {
   let agentLoop: AgentLoop;
@@ -26,10 +27,23 @@ describe("AgentLoop", () => {
   let mockToolCall: ToolCall;
   let mockToolDefinition: ToolDefinition;
   let mockToolHandler: ToolHandler;
+  let mockRuntimeAdapter: RuntimeAdapter;
 
   beforeEach(() => {
     registry = new InMemoryToolRegistry();
-    toolRouter = new ToolRouter(registry);
+
+    // Create mock runtime adapter
+    mockRuntimeAdapter = {
+      setTimeout: jest.fn(() => "mock-timer-handle"),
+      clearTimeout: jest.fn(),
+      fetch: jest.fn(),
+      stream: jest.fn(),
+      readFile: jest.fn(),
+      writeFile: jest.fn(),
+      fileExists: jest.fn(),
+    } as unknown as RuntimeAdapter;
+
+    toolRouter = new ToolRouter(registry, 5000, mockRuntimeAdapter);
     agentLoop = new AgentLoop(toolRouter, {
       maxToolCalls: 1,
       timeoutMs: 10000,

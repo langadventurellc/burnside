@@ -18,12 +18,14 @@ import { allProviderResponses } from "./fixtures";
 import type { Message } from "../../messages/message";
 import type { ConversationContext } from "../conversationContext";
 import type { UnifiedTerminationSignal } from "../unifiedTerminationSignal";
+import type { RuntimeAdapter } from "../../runtime/runtimeAdapter";
 import type { MultiTurnState } from "../multiTurnState";
 
 describe("Termination Detection Integration Tests", () => {
   let _agentLoop: AgentLoop;
   let toolRouter: ToolRouter;
   let registry: InMemoryToolRegistry;
+  let mockRuntimeAdapter: RuntimeAdapter;
   let providers: {
     openai: OpenAIResponsesV1Provider;
     anthropic: AnthropicMessagesV1Provider;
@@ -34,7 +36,19 @@ describe("Termination Detection Integration Tests", () => {
   beforeEach(async () => {
     // Initialize test infrastructure
     registry = new InMemoryToolRegistry();
-    toolRouter = new ToolRouter(registry);
+
+    // Create mock runtime adapter
+    mockRuntimeAdapter = {
+      setTimeout: jest.fn(() => "mock-timer-handle"),
+      clearTimeout: jest.fn(),
+      fetch: jest.fn(),
+      stream: jest.fn(),
+      readFile: jest.fn(),
+      writeFile: jest.fn(),
+      fileExists: jest.fn(),
+    } as unknown as RuntimeAdapter;
+
+    toolRouter = new ToolRouter(registry, 5000, mockRuntimeAdapter);
     _agentLoop = new AgentLoop(toolRouter, {
       maxToolCalls: 5,
       timeoutMs: 10000,

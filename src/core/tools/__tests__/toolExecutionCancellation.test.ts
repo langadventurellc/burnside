@@ -16,12 +16,14 @@ import type { ToolHandler } from "../toolHandler";
 import { SequentialExecutionStrategy } from "../sequentialExecutionStrategy";
 import { ParallelExecutionStrategy } from "../parallelExecutionStrategy";
 import { createCancellationError } from "../../agent/cancellation";
+import type { RuntimeAdapter } from "../../runtime/runtimeAdapter";
 
 describe("Tool Execution Cancellation", () => {
   let router: ToolRouter;
   let registry: InMemoryToolRegistry;
   let mockContext: ToolExecutionContext;
   let abortController: AbortController;
+  let mockRuntimeAdapter: RuntimeAdapter;
 
   const createMockTool = (
     name: string,
@@ -53,7 +55,19 @@ describe("Tool Execution Cancellation", () => {
 
   beforeEach(() => {
     registry = new InMemoryToolRegistry();
-    router = new ToolRouter(registry);
+
+    // Create mock runtime adapter
+    mockRuntimeAdapter = {
+      setTimeout: jest.fn(() => "mock-timer-handle"),
+      clearTimeout: jest.fn(),
+      fetch: jest.fn(),
+      stream: jest.fn(),
+      readFile: jest.fn(),
+      writeFile: jest.fn(),
+      fileExists: jest.fn(),
+    } as unknown as RuntimeAdapter;
+
+    router = new ToolRouter(registry, 5000, mockRuntimeAdapter);
     abortController = new AbortController();
 
     mockContext = {

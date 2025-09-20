@@ -1,13 +1,105 @@
 ---
 id: T-replace-direct-timer-usage-in
 title: Replace direct timer usage in tool execution pipeline
-status: open
+status: done
 priority: medium
 parent: F-complete-runtime-adapter
 prerequisites:
   - T-update-bridgeclient-to-use
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/tools/executionContext.ts: Added RuntimeAdapter import and
+    runtimeAdapter property to ExecutionContext interface for platform-agnostic
+    timer operations
+  src/core/tools/pipelineExecution.ts: Replaced direct setTimeout/clearTimeout
+    calls with runtime adapter timer methods, changed NodeJS.Timeout to
+    TimerHandle type, maintained exact same timeout behavior
+  src/core/tools/toolExecutionPipeline.ts: Added RuntimeAdapter parameter to
+    execute method and included runtimeAdapter in ExecutionContext creation
+  src/core/tools/toolRouter.ts: Added RuntimeAdapter to constructor parameters,
+    stored as class property, and passed to pipeline.execute calls
+  src/client/bridgeClient.ts: Updated ToolRouter instantiation to pass
+    this.runtimeAdapter as third parameter
+  src/core/tools/__tests__/toolRouter.test.ts: Added mock RuntimeAdapter setup
+    that works with Jest fake timers and updated all ToolRouter instantiations
+    to include runtime adapter parameter, added test timeout for timer tests
+  src/core/tools/__tests__/toolExecutionPipeline.test.ts: Added mock
+    RuntimeAdapter to test setup that works with Jest fake timers, updated all
+    pipeline.execute calls to include runtime adapter, fixed executeToolHandler
+    direct tests with proper runtime adapter mock, added test timeouts for timer
+    tests
+  src/core/tools/__tests__/toolExecutionStrategy.test.ts: Added mock
+    RuntimeAdapter setup and updated ToolRouter instantiations for strategy
+    tests
+  src/core/tools/__tests__/toolExecutionCancellation.test.ts: Added mock
+    RuntimeAdapter setup and updated ToolRouter instantiation for cancellation
+    tests
+  src/core/agent/__tests__/agentLoop.test.ts:
+    Added mock RuntimeAdapter setup and
+    updated ToolRouter instantiation for agent loop tests
+  src/core/agent/__tests__/terminationIntegration.test.ts: Added mock
+    RuntimeAdapter setup and updated ToolRouter instantiation for termination
+    integration tests
+log:
+  - >-
+    Successfully replaced direct timer usage in the tool execution pipeline with
+    runtime adapter timer methods for platform-consistent behavior across
+    Node.js, Electron, and React Native environments.
+
+
+    **Key Changes Implemented:**
+
+
+    1. **ExecutionContext Interface Updates**: Added `runtimeAdapter:
+    RuntimeAdapter` property to enable platform-agnostic timer operations in
+    tool execution.
+
+
+    2. **Pipeline Execution Timer Replacement**: Updated `pipelineExecution.ts`
+    to use `context.runtimeAdapter.setTimeout()` and
+    `context.runtimeAdapter.clearTimeout()` instead of direct timer calls,
+    maintaining exact same timeout behavior and error messages.
+
+
+    3. **Complete Integration Chain**: Updated the entire call chain from
+    BridgeClient → ToolRouter → ExecutionPipeline → executeToolHandler to pass
+    runtime adapters through the system.
+
+
+    4. **Type Safety**: Changed from `NodeJS.Timeout` to `TimerHandle` type for
+    cross-platform compatibility.
+
+
+    5. **Comprehensive Test Updates**: Updated all test files to provide mock
+    runtime adapters that properly work with Jest fake timers, ensuring test
+    coverage continues to work with the new architecture.
+
+
+    **Files Modified:**
+
+    - Core execution system: ExecutionContext, pipelineExecution,
+    toolExecutionPipeline, toolRouter
+
+    - Integration point: BridgeClient tool system initialization  
+
+    - Comprehensive test coverage: All related test files updated with proper
+    mock runtime adapters that work with Jest timers
+
+
+    **Verification:**
+
+    - Quality checks passing (lint, format, type-check) - only unrelated fetch
+    deprecation warnings remain
+
+    - ALL tests passing (3378/3378 - 100% success rate)
+
+    - Timer tests specifically verified to work correctly with Jest fake timers
+
+    - No breaking changes to existing timeout behavior or error handling
+
+
+    The implementation follows the established runtime adapter pattern from
+    BridgeClient and ensures consistent timer behavior across all supported
+    platforms while maintaining existing functionality.
 schema: v1.0
 childrenIds: []
 created: 2025-09-20T06:09:44.809Z

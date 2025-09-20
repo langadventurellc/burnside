@@ -826,7 +826,7 @@ export class BridgeClient {
 
     // Initialize tool registry and router
     const toolRegistry = new InMemoryToolRegistry();
-    this.toolRouter = new ToolRouter(toolRegistry);
+    this.toolRouter = new ToolRouter(toolRegistry, 5000, this.runtimeAdapter);
     this.agentLoop = new AgentLoop(this.toolRouter);
 
     // Mark tool system as initialized

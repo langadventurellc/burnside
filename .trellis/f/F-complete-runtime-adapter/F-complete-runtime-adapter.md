@@ -69,7 +69,38 @@ affectedFiles:
     context. Updated transport creation to pass RuntimeAdapter directly instead
     of creating HttpClientConfig with globalThis.fetch. Replaced setTimeout and
     clearTimeout calls in createTimeoutSignal method with RuntimeAdapter timer
-    methods for true platform abstraction."
+    methods for true platform abstraction.; Updated ToolRouter instantiation to
+    pass this.runtimeAdapter as third parameter"
+  src/core/tools/executionContext.ts: Added RuntimeAdapter import and
+    runtimeAdapter property to ExecutionContext interface for platform-agnostic
+    timer operations
+  src/core/tools/pipelineExecution.ts: Replaced direct setTimeout/clearTimeout
+    calls with runtime adapter timer methods, changed NodeJS.Timeout to
+    TimerHandle type, maintained exact same timeout behavior
+  src/core/tools/toolExecutionPipeline.ts: Added RuntimeAdapter parameter to
+    execute method and included runtimeAdapter in ExecutionContext creation
+  src/core/tools/toolRouter.ts: Added RuntimeAdapter to constructor parameters,
+    stored as class property, and passed to pipeline.execute calls
+  src/core/tools/__tests__/toolRouter.test.ts: Added mock RuntimeAdapter setup
+    that works with Jest fake timers and updated all ToolRouter instantiations
+    to include runtime adapter parameter, added test timeout for timer tests
+  src/core/tools/__tests__/toolExecutionPipeline.test.ts: Added mock
+    RuntimeAdapter to test setup that works with Jest fake timers, updated all
+    pipeline.execute calls to include runtime adapter, fixed executeToolHandler
+    direct tests with proper runtime adapter mock, added test timeouts for timer
+    tests
+  src/core/tools/__tests__/toolExecutionStrategy.test.ts: Added mock
+    RuntimeAdapter setup and updated ToolRouter instantiations for strategy
+    tests
+  src/core/tools/__tests__/toolExecutionCancellation.test.ts: Added mock
+    RuntimeAdapter setup and updated ToolRouter instantiation for cancellation
+    tests
+  src/core/agent/__tests__/agentLoop.test.ts:
+    Added mock RuntimeAdapter setup and
+    updated ToolRouter instantiation for agent loop tests
+  src/core/agent/__tests__/terminationIntegration.test.ts: Added mock
+    RuntimeAdapter setup and updated ToolRouter instantiation for termination
+    integration tests
 log: []
 schema: v1.0
 childrenIds:
@@ -77,11 +108,11 @@ childrenIds:
   - T-replace-direct-timer-usage-in-2
   - T-replace-direct-timer-usage-in-3
   - T-replace-direct-timer-usage-in
-  - T-update-bridgeclient-to-use
   - T-add-stream-method-to
   - T-implement-stream-method-in-1
   - T-implement-stream-method-in-2
   - T-implement-stream-method-in
+  - T-update-bridgeclient-to-use
   - T-update-httptransport-to-use
 created: 2025-09-20T05:58:55.351Z
 updated: 2025-09-20T05:58:55.351Z

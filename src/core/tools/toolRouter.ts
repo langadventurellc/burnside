@@ -18,6 +18,7 @@ import type { ToolRegistry } from "./toolRegistry";
 import type { ToolExecutionStrategy } from "./toolExecutionStrategy";
 import type { ToolExecutionOptions } from "./toolExecutionOptions";
 import type { ToolExecutionResult } from "./toolExecutionResult";
+import type { RuntimeAdapter } from "../runtime/runtimeAdapter";
 import { ExecutionPipeline } from "./toolExecutionPipeline";
 import { SequentialExecutionStrategy } from "./sequentialExecutionStrategy";
 import { ParallelExecutionStrategy } from "./parallelExecutionStrategy";
@@ -32,10 +33,16 @@ export class ToolRouter {
   private defaultTimeoutMs: number;
   private pipeline: ExecutionPipeline;
   private strategyCache = new Map<string, ToolExecutionStrategy>();
+  private runtimeAdapter: RuntimeAdapter;
 
-  constructor(registry: ToolRegistry, defaultTimeoutMs = 5000) {
+  constructor(
+    registry: ToolRegistry,
+    defaultTimeoutMs = 5000,
+    runtimeAdapter: RuntimeAdapter,
+  ) {
     this.registry = registry;
     this.defaultTimeoutMs = defaultTimeoutMs;
+    this.runtimeAdapter = runtimeAdapter;
     this.pipeline = new ExecutionPipeline();
   }
 
@@ -113,6 +120,7 @@ export class ToolRouter {
         registryEntry.handler,
         context,
         executionTimeout,
+        this.runtimeAdapter,
       );
 
       const executionTime = Date.now() - startTime;
