@@ -15,6 +15,7 @@ import type { McpConnectionOptions } from "../mcpConnectionOptions";
 import type { McpConnection } from "../mcpConnection";
 import { RuntimeError } from "../runtimeError";
 import { getPlatformCapabilities } from "../getPlatformCapabilities";
+import { ReactNativeMcpConnection } from "./reactNativeMcpConnection";
 
 // Type definitions for react-native-sse library
 interface SSEEvent {
@@ -388,21 +389,58 @@ export class ReactNativeRuntimeAdapter implements RuntimeAdapter {
   }
 
   // MCP Operations
-  createMcpConnection(
-    _serverUrl: string,
-    _options?: McpConnectionOptions,
+  async createMcpConnection(
+    serverUrl: string,
+    options?: McpConnectionOptions,
   ): Promise<McpConnection> {
-    return Promise.reject(
-      new RuntimeError(
-        "MCP connection not yet implemented",
-        "RUNTIME_NOT_IMPLEMENTED",
+    try {
+      // Validate server URL with remote-only constraints
+      this.validateRemoteOnlyUrl(serverUrl);
+
+      // Create and initialize connection
+      const connection = new ReactNativeMcpConnection(
+        serverUrl,
+        this.fetch.bind(this),
+        options,
+      );
+
+      await connection.initialize();
+      return connection;
+    } catch (error: unknown) {
+      throw new RuntimeError(
+        `Failed to create MCP connection: ${error instanceof Error ? error.message : String(error)}`,
+        "RUNTIME_MCP_CONNECTION_FAILED",
         {
-          operation: "createMcpConnection",
-          serverUrl: _serverUrl,
-          options: _options,
+          serverUrl,
+          options,
+          originalError: error,
         },
-      ),
-    );
+      );
+    }
+  }
+
+  /**
+   * Validates that the server URL is remote-only (no localhost or private IPs).
+   */
+  private validateRemoteOnlyUrl(serverUrl: string): void {
+    let url: URL;
+    try {
+      url = new URL(serverUrl);
+    } catch {
+      throw new RuntimeError(
+        "Invalid MCP server URL format",
+        "RUNTIME_MCP_INVALID_URL",
+        { serverUrl },
+      );
+    }
+
+    if (!["http:", "https:"].includes(url.protocol)) {
+      throw new RuntimeError(
+        "Invalid MCP server URL. Must be HTTP/HTTPS remote server.",
+        "RUNTIME_MCP_INVALID_PROTOCOL",
+        { serverUrl, protocol: url.protocol },
+      );
+    }
   }
 
   // Timer Operations
