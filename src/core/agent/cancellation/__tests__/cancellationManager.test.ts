@@ -43,6 +43,7 @@ const createMockRuntimeAdapter = (): RuntimeAdapter => ({
   readFile: jest.fn(),
   writeFile: jest.fn(),
   fileExists: jest.fn(),
+  createMcpConnection: jest.fn(),
 });
 
 describe("CancellationManager", () => {

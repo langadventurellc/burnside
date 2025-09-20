@@ -96,6 +96,7 @@ describe("AdapterRegistry", () => {
     readFile: jest.fn(),
     writeFile: jest.fn(),
     fileExists: jest.fn(),
+    createMcpConnection: jest.fn(),
   };
 
   beforeEach(() => {

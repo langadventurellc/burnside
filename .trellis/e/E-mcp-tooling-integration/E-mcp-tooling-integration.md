@@ -37,13 +37,45 @@ affectedFiles:
   src/core/config/mcpServerTypes.ts: Created new file exporting McpServerConfig
     type for individual MCP server configuration with proper type inference from
     BridgeConfigSchema
+  src/core/runtime/mcpConnectionOptions.ts: Created new interface for MCP
+    connection options with AbortSignal support, timeout configuration, and
+    custom headers following RequestInit pattern
+  src/core/runtime/mcpConnection.ts: Created new interface for JSON-RPC 2.0 MCP
+    connections with call, notify, close methods and connection state management
+  src/core/runtime/runtimeAdapter.ts: Extended RuntimeAdapter interface with
+    createMcpConnection method including comprehensive JSDoc documentation and
+    examples
+  src/core/runtime/index.ts: Added exports for new MCP types following existing patterns
+  src/core/runtime/adapters/nodeRuntimeAdapter.ts:
+    Added no-op createMcpConnection
+    implementation with proper error handling to prevent breaking changes
+  src/core/runtime/adapters/electronRuntimeAdapter.ts: Added no-op
+    createMcpConnection implementation with proper error handling to prevent
+    breaking changes
+  src/core/runtime/adapters/reactNativeRuntimeAdapter.ts: Added no-op
+    createMcpConnection implementation with proper error handling to prevent
+    breaking changes
+  src/core/runtime/__tests__/mcpConnectionOptions.test.ts: Created comprehensive
+    test suite with 14 tests covering type safety, optional properties,
+    AbortSignal integration, and TypeScript compilation
+  src/core/runtime/__tests__/mcpConnection.test.ts: Created comprehensive test
+    suite with 16 tests covering interface structure, method signatures,
+    JSON-RPC compliance, and real-world usage patterns
+  src/core/runtime/__tests__/runtimeAdapterMcp.test.ts:
+    Created comprehensive test
+    suite with 9 tests covering interface compliance, method integration, type
+    safety, and error handling
+  src/core/agent/cancellation/__tests__/cancellationManager.test.ts: Added createMcpConnection mock to prevent breaking changes in existing test
+  src/core/agent/cancellation/__tests__/streamCancellationHandler.test.ts: Added createMcpConnection mock to prevent breaking changes in existing test
+  src/core/runtime/__tests__/adapterRegistry.test.ts: Added createMcpConnection mock to prevent breaking changes in existing test
+  src/core/runtime/__tests__/runtimeAdapter.test.ts: Added createMcpConnection
+    mock with proper typing to prevent breaking changes in existing test
 log: []
 schema: v1.0
 childrenIds:
   - F-dynamic-tool-registration
   - F-mcp-configuration-schema
   - F-mcp-protocol-core-implementati
-  - F-mcp-testing-infrastructure
   - F-runtime-adapter-mcp-extensions
 created: 2025-09-20T19:01:02.627Z
 updated: 2025-09-20T19:01:02.627Z

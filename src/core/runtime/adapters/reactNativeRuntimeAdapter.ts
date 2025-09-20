@@ -11,6 +11,8 @@ import type { RuntimeAdapter } from "../runtimeAdapter";
 import type { PlatformInfo } from "../platformInfo";
 import type { TimerHandle } from "../timerHandle";
 import type { FileOperationOptions } from "../fileOperationOptions";
+import type { McpConnectionOptions } from "../mcpConnectionOptions";
+import type { McpConnection } from "../mcpConnection";
 import { RuntimeError } from "../runtimeError";
 import { getPlatformCapabilities } from "../getPlatformCapabilities";
 
@@ -383,6 +385,24 @@ export class ReactNativeRuntimeAdapter implements RuntimeAdapter {
         },
       );
     }
+  }
+
+  // MCP Operations
+  createMcpConnection(
+    _serverUrl: string,
+    _options?: McpConnectionOptions,
+  ): Promise<McpConnection> {
+    return Promise.reject(
+      new RuntimeError(
+        "MCP connection not yet implemented",
+        "RUNTIME_NOT_IMPLEMENTED",
+        {
+          operation: "createMcpConnection",
+          serverUrl: _serverUrl,
+          options: _options,
+        },
+      ),
+    );
   }
 
   // Timer Operations

@@ -10,6 +10,8 @@ import type {
   PlatformInfo,
   TimerHandle,
   FileOperationOptions,
+  McpConnectionOptions,
+  McpConnection,
 } from "../index";
 
 describe("RuntimeAdapter Interface", () => {
@@ -85,6 +87,17 @@ describe("RuntimeAdapter Interface", () => {
     },
     fileExists(_path: string): Promise<boolean> {
       return Promise.resolve(true);
+    },
+    createMcpConnection(
+      _serverUrl: string,
+      _options?: McpConnectionOptions,
+    ): Promise<McpConnection> {
+      return Promise.resolve({
+        isConnected: true,
+        call: jest.fn(),
+        notify: jest.fn(),
+        close: jest.fn(),
+      });
     },
   };
 
