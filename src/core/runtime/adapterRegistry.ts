@@ -11,6 +11,8 @@ import type { Platform } from "./platform";
 import { RuntimeError } from "./runtimeError";
 import { detectPlatform } from "./detectPlatform";
 import { NodeRuntimeAdapter } from "./adapters/nodeRuntimeAdapter";
+import { ElectronRuntimeAdapter } from "./adapters/electronRuntimeAdapter";
+import { ReactNativeRuntimeAdapter } from "./adapters/reactNativeRuntimeAdapter";
 
 /**
  * Registry for managing runtime adapters across different platforms.
@@ -122,10 +124,25 @@ export class AdapterRegistry {
    */
   private initializeDefaultAdapters(): void {
     try {
-      // Register Node adapter if we're in a Node environment
       const currentPlatform = detectPlatform();
-      if (currentPlatform === "node" || currentPlatform === "electron") {
-        this.registerAdapter("node", new NodeRuntimeAdapter());
+
+      switch (currentPlatform) {
+        case "node":
+          this.registerAdapter("node", new NodeRuntimeAdapter());
+          break;
+        case "electron":
+          // Electron main process uses Node adapter
+          this.registerAdapter("electron", new NodeRuntimeAdapter());
+          break;
+        case "electron-renderer":
+          this.registerAdapter(
+            "electron-renderer",
+            new ElectronRuntimeAdapter(),
+          );
+          break;
+        case "react-native":
+          this.registerAdapter("react-native", new ReactNativeRuntimeAdapter());
+          break;
       }
     } catch {
       // Silently fail adapter initialization to allow manual registration
@@ -142,9 +159,6 @@ export class AdapterRegistry {
   private getFallbackAdapter(platform: Platform): RuntimeAdapter | undefined {
     // Fallback strategies based on platform compatibility
     switch (platform) {
-      case "electron":
-        // Electron can use Node adapter as fallback
-        return this.adapters.get("node");
       case "react-native":
         // React Native might use browser-like adapter in some cases
         return this.adapters.get("browser");
@@ -153,6 +167,12 @@ export class AdapterRegistry {
         return undefined;
       case "node":
         // No fallback for Node - it's the most basic platform
+        return undefined;
+      case "electron":
+        // No fallback for Electron - should use platform-specific adapters
+        return undefined;
+      case "electron-renderer":
+        // No fallback for Electron renderer - should use specific adapter
         return undefined;
       default:
         return undefined;

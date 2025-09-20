@@ -58,14 +58,26 @@ affectedFiles:
     proper error scenario testing and React Native platform detection mocking
   package.json: Added react-native-sse as peer dependency to support streaming
     functionality in React Native environments
+  src/core/runtime/adapterRegistry.ts:
+    Updated initializeDefaultAdapters() method
+    to register ElectronRuntimeAdapter for electron-renderer platform and
+    ReactNativeRuntimeAdapter for react-native platform. Modified
+    getFallbackAdapter() to remove electron→node fallback and added proper
+    fallback handling for new platforms. Added imports for new adapter classes.
+  src/core/runtime/__tests__/adapterRegistry.test.ts: Added comprehensive test
+    suite for new adapter registration including tests for
+    ElectronRuntimeAdapter and ReactNativeRuntimeAdapter auto-registration,
+    updated fallback logic tests to reflect removal of electron→node fallback,
+    added mock implementations for new adapters, and verified proper adapter
+    selection for each platform.
 log: []
 schema: v1.0
 childrenIds:
   - T-add-package-dependencies-for
-  - T-implement-react-native
   - T-update-adapter-registry-for
   - T-fix-platform-detection-for
   - T-implement-electron-renderer
+  - T-implement-react-native
   - T-improve-react-native-platform
 created: 2025-09-20T04:17:17.477Z
 updated: 2025-09-20T04:17:17.477Z

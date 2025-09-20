@@ -1,14 +1,31 @@
 ---
 id: T-update-adapter-registry-for
 title: Update adapter registry for new platforms
-status: open
+status: done
 priority: medium
 parent: F-cross-platform-runtime
 prerequisites:
   - T-implement-electron-renderer
   - T-implement-react-native
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/runtime/adapterRegistry.ts:
+    Updated initializeDefaultAdapters() method
+    to register ElectronRuntimeAdapter for electron-renderer platform and
+    ReactNativeRuntimeAdapter for react-native platform. Modified
+    getFallbackAdapter() to remove electron→node fallback and added proper
+    fallback handling for new platforms. Added imports for new adapter classes.
+  src/core/runtime/__tests__/adapterRegistry.test.ts: Added comprehensive test
+    suite for new adapter registration including tests for
+    ElectronRuntimeAdapter and ReactNativeRuntimeAdapter auto-registration,
+    updated fallback logic tests to reflect removal of electron→node fallback,
+    added mock implementations for new adapters, and verified proper adapter
+    selection for each platform.
+log:
+  - Updated AdapterRegistry to support new platform adapters including
+    ElectronRuntimeAdapter for electron-renderer and ReactNativeRuntimeAdapter
+    for react-native platforms. Removed electron→node fallback strategy and
+    implemented proper auto-selection logic for each platform. Added
+    comprehensive test coverage for all new functionality.
 schema: v1.0
 childrenIds: []
 created: 2025-09-20T04:33:19.790Z
