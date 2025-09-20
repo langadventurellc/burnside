@@ -7,7 +7,7 @@ export default {
     "<rootDir>/src/**/*.e2e.test.ts"
   ],
   testTimeout: 30000,
-  maxWorkers: 2,
+  maxWorkers: 1,
   transform: {
     "^.+\\.ts$": [
       "ts-jest",

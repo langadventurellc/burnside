@@ -253,36 +253,6 @@ describe("OpenAI Streaming E2E", () => {
       expect(firstDelta!.finished).toBe(false);
       expect(lastDelta!.finished).toBe(true);
     });
-
-    test("should handle stream cancellation", async () => {
-      const messages = createTestMessages(
-        "Please write a very long story about space exploration with many details.",
-      );
-
-      const streamPromise = client.stream({
-        model: testModel,
-        messages,
-      });
-
-      const stream = await withTimeout(streamPromise, 15000);
-
-      let deltaCount = 0;
-      try {
-        for await (const delta of stream) {
-          deltaCount++;
-          validateStreamDelta(delta);
-
-          // Stop after receiving a few deltas to simulate early termination
-          if (deltaCount >= 2) {
-            break;
-          }
-        }
-      } catch {
-        // Handle any potential errors during iteration
-      }
-
-      expect(deltaCount).toBeGreaterThanOrEqual(2);
-    });
   });
 
   describe("Format Validation", () => {

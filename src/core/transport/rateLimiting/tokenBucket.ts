@@ -2,7 +2,7 @@
  * Token Bucket Algorithm Implementation
  *
  * High-precision token bucket for rate limiting with burst capacity support.
- * Uses recursive setTimeout with performance.now() for drift-corrected timing
+ * Uses on-demand calculation with performance.now() for accurate timing
  * and thread-safe token consumption.
  *
  * @example Basic usage with 5 RPS and burst capacity of 10
@@ -37,20 +37,19 @@ import type { TokenBucketConfig } from "./tokenBucketConfig";
  * Token bucket implementation for rate limiting with burst capacity.
  *
  * Implements a sliding window token bucket algorithm using high-precision
- * timing with recursive setTimeout and performance.now() for accurate
- * rate enforcement and drift correction.
+ * timing with on-demand calculation and performance.now() for accurate
+ * rate enforcement without background timers.
  *
  * Features:
  * - Configurable burst capacity and refill rate
  * - Thread-safe token consumption
- * - Memory leak prevention with proper cleanup
- * - High-precision timing with drift correction
+ * - On-demand token refill calculation
+ * - High-precision timing without background timers
  */
 export class TokenBucket {
   private readonly config: Required<TokenBucketConfig>;
   private currentTokens: number;
   private lastRefillTime: number;
-  private refillTimer: NodeJS.Timeout | null = null;
 
   /**
    * Creates a new token bucket with the specified configuration.
@@ -70,11 +69,6 @@ export class TokenBucket {
     // Initialize bucket to full capacity
     this.currentTokens = this.config.maxTokens;
     this.lastRefillTime = performance.now();
-
-    // Start refill process if rate is positive
-    if (this.config.refillRate > 0) {
-      this.scheduleNextRefill();
-    }
   }
 
   /**
@@ -92,6 +86,9 @@ export class TokenBucket {
       return false;
     }
 
+    // Calculate available tokens based on elapsed time
+    this.refillToCurrentTime();
+
     if (this.currentTokens >= tokens) {
       this.currentTokens -= tokens;
       return true;
@@ -106,6 +103,8 @@ export class TokenBucket {
    * @returns Current token count
    */
   getAvailableTokens(): number {
+    // Calculate available tokens based on elapsed time
+    this.refillToCurrentTime();
     return this.currentTokens;
   }
 
@@ -118,15 +117,13 @@ export class TokenBucket {
   }
 
   /**
-   * Destroys the token bucket and cleans up timers.
+   * Destroys the token bucket and cleans up resources.
    *
-   * Important for preventing memory leaks when buckets are no longer needed.
+   * Since timers are no longer used, this method is a no-op but
+   * maintained for API compatibility.
    */
   destroy(): void {
-    if (this.refillTimer !== null) {
-      clearTimeout(this.refillTimer);
-      this.refillTimer = null;
-    }
+    // No cleanup needed since we no longer use timers
   }
 
   /**
@@ -150,26 +147,13 @@ export class TokenBucket {
   }
 
   /**
-   * Schedules the next refill operation using recursive setTimeout.
+   * Calculates and adds tokens based on elapsed time since last refill.
    *
-   * Uses performance.now() for high-precision timing and drift correction.
+   * Performs on-demand token refill calculation using elapsed time
+   * and the configured refill rate. Only adds tokens if time has passed
+   * and refill rate is positive.
    */
-  private scheduleNextRefill(): void {
-    this.refillTimer = setTimeout(() => {
-      this.refillTokens();
-      if (this.config.refillRate > 0) {
-        this.scheduleNextRefill();
-      }
-    }, this.config.refillInterval);
-  }
-
-  /**
-   * Adds tokens to the bucket based on elapsed time and refill rate.
-   *
-   * Calculates tokens to add as (refillRate * actualInterval) / 1000
-   * with proper rounding and capacity capping.
-   */
-  private refillTokens(): void {
+  private refillToCurrentTime(): void {
     const now = performance.now();
     const actualInterval = now - this.lastRefillTime;
     this.lastRefillTime = now;

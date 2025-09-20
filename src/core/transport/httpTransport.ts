@@ -1,3 +1,4 @@
+/* eslint-disable statement-count/function-statement-count-warn */
 /**
  * HTTP Transport Implementation
  *
@@ -66,6 +67,41 @@ const STREAMING_CONTENT_TYPES = {
  */
 export class HttpTransport implements Transport {
   /**
+   * Sanitizes headers for logging by removing authentication information.
+   */
+  private sanitizeHeadersForLogging(
+    headers: Record<string, string> | undefined,
+  ): Record<string, string> {
+    if (!headers) {
+      return {};
+    }
+
+    const sanitized = { ...headers };
+
+    // Remove common authentication headers
+    const authHeaders = [
+      "authorization",
+      "x-api-key",
+      "x-goog-api-key",
+      "api-key",
+      "bearer",
+      "token",
+      "auth-token",
+      "access-token",
+    ];
+
+    authHeaders.forEach((header) => {
+      // Case-insensitive removal
+      Object.keys(sanitized).forEach((key) => {
+        if (key.toLowerCase() === header.toLowerCase()) {
+          sanitized[key] = "[REDACTED]";
+        }
+      });
+    });
+
+    return sanitized;
+  }
+  /**
    * Creates a new HttpTransport instance.
    *
    * @param config - HTTP client configuration with injected fetch
@@ -110,6 +146,15 @@ export class HttpTransport implements Transport {
     // Execute request interceptors
     const processedContext = await this.interceptors.executeRequest(context);
 
+    // Log request details for debugging
+    logger.debug("HTTP request details", {
+      transport: "http",
+      method: processedContext.request.method,
+      url: processedContext.request.url,
+      headers: this.sanitizeHeadersForLogging(processedContext.request.headers),
+      body: processedContext.request.body,
+    });
+
     // Perform HTTP request
     const fetchResponse = await this.config.fetch(
       processedContext.request.url,
@@ -123,6 +168,55 @@ export class HttpTransport implements Transport {
 
     // Convert to ProviderHttpResponse
     const response = this.convertFetchResponse(fetchResponse);
+
+    // Log response details for debugging (including body)
+    let responseBodyForLogging: string | null = null;
+    if (response.body) {
+      try {
+        // Read the response body for logging
+        const reader = response.body.getReader();
+        const chunks: Uint8Array[] = [];
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+        }
+
+        // Combine chunks and decode to string for logging
+        const totalLength = chunks.reduce(
+          (sum, chunk) => sum + chunk.length,
+          0,
+        );
+        const combined = new Uint8Array(totalLength);
+        let offset = 0;
+        for (const chunk of chunks) {
+          combined.set(chunk, offset);
+          offset += chunk.length;
+        }
+        responseBodyForLogging = new TextDecoder().decode(combined);
+
+        // Create a new ReadableStream from the chunks for actual use
+        response.body = new ReadableStream({
+          start(controller) {
+            for (const chunk of chunks) {
+              controller.enqueue(chunk);
+            }
+            controller.close();
+          },
+        });
+      } catch (error) {
+        logger.debug("Failed to read response body for logging", { error });
+      }
+    }
+
+    logger.debug("HTTP response details", {
+      transport: "http",
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+      body: responseBodyForLogging,
+    });
 
     // Update context with response
     const responseContext: InterceptorContext = {
@@ -225,6 +319,15 @@ export class HttpTransport implements Transport {
     // Execute request interceptors
     const processedContext = await this.interceptors.executeRequest(context);
 
+    // Log streaming request details for debugging
+    logger.debug("HTTP streaming request details", {
+      transport: "http",
+      method: processedContext.request.method,
+      url: processedContext.request.url,
+      headers: this.sanitizeHeadersForLogging(processedContext.request.headers),
+      body: processedContext.request.body,
+    });
+
     // Perform HTTP request
     const fetchResponse = await this.config.fetch(
       processedContext.request.url,
@@ -235,6 +338,16 @@ export class HttpTransport implements Transport {
         signal,
       },
     );
+
+    // Log streaming response details for debugging
+    logger.debug("HTTP streaming response details", {
+      transport: "http",
+      status: fetchResponse.status,
+      statusText: fetchResponse.statusText,
+      headers: Object.fromEntries(fetchResponse.headers.entries()),
+      hasBody: !!fetchResponse.body,
+      note: "Body will be streamed - not logged here",
+    });
 
     // Check for HTTP errors before streaming
     if (!fetchResponse.ok) {

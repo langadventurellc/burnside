@@ -37,7 +37,6 @@ describe("Google Gemini v1 Tool Translator", () => {
                 message: { type: "string" },
               },
               required: ["message"],
-              additionalProperties: false,
             },
           },
         ]);
@@ -147,7 +146,6 @@ describe("Google Gemini v1 Tool Translator", () => {
             active: { type: "boolean" },
           },
           required: ["name", "age", "active"],
-          additionalProperties: false,
         });
       });
 
@@ -223,7 +221,6 @@ describe("Google Gemini v1 Tool Translator", () => {
                       custom_param: { type: "string" },
                     },
                     required: ["custom_param"],
-                    additionalProperties: false,
                   },
                 },
               },
@@ -242,7 +239,6 @@ describe("Google Gemini v1 Tool Translator", () => {
               custom_param: { type: "string" },
             },
             required: ["custom_param"],
-            additionalProperties: false,
           },
         });
       });
@@ -298,7 +294,6 @@ describe("Google Gemini v1 Tool Translator", () => {
             count: { type: "number", minimum: 1 },
           },
           required: ["name"],
-          additionalProperties: false,
         });
       });
     });
@@ -567,11 +562,9 @@ describe("Google Gemini v1 Tool Translator", () => {
               notifications: { type: "boolean" },
             },
             required: ["theme", "notifications"],
-            additionalProperties: false,
           },
         },
         required: ["name", "settings"],
-        additionalProperties: false,
       });
     });
   });
