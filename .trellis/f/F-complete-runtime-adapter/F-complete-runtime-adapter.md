@@ -44,10 +44,25 @@ affectedFiles:
     coverage for stream method including AbortSignal cancellation, HTTP metadata
     extraction, error scenarios, and empty stream handling; updated all file
     operation tests to work with lazy loading mocks
+  src/core/transport/httpTransport.ts: "Major refactor: Updated constructor to
+    accept RuntimeAdapter or HttpClientConfig with backward compatibility.
+    Replaced fetch method calls with runtime adapter. Completely replaced stream
+    method implementation to use single adapter.stream() call instead of fetch +
+    content-type detection + parsing. Removed all unused streaming utility
+    methods (createParsedStream, createRawStreamIterator, createSseStream,
+    createJsonStream, etc.). Removed streaming constants and parser imports
+    since adapters handle this internally."
+  src/core/transport/httpClientConfig.ts: Added RuntimeAdapter as optional
+    property. Marked fetch property as deprecated with JSDoc annotations.
+    Updated interface documentation to explain migration path to RuntimeAdapter.
+  src/core/transport/__tests__/httpTransport.test.ts: Updated all test setup to
+    use mock RuntimeAdapter instead of HttpClientConfig. Fixed constructor calls
+    to pass RuntimeAdapter as first parameter. Updated all streaming tests to
+    mock RuntimeAdapter.stream() method instead of fetch + ReadableStream.
+    Created proper async iterables for stream mocking.
 log: []
 schema: v1.0
 childrenIds:
-  - T-implement-stream-method-in
   - T-replace-direct-timer-usage-in-1
   - T-replace-direct-timer-usage-in-2
   - T-replace-direct-timer-usage-in-3
@@ -57,6 +72,7 @@ childrenIds:
   - T-add-stream-method-to
   - T-implement-stream-method-in-1
   - T-implement-stream-method-in-2
+  - T-implement-stream-method-in
 created: 2025-09-20T05:58:55.351Z
 updated: 2025-09-20T05:58:55.351Z
 ---

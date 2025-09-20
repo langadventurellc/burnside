@@ -1,15 +1,37 @@
 ---
 id: T-update-httptransport-to-use
 title: Update HttpTransport to use RuntimeAdapter for streaming
-status: open
+status: done
 priority: high
 parent: F-complete-runtime-adapter
 prerequisites:
   - T-implement-stream-method-in
   - T-implement-stream-method-in-1
   - T-implement-stream-method-in-2
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/transport/httpTransport.ts: "Major refactor: Updated constructor to
+    accept RuntimeAdapter or HttpClientConfig with backward compatibility.
+    Replaced fetch method calls with runtime adapter. Completely replaced stream
+    method implementation to use single adapter.stream() call instead of fetch +
+    content-type detection + parsing. Removed all unused streaming utility
+    methods (createParsedStream, createRawStreamIterator, createSseStream,
+    createJsonStream, etc.). Removed streaming constants and parser imports
+    since adapters handle this internally."
+  src/core/transport/httpClientConfig.ts: Added RuntimeAdapter as optional
+    property. Marked fetch property as deprecated with JSDoc annotations.
+    Updated interface documentation to explain migration path to RuntimeAdapter.
+  src/core/transport/__tests__/httpTransport.test.ts: Updated all test setup to
+    use mock RuntimeAdapter instead of HttpClientConfig. Fixed constructor calls
+    to pass RuntimeAdapter as first parameter. Updated all streaming tests to
+    mock RuntimeAdapter.stream() method instead of fetch + ReadableStream.
+    Created proper async iterables for stream mocking.
+log:
+  - Successfully updated HttpTransport to use RuntimeAdapter for streaming
+    operations. Replaced fetch + stream processing with single
+    RuntimeAdapter.stream() call that provides HTTP metadata and stream in one
+    operation. Implemented backward compatibility for legacy HttpClientConfig
+    usage. Removed unused streaming logic since adapters now handle
+    platform-specific streaming internally. All tests updated and passing.
 schema: v1.0
 childrenIds: []
 created: 2025-09-20T06:08:43.178Z

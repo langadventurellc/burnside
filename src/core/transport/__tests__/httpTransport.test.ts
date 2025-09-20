@@ -8,20 +8,37 @@ import { HttpTransport } from "../httpTransport";
 import { InterceptorChain } from "../interceptorChain";
 import { HttpErrorNormalizer } from "../../errors/httpErrorNormalizer";
 import { TransportError } from "../../errors/transportError";
-import type { HttpClientConfig } from "../httpClientConfig";
 import type { ProviderHttpRequest } from "../providerHttpRequest";
+import type { RuntimeAdapter } from "../../runtime/runtimeAdapter";
 import type { FetchFunction } from "../fetchFunction";
 
 describe("HttpTransport", () => {
   let mockFetch: jest.MockedFunction<FetchFunction>;
+  let mockRuntimeAdapter: jest.Mocked<RuntimeAdapter>;
   let mockInterceptorChain: jest.Mocked<InterceptorChain>;
   let mockErrorNormalizer: jest.Mocked<HttpErrorNormalizer>;
   let httpTransport: HttpTransport;
-  let config: HttpClientConfig;
 
   beforeEach(() => {
     // Create mock fetch function
     mockFetch = jest.fn();
+
+    // Create mock runtime adapter
+    mockRuntimeAdapter = {
+      fetch: mockFetch,
+      stream: jest.fn(),
+      setTimeout: jest.fn(),
+      setInterval: jest.fn(),
+      clearTimeout: jest.fn(),
+      clearInterval: jest.fn(),
+      readFile: jest.fn(),
+      writeFile: jest.fn(),
+      fileExists: jest.fn(),
+      platformInfo: {
+        platform: "node",
+        capabilities: { hasHttp: true, hasTimers: true, hasFileSystem: true },
+      },
+    } as unknown as jest.Mocked<RuntimeAdapter>;
 
     // Create mock interceptor chain
     mockInterceptorChain = {
@@ -36,16 +53,9 @@ describe("HttpTransport", () => {
       normalize: jest.fn(),
     } as unknown as jest.Mocked<HttpErrorNormalizer>;
 
-    // Create configuration
-    config = {
-      fetch: mockFetch,
-      requestInterceptors: [],
-      responseInterceptors: [],
-    };
-
     // Create HttpTransport instance
     httpTransport = new HttpTransport(
-      config,
+      mockRuntimeAdapter,
       mockInterceptorChain,
       mockErrorNormalizer,
     );
@@ -178,20 +188,27 @@ describe("HttpTransport", () => {
     it("should handle SSE streaming", async () => {
       // Mock SSE response
       const sseData = 'data: {"content": "Hello"}\n\ndata: [DONE]\n\n';
-      const mockStream = new ReadableStream({
-        start(controller) {
-          controller.enqueue(new TextEncoder().encode(sseData));
-          controller.close();
-        },
-      });
 
-      const mockResponse = new Response(mockStream, {
+      // Create async iterable for stream
+      const mockStreamData = [new TextEncoder().encode(sseData)];
+      const mockStream = {
+        async *[Symbol.asyncIterator]() {
+          for (const chunk of mockStreamData) {
+            // Add await to satisfy linter requirement
+            await Promise.resolve();
+            yield chunk;
+          }
+        },
+      };
+
+      // Mock runtime adapter stream method
+      mockRuntimeAdapter.stream.mockResolvedValue({
         status: 200,
         statusText: "OK",
         headers: { "content-type": "text/event-stream" },
+        stream: mockStream,
       });
 
-      mockFetch.mockResolvedValue(mockResponse);
       mockInterceptorChain.executeRequest.mockResolvedValue({
         request: mockStreamRequest,
         metadata: { timestamp: new Date(), requestId: "req_123" },
@@ -216,19 +233,26 @@ describe("HttpTransport", () => {
       // Mock JSON stream response
       const jsonData =
         '{"type": "start"}\n{"type": "data", "content": "Hello"}\n';
-      const mockStream = new ReadableStream({
-        start(controller) {
-          controller.enqueue(new TextEncoder().encode(jsonData));
-          controller.close();
+
+      // Create async iterable for stream
+      const mockStreamData = [new TextEncoder().encode(jsonData)];
+      const mockStream = {
+        async *[Symbol.asyncIterator]() {
+          for (const chunk of mockStreamData) {
+            await Promise.resolve();
+            yield chunk;
+          }
         },
-      });
+      };
 
-      const mockResponse = new Response(mockStream, {
+      // Mock runtime adapter stream method
+      mockRuntimeAdapter.stream.mockResolvedValue({
         status: 200,
+        statusText: "OK",
         headers: { "content-type": "application/x-ndjson" },
+        stream: mockStream,
       });
 
-      mockFetch.mockResolvedValue(mockResponse);
       mockInterceptorChain.executeRequest.mockResolvedValue({
         request: mockStreamRequest,
         metadata: { timestamp: new Date(), requestId: "req_123" },
@@ -244,19 +268,26 @@ describe("HttpTransport", () => {
 
     it("should handle raw streaming for unknown content types", async () => {
       const rawData = "Raw streaming data";
-      const mockStream = new ReadableStream({
-        start(controller) {
-          controller.enqueue(new TextEncoder().encode(rawData));
-          controller.close();
+
+      // Create async iterable for stream
+      const mockStreamData = [new TextEncoder().encode(rawData)];
+      const mockStream = {
+        async *[Symbol.asyncIterator]() {
+          for (const chunk of mockStreamData) {
+            await Promise.resolve();
+            yield chunk;
+          }
         },
-      });
+      };
 
-      const mockResponse = new Response(mockStream, {
+      // Mock runtime adapter stream method
+      mockRuntimeAdapter.stream.mockResolvedValue({
         status: 200,
+        statusText: "OK",
         headers: { "content-type": "text/plain" },
+        stream: mockStream,
       });
 
-      mockFetch.mockResolvedValue(mockResponse);
       mockInterceptorChain.executeRequest.mockResolvedValue({
         request: mockStreamRequest,
         metadata: { timestamp: new Date(), requestId: "req_123" },
