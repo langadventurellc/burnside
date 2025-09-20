@@ -668,6 +668,375 @@ describe("BridgeConfigSchema", () => {
     });
   });
 
+  describe("MCP server configuration", () => {
+    describe("valid MCP server configurations", () => {
+      it("should accept tools configuration without mcpServers (backward compatibility)", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools?.mcpServers).toBeUndefined();
+      });
+
+      it("should accept tools configuration with empty mcpServers array", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+            mcpServers: [],
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools?.mcpServers).toEqual([]);
+      });
+
+      it("should accept single valid MCP server configuration", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+            mcpServers: [
+              {
+                name: "example-server",
+                url: "https://example.com/mcp",
+              },
+            ],
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools?.mcpServers).toEqual([
+          {
+            name: "example-server",
+            url: "https://example.com/mcp",
+          },
+        ]);
+      });
+
+      it("should accept multiple valid MCP server configurations", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+            mcpServers: [
+              {
+                name: "server-one",
+                url: "https://api.example.com/mcp",
+              },
+              {
+                name: "server-two",
+                url: "http://localhost:8080/mcp",
+              },
+            ],
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools?.mcpServers).toEqual([
+          {
+            name: "server-one",
+            url: "https://api.example.com/mcp",
+          },
+          {
+            name: "server-two",
+            url: "http://localhost:8080/mcp",
+          },
+        ]);
+      });
+
+      it("should accept HTTP and HTTPS URLs", () => {
+        const httpConfig = {
+          providers: { test: {} },
+          tools: {
+            enabled: true,
+            builtinTools: [],
+            mcpServers: [{ name: "http-server", url: "http://example.com" }],
+          },
+        };
+
+        const httpsConfig = {
+          providers: { test: {} },
+          tools: {
+            enabled: true,
+            builtinTools: [],
+            mcpServers: [{ name: "https-server", url: "https://example.com" }],
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(httpConfig)).not.toThrow();
+        expect(() => BridgeConfigSchema.parse(httpsConfig)).not.toThrow();
+      });
+
+      it("should accept valid URLs with paths and query parameters", () => {
+        const config = {
+          providers: { test: {} },
+          tools: {
+            enabled: true,
+            builtinTools: [],
+            mcpServers: [
+              {
+                name: "complex-server",
+                url: "https://api.example.com/v1/mcp?token=abc123",
+              },
+            ],
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(config)).not.toThrow();
+      });
+    });
+
+    describe("invalid MCP server configurations", () => {
+      it("should reject MCP server with empty name", () => {
+        const config = {
+          providers: { test: {} },
+          tools: {
+            enabled: true,
+            builtinTools: [],
+            mcpServers: [
+              {
+                name: "",
+                url: "https://example.com",
+              },
+            ],
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(config)).toThrow(
+          /MCP server name cannot be empty/,
+        );
+      });
+
+      it("should reject MCP server with invalid URL", () => {
+        const config = {
+          providers: { test: {} },
+          tools: {
+            enabled: true,
+            builtinTools: [],
+            mcpServers: [
+              {
+                name: "invalid-server",
+                url: "not-a-url",
+              },
+            ],
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(config)).toThrow(
+          /MCP server URL must be valid/,
+        );
+      });
+
+      it("should reject non-HTTP/HTTPS protocols", () => {
+        const invalidProtocols = [
+          "ftp://example.com",
+          "file:///local/path",
+          "ws://example.com",
+          "custom://example.com",
+        ];
+
+        invalidProtocols.forEach((url) => {
+          const config = {
+            providers: { test: {} },
+            tools: {
+              enabled: true,
+              builtinTools: [],
+              mcpServers: [{ name: "test-server", url }],
+            },
+          };
+
+          expect(() => BridgeConfigSchema.parse(config)).toThrow(
+            /MCP server URL must use HTTP or HTTPS protocol/,
+          );
+        });
+      });
+
+      it("should reject duplicate MCP server names", () => {
+        const config = {
+          providers: { test: {} },
+          tools: {
+            enabled: true,
+            builtinTools: [],
+            mcpServers: [
+              {
+                name: "duplicate-name",
+                url: "https://server1.example.com",
+              },
+              {
+                name: "duplicate-name",
+                url: "https://server2.example.com",
+              },
+            ],
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(config)).toThrow(
+          /MCP server names must be unique/,
+        );
+      });
+
+      it("should reject MCP server with missing required fields", () => {
+        const configMissingName = {
+          providers: { test: {} },
+          tools: {
+            enabled: true,
+            builtinTools: [],
+            mcpServers: [
+              {
+                url: "https://example.com",
+              } as any,
+            ],
+          },
+        };
+
+        const configMissingUrl = {
+          providers: { test: {} },
+          tools: {
+            enabled: true,
+            builtinTools: [],
+            mcpServers: [
+              {
+                name: "test-server",
+              } as any,
+            ],
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(configMissingName)).toThrow();
+        expect(() => BridgeConfigSchema.parse(configMissingUrl)).toThrow();
+      });
+
+      it("should reject non-array mcpServers", () => {
+        const config = {
+          providers: { test: {} },
+          tools: {
+            enabled: true,
+            builtinTools: [],
+            mcpServers: "not-an-array" as any,
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(config)).toThrow();
+      });
+
+      it("should reject non-object MCP server configurations", () => {
+        const config = {
+          providers: { test: {} },
+          tools: {
+            enabled: true,
+            builtinTools: [],
+            mcpServers: ["not-an-object"] as any,
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(config)).toThrow();
+      });
+    });
+
+    describe("MCP server configuration integration", () => {
+      it("should accept complete configuration with MCP servers and other tools config", () => {
+        const config = {
+          defaultProvider: "openai",
+          providers: {
+            openai: { apiKey: "sk-test" },
+          },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo", "calculator"],
+            executionTimeoutMs: 5000,
+            maxConcurrentTools: 2,
+            mcpServers: [
+              {
+                name: "mcp-server-1",
+                url: "https://api.example.com/mcp",
+              },
+            ],
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools?.enabled).toBe(true);
+        expect(result.tools?.builtinTools).toEqual(["echo", "calculator"]);
+        expect(result.tools?.mcpServers).toEqual([
+          {
+            name: "mcp-server-1",
+            url: "https://api.example.com/mcp",
+          },
+        ]);
+      });
+
+      it("should accept MCP servers with rate limiting and retry policies", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: [],
+            mcpServers: [
+              {
+                name: "rate-limited-server",
+                url: "https://example.com/mcp",
+              },
+            ],
+          },
+          rateLimitPolicy: {
+            enabled: true,
+            maxRps: 10,
+          },
+          retryPolicy: {
+            attempts: 3,
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools?.mcpServers?.[0].name).toBe("rate-limited-server");
+        expect(result.rateLimitPolicy?.enabled).toBe(true);
+        expect(result.retryPolicy?.attempts).toBe(3);
+      });
+    });
+
+    describe("MCP server configuration type inference", () => {
+      it("should infer correct types for MCP server configuration", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+            mcpServers: [
+              {
+                name: "typed-server",
+                url: "https://example.com/mcp",
+              },
+            ],
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+
+        // TypeScript compilation test
+        const toolsConfig = result.tools;
+        if (toolsConfig && toolsConfig.mcpServers) {
+          const mcpServers: Array<{ name: string; url: string }> =
+            toolsConfig.mcpServers;
+          const firstServer = mcpServers[0];
+          const serverName: string = firstServer.name;
+          const serverUrl: string = firstServer.url;
+
+          expect(serverName).toBe("typed-server");
+          expect(serverUrl).toBe("https://example.com/mcp");
+        }
+      });
+    });
+  });
+
   describe("retry policy configuration integration", () => {
     it("should accept configuration with retry policy enabled", () => {
       const config = {

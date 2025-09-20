@@ -1,14 +1,25 @@
 ---
 id: E-mcp-tooling-integration
 title: MCP Tooling Integration
-status: open
+status: in-progress
 priority: medium
 parent: none
 prerequisites: []
-affectedFiles: {}
+affectedFiles:
+  src/core/config/bridgeConfigSchema.ts: Extended tools object schema with
+    optional mcpServers field including name/URL validation, HTTP/HTTPS protocol
+    enforcement, and server name uniqueness constraints
+  src/core/config/__tests__/bridgeConfigSchema.test.ts: Added comprehensive unit
+    tests for MCP server validation covering valid/invalid configurations,
+    protocol validation, duplicate name detection, and integration scenarios
 log: []
 schema: v1.0
-childrenIds: []
+childrenIds:
+  - F-dynamic-tool-registration
+  - F-mcp-configuration-schema
+  - F-mcp-protocol-core-implementati
+  - F-mcp-testing-infrastructure
+  - F-runtime-adapter-mcp-extensions
 created: 2025-09-20T19:01:02.627Z
 updated: 2025-09-20T19:01:02.627Z
 ---

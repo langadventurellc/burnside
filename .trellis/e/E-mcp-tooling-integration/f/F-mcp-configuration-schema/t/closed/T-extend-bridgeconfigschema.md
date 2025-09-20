@@ -1,12 +1,26 @@
 ---
 id: T-extend-bridgeconfigschema
 title: Extend BridgeConfigSchema with MCP server configuration field
-status: open
+status: done
 priority: high
 parent: F-mcp-configuration-schema
 prerequisites: []
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/config/bridgeConfigSchema.ts: Extended tools object schema with
+    optional mcpServers field including name/URL validation, HTTP/HTTPS protocol
+    enforcement, and server name uniqueness constraints
+  src/core/config/__tests__/bridgeConfigSchema.test.ts: Added comprehensive unit
+    tests for MCP server validation covering valid/invalid configurations,
+    protocol validation, duplicate name detection, and integration scenarios
+log:
+  - Successfully extended BridgeConfigSchema with MCP server configuration field
+    in the tools section. Added comprehensive Zod validation including
+    remote-only URL constraints (HTTP/HTTPS only), server name uniqueness
+    validation, and proper error messaging. Maintained complete backward
+    compatibility with existing configurations. Added extensive unit test
+    coverage (19 new test cases) covering valid configurations, invalid inputs,
+    edge cases, and type inference verification. All quality checks pass
+    including linting, formatting, and type checking.
 schema: v1.0
 childrenIds: []
 created: 2025-09-20T19:37:10.173Z
