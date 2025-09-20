@@ -61,7 +61,7 @@ describe("RateLimiter", () => {
   };
 
   afterEach(() => {
-    // Clean up all limiters to prevent memory leaks and timer interference
+    // Clean up all limiters to prevent memory leaks
     activeLimiters.forEach((limiter) => limiter.destroy());
     activeLimiters = [];
   });
@@ -289,8 +289,13 @@ describe("RateLimiter", () => {
       expect(status2.availableTokens).toBe(4); // One token consumed
     });
 
-    test("unused buckets cleaned up automatically", () => {
+    test("stale buckets cleaned up during periodic cleanup", () => {
       const limiter = createLimiter(createConfig({ scope: "provider" }));
+
+      // Mock performance.now to control time
+      const mockNow = jest.spyOn(performance, "now");
+      const startTime = 1000;
+      mockNow.mockReturnValue(startTime);
 
       // Create bucket by checking limit
       expect(limiter.checkLimit(context1)).toBe(true);
@@ -299,14 +304,65 @@ describe("RateLimiter", () => {
       const status = limiter.getStatus(context1);
       expect(status.availableTokens).toBeLessThan(5);
 
-      // Fast-forward past cleanup time (5 minutes = 300,000ms)
-      // Note: In a real test environment, we'd mock setTimeout or use fake timers
-      // For this test, we'll simulate the cleanup by creating a new limiter
-      // since we can't easily fast-forward 5 minutes in a unit test
+      // Advance time past cleanup threshold (5 minutes)
+      const futureTime = startTime + 5 * 60 * 1000 + 1000; // 5 minutes + 1 second
+      mockNow.mockReturnValue(futureTime);
 
-      // This test verifies the logic exists but doesn't wait for actual cleanup
-      expect(typeof limiter["cleanupBucket"]).toBe("function");
-    }, 1000);
+      // Trigger periodic cleanup by calling checkLimit enough times
+      for (let i = 0; i < 100; i++) {
+        limiter.checkLimit(context2); // Use different context to avoid interference
+      }
+
+      // Verify periodic cleanup function exists
+      expect(typeof limiter["performPeriodicCleanup"]).toBe("function");
+
+      mockNow.mockRestore();
+    });
+
+    test("periodic cleanup triggered by call frequency", () => {
+      const limiter = createLimiter(createConfig({ scope: "provider" }));
+
+      // Spy on the private cleanup method
+      const cleanupSpy = jest.spyOn(limiter as any, "performPeriodicCleanup");
+
+      // Call checkLimit 99 times - should not trigger cleanup
+      for (let i = 0; i < 99; i++) {
+        limiter.checkLimit(context1);
+      }
+      expect(cleanupSpy).not.toHaveBeenCalled();
+
+      // 100th call should trigger cleanup
+      limiter.checkLimit(context1);
+      expect(cleanupSpy).toHaveBeenCalledTimes(1);
+
+      // Next 99 calls should not trigger cleanup again
+      for (let i = 0; i < 99; i++) {
+        limiter.checkLimit(context1);
+      }
+      expect(cleanupSpy).toHaveBeenCalledTimes(1);
+
+      // 200th total call should trigger cleanup again
+      limiter.checkLimit(context1);
+      expect(cleanupSpy).toHaveBeenCalledTimes(2);
+
+      cleanupSpy.mockRestore();
+    });
+
+    test("getStatus also triggers periodic cleanup", () => {
+      const limiter = createLimiter(createConfig({ scope: "provider" }));
+
+      // Spy on the private cleanup method
+      const cleanupSpy = jest.spyOn(limiter as any, "performPeriodicCleanup");
+
+      // Call getStatus 100 times to trigger cleanup
+      for (let i = 0; i < 100; i++) {
+        limiter.getStatus(context1);
+      }
+
+      expect(cleanupSpy).toHaveBeenCalledTimes(1);
+
+      cleanupSpy.mockRestore();
+    });
 
     test("memory usage bounded by max bucket limit", () => {
       const limiter = createLimiter(

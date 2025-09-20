@@ -48,12 +48,11 @@ import type { RateLimitContext } from "./rateLimitContext";
 import type { RateLimitStatus } from "./rateLimitStatus";
 
 /**
- * Internal bucket tracking with automatic cleanup.
+ * Internal bucket tracking with efficient memory management.
  */
 interface BucketEntry {
   bucket: TokenBucket;
   lastUsed: number;
-  cleanupTimer: NodeJS.Timeout;
 }
 
 /**
@@ -75,6 +74,8 @@ export class RateLimiter {
   private readonly buckets = new Map<string, BucketEntry>();
   private readonly CLEANUP_DELAY_MS = 5 * 60 * 1000; // 5 minutes
   private readonly MAX_BUCKETS = 1000;
+  private cleanupCallCount = 0;
+  private readonly CLEANUP_FREQUENCY = 100; // Every 100 checkLimit calls
 
   /**
    * Creates a new rate limiter with the specified configuration.
@@ -99,10 +100,16 @@ export class RateLimiter {
       return true;
     }
 
+    // Perform periodic cleanup to manage memory
+    if (++this.cleanupCallCount >= this.CLEANUP_FREQUENCY) {
+      this.performPeriodicCleanup();
+      this.cleanupCallCount = 0;
+    }
+
     const scopeKey = this.generateScopeKey(context);
     const bucket = this.getOrCreateBucket(scopeKey);
 
-    // Update last used time and reset cleanup timer
+    // Update last used time
     this.updateBucketUsage(scopeKey);
 
     return bucket.consume(1);
@@ -115,6 +122,12 @@ export class RateLimiter {
    * @returns Current status including scope key and available tokens
    */
   getStatus(context: RateLimitContext): RateLimitStatus {
+    // Perform periodic cleanup to manage memory
+    if (++this.cleanupCallCount >= this.CLEANUP_FREQUENCY) {
+      this.performPeriodicCleanup();
+      this.cleanupCallCount = 0;
+    }
+
     const scopeKey = this.generateScopeKey(context);
 
     let availableTokens = this.config.burst ?? this.config.maxRps;
@@ -148,14 +161,13 @@ export class RateLimiter {
   }
 
   /**
-   * Destroys the rate limiter and cleans up all buckets and timers.
+   * Destroys the rate limiter and cleans up all buckets.
    *
    * Important for preventing memory leaks when the rate limiter is no longer needed.
    */
   destroy(): void {
-    // Clean up all buckets and their timers
+    // Clean up all buckets
     for (const [, entry] of this.buckets) {
-      clearTimeout(entry.cleanupTimer);
       entry.bucket.destroy();
     }
     this.buckets.clear();
@@ -212,19 +224,17 @@ export class RateLimiter {
     };
 
     const bucket = new TokenBucket(bucketConfig);
-    const cleanupTimer = this.scheduleCleanup(scopeKey);
 
     this.buckets.set(scopeKey, {
       bucket,
       lastUsed: performance.now(),
-      cleanupTimer,
     });
 
     return bucket;
   }
 
   /**
-   * Updates the last used time for a bucket and resets its cleanup timer.
+   * Updates the last used time for a bucket.
    *
    * @param scopeKey - Scope key to update
    */
@@ -235,33 +245,31 @@ export class RateLimiter {
     }
 
     entry.lastUsed = performance.now();
-
-    // Reset cleanup timer
-    clearTimeout(entry.cleanupTimer);
-    entry.cleanupTimer = this.scheduleCleanup(scopeKey);
   }
 
   /**
-   * Schedules automatic cleanup for a bucket after the cleanup delay.
-   *
-   * @param scopeKey - Scope key to schedule cleanup for
-   * @returns Cleanup timer
+   * Performs periodic cleanup of stale buckets to manage memory.
    */
-  private scheduleCleanup(scopeKey: string): NodeJS.Timeout {
-    return setTimeout(() => {
-      this.cleanupBucket(scopeKey);
-    }, this.CLEANUP_DELAY_MS);
+  private performPeriodicCleanup(): void {
+    const now = performance.now();
+    const staleCutoff = now - this.CLEANUP_DELAY_MS;
+
+    for (const [key, entry] of this.buckets) {
+      if (entry.lastUsed < staleCutoff) {
+        entry.bucket.destroy();
+        this.buckets.delete(key);
+      }
+    }
   }
 
   /**
-   * Removes and destroys a bucket and its associated timer.
+   * Removes and destroys a bucket.
    *
    * @param scopeKey - Scope key to clean up
    */
   private cleanupBucket(scopeKey: string): void {
     const entry = this.buckets.get(scopeKey);
     if (entry) {
-      clearTimeout(entry.cleanupTimer);
       entry.bucket.destroy();
       this.buckets.delete(scopeKey);
     }

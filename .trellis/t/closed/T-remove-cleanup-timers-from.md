@@ -2,13 +2,53 @@
 id: T-remove-cleanup-timers-from
 title: Remove cleanup timers from RateLimiter and implement efficient memory
   management
-status: open
+status: done
 priority: high
 parent: none
 prerequisites:
   - T-remove-perpetual-timers-from
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/transport/rateLimiting/rateLimiter.ts: Removed timer infrastructure
+    (cleanupTimer property, scheduleCleanup/cleanupBucket timer logic) and
+    implemented periodic cleanup triggered every 100 method calls. Added
+    performPeriodicCleanup() for age-based bucket cleanup and simplified
+    destroy() method to only destroy buckets.
+  src/core/transport/rateLimiting/__tests__/rateLimiter.test.ts:
+    Updated tests to reflect timer removal. Replaced timer-dependent test with
+    periodic cleanup test using mocked performance.now(). Added tests for
+    cleanup frequency behavior and getStatus cleanup triggering. Removed timer
+    interference comment from afterEach cleanup.
+log:
+  - >-
+    Successfully removed cleanup timers from RateLimiter and implemented
+    efficient memory management using on-demand periodic cleanup. The
+    implementation eliminates hundreds of persistent timers while maintaining
+    memory efficiency through enhanced cleanup mechanisms.
+
+
+    Key improvements:
+
+    - Removed timer-based cleanup infrastructure (cleanupTimer property,
+    scheduleCleanup method)
+
+    - Implemented periodic cleanup triggered every 100 checkLimit/getStatus
+    calls
+
+    - Added performPeriodicCleanup method for age-based bucket cleanup (5-minute
+    threshold)
+
+    - Simplified BucketEntry interface by removing cleanupTimer property
+
+    - Updated destroy method to only destroy buckets without timer cleanup
+
+    - Maintained all existing functionality including LRU eviction and memory
+    bounds
+
+
+    The solution resolves Jest open handles issue, prevents memory leaks, and
+    reduces CPU overhead from timer management while preserving identical rate
+    limiting behavior. All 39 existing unit tests pass plus 3 new tests for
+    periodic cleanup functionality.
 schema: v1.0
 childrenIds: []
 created: 2025-09-19T23:54:15.414Z
