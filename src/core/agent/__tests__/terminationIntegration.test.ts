@@ -49,7 +49,7 @@ describe("Termination Detection Integration Tests", () => {
     } as unknown as RuntimeAdapter;
 
     toolRouter = new ToolRouter(registry, 5000, mockRuntimeAdapter);
-    _agentLoop = new AgentLoop(toolRouter, {
+    _agentLoop = new AgentLoop(toolRouter, mockRuntimeAdapter, {
       maxToolCalls: 5,
       timeoutMs: 10000,
       toolTimeoutMs: 5000,

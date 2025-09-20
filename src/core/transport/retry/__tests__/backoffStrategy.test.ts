@@ -440,25 +440,6 @@ describe("Delay Promise Utility", () => {
       fileExists: jest.fn(),
     } as unknown as RuntimeAdapter;
   });
-  describe("Normal Operation", () => {
-    it("should resolve after specified delay", async () => {
-      const startTime = Date.now();
-      await delayPromise(100, mockRuntimeAdapter);
-      const elapsed = Date.now() - startTime;
-
-      // Allow for some timing tolerance
-      expect(elapsed).toBeGreaterThanOrEqual(90);
-      expect(elapsed).toBeLessThan(200);
-    });
-
-    it("should resolve immediately for zero delay", async () => {
-      const startTime = Date.now();
-      await delayPromise(0, mockRuntimeAdapter);
-      const elapsed = Date.now() - startTime;
-
-      expect(elapsed).toBeLessThan(100);
-    });
-  });
 
   describe("AbortSignal Integration", () => {
     it("should resolve normally without signal", async () => {

@@ -1,7 +1,7 @@
 ---
 id: F-complete-runtime-adapter
 title: Complete Runtime Adapter Integration
-status: in-progress
+status: done
 priority: medium
 parent: none
 prerequisites: []
@@ -70,7 +70,8 @@ affectedFiles:
     of creating HttpClientConfig with globalThis.fetch. Replaced setTimeout and
     clearTimeout calls in createTimeoutSignal method with RuntimeAdapter timer
     methods for true platform abstraction.; Updated ToolRouter instantiation to
-    pass this.runtimeAdapter as third parameter"
+    pass this.runtimeAdapter as third parameter; Updated AgentLoop instantiation
+    to pass this.runtimeAdapter as second parameter"
   src/core/tools/executionContext.ts: Added RuntimeAdapter import and
     runtimeAdapter property to ExecutionContext interface for platform-agnostic
     timer operations
@@ -99,10 +100,13 @@ affectedFiles:
     tests
   src/core/agent/__tests__/agentLoop.test.ts:
     Added mock RuntimeAdapter setup and
-    updated ToolRouter instantiation for agent loop tests
+    updated ToolRouter instantiation for agent loop tests; Updated all AgentLoop
+    constructor calls to include mockRuntimeAdapter parameter, fixed parameter
+    order throughout test file
   src/core/agent/__tests__/terminationIntegration.test.ts: Added mock
     RuntimeAdapter setup and updated ToolRouter instantiation for termination
-    integration tests
+    integration tests; Updated AgentLoop constructor call to include
+    mockRuntimeAdapter parameter
   src/core/transport/retry/delayPromise.ts: Updated function signature to accept
     RuntimeAdapter parameter, replaced setTimeout/clearTimeout with runtime
     adapter methods, updated JSDoc documentation
@@ -124,7 +128,10 @@ affectedFiles:
     accept RuntimeAdapter as second parameter, replaced all direct timer calls
     with runtime adapter methods, changed timer handle types to TimerHandle
   src/core/agent/agentLoop.ts: Updated CancellationManager instantiation to pass
-    this.toolRouter.getRuntimeAdapter() as first parameter
+    this.toolRouter.getRuntimeAdapter() as first parameter; Updated constructor
+    to accept RuntimeAdapter parameter, replaced direct setTimeout calls with
+    this.runtimeAdapter.setTimeout, added proper timer cleanup in finally
+    blocks, imported RuntimeAdapter and TimerHandle types
   src/core/agent/cancellation/__tests__/cancellationManager.test.ts:
     Added createMockRuntimeAdapter helper function, updated all
     CancellationManager constructor calls to include mock runtime adapter as
@@ -133,16 +140,17 @@ affectedFiles:
     Added createMockRuntimeAdapter helper function, updated all
     CancellationManager and StreamCancellationHandler constructor calls to
     include mock runtime adapter parameters in correct positions
-log: []
+log:
+  - "Auto-completed: All child tasks are complete"
 schema: v1.0
 childrenIds:
-  - T-replace-direct-timer-usage-in-2
-  - T-replace-direct-timer-usage-in-3
   - T-add-stream-method-to
   - T-implement-stream-method-in-1
   - T-implement-stream-method-in-2
   - T-implement-stream-method-in
   - T-replace-direct-timer-usage-in-1
+  - T-replace-direct-timer-usage-in-2
+  - T-replace-direct-timer-usage-in-3
   - T-replace-direct-timer-usage-in
   - T-update-bridgeclient-to-use
   - T-update-httptransport-to-use
