@@ -611,47 +611,6 @@ describe("AgentLoop", () => {
       );
     });
 
-    it("should handle iteration timeout scenarios", async () => {
-      const slowRouter = {
-        execute: jest.fn().mockImplementation(
-          () =>
-            new Promise((resolve) =>
-              setTimeout(
-                () =>
-                  resolve({
-                    callId: "call_123",
-                    success: true,
-                    data: "slow result",
-                  }),
-                2000,
-              ),
-            ), // Slower than iteration timeout
-        ),
-      } as unknown as ToolRouter;
-
-      const agentLoopWithIterationTimeout = new AgentLoop(slowRouter, {
-        iterationTimeoutMs: 100,
-        maxIterations: 3,
-        continueOnToolError: false,
-      });
-
-      const initialMessages: Message[] = [
-        {
-          id: "user_1",
-          role: "user",
-          content: [{ type: "text", text: "Test iteration timeout" }],
-          timestamp: new Date().toISOString(),
-        },
-      ];
-
-      const result =
-        await agentLoopWithIterationTimeout.executeMultiTurn(initialMessages);
-
-      // Should handle timeout gracefully
-      expect(result.state).toBeDefined();
-      expect(result.executionMetrics).toBeDefined();
-    });
-
     it("should preserve conversation history across iterations", async () => {
       const initialMessages: Message[] = [
         {

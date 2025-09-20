@@ -9,6 +9,7 @@ import { detectPlatform } from "../detectPlatform";
 import { isNodeJs } from "../isNodeJs";
 import { isBrowser } from "../isBrowser";
 import { isElectron } from "../isElectron";
+import { isElectronRenderer } from "../isElectronRenderer";
 import { isReactNative } from "../isReactNative";
 
 // Mock global objects for testing different environments
@@ -40,9 +41,13 @@ describe("Platform Detection", () => {
   describe("detectPlatform", () => {
     it("should detect current platform", () => {
       const platform = detectPlatform();
-      expect(["node", "browser", "electron", "react-native"]).toContain(
-        platform,
-      );
+      expect([
+        "node",
+        "browser",
+        "electron",
+        "electron-renderer",
+        "react-native",
+      ]).toContain(platform);
     });
 
     // Note: In Jest/Node environment, this will typically return 'node'
@@ -124,8 +129,124 @@ describe("Platform Detection", () => {
       expect(isElectron()).toBe(false);
     });
 
-    it("should return true when Electron process.versions.electron is available", () => {
+    it("should return true when Electron main process (has electron version, no window)", () => {
       const cleanup = mockGlobalThis({
+        process: {
+          versions: {
+            node: globalThis.process.versions.node,
+            electron: "13.0.0",
+          },
+        },
+        window: undefined,
+      });
+
+      expect(isElectron()).toBe(true);
+      cleanup();
+    });
+
+    it("should return false when Node + window are both available (renderer process)", () => {
+      const cleanup = mockGlobalThis({
+        window: {},
+        process: {
+          versions: {
+            node: globalThis.process.versions.node,
+            electron: "13.0.0",
+          },
+          type: "renderer",
+        },
+      });
+      expect(isElectron()).toBe(false);
+      cleanup();
+    });
+
+    it("should return false when window is available without electron version", () => {
+      const cleanup = mockGlobalThis({ window: {} });
+      expect(isElectron()).toBe(false);
+      cleanup();
+    });
+  });
+
+  describe("isElectronRenderer", () => {
+    it("should return false in pure Node environment", () => {
+      expect(isElectronRenderer()).toBe(false);
+    });
+
+    it("should return true when Electron renderer process (has window + process.type)", () => {
+      const cleanup = mockGlobalThis({
+        window: {},
+        process: {
+          versions: {
+            node: globalThis.process.versions.node,
+            electron: "13.0.0",
+          },
+          type: "renderer",
+        },
+      });
+
+      expect(isElectronRenderer()).toBe(true);
+      cleanup();
+    });
+
+    it("should return false when window is available but process.type is not renderer", () => {
+      const cleanup = mockGlobalThis({
+        window: {},
+        process: {
+          versions: {
+            node: globalThis.process.versions.node,
+            electron: "13.0.0",
+          },
+          type: "main",
+        },
+      });
+      expect(isElectronRenderer()).toBe(false);
+      cleanup();
+    });
+
+    it("should return false when process.type is renderer but no window", () => {
+      const cleanup = mockGlobalThis({
+        window: undefined,
+        process: {
+          versions: {
+            node: globalThis.process.versions.node,
+            electron: "13.0.0",
+          },
+          type: "renderer",
+        },
+      });
+      expect(isElectronRenderer()).toBe(false);
+      cleanup();
+    });
+
+    it("should return false when only window is available (browser)", () => {
+      const cleanup = mockGlobalThis({
+        window: {},
+        process: undefined,
+      });
+      expect(isElectronRenderer()).toBe(false);
+      cleanup();
+    });
+  });
+
+  describe("detectPlatform electron-renderer", () => {
+    it("should detect electron-renderer when renderer process conditions are met", () => {
+      const cleanup = mockGlobalThis({
+        window: {},
+        process: {
+          versions: {
+            node: globalThis.process.versions.node,
+            electron: "13.0.0",
+          },
+          type: "renderer",
+        },
+      });
+
+      expect(detectPlatform()).toBe("electron-renderer");
+      cleanup();
+    });
+
+    it("should detect electron main process (not renderer) when no window", () => {
+      const cleanup = mockGlobalThis({
+        window: undefined,
         process: {
           versions: {
             node: globalThis.process.versions.node,
@@ -134,13 +255,7 @@ describe("Platform Detection", () => {
         },
       });
 
-      expect(isElectron()).toBe(true);
-      cleanup();
-    });
-
-    it("should return true when Node + window are both available", () => {
-      const cleanup = mockGlobalThis({ window: {} });
-      expect(isElectron()).toBe(true);
+      expect(detectPlatform()).toBe("electron");
       cleanup();
     });
   });

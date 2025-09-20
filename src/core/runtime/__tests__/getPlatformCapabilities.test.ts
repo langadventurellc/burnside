@@ -111,6 +111,16 @@ describe("getPlatformCapabilities", () => {
 
       expect(capabilities.hasFileSystem).toBe(false);
     });
+
+    it("should detect missing file system capability in Electron renderer", () => {
+      detectPlatform.mockReturnValue("electron-renderer");
+      isNodeJs.mockReturnValue(false);
+      isElectron.mockReturnValue(false);
+
+      const capabilities = getPlatformCapabilities();
+
+      expect(capabilities.hasFileSystem).toBe(false);
+    });
   });
 
   describe("Platform-Specific Features", () => {
@@ -172,7 +182,7 @@ describe("getPlatformCapabilities", () => {
       expect(capabilities.features.hasDocument).toBe(false);
     });
 
-    it("should detect Electron specific features", () => {
+    it("should detect Electron main process specific features", () => {
       detectPlatform.mockReturnValue("electron");
       isNodeJs.mockReturnValue(true);
       isElectron.mockReturnValue(true);
@@ -186,6 +196,41 @@ describe("getPlatformCapabilities", () => {
       expect(capabilities.features.hasProcess).toBe(true);
       expect(capabilities.features.hasWindow).toBe(true);
       expect(capabilities.features.hasElectronAPIs).toBe(true);
+      expect(capabilities.hasFileSystem).toBe(true);
+    });
+
+    it("should detect Electron renderer specific features", () => {
+      detectPlatform.mockReturnValue("electron-renderer");
+      isNodeJs.mockReturnValue(false);
+      isElectron.mockReturnValue(false);
+
+      // Mock Electron renderer globals
+      (globalThis as unknown as { window: unknown }).window = {};
+      (globalThis as unknown as { document: unknown }).document = {};
+
+      const capabilities = getPlatformCapabilities();
+
+      expect(capabilities.platform).toBe("electron-renderer");
+      expect(capabilities.features.hasProcess).toBe(true);
+      expect(capabilities.features.hasWindow).toBe(true);
+      expect(capabilities.features.hasElectronAPIs).toBe(true);
+      expect(capabilities.features.hasDocument).toBe(true);
+      expect(capabilities.hasFileSystem).toBe(false);
+    });
+
+    it("should detect Electron renderer without document", () => {
+      detectPlatform.mockReturnValue("electron-renderer");
+      isNodeJs.mockReturnValue(false);
+      isElectron.mockReturnValue(false);
+
+      // Mock Electron renderer globals without document
+      (globalThis as unknown as { window: unknown }).window = {};
+      (globalThis as unknown as { document: unknown }).document = undefined;
+
+      const capabilities = getPlatformCapabilities();
+
+      expect(capabilities.features.hasDocument).toBe(false);
+      expect(capabilities.hasFileSystem).toBe(false);
     });
 
     it("should detect React Native specific features", () => {

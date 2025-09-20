@@ -1,14 +1,40 @@
 ---
 id: F-cross-platform-runtime
 title: Cross-Platform Runtime Adapters
-status: open
+status: in-progress
 priority: medium
 parent: none
 prerequisites: []
-affectedFiles: {}
+affectedFiles:
+  src/core/runtime/platform.ts: Added 'electron-renderer' to Platform union type
+    to support the new platform detection
+  src/core/runtime/detectPlatform.ts: Updated platform detection logic to check
+    for electron-renderer first, then electron main process. Imports external
+    detection functions instead of inline definitions
+  src/core/runtime/isElectron.ts: Modified to detect only Electron main process
+    (has electron version but no window object)
+  src/core/runtime/isElectronRenderer.ts: Created new detection function for
+    Electron renderer process (has window object and process.type ===
+    'renderer')
+  src/core/runtime/getPlatformCapabilities.ts: "Added platform capabilities for
+    electron-renderer with hasFileSystem: false, and updated file system
+    detection logic to use platform-based detection"
+  src/core/runtime/__tests__/detectPlatform.test.ts:
+    Added comprehensive tests for
+    isElectronRenderer function and detectPlatform returning electron-renderer,
+    updated existing Electron tests for new behavior
+  src/core/runtime/__tests__/getPlatformCapabilities.test.ts: Added tests for
+    electron-renderer platform capabilities including file system restrictions
+    and platform-specific features
 log: []
 schema: v1.0
-childrenIds: []
+childrenIds:
+  - T-add-package-dependencies-for
+  - T-fix-platform-detection-for
+  - T-implement-electron-renderer
+  - T-implement-react-native
+  - T-improve-react-native-platform
+  - T-update-adapter-registry-for
 created: 2025-09-20T04:17:17.477Z
 updated: 2025-09-20T04:17:17.477Z
 ---

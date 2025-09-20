@@ -6,6 +6,10 @@
  */
 
 import type { Platform } from "./platform";
+import { isNodeJs } from "./isNodeJs";
+import { isElectron } from "./isElectron";
+import { isElectronRenderer } from "./isElectronRenderer";
+import { isReactNative } from "./isReactNative";
 
 /**
  * Detect the current platform type.
@@ -17,9 +21,14 @@ import type { Platform } from "./platform";
  * @returns Platform type string
  */
 export function detectPlatform(): Platform {
+  // Check for Electron renderer process first (has window object + renderer process type)
+  if (isElectronRenderer()) {
+    return "electron-renderer";
+  }
+
   // Check for Node environment
   if (isNodeJs()) {
-    // Check if running in Electron (which also has Node APIs)
+    // Check if running in Electron main process (which also has Node APIs)
     if (isElectron()) {
       return "electron";
     }
@@ -33,50 +42,4 @@ export function detectPlatform(): Platform {
 
   // Default to browser if none of the above
   return "browser";
-}
-
-/**
- * Check if running in Node environment.
- */
-function isNodeJs(): boolean {
-  try {
-    return (
-      typeof process !== "undefined" &&
-      process.versions != null &&
-      process.versions.node != null
-    );
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Check if running in Electron environment.
- */
-function isElectron(): boolean {
-  try {
-    // Electron has both Node APIs and browser-like environment
-    return (
-      isNodeJs() &&
-      (typeof process.versions.electron !== "undefined" ||
-        typeof window !== "undefined")
-    );
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Check if running in React Native environment.
- */
-function isReactNative(): boolean {
-  try {
-    return (
-      typeof navigator !== "undefined" &&
-      typeof navigator.userAgent === "string" &&
-      navigator.userAgent.includes("ReactNative")
-    );
-  } catch {
-    return false;
-  }
 }

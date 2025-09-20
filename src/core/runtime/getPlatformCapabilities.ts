@@ -7,8 +7,6 @@
 
 import type { PlatformCapabilities } from "./platformCapabilities";
 import { detectPlatform } from "./detectPlatform";
-import { isNodeJs } from "./isNodeJs";
-import { isElectron } from "./isElectron";
 
 /**
  * Get platform capabilities for the current environment.
@@ -45,6 +43,12 @@ export function getPlatformCapabilities(): PlatformCapabilities {
       capabilities.features.hasProcess = true;
       capabilities.features.hasWindow = true;
       capabilities.features.hasElectronAPIs = true;
+      break;
+    case "electron-renderer":
+      capabilities.features.hasProcess = true;
+      capabilities.features.hasWindow = true;
+      capabilities.features.hasElectronAPIs = true;
+      capabilities.features.hasDocument = typeof document !== "undefined";
       break;
     case "react-native":
       capabilities.features.hasAsyncStorage = detectAsyncStorage();
@@ -86,7 +90,8 @@ function detectTimerCapability(): boolean {
  * Detect if file system operations are available.
  */
 function detectFileSystemCapability(): boolean {
-  return isNodeJs() || isElectron();
+  const platform = detectPlatform();
+  return platform === "node" || platform === "electron";
 }
 
 /**
