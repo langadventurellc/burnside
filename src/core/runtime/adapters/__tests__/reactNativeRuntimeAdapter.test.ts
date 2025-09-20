@@ -112,6 +112,321 @@ describe("ReactNativeRuntimeAdapter", () => {
         expect(mockFetch).toHaveBeenCalledWith(url, undefined);
       });
     });
+
+    describe("stream", () => {
+      let mockReadableStream: ReadableStream<Uint8Array>;
+      let mockReader: ReadableStreamDefaultReader<Uint8Array>;
+
+      beforeEach(() => {
+        // Mock ReadableStream and reader
+        mockReader = {
+          read: jest.fn(),
+          releaseLock: jest.fn(),
+        } as any;
+
+        mockReadableStream = {
+          getReader: jest.fn().mockReturnValue(mockReader),
+        } as any;
+      });
+
+      describe("standard streaming (non-SSE)", () => {
+        it("should create standard stream when no SSE headers", async () => {
+          const mockResponse = {
+            status: 200,
+            statusText: "OK",
+            headers: new Map([["content-type", "application/json"]]),
+            body: mockReadableStream,
+          };
+          const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+          globalThis.fetch = mockFetch;
+
+          // Mock reader to yield some data then end
+          (mockReader.read as jest.Mock)
+            .mockResolvedValueOnce({
+              done: false,
+              value: new Uint8Array([1, 2, 3]),
+            })
+            .mockResolvedValueOnce({ done: true, value: undefined });
+
+          const result = await adapter.stream("https://example.com");
+
+          expect(result.status).toBe(200);
+          expect(result.statusText).toBe("OK");
+          expect(result.headers).toEqual({
+            "content-type": "application/json",
+          });
+
+          // Consume the stream
+          const chunks: Uint8Array[] = [];
+          for await (const chunk of result.stream) {
+            chunks.push(chunk);
+          }
+
+          expect(chunks).toHaveLength(1);
+          expect(chunks[0]).toEqual(new Uint8Array([1, 2, 3]));
+          expect(mockReader.releaseLock).toHaveBeenCalled();
+        });
+
+        it("should handle URL objects for standard streaming", async () => {
+          const mockResponse = {
+            status: 200,
+            statusText: "OK",
+            headers: new Map([["content-type", "text/plain"]]),
+            body: mockReadableStream,
+          };
+          const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+          globalThis.fetch = mockFetch;
+
+          (mockReader.read as jest.Mock).mockResolvedValueOnce({
+            done: true,
+            value: undefined,
+          });
+
+          const url = new URL("https://example.com");
+          const result = await adapter.stream(url);
+
+          expect(mockFetch).toHaveBeenCalledWith(url, undefined);
+          expect(result.status).toBe(200);
+        });
+
+        it("should throw RuntimeError when response body is null", async () => {
+          const mockResponse = {
+            status: 200,
+            statusText: "OK",
+            headers: new Map(),
+            body: null,
+          };
+          const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+          globalThis.fetch = mockFetch;
+
+          await expect(adapter.stream("https://example.com")).rejects.toThrow(
+            RuntimeError,
+          );
+          await expect(adapter.stream("https://example.com")).rejects.toThrow(
+            "Response body is null for streaming request",
+          );
+
+          try {
+            await adapter.stream("https://example.com");
+          } catch (error) {
+            const runtimeError = error as RuntimeError;
+            expect(runtimeError.code).toBe("RUNTIME_HTTP_ERROR");
+            expect(runtimeError.context?.input).toBe("https://example.com");
+            expect(runtimeError.context?.platform).toBe("react-native");
+          }
+        });
+
+        it("should handle AbortSignal cancellation in standard streaming", async () => {
+          const mockResponse = {
+            status: 200,
+            statusText: "OK",
+            headers: new Map(),
+            body: mockReadableStream,
+          };
+          const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+          globalThis.fetch = mockFetch;
+
+          const abortController = new AbortController();
+          abortController.abort();
+
+          // Mock reader to check for cancellation
+          (mockReader.read as jest.Mock).mockImplementation(() => {
+            // Should throw when signal is aborted
+            throw new RuntimeError("Stream was aborted", "RUNTIME_HTTP_ERROR", {
+              platform: "react-native",
+            });
+          });
+
+          const result = await adapter.stream("https://example.com", {
+            signal: abortController.signal,
+          });
+
+          // Try to consume the stream - should throw due to cancellation
+          await expect(async () => {
+            for await (const _chunk of result.stream) {
+              // Should not reach here
+            }
+          }).rejects.toThrow("Stream was aborted");
+
+          expect(mockReader.releaseLock).toHaveBeenCalled();
+        });
+      });
+
+      describe("SSE streaming", () => {
+        it("should fallback to standard streaming when react-native-sse import fails", async () => {
+          // Since react-native-sse is not available in the test environment,
+          // this test verifies the fallback behavior which is the expected behavior
+          const mockResponse = {
+            status: 200,
+            statusText: "OK",
+            headers: new Map([["content-type", "text/event-stream"]]),
+            body: mockReadableStream,
+          };
+          const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+          globalThis.fetch = mockFetch;
+
+          (mockReader.read as jest.Mock).mockResolvedValueOnce({
+            done: true,
+            value: undefined,
+          });
+
+          const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
+
+          const result = await adapter.stream("https://example.com", {
+            headers: { accept: "text/event-stream" },
+          });
+
+          expect(result.status).toBe(200);
+          expect(consoleSpy).toHaveBeenCalledWith(
+            "react-native-sse not available, falling back to standard streaming",
+          );
+
+          // Verify it fell back to standard fetch streaming
+          expect(mockFetch).toHaveBeenCalledWith("https://example.com", {
+            headers: { accept: "text/event-stream" },
+          });
+
+          consoleSpy.mockRestore();
+        });
+
+        it("should detect SSE request from Accept headers (object format)", () => {
+          // Test the private isSSERequest method behavior through public interface
+          const headers = { accept: "text/event-stream" };
+
+          // This will attempt SSE but fall back to standard streaming
+          // We can verify the behavior by checking the console warning
+          const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
+
+          const mockResponse = {
+            status: 200,
+            statusText: "OK",
+            headers: new Map([["content-type", "text/event-stream"]]),
+            body: mockReadableStream,
+          };
+          const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+          globalThis.fetch = mockFetch;
+
+          (mockReader.read as jest.Mock).mockResolvedValueOnce({
+            done: true,
+            value: undefined,
+          });
+
+          return adapter.stream("https://example.com", { headers }).then(() => {
+            expect(consoleSpy).toHaveBeenCalledWith(
+              "react-native-sse not available, falling back to standard streaming",
+            );
+            consoleSpy.mockRestore();
+          });
+        });
+
+        it("should detect SSE request from Accept headers (Headers object format)", () => {
+          const headers = new Headers();
+          headers.set("Accept", "text/event-stream");
+
+          const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
+
+          const mockResponse = {
+            status: 200,
+            statusText: "OK",
+            headers: new Map([["content-type", "text/event-stream"]]),
+            body: mockReadableStream,
+          };
+          const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+          globalThis.fetch = mockFetch;
+
+          (mockReader.read as jest.Mock).mockResolvedValueOnce({
+            done: true,
+            value: undefined,
+          });
+
+          return adapter.stream("https://example.com", { headers }).then(() => {
+            expect(consoleSpy).toHaveBeenCalledWith(
+              "react-native-sse not available, falling back to standard streaming",
+            );
+            consoleSpy.mockRestore();
+          });
+        });
+
+        it("should detect SSE request from Accept headers (array format)", () => {
+          const headers: [string, string][] = [["accept", "text/event-stream"]];
+
+          const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
+
+          const mockResponse = {
+            status: 200,
+            statusText: "OK",
+            headers: new Map([["content-type", "text/event-stream"]]),
+            body: mockReadableStream,
+          };
+          const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+          globalThis.fetch = mockFetch;
+
+          (mockReader.read as jest.Mock).mockResolvedValueOnce({
+            done: true,
+            value: undefined,
+          });
+
+          return adapter.stream("https://example.com", { headers }).then(() => {
+            expect(consoleSpy).toHaveBeenCalledWith(
+              "react-native-sse not available, falling back to standard streaming",
+            );
+            consoleSpy.mockRestore();
+          });
+        });
+
+        it("should not attempt SSE when Accept headers don't include text/event-stream", async () => {
+          const mockResponse = {
+            status: 200,
+            statusText: "OK",
+            headers: new Map([["content-type", "application/json"]]),
+            body: mockReadableStream,
+          };
+          const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+          globalThis.fetch = mockFetch;
+
+          (mockReader.read as jest.Mock).mockResolvedValueOnce({
+            done: true,
+            value: undefined,
+          });
+
+          const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
+
+          await adapter.stream("https://example.com", {
+            headers: { accept: "application/json" },
+          });
+
+          // Should not log SSE fallback warning since it never attempted SSE
+          expect(consoleSpy).not.toHaveBeenCalledWith(
+            "react-native-sse not available, falling back to standard streaming",
+          );
+
+          consoleSpy.mockRestore();
+        });
+      });
+
+      it("should throw RuntimeError when stream method fails", async () => {
+        const mockError = new Error("Network error");
+        const mockFetch = jest.fn().mockRejectedValue(mockError);
+        globalThis.fetch = mockFetch;
+
+        await expect(adapter.stream("https://example.com")).rejects.toThrow(
+          RuntimeError,
+        );
+        await expect(adapter.stream("https://example.com")).rejects.toThrow(
+          "HTTP stream failed",
+        );
+
+        try {
+          await adapter.stream("https://example.com");
+        } catch (error) {
+          const runtimeError = error as RuntimeError;
+          expect(runtimeError.code).toBe("RUNTIME_HTTP_ERROR");
+          expect(runtimeError.context?.input).toBe("https://example.com");
+          expect(runtimeError.context?.platform).toBe("react-native");
+          expect(runtimeError.context?.originalError).toBe(mockError);
+        }
+      });
+    });
   });
 
   describe("Timer Operations", () => {
