@@ -60,6 +60,16 @@ affectedFiles:
     to pass RuntimeAdapter as first parameter. Updated all streaming tests to
     mock RuntimeAdapter.stream() method instead of fetch + ReadableStream.
     Created proper async iterables for stream mocking.
+  src/client/bridgeClient.ts: "Complete RuntimeAdapter integration: Updated
+    imports to add RuntimeAdapter and AdapterRegistry while removing unused
+    HttpClientConfig and FetchFunction imports. Added optional runtimeAdapter
+    parameter to constructor dependencies interface. Added private readonly
+    runtimeAdapter property. Implemented adapter resolution logic with
+    comprehensive error handling including platform detection for debugging
+    context. Updated transport creation to pass RuntimeAdapter directly instead
+    of creating HttpClientConfig with globalThis.fetch. Replaced setTimeout and
+    clearTimeout calls in createTimeoutSignal method with RuntimeAdapter timer
+    methods for true platform abstraction."
 log: []
 schema: v1.0
 childrenIds:
@@ -68,11 +78,11 @@ childrenIds:
   - T-replace-direct-timer-usage-in-3
   - T-replace-direct-timer-usage-in
   - T-update-bridgeclient-to-use
-  - T-update-httptransport-to-use
   - T-add-stream-method-to
   - T-implement-stream-method-in-1
   - T-implement-stream-method-in-2
   - T-implement-stream-method-in
+  - T-update-httptransport-to-use
 created: 2025-09-20T05:58:55.351Z
 updated: 2025-09-20T05:58:55.351Z
 ---

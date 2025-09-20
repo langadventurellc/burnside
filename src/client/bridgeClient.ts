@@ -21,13 +21,13 @@ import { ValidationError } from "../core/errors/validationError";
 import type { ModelInfo } from "../core/providers/modelInfo";
 import { logger } from "../core/logging";
 import { loggingConfigHelpers } from "../core/config";
+import type { RuntimeAdapter } from "../core/runtime/runtimeAdapter";
+import { AdapterRegistry } from "../core/runtime/adapterRegistry";
 import {
   HttpTransport,
   EnhancedHttpTransport,
   InterceptorChain,
   type Transport,
-  type HttpClientConfig,
-  type FetchFunction,
   type StreamResponse,
 } from "../core/transport/index";
 import { HttpErrorNormalizer } from "../core/errors/httpErrorNormalizer";
@@ -82,6 +82,7 @@ export class BridgeClient {
   private readonly providerRegistry: ProviderRegistry;
   private readonly modelRegistry: ModelRegistry;
   private readonly httpTransport: Transport;
+  private readonly runtimeAdapter: RuntimeAdapter;
   private readonly initializedProviders = new Set<string>();
   private toolRouter?: ToolRouter;
   private agentLoop?: AgentLoop;
@@ -100,6 +101,7 @@ export class BridgeClient {
       transport?: Transport;
       providerRegistry?: ProviderRegistry;
       modelRegistry?: ModelRegistry;
+      runtimeAdapter?: RuntimeAdapter;
     },
   ) {
     this.config = this.validateAndTransformConfig(config);
@@ -112,17 +114,34 @@ export class BridgeClient {
       deps?.providerRegistry ?? new InMemoryProviderRegistry();
     this.modelRegistry = deps?.modelRegistry ?? new InMemoryModelRegistry();
 
+    // Resolve runtime adapter with error handling
+    try {
+      this.runtimeAdapter =
+        deps?.runtimeAdapter ?? AdapterRegistry.getInstance().getAdapter();
+    } catch (error) {
+      throw new BridgeError(
+        "Failed to resolve runtime adapter",
+        "RUNTIME_ADAPTER_UNAVAILABLE",
+        {
+          platform:
+            typeof window !== "undefined"
+              ? "browser"
+              : typeof process !== "undefined"
+                ? "node"
+                : "unknown",
+          originalError: error,
+        },
+      );
+    }
+
     // Build default transport or use injected one
     if (deps?.transport) {
       this.httpTransport = deps.transport;
     } else {
-      const httpClientConfig: HttpClientConfig = {
-        fetch: globalThis.fetch as FetchFunction,
-      };
       const interceptors = new InterceptorChain();
       const errorNormalizer = new HttpErrorNormalizer();
       const baseTransport = new HttpTransport(
-        httpClientConfig,
+        this.runtimeAdapter,
         interceptors,
         errorNormalizer,
       );
@@ -256,7 +275,10 @@ export class BridgeClient {
     cancel: () => void;
   } {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const timer = this.runtimeAdapter.setTimeout(
+      () => controller.abort(),
+      timeoutMs,
+    );
 
     // Combine with external signal if provided
     if (externalSignal) {
@@ -271,7 +293,7 @@ export class BridgeClient {
 
     return {
       signal: controller.signal,
-      cancel: () => clearTimeout(timer),
+      cancel: () => this.runtimeAdapter.clearTimeout(timer),
     };
   }
 

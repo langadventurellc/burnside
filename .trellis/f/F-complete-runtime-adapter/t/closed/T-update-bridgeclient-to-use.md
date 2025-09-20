@@ -1,13 +1,33 @@
 ---
 id: T-update-bridgeclient-to-use
 title: Update BridgeClient to use RuntimeAdapter throughout
-status: open
+status: done
 priority: high
 parent: F-complete-runtime-adapter
 prerequisites:
   - T-update-httptransport-to-use
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/client/bridgeClient.ts: "Complete RuntimeAdapter integration: Updated
+    imports to add RuntimeAdapter and AdapterRegistry while removing unused
+    HttpClientConfig and FetchFunction imports. Added optional runtimeAdapter
+    parameter to constructor dependencies interface. Added private readonly
+    runtimeAdapter property. Implemented adapter resolution logic with
+    comprehensive error handling including platform detection for debugging
+    context. Updated transport creation to pass RuntimeAdapter directly instead
+    of creating HttpClientConfig with globalThis.fetch. Replaced setTimeout and
+    clearTimeout calls in createTimeoutSignal method with RuntimeAdapter timer
+    methods for true platform abstraction."
+log:
+  - Successfully completed RuntimeAdapter integration in BridgeClient by
+    eliminating all direct platform API usage (globalThis.fetch, setTimeout,
+    clearTimeout) and replacing HttpClientConfig-based transport creation with
+    direct RuntimeAdapter passing. BridgeClient now resolves RuntimeAdapter
+    automatically via AdapterRegistry when not provided through dependency
+    injection, with comprehensive error handling that provides clear platform
+    context when adapter resolution fails. Transport creation has been
+    simplified to pass RuntimeAdapter directly to HttpTransport, and all timer
+    operations use platform-appropriate implementations through the adapter. All
+    quality checks pass and tests confirm functionality is preserved.
 schema: v1.0
 childrenIds: []
 created: 2025-09-20T06:09:16.138Z
