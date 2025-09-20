@@ -80,7 +80,9 @@ affectedFiles:
   src/core/tools/toolExecutionPipeline.ts: Added RuntimeAdapter parameter to
     execute method and included runtimeAdapter in ExecutionContext creation
   src/core/tools/toolRouter.ts: Added RuntimeAdapter to constructor parameters,
-    stored as class property, and passed to pipeline.execute calls
+    stored as class property, and passed to pipeline.execute calls; Added
+    getRuntimeAdapter() public method to expose runtime adapter to consumers
+    like AgentLoop
   src/core/tools/__tests__/toolRouter.test.ts: Added mock RuntimeAdapter setup
     that works with Jest fake timers and updated all ToolRouter instantiations
     to include runtime adapter parameter, added test timeout for timer tests
@@ -113,16 +115,34 @@ affectedFiles:
   src/core/transport/__tests__/enhancedHttpTransport.test.ts: Added mock
     RuntimeAdapter setup, updated all EnhancedHttpTransport instantiations with
     runtime adapter, fixed test expectations for new delayPromise signature
+  src/core/agent/cancellation/cancellationManager.ts: Updated constructor to
+    accept RuntimeAdapter as first parameter, replaced all direct timer calls
+    (setTimeout, clearTimeout, setInterval, clearInterval) with runtime adapter
+    methods, changed timer handle types from platform-specific to TimerHandle
+  src/core/agent/cancellation/streamCancellationHandler.ts:
+    Updated constructor to
+    accept RuntimeAdapter as second parameter, replaced all direct timer calls
+    with runtime adapter methods, changed timer handle types to TimerHandle
+  src/core/agent/agentLoop.ts: Updated CancellationManager instantiation to pass
+    this.toolRouter.getRuntimeAdapter() as first parameter
+  src/core/agent/cancellation/__tests__/cancellationManager.test.ts:
+    Added createMockRuntimeAdapter helper function, updated all
+    CancellationManager constructor calls to include mock runtime adapter as
+    first parameter
+  src/core/agent/cancellation/__tests__/streamCancellationHandler.test.ts:
+    Added createMockRuntimeAdapter helper function, updated all
+    CancellationManager and StreamCancellationHandler constructor calls to
+    include mock runtime adapter parameters in correct positions
 log: []
 schema: v1.0
 childrenIds:
-  - T-replace-direct-timer-usage-in-1
   - T-replace-direct-timer-usage-in-2
   - T-replace-direct-timer-usage-in-3
   - T-add-stream-method-to
   - T-implement-stream-method-in-1
   - T-implement-stream-method-in-2
   - T-implement-stream-method-in
+  - T-replace-direct-timer-usage-in-1
   - T-replace-direct-timer-usage-in
   - T-update-bridgeclient-to-use
   - T-update-httptransport-to-use

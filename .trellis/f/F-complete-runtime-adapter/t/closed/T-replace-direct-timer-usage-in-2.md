@@ -1,13 +1,44 @@
 ---
 id: T-replace-direct-timer-usage-in-2
 title: Replace direct timer usage in agent cancellation managers
-status: open
+status: done
 priority: medium
 parent: F-complete-runtime-adapter
 prerequisites:
   - T-replace-direct-timer-usage-in-1
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/tools/toolRouter.ts:
+    Added getRuntimeAdapter() public method to expose
+    runtime adapter to consumers like AgentLoop
+  src/core/agent/cancellation/cancellationManager.ts: Updated constructor to
+    accept RuntimeAdapter as first parameter, replaced all direct timer calls
+    (setTimeout, clearTimeout, setInterval, clearInterval) with runtime adapter
+    methods, changed timer handle types from platform-specific to TimerHandle
+  src/core/agent/cancellation/streamCancellationHandler.ts:
+    Updated constructor to
+    accept RuntimeAdapter as second parameter, replaced all direct timer calls
+    with runtime adapter methods, changed timer handle types to TimerHandle
+  src/core/agent/agentLoop.ts: Updated CancellationManager instantiation to pass
+    this.toolRouter.getRuntimeAdapter() as first parameter
+  src/core/agent/cancellation/__tests__/cancellationManager.test.ts:
+    Added createMockRuntimeAdapter helper function, updated all
+    CancellationManager constructor calls to include mock runtime adapter as
+    first parameter
+  src/core/agent/cancellation/__tests__/streamCancellationHandler.test.ts:
+    Added createMockRuntimeAdapter helper function, updated all
+    CancellationManager and StreamCancellationHandler constructor calls to
+    include mock runtime adapter parameters in correct positions
+log:
+  - Successfully replaced all direct timer usage in agent cancellation managers
+    with runtime adapter timer methods. Updated CancellationManager and
+    StreamCancellationHandler constructors to accept RuntimeAdapter as
+    dependency, ensuring platform-consistent timer behavior across Node.js,
+    Electron, and React Native environments. All timer operations (setTimeout,
+    clearTimeout, setInterval, clearInterval) now use runtime adapter methods.
+    Updated AgentLoop to provide RuntimeAdapter to CancellationManager via
+    ToolRouter.getRuntimeAdapter(). All tests updated with mock RuntimeAdapter
+    instances. Implementation maintains exact same timing behavior and
+    functionality while providing true platform abstraction.
 schema: v1.0
 childrenIds: []
 created: 2025-09-20T06:10:48.201Z

@@ -189,6 +189,13 @@ export class ToolRouter {
   }
 
   /**
+   * Get the runtime adapter used by this router
+   */
+  getRuntimeAdapter(): RuntimeAdapter {
+    return this.runtimeAdapter;
+  }
+
+  /**
    * Execute multiple tool calls using configurable strategy
    */
   async executeMultiple(

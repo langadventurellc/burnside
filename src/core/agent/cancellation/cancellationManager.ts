@@ -8,6 +8,8 @@
 
 import type { CancellationOptions } from "./cancellationOptions";
 import type { CancellableExecutionContext } from "./cancellableExecutionContext";
+import type { RuntimeAdapter } from "../../runtime/runtimeAdapter";
+import type { TimerHandle } from "../../runtime/timerHandle";
 import { createCancellationError } from "./createCancellationError";
 import { createTimeoutError } from "./createTimeoutError";
 import { fromAbortSignal } from "./fromAbortSignal";
@@ -55,19 +57,25 @@ import { fromAbortSignal } from "./fromAbortSignal";
 export class CancellationManager {
   private readonly abortController: AbortController;
   private readonly externalSignal?: AbortSignal;
-  private checkInterval?: ReturnType<typeof setInterval>;
+  private checkInterval?: TimerHandle;
   private readonly cleanupHandlers: Array<() => Promise<void>> = [];
   private readonly options: Required<Omit<CancellationOptions, "signal">> & {
     signal?: AbortSignal;
   };
   private cancellationReason?: string;
+  private readonly runtimeAdapter: RuntimeAdapter;
 
   /**
    * Create a new CancellationManager
    *
+   * @param runtimeAdapter - Runtime adapter for platform-agnostic timer operations
    * @param options - Configuration options for cancellation behavior
    */
-  constructor(options: CancellationOptions = {}) {
+  constructor(
+    runtimeAdapter: RuntimeAdapter,
+    options: CancellationOptions = {},
+  ) {
+    this.runtimeAdapter = runtimeAdapter;
     this.abortController = new AbortController();
     this.externalSignal = options.signal;
 
@@ -192,7 +200,7 @@ export class CancellationManager {
       return; // Already scheduled
     }
 
-    this.checkInterval = setInterval(() => {
+    this.checkInterval = this.runtimeAdapter.setInterval(() => {
       // This method primarily exists for future extensibility
       // Currently just provides a hook for external monitoring
       if (this.isCancelled()) {
@@ -214,7 +222,7 @@ export class CancellationManager {
    */
   stopPeriodicChecks(): void {
     if (this.checkInterval) {
-      clearInterval(this.checkInterval);
+      this.runtimeAdapter.clearInterval(this.checkInterval);
       this.checkInterval = undefined;
     }
   }
@@ -269,10 +277,10 @@ export class CancellationManager {
     }
 
     const timeoutMs = this.options.gracefulCancellationTimeoutMs;
-    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+    let timeoutHandle: TimerHandle;
 
     const timeoutPromise = new Promise<never>((_, reject) => {
-      timeoutHandle = setTimeout(() => {
+      timeoutHandle = this.runtimeAdapter.setTimeout(() => {
         reject(
           createTimeoutError(
             timeoutMs,
@@ -298,7 +306,7 @@ export class CancellationManager {
     } finally {
       // Always clear the timeout to prevent handle leaks
       if (timeoutHandle !== undefined) {
-        clearTimeout(timeoutHandle);
+        this.runtimeAdapter.clearTimeout(timeoutHandle);
       }
     }
   }

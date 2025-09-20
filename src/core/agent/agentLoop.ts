@@ -92,14 +92,17 @@ export class AgentLoop {
       defaultOptions.gracefulCancellationTimeoutMs ||
       defaultOptions.cleanupOnCancel !== undefined
     ) {
-      this.cancellationManager = new CancellationManager({
-        signal: defaultOptions.signal,
-        cancellationCheckIntervalMs:
-          defaultOptions.cancellationCheckIntervalMs ?? 100,
-        gracefulCancellationTimeoutMs:
-          defaultOptions.gracefulCancellationTimeoutMs ?? 5000,
-        cleanupOnCancel: defaultOptions.cleanupOnCancel ?? true,
-      });
+      this.cancellationManager = new CancellationManager(
+        this.toolRouter.getRuntimeAdapter(),
+        {
+          signal: defaultOptions.signal,
+          cancellationCheckIntervalMs:
+            defaultOptions.cancellationCheckIntervalMs ?? 100,
+          gracefulCancellationTimeoutMs:
+            defaultOptions.gracefulCancellationTimeoutMs ?? 5000,
+          cleanupOnCancel: defaultOptions.cleanupOnCancel ?? true,
+        },
+      );
 
       // Register cleanup handler for conversation state preservation
       this.cancellationManager.addCleanupHandler(() => {
