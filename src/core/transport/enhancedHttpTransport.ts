@@ -63,6 +63,7 @@ import type { RetryStats } from "./retryStats";
 import { RateLimiter } from "./rateLimiting/rateLimiter";
 import { RetryPolicy } from "./retry/retryPolicy";
 import { delayPromise } from "./retry/delayPromise";
+import type { RuntimeAdapter } from "../runtime/runtimeAdapter";
 import { extractRateLimitContext } from "./contextExtractor";
 import { TransportError } from "../errors/transportError";
 
@@ -78,6 +79,9 @@ interface EnhancedTransportConfig {
 
   /** Optional retry configuration */
   retryConfig?: RetryConfig;
+
+  /** Runtime adapter for timer operations (required for rate limiting and retry delays) */
+  runtimeAdapter?: RuntimeAdapter;
 }
 
 /**
@@ -98,6 +102,7 @@ interface EnhancedTransportConfig {
  */
 export class EnhancedHttpTransport implements Transport {
   private readonly baseTransport: Transport;
+  private readonly runtimeAdapter?: RuntimeAdapter;
   private rateLimiter?: RateLimiter;
   private retryPolicy?: RetryPolicy;
   private retryStats: RetryStats;
@@ -109,6 +114,7 @@ export class EnhancedHttpTransport implements Transport {
    */
   constructor(config: EnhancedTransportConfig) {
     this.baseTransport = config.baseTransport;
+    this.runtimeAdapter = config.runtimeAdapter;
 
     // Initialize rate limiter if configuration provided
     if (config.rateLimitConfig) {
@@ -257,7 +263,10 @@ export class EnhancedHttpTransport implements Transport {
     if (!this.rateLimiter.checkLimit(context)) {
       // Rate limit exceeded, wait for a short period before retrying
       const waitMs = 1000; // 1 second default wait time
-      await delayPromise(waitMs);
+      if (!this.runtimeAdapter) {
+        throw new Error("RuntimeAdapter is required for rate limiting delays");
+      }
+      await delayPromise(waitMs, this.runtimeAdapter);
     }
   }
 
@@ -398,7 +407,10 @@ export class EnhancedHttpTransport implements Transport {
 
     if (decision.delayMs > 0) {
       delays.push(decision.delayMs);
-      await delayPromise(decision.delayMs, signal);
+      if (!this.runtimeAdapter) {
+        throw new Error("RuntimeAdapter is required for retry delays");
+      }
+      await delayPromise(decision.delayMs, this.runtimeAdapter, signal);
     }
   }
 

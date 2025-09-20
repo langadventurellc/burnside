@@ -101,17 +101,29 @@ affectedFiles:
   src/core/agent/__tests__/terminationIntegration.test.ts: Added mock
     RuntimeAdapter setup and updated ToolRouter instantiation for termination
     integration tests
+  src/core/transport/retry/delayPromise.ts: Updated function signature to accept
+    RuntimeAdapter parameter, replaced setTimeout/clearTimeout with runtime
+    adapter methods, updated JSDoc documentation
+  src/core/transport/enhancedHttpTransport.ts: Added RuntimeAdapter support to
+    EnhancedTransportConfig, updated constructor and delayPromise calls to use
+    runtime adapter, added validation for runtime adapter requirement
+  src/core/transport/retry/__tests__/backoffStrategy.test.ts: Added mock
+    RuntimeAdapter setup and updated all delayPromise calls to include runtime
+    adapter parameter
+  src/core/transport/__tests__/enhancedHttpTransport.test.ts: Added mock
+    RuntimeAdapter setup, updated all EnhancedHttpTransport instantiations with
+    runtime adapter, fixed test expectations for new delayPromise signature
 log: []
 schema: v1.0
 childrenIds:
   - T-replace-direct-timer-usage-in-1
   - T-replace-direct-timer-usage-in-2
   - T-replace-direct-timer-usage-in-3
-  - T-replace-direct-timer-usage-in
   - T-add-stream-method-to
   - T-implement-stream-method-in-1
   - T-implement-stream-method-in-2
   - T-implement-stream-method-in
+  - T-replace-direct-timer-usage-in
   - T-update-bridgeclient-to-use
   - T-update-httptransport-to-use
 created: 2025-09-20T05:58:55.351Z

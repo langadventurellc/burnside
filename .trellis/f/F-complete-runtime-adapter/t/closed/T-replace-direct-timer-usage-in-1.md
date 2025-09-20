@@ -1,13 +1,31 @@
 ---
 id: T-replace-direct-timer-usage-in-1
 title: Replace direct timer usage in transport retry logic
-status: open
+status: done
 priority: medium
 parent: F-complete-runtime-adapter
 prerequisites:
   - T-replace-direct-timer-usage-in
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/transport/retry/delayPromise.ts: Updated function signature to accept
+    RuntimeAdapter parameter, replaced setTimeout/clearTimeout with runtime
+    adapter methods, updated JSDoc documentation
+  src/core/transport/enhancedHttpTransport.ts: Added RuntimeAdapter support to
+    EnhancedTransportConfig, updated constructor and delayPromise calls to use
+    runtime adapter, added validation for runtime adapter requirement
+  src/core/transport/retry/__tests__/backoffStrategy.test.ts: Added mock
+    RuntimeAdapter setup and updated all delayPromise calls to include runtime
+    adapter parameter
+  src/core/transport/__tests__/enhancedHttpTransport.test.ts: Added mock
+    RuntimeAdapter setup, updated all EnhancedHttpTransport instantiations with
+    runtime adapter, fixed test expectations for new delayPromise signature
+log:
+  - Successfully replaced direct timer usage in transport retry logic with
+    runtime adapter timer methods. Updated delayPromise function signature to
+    accept RuntimeAdapter parameter, modified EnhancedHttpTransport to support
+    runtime adapter configuration, and updated all test files to work with the
+    new signature. All functionality preserved including AbortSignal
+    cancellation while achieving true platform abstraction for timer operations.
 schema: v1.0
 childrenIds: []
 created: 2025-09-20T06:10:15.477Z

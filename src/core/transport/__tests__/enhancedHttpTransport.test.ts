@@ -15,6 +15,7 @@ import type { ProviderHttpResponse } from "../providerHttpResponse";
 import type { StreamResponse } from "../streamResponse";
 import type { RateLimitConfig } from "../rateLimiting/rateLimitConfig";
 import type { RetryConfig } from "../retry/retryConfig";
+import type { RuntimeAdapter } from "../../runtime/runtimeAdapter";
 
 // Mock the delayPromise function
 jest.mock("../retry/delayPromise");
@@ -28,8 +29,26 @@ describe("EnhancedHttpTransport", () => {
   let mockRequest: ProviderHttpRequest;
   let mockResponse: ProviderHttpResponse;
   let mockAbortSignal: AbortSignal;
+  let mockRuntimeAdapter: RuntimeAdapter;
 
   beforeEach(() => {
+    // Create mock runtime adapter
+    mockRuntimeAdapter = {
+      setTimeout: jest.fn((callback: () => void, timeout: number) => {
+        return setTimeout(callback, timeout);
+      }),
+      clearTimeout: jest.fn((handle: unknown) => {
+        if (handle) {
+          clearTimeout(handle as NodeJS.Timeout);
+        }
+      }),
+      fetch: jest.fn(),
+      stream: jest.fn(),
+      readFile: jest.fn(),
+      writeFile: jest.fn(),
+      fileExists: jest.fn(),
+    } as unknown as RuntimeAdapter;
+
     // Create mock base transport
     mockBaseTransport = {
       fetch: jest.fn(),
@@ -90,6 +109,7 @@ describe("EnhancedHttpTransport", () => {
       enhancedTransport = new EnhancedHttpTransport({
         baseTransport: mockBaseTransport,
         rateLimitConfig,
+        runtimeAdapter: mockRuntimeAdapter,
       });
 
       expect(enhancedTransport).toBeInstanceOf(EnhancedHttpTransport);
@@ -108,6 +128,7 @@ describe("EnhancedHttpTransport", () => {
       enhancedTransport = new EnhancedHttpTransport({
         baseTransport: mockBaseTransport,
         retryConfig,
+        runtimeAdapter: mockRuntimeAdapter,
       });
 
       expect(enhancedTransport).toBeInstanceOf(EnhancedHttpTransport);
@@ -125,6 +146,7 @@ describe("EnhancedHttpTransport", () => {
           jitter: false,
           retryableStatusCodes: [429, 500],
         },
+        runtimeAdapter: mockRuntimeAdapter,
       });
 
       expect(enhancedTransport).toBeInstanceOf(EnhancedHttpTransport);
@@ -218,6 +240,7 @@ describe("EnhancedHttpTransport", () => {
       enhancedTransport = new EnhancedHttpTransport({
         baseTransport: mockBaseTransport,
         rateLimitConfig,
+        runtimeAdapter: mockRuntimeAdapter,
       });
 
       const result = await enhancedTransport.fetch(mockRequest);
@@ -237,6 +260,7 @@ describe("EnhancedHttpTransport", () => {
       enhancedTransport = new EnhancedHttpTransport({
         baseTransport: mockBaseTransport,
         rateLimitConfig,
+        runtimeAdapter: mockRuntimeAdapter,
       });
 
       // Mock the rate limiter to return false (rate limited)
@@ -255,7 +279,7 @@ describe("EnhancedHttpTransport", () => {
 
       await enhancedTransport.fetch(mockRequest);
 
-      expect(mockDelayPromise).toHaveBeenCalledWith(1000);
+      expect(mockDelayPromise).toHaveBeenCalledWith(1000, mockRuntimeAdapter);
       expect(mockBaseTransport.fetch).toHaveBeenCalledTimes(1);
     });
   });
@@ -274,6 +298,7 @@ describe("EnhancedHttpTransport", () => {
       enhancedTransport = new EnhancedHttpTransport({
         baseTransport: mockBaseTransport,
         retryConfig,
+        runtimeAdapter: mockRuntimeAdapter,
       });
 
       // First call fails with 500, second succeeds
@@ -303,6 +328,7 @@ describe("EnhancedHttpTransport", () => {
       enhancedTransport = new EnhancedHttpTransport({
         baseTransport: mockBaseTransport,
         retryConfig,
+        runtimeAdapter: mockRuntimeAdapter,
       });
 
       // Mock the retry policy to return shouldRetry: false for non-retryable status
@@ -337,6 +363,7 @@ describe("EnhancedHttpTransport", () => {
       enhancedTransport = new EnhancedHttpTransport({
         baseTransport: mockBaseTransport,
         retryConfig,
+        runtimeAdapter: mockRuntimeAdapter,
       });
 
       const error = new TransportError("Server Error", { status: 500 });
@@ -360,6 +387,7 @@ describe("EnhancedHttpTransport", () => {
       enhancedTransport = new EnhancedHttpTransport({
         baseTransport: mockBaseTransport,
         retryConfig,
+        runtimeAdapter: mockRuntimeAdapter,
       });
 
       mockBaseTransport.fetch.mockRejectedValue(
@@ -451,6 +479,7 @@ describe("EnhancedHttpTransport", () => {
       enhancedTransport = new EnhancedHttpTransport({
         baseTransport: mockBaseTransport,
         retryConfig,
+        runtimeAdapter: mockRuntimeAdapter,
       });
 
       // First call fails, second succeeds
@@ -481,6 +510,7 @@ describe("EnhancedHttpTransport", () => {
           jitter: false,
           retryableStatusCodes: [500],
         },
+        runtimeAdapter: mockRuntimeAdapter,
       });
 
       mockBaseTransport.fetch.mockRejectedValue("string error");
@@ -501,6 +531,7 @@ describe("EnhancedHttpTransport", () => {
           jitter: false,
           retryableStatusCodes: [500],
         },
+        runtimeAdapter: mockRuntimeAdapter,
       });
 
       mockBaseTransport.fetch.mockRejectedValue({ unknown: "error" });
@@ -553,6 +584,7 @@ describe("EnhancedHttpTransport", () => {
         baseTransport: mockBaseTransport,
         rateLimitConfig,
         retryConfig,
+        runtimeAdapter: mockRuntimeAdapter,
       });
 
       // First call fails with 500, second succeeds
@@ -588,6 +620,7 @@ describe("EnhancedHttpTransport", () => {
         baseTransport: mockBaseTransport,
         rateLimitConfig,
         retryConfig,
+        runtimeAdapter: mockRuntimeAdapter,
       });
 
       const mockStream = mockStreamResponse([new Uint8Array([1, 2, 3])]);

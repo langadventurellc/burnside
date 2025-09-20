@@ -5,6 +5,7 @@ import {
   createBackoffStrategy,
   delayPromise,
 } from "../index";
+import type { RuntimeAdapter } from "../../../runtime/runtimeAdapter";
 
 describe("Exponential Backoff Strategy", () => {
   describe("Basic Delay Calculation", () => {
@@ -419,10 +420,30 @@ describe("Factory Function", () => {
 });
 
 describe("Delay Promise Utility", () => {
+  let mockRuntimeAdapter: RuntimeAdapter;
+
+  beforeEach(() => {
+    // Create mock runtime adapter that works with Jest fake timers
+    mockRuntimeAdapter = {
+      setTimeout: jest.fn((callback: () => void, timeout: number) => {
+        return setTimeout(callback, timeout);
+      }),
+      clearTimeout: jest.fn((handle: unknown) => {
+        if (handle) {
+          clearTimeout(handle as NodeJS.Timeout);
+        }
+      }),
+      fetch: jest.fn(),
+      stream: jest.fn(),
+      readFile: jest.fn(),
+      writeFile: jest.fn(),
+      fileExists: jest.fn(),
+    } as unknown as RuntimeAdapter;
+  });
   describe("Normal Operation", () => {
     it("should resolve after specified delay", async () => {
       const startTime = Date.now();
-      await delayPromise(100);
+      await delayPromise(100, mockRuntimeAdapter);
       const elapsed = Date.now() - startTime;
 
       // Allow for some timing tolerance
@@ -432,7 +453,7 @@ describe("Delay Promise Utility", () => {
 
     it("should resolve immediately for zero delay", async () => {
       const startTime = Date.now();
-      await delayPromise(0);
+      await delayPromise(0, mockRuntimeAdapter);
       const elapsed = Date.now() - startTime;
 
       expect(elapsed).toBeLessThan(100);
@@ -441,23 +462,29 @@ describe("Delay Promise Utility", () => {
 
   describe("AbortSignal Integration", () => {
     it("should resolve normally without signal", async () => {
-      await expect(delayPromise(50)).resolves.toBeUndefined();
+      await expect(
+        delayPromise(50, mockRuntimeAdapter),
+      ).resolves.toBeUndefined();
     });
 
     it("should reject immediately if signal is already aborted", async () => {
       const controller = new AbortController();
       controller.abort();
 
-      await expect(delayPromise(100, controller.signal)).rejects.toThrow(
-        "Delay was aborted",
-      );
+      await expect(
+        delayPromise(100, mockRuntimeAdapter, controller.signal),
+      ).rejects.toThrow("Delay was aborted");
     });
 
     it("should reject when signal is aborted during delay", async () => {
       const controller = new AbortController();
 
       // Start delay and abort after 50ms
-      const delayPromiseCall = delayPromise(200, controller.signal);
+      const delayPromiseCall = delayPromise(
+        200,
+        mockRuntimeAdapter,
+        controller.signal,
+      );
       setTimeout(() => controller.abort(), 50);
 
       await expect(delayPromiseCall).rejects.toThrow("Delay was aborted");
@@ -471,7 +498,7 @@ describe("Delay Promise Utility", () => {
       const addEventListenerSpy = jest.spyOn(signal, "addEventListener");
       const removeEventListenerSpy = jest.spyOn(signal, "removeEventListener");
 
-      await delayPromise(50, signal);
+      await delayPromise(50, mockRuntimeAdapter, signal);
 
       expect(addEventListenerSpy).toHaveBeenCalledWith(
         "abort",
@@ -491,7 +518,11 @@ describe("Delay Promise Utility", () => {
       const controller = new AbortController();
 
       // Start delay and abort immediately
-      const delayPromiseCall = delayPromise(1000, controller.signal);
+      const delayPromiseCall = delayPromise(
+        1000,
+        mockRuntimeAdapter,
+        controller.signal,
+      );
       controller.abort();
 
       try {
