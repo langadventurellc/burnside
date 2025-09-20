@@ -1,20 +1,29 @@
 /**
  * Enhanced HTTP Transport with Rate Limiting and Retry Support
  *
- * Wraps the existing HttpTransport with rate limiting and retry capabilities
- * while maintaining full backward compatibility. Supports both fetch and streaming
- * operations with configurable rate limiting and automatic retry logic.
+ * A self-managing, fire-and-forget HTTP transport that wraps existing HttpTransport
+ * with production-ready rate limiting and retry capabilities. No manual lifecycle
+ * management is required - the transport automatically manages all internal resources
+ * without timers or cleanup requirements.
+ *
+ * **Key Features:**
+ * - Fire-and-forget design - no cleanup required
+ * - Timer-free implementation prevents memory leaks
+ * - Self-managing rate limiting with periodic cleanup
+ * - Automatic retry logic with exponential backoff
+ * - Full backward compatibility with Transport interface
  *
  * @example Basic usage with rate limiting and retries
  * ```typescript
  * const baseTransport = new HttpTransport(config, interceptors, errorNormalizer);
  * const enhancedTransport = new EnhancedHttpTransport({
  *   baseTransport,
- *   rateLimitConfig: { maxRps: 10, enabled: true },
+ *   rateLimitConfig: { maxRps: 10, enabled: true, scope: "provider:model" },
  *   retryConfig: { attempts: 2, backoff: "exponential" }
  * });
  *
  * const response = await enhancedTransport.fetch(request);
+ * // No cleanup needed - transport manages itself
  * ```
  *
  * @example Streaming with rate limiting
@@ -23,6 +32,21 @@
  * for await (const chunk of stream) {
  *   console.log(new TextDecoder().decode(chunk));
  * }
+ * // Transport automatically cleans up internal resources
+ * ```
+ *
+ * @example Multiple instances work independently
+ * ```typescript
+ * // Create multiple instances without interference
+ * const transport1 = new EnhancedHttpTransport({ baseTransport, rateLimitConfig: { ... } });
+ * const transport2 = new EnhancedHttpTransport({ baseTransport, retryConfig: { ... } });
+ *
+ * // Use concurrently - no coordination needed
+ * await Promise.all([
+ *   transport1.fetch(request1),
+ *   transport2.fetch(request2)
+ * ]);
+ * // All instances self-manage - no cleanup required
  * ```
  */
 
@@ -58,9 +82,18 @@ interface EnhancedTransportConfig {
 /**
  * Enhanced HTTP Transport with rate limiting and retry capabilities.
  *
- * Wraps the existing HttpTransport with production-ready reliability features
- * including token bucket rate limiting and exponential backoff retries while
- * maintaining full Transport interface compatibility.
+ * A self-managing transport that wraps existing HttpTransport with production-ready
+ * reliability features including timer-free rate limiting and exponential backoff
+ * retries. Designed as a fire-and-forget service with no manual lifecycle management
+ * required - all internal resources are automatically managed without timers or
+ * cleanup requirements.
+ *
+ * **Lifecycle Management:**
+ * - No destroy() method needed or provided
+ * - No manual cleanup required
+ * - Multiple instances work independently
+ * - Safe to create and discard at will
+ * - Timer-free design prevents memory leaks
  */
 export class EnhancedHttpTransport implements Transport {
   private readonly baseTransport: Transport;
