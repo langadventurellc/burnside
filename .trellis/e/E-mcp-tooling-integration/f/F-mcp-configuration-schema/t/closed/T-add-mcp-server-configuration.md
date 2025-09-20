@@ -1,13 +1,40 @@
 ---
 id: T-add-mcp-server-configuration
 title: Add MCP server configuration type exports and interfaces
-status: open
+status: done
 priority: medium
 parent: F-mcp-configuration-schema
 prerequisites:
   - T-extend-bridgeconfigschema
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/config/mcpServerSchema.ts:
+    Created Zod schema for individual MCP server
+    configuration with name and URL validation including HTTP/HTTPS protocol
+    enforcement
+  src/core/config/mcpServersArraySchema.ts: Created Zod schema for MCP servers
+    array with uniqueness validation and optional handling
+  src/core/config/mcpServerConfig.ts: Created TypeScript type for individual MCP
+    server configuration derived from Zod schema
+  src/core/config/mcpServerConfigs.ts: Created TypeScript type for MCP servers
+    array extracted from BridgeConfigSchema tools section
+  src/core/config/validateMcpServerConfig.ts: Created type guard function for
+    validating MCP server configuration using schema parsing
+  src/core/config/validateMcpServerConfigs.ts: Created type guard function for
+    validating MCP servers array using schema parsing
+  src/core/config/index.ts: Updated to export all new MCP configuration types,
+    schemas, and validation functions
+  src/core/config/__tests__/mcpServerConfig.test.ts: Created comprehensive test
+    suite with 27 test cases covering schema validation, type guards, edge
+    cases, and TypeScript type compatibility
+log:
+  - Successfully implemented MCP server configuration type exports and
+    interfaces. Created schema-derived TypeScript types that maintain
+    synchronization with existing Zod validation schemas. Implemented validation
+    functions using schema parsing for type safety. All 27 unit tests pass,
+    covering type derivation, validation scenarios, edge cases, and TypeScript
+    type narrowing. Files follow single export per file rule to satisfy linting
+    requirements. Quality checks pass including TypeScript compilation and
+    ESLint validation.
 schema: v1.0
 childrenIds: []
 created: 2025-09-20T19:38:37.161Z

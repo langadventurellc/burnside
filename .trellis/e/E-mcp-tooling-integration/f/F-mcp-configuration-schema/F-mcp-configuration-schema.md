@@ -12,12 +12,31 @@ affectedFiles:
   src/core/config/__tests__/bridgeConfigSchema.test.ts: Added comprehensive unit
     tests for MCP server validation covering valid/invalid configurations,
     protocol validation, duplicate name detection, and integration scenarios
+  src/core/config/mcpServerSchema.ts:
+    Created Zod schema for individual MCP server
+    configuration with name and URL validation including HTTP/HTTPS protocol
+    enforcement
+  src/core/config/mcpServersArraySchema.ts: Created Zod schema for MCP servers
+    array with uniqueness validation and optional handling
+  src/core/config/mcpServerConfig.ts: Created TypeScript type for individual MCP
+    server configuration derived from Zod schema
+  src/core/config/mcpServerConfigs.ts: Created TypeScript type for MCP servers
+    array extracted from BridgeConfigSchema tools section
+  src/core/config/validateMcpServerConfig.ts: Created type guard function for
+    validating MCP server configuration using schema parsing
+  src/core/config/validateMcpServerConfigs.ts: Created type guard function for
+    validating MCP servers array using schema parsing
+  src/core/config/index.ts: Updated to export all new MCP configuration types,
+    schemas, and validation functions
+  src/core/config/__tests__/mcpServerConfig.test.ts: Created comprehensive test
+    suite with 27 test cases covering schema validation, type guards, edge
+    cases, and TypeScript type compatibility
 log: []
 schema: v1.0
 childrenIds:
   - T-add-mcp-server-configuration
-  - T-extend-bridgeconfigschema
   - T-update-toolsconfig-type-to
+  - T-extend-bridgeconfigschema
 created: 2025-09-20T19:16:43.325Z
 updated: 2025-09-20T19:16:43.325Z
 ---
