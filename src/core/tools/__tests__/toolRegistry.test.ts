@@ -242,6 +242,188 @@ describe("InMemoryToolRegistry", () => {
     });
   });
 
+  describe("addTool() alias method", () => {
+    it("registers valid tool successfully (identical behavior to register)", () => {
+      const definition = createMockToolDefinition("echo");
+      const handler = createMockToolHandler();
+
+      expect(() => registry.addTool("echo", definition, handler)).not.toThrow();
+      expect(registry.has("echo")).toBe(true);
+    });
+
+    it("allows multiple tools to be registered", () => {
+      const echoDefinition = createMockToolDefinition("echo");
+      const calcDefinition = createMockToolDefinition("calculator");
+      const echoHandler = createMockToolHandler();
+      const calcHandler = createMockToolHandler();
+
+      registry.addTool("echo", echoDefinition, echoHandler);
+      registry.addTool("calculator", calcDefinition, calcHandler);
+
+      expect(registry.has("echo")).toBe(true);
+      expect(registry.has("calculator")).toBe(true);
+      expect(registry.size()).toBe(2);
+    });
+
+    it("overwrites existing tool registration with warning", () => {
+      const definition1 = createMockToolDefinition(
+        "echo",
+        "Original echo tool",
+      );
+      const definition2 = createMockToolDefinition("echo", "Updated echo tool");
+      const handler = createMockToolHandler();
+
+      // Mock console.warn to capture warning
+      const originalWarn = console.warn;
+      const warnSpy = jest.fn();
+      console.warn = warnSpy;
+
+      try {
+        registry.addTool("echo", definition1, handler);
+        registry.addTool("echo", definition2, handler);
+
+        const retrieved = registry.get("echo");
+        expect(retrieved?.definition.description).toBe("Updated echo tool");
+        expect(warnSpy).toHaveBeenCalledWith(
+          expect.stringContaining(
+            "Overwriting existing tool registration: echo",
+          ),
+        );
+      } finally {
+        console.warn = originalWarn;
+      }
+    });
+
+    it("validates tool name format", () => {
+      const definition = createMockToolDefinition("invalid tool name");
+      const handler = createMockToolHandler();
+
+      expect(() =>
+        registry.addTool("invalid tool name", definition, handler),
+      ).toThrow(ToolError);
+    });
+
+    it("validates tool definition schema", () => {
+      const invalidDefinition = {
+        name: "test",
+        // Missing required inputSchema
+      } as ToolDefinition;
+      const handler = createMockToolHandler();
+
+      expect(() =>
+        registry.addTool("test", invalidDefinition, handler),
+      ).toThrow(ToolError);
+    });
+
+    it("validates tool handler is a function", () => {
+      const definition = createMockToolDefinition("echo");
+
+      expect(() =>
+        registry.addTool("echo", definition, "not a function" as any),
+      ).toThrow(ToolError);
+    });
+
+    it("can be used interchangeably with register", () => {
+      const echoDefinition = createMockToolDefinition("echo");
+      const calcDefinition = createMockToolDefinition("calculator");
+      const handler = createMockToolHandler();
+
+      // Register with addTool, should be retrievable same as register
+      registry.addTool("echo", echoDefinition, handler);
+      registry.register("calculator", calcDefinition, handler);
+
+      expect(registry.has("echo")).toBe(true);
+      expect(registry.has("calculator")).toBe(true);
+      expect(registry.size()).toBe(2);
+    });
+  });
+
+  describe("removeTool() alias method", () => {
+    beforeEach(() => {
+      const definition = createMockToolDefinition("echo");
+      const handler = createMockToolHandler();
+      registry.register("echo", definition, handler);
+    });
+
+    it("removes existing tool successfully (identical behavior to unregister)", () => {
+      expect(registry.has("echo")).toBe(true);
+      const result = registry.removeTool("echo");
+
+      expect(result).toBe(true);
+      expect(registry.has("echo")).toBe(false);
+      expect(registry.size()).toBe(0);
+    });
+
+    it("returns false for non-existent tool", () => {
+      const result = registry.removeTool("nonexistent");
+      expect(result).toBe(false);
+    });
+
+    it("returns false for invalid tool name", () => {
+      expect(registry.removeTool(null as any)).toBe(false);
+      expect(registry.removeTool(undefined as any)).toBe(false);
+      expect(registry.removeTool("")).toBe(false);
+    });
+
+    it("can be used interchangeably with unregister", () => {
+      const calcDefinition = createMockToolDefinition("calculator");
+      const handler = createMockToolHandler();
+      registry.register("calculator", calcDefinition, handler);
+
+      // Tool registered with register(), remove with removeTool()
+      expect(registry.removeTool("echo")).toBe(true);
+      expect(registry.has("echo")).toBe(false);
+
+      // Tool registered with register(), remove with unregister()
+      expect(registry.unregister("calculator")).toBe(true);
+      expect(registry.has("calculator")).toBe(false);
+    });
+  });
+
+  describe("cross-method compatibility", () => {
+    it("tools registered with addTool can be removed with unregister", () => {
+      const definition = createMockToolDefinition("echo");
+      const handler = createMockToolHandler();
+
+      registry.addTool("echo", definition, handler);
+      expect(registry.has("echo")).toBe(true);
+
+      const result = registry.unregister("echo");
+      expect(result).toBe(true);
+      expect(registry.has("echo")).toBe(false);
+    });
+
+    it("tools registered with register can be removed with removeTool", () => {
+      const definition = createMockToolDefinition("calculator");
+      const handler = createMockToolHandler();
+
+      registry.register("calculator", definition, handler);
+      expect(registry.has("calculator")).toBe(true);
+
+      const result = registry.removeTool("calculator");
+      expect(result).toBe(true);
+      expect(registry.has("calculator")).toBe(false);
+    });
+
+    it("mixed registration and removal methods work seamlessly", () => {
+      const echoDefinition = createMockToolDefinition("echo");
+      const calcDefinition = createMockToolDefinition("calculator");
+      const handler = createMockToolHandler();
+
+      // Mixed registration
+      registry.addTool("echo", echoDefinition, handler);
+      registry.register("calculator", calcDefinition, handler);
+
+      expect(registry.size()).toBe(2);
+
+      // Mixed removal
+      expect(registry.removeTool("echo")).toBe(true);
+      expect(registry.unregister("calculator")).toBe(true);
+
+      expect(registry.size()).toBe(0);
+    });
+  });
+
   describe("has()", () => {
     beforeEach(() => {
       const definition = createMockToolDefinition("echo");

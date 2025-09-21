@@ -1,15 +1,29 @@
 ---
 id: F-dynamic-tool-registration
 title: Dynamic Tool Registration System
-status: open
+status: in-progress
 priority: medium
 parent: E-mcp-tooling-integration
 prerequisites:
   - F-mcp-protocol-core-implementati
-affectedFiles: {}
+affectedFiles:
+  src/core/tools/inMemoryToolRegistry.ts: Added addTool() and removeTool() alias
+    methods with simple delegation pattern and comprehensive JSDoc documentation
+  src/core/tools/toolRegistry.ts: Extended ToolRegistry interface to include
+    addTool() and removeTool() method signatures with JSDoc documentation
+  src/core/tools/__tests__/toolRegistry.test.ts:
+    Added comprehensive test coverage
+    with 20 new test cases verifying identical behavior, validation, error
+    handling, and cross-method compatibility
 log: []
 schema: v1.0
-childrenIds: []
+childrenIds:
+  - T-add-dynamic-tool-addition-and
+  - T-add-failure-strategy
+  - T-add-mcp-connection-cleanup-to
+  - T-extend-bridgeclientinitializet
+  - T-implement-tool-failure
+  - T-update-tool-router-to-handle
 created: 2025-09-20T19:18:45.587Z
 updated: 2025-09-20T19:18:45.587Z
 ---

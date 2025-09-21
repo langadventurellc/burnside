@@ -196,6 +196,14 @@ affectedFiles:
   src/tools/mcp/mcpErrorRecovery.ts: Created error recovery system with
     exponential backoff, circuit breaker patterns, connection health monitoring,
     and graceful degradation strategies
+  src/core/tools/inMemoryToolRegistry.ts: Added addTool() and removeTool() alias
+    methods with simple delegation pattern and comprehensive JSDoc documentation
+  src/core/tools/toolRegistry.ts: Extended ToolRegistry interface to include
+    addTool() and removeTool() method signatures with JSDoc documentation
+  src/core/tools/__tests__/toolRegistry.test.ts:
+    Added comprehensive test coverage
+    with 20 new test cases verifying identical behavior, validation, error
+    handling, and cross-method compatibility
 log: []
 schema: v1.0
 childrenIds:
