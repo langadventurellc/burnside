@@ -506,4 +506,356 @@ describe("NodeRuntimeAdapter", () => {
       });
     });
   });
+
+  describe("MCP Operations", () => {
+    describe("createMcpConnection", () => {
+      const mockFetch = jest.fn();
+      const validServerUrl = "http://localhost:3000/mcp";
+      const httpsServerUrl = "https://example.com/mcp";
+
+      beforeEach(() => {
+        // Replace adapter's fetch method with mock
+        adapter.fetch = mockFetch;
+        mockFetch.mockClear();
+      });
+
+      it("should create and initialize MCP connection successfully", async () => {
+        // Mock successful initialization response
+        mockFetch.mockResolvedValue({
+          ok: true,
+          text: () =>
+            Promise.resolve(
+              JSON.stringify({
+                jsonrpc: "2.0",
+                result: { initialized: true },
+                id: "node_123_1",
+              }),
+            ),
+        });
+
+        const connection = await adapter.createMcpConnection(validServerUrl);
+
+        expect(connection).toBeDefined();
+        expect(connection.isConnected).toBe(true);
+        expect(mockFetch).toHaveBeenCalledWith(
+          validServerUrl,
+          expect.objectContaining({
+            method: "POST",
+            headers: expect.objectContaining({
+              "Content-Type": "application/json",
+            }),
+            body: expect.stringContaining("initialize"),
+          }),
+        );
+      });
+
+      it("should support HTTPS URLs", async () => {
+        mockFetch.mockResolvedValue({
+          ok: true,
+          text: () =>
+            Promise.resolve(
+              JSON.stringify({
+                jsonrpc: "2.0",
+                result: { initialized: true },
+                id: "node_123_1",
+              }),
+            ),
+        });
+
+        const connection = await adapter.createMcpConnection(httpsServerUrl);
+
+        expect(connection).toBeDefined();
+        expect(connection.isConnected).toBe(true);
+      });
+
+      it("should pass connection options to MCP connection", async () => {
+        const options = {
+          headers: { "X-Custom": "test" },
+          signal: new AbortController().signal,
+        };
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          text: () =>
+            Promise.resolve(
+              JSON.stringify({
+                jsonrpc: "2.0",
+                result: { initialized: true },
+                id: "node_123_1",
+              }),
+            ),
+        });
+
+        const connection = await adapter.createMcpConnection(
+          validServerUrl,
+          options,
+        );
+
+        expect(connection).toBeDefined();
+        expect(mockFetch).toHaveBeenCalledWith(
+          validServerUrl,
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              "Content-Type": "application/json",
+              "X-Custom": "test",
+            }),
+            signal: options.signal,
+          }),
+        );
+      });
+
+      it("should throw RuntimeError for invalid URL format", async () => {
+        await expect(
+          adapter.createMcpConnection("invalid-url"),
+        ).rejects.toThrow(RuntimeError);
+      });
+
+      it("should throw RuntimeError for unsupported protocol", async () => {
+        await expect(
+          adapter.createMcpConnection("ftp://example.com/mcp"),
+        ).rejects.toThrow(RuntimeError);
+      });
+
+      it("should throw RuntimeError when initialization fails", async () => {
+        mockFetch.mockResolvedValue({
+          ok: false,
+          status: 500,
+          statusText: "Internal Server Error",
+        });
+
+        await expect(
+          adapter.createMcpConnection(validServerUrl),
+        ).rejects.toThrow(RuntimeError);
+      });
+
+      it("should handle network errors during connection", async () => {
+        mockFetch.mockRejectedValue(new Error("Network error"));
+
+        await expect(
+          adapter.createMcpConnection(validServerUrl),
+        ).rejects.toThrow(RuntimeError);
+      });
+
+      it("should support AbortSignal cancellation", async () => {
+        const controller = new AbortController();
+        const promise = adapter.createMcpConnection(validServerUrl, {
+          signal: controller.signal,
+        });
+
+        controller.abort();
+
+        await expect(promise).rejects.toThrow();
+      });
+    });
+
+    describe("NodeMcpConnection", () => {
+      let connection: any;
+      const mockFetch = jest.fn();
+      const serverUrl = "http://localhost:3000/mcp";
+
+      beforeEach(async () => {
+        adapter.fetch = mockFetch;
+        mockFetch.mockClear();
+
+        // Mock successful initialization
+        mockFetch.mockResolvedValue({
+          ok: true,
+          text: () =>
+            Promise.resolve(
+              JSON.stringify({
+                jsonrpc: "2.0",
+                result: { initialized: true },
+                id: "node_123_1",
+              }),
+            ),
+        });
+
+        connection = await adapter.createMcpConnection(serverUrl);
+      });
+
+      describe("call", () => {
+        it("should make JSON-RPC request and return result", async () => {
+          const expectedResult = { tools: ["calculator", "weather"] };
+          mockFetch.mockResolvedValue({
+            ok: true,
+            text: () =>
+              Promise.resolve(
+                JSON.stringify({
+                  jsonrpc: "2.0",
+                  result: expectedResult,
+                  id: "node_123_2",
+                }),
+              ),
+          });
+
+          const result = await connection.call("tools/list");
+
+          expect(result).toEqual(expectedResult);
+          expect(mockFetch).toHaveBeenCalledWith(
+            serverUrl,
+            expect.objectContaining({
+              method: "POST",
+              body: expect.stringContaining("tools/list"),
+            }),
+          );
+        });
+
+        it("should make JSON-RPC request with parameters", async () => {
+          const params = { name: "calculator", operation: "add" };
+          const expectedResult = { result: 5 };
+
+          mockFetch.mockResolvedValue({
+            ok: true,
+            text: () =>
+              Promise.resolve(
+                JSON.stringify({
+                  jsonrpc: "2.0",
+                  result: expectedResult,
+                  id: "node_123_2",
+                }),
+              ),
+          });
+
+          const result = await connection.call("tools/call", params);
+
+          expect(result).toEqual(expectedResult);
+
+          const callArgs = mockFetch.mock.calls[1]?.[1] as { body: string };
+          const callBody = JSON.parse(callArgs.body);
+          expect(callBody.params).toEqual(params);
+        });
+
+        it("should throw error for JSON-RPC error response", async () => {
+          const errorResponse = {
+            jsonrpc: "2.0",
+            error: {
+              code: -32601,
+              message: "Method not found",
+              data: { method: "invalid/method" },
+            },
+            id: "node_123_2",
+          };
+
+          mockFetch.mockResolvedValue({
+            ok: true,
+            text: () => Promise.resolve(JSON.stringify(errorResponse)),
+          });
+
+          await expect(connection.call("invalid/method")).rejects.toThrow(
+            "Method not found",
+          );
+        });
+
+        it("should throw RuntimeError when not connected", async () => {
+          await connection.close();
+
+          await expect(connection.call("test")).rejects.toThrow(RuntimeError);
+        });
+      });
+
+      describe("notify", () => {
+        it("should send JSON-RPC notification without expecting response", async () => {
+          mockFetch.mockResolvedValue({
+            ok: true,
+            text: () => Promise.resolve(""),
+          });
+
+          await connection.notify("client/ready");
+
+          expect(mockFetch).toHaveBeenCalledWith(
+            serverUrl,
+            expect.objectContaining({
+              method: "POST",
+              body: expect.stringContaining("client/ready"),
+            }),
+          );
+
+          const callArgs = mockFetch.mock.calls[1]?.[1] as { body: string };
+          const callBody = JSON.parse(callArgs.body);
+          expect(callBody.id).toBeUndefined();
+        });
+
+        it("should send notification with parameters", async () => {
+          const params = { status: "processing", progress: 50 };
+
+          mockFetch.mockResolvedValue({
+            ok: true,
+            text: () => Promise.resolve(""),
+          });
+
+          await connection.notify("client/progress", params);
+
+          const callArgs = mockFetch.mock.calls[1]?.[1] as { body: string };
+          const callBody = JSON.parse(callArgs.body);
+          expect(callBody.params).toEqual(params);
+        });
+
+        it("should throw RuntimeError when not connected", async () => {
+          await connection.close();
+
+          await expect(connection.notify("test")).rejects.toThrow(RuntimeError);
+        });
+      });
+
+      describe("close", () => {
+        it("should close connection and set isConnected to false", async () => {
+          expect(connection.isConnected).toBe(true);
+
+          await connection.close();
+
+          expect(connection.isConnected).toBe(false);
+        });
+
+        it("should allow multiple close calls", async () => {
+          await connection.close();
+          await connection.close();
+
+          expect(connection.isConnected).toBe(false);
+        });
+      });
+
+      describe("error handling", () => {
+        it("should handle HTTP errors from server", async () => {
+          mockFetch.mockResolvedValue({
+            ok: false,
+            status: 404,
+            statusText: "Not Found",
+          });
+
+          await expect(connection.call("test")).rejects.toThrow(RuntimeError);
+        });
+
+        it("should handle invalid JSON responses", async () => {
+          mockFetch.mockResolvedValue({
+            ok: true,
+            text: () => Promise.resolve("invalid json"),
+          });
+
+          await expect(connection.call("test")).rejects.toThrow(RuntimeError);
+        });
+
+        it("should handle non-JSON-RPC 2.0 responses", async () => {
+          mockFetch.mockResolvedValue({
+            ok: true,
+            text: () =>
+              Promise.resolve(
+                JSON.stringify({
+                  jsonrpc: "1.0",
+                  result: {},
+                  id: "test",
+                }),
+              ),
+          });
+
+          await expect(connection.call("test")).rejects.toThrow(RuntimeError);
+        });
+
+        it("should handle network failures", async () => {
+          mockFetch.mockRejectedValue(new Error("Network error"));
+
+          await expect(connection.call("test")).rejects.toThrow(RuntimeError);
+        });
+      });
+    });
+  });
 });

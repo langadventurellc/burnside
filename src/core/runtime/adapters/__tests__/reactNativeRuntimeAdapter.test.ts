@@ -662,4 +662,296 @@ describe("ReactNativeRuntimeAdapter", () => {
       });
     });
   });
+
+  describe("MCP Operations", () => {
+    describe("createMcpConnection", () => {
+      it("should create MCP connection for valid remote URLs", async () => {
+        const mockResponse = {
+          ok: true,
+          headers: { get: jest.fn().mockReturnValue("application/json") },
+          json: jest
+            .fn()
+            .mockResolvedValue({ jsonrpc: "2.0", id: 1, result: {} }),
+        };
+
+        const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+        globalThis.fetch = mockFetch;
+
+        const connection = await adapter.createMcpConnection(
+          "https://example.com/mcp",
+        );
+
+        expect(connection).toBeDefined();
+        expect(connection.isConnected).toBe(true);
+        expect(mockFetch).toHaveBeenCalledWith(
+          "https://example.com/mcp",
+          expect.objectContaining({
+            method: "POST",
+            headers: expect.objectContaining({
+              "Content-Type": "application/json",
+            }),
+            body: expect.stringContaining('"method":"ping"'),
+          }),
+        );
+      });
+
+      it("should accept localhost URLs for testing", async () => {
+        const mockResponse = {
+          ok: true,
+          headers: { get: jest.fn().mockReturnValue("application/json") },
+          json: jest
+            .fn()
+            .mockResolvedValue({ jsonrpc: "2.0", id: 1, result: {} }),
+        };
+
+        const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+        globalThis.fetch = mockFetch;
+
+        const connection = await adapter.createMcpConnection(
+          "http://localhost:3000",
+        );
+
+        expect(connection).toBeDefined();
+        expect(connection.isConnected).toBe(true);
+      });
+
+      it("should accept private IP addresses for testing", async () => {
+        const mockResponse = {
+          ok: true,
+          headers: { get: jest.fn().mockReturnValue("application/json") },
+          json: jest
+            .fn()
+            .mockResolvedValue({ jsonrpc: "2.0", id: 1, result: {} }),
+        };
+
+        const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+        globalThis.fetch = mockFetch;
+
+        const connection = await adapter.createMcpConnection(
+          "http://192.168.1.100:3000",
+        );
+
+        expect(connection).toBeDefined();
+        expect(connection.isConnected).toBe(true);
+      });
+
+      it("should reject invalid protocols", async () => {
+        const testUrls = [
+          "ftp://example.com",
+          "file://example.com",
+          "ws://example.com",
+          "custom://example.com",
+        ];
+
+        for (const url of testUrls) {
+          await expect(adapter.createMcpConnection(url)).rejects.toThrow(
+            "Invalid MCP server URL. Must be HTTP/HTTPS remote server",
+          );
+        }
+      });
+
+      it("should reject invalid URL formats", async () => {
+        const testUrls = ["not-a-url", "://invalid", "", "http://"];
+
+        for (const url of testUrls) {
+          await expect(adapter.createMcpConnection(url)).rejects.toThrow(
+            "Invalid MCP server URL format",
+          );
+        }
+      });
+
+      it("should pass custom headers to connection", async () => {
+        const mockResponse = {
+          ok: true,
+          headers: { get: jest.fn().mockReturnValue("application/json") },
+          json: jest
+            .fn()
+            .mockResolvedValue({ jsonrpc: "2.0", id: 1, result: {} }),
+        };
+
+        const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+        globalThis.fetch = mockFetch;
+
+        const customHeaders = { Authorization: "Bearer token123" };
+        await adapter.createMcpConnection("https://example.com/mcp", {
+          headers: customHeaders,
+        });
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          "https://example.com/mcp",
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              "Content-Type": "application/json",
+              Authorization: "Bearer token123",
+            }),
+          }),
+        );
+      });
+
+      it("should support AbortSignal cancellation", async () => {
+        const controller = new AbortController();
+        const mockResponse = {
+          ok: true,
+          headers: { get: jest.fn().mockReturnValue("application/json") },
+          json: jest
+            .fn()
+            .mockResolvedValue({ jsonrpc: "2.0", id: 1, result: {} }),
+        };
+
+        const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+        globalThis.fetch = mockFetch;
+
+        await adapter.createMcpConnection("https://example.com/mcp", {
+          signal: controller.signal,
+        });
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          "https://example.com/mcp",
+          expect.objectContaining({
+            signal: controller.signal,
+          }),
+        );
+      });
+
+      it("should handle connection initialization failures", async () => {
+        const mockFetch = jest
+          .fn()
+          .mockRejectedValue(new Error("Network error"));
+        globalThis.fetch = mockFetch;
+
+        await expect(
+          adapter.createMcpConnection("https://example.com/mcp"),
+        ).rejects.toThrow("Failed to create MCP connection");
+      });
+    });
+
+    describe("MCP Connection Operations", () => {
+      let connection: any;
+
+      beforeEach(async () => {
+        const mockResponse = {
+          ok: true,
+          headers: { get: jest.fn().mockReturnValue("application/json") },
+          json: jest
+            .fn()
+            .mockResolvedValue({ jsonrpc: "2.0", id: 1, result: {} }),
+        };
+
+        const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+        globalThis.fetch = mockFetch;
+        connection = await adapter.createMcpConnection(
+          "https://example.com/mcp",
+        );
+      });
+
+      it("should make successful JSON-RPC calls", async () => {
+        const mockResponse = {
+          ok: true,
+          headers: { get: jest.fn().mockReturnValue("application/json") },
+          json: jest.fn().mockResolvedValue({
+            jsonrpc: "2.0",
+            id: "test-id",
+            result: { tools: ["tool1", "tool2"] },
+          }),
+        };
+
+        const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+        globalThis.fetch = mockFetch;
+
+        const result = await connection.call("tools/list");
+
+        expect(result).toEqual({ tools: ["tool1", "tool2"] });
+        expect(mockFetch).toHaveBeenCalledWith(
+          "https://example.com/mcp",
+          expect.objectContaining({
+            method: "POST",
+            body: expect.stringContaining('"method":"tools/list"'),
+          }),
+        );
+      });
+
+      it("should handle JSON-RPC error responses", async () => {
+        const mockResponse = {
+          ok: true,
+          headers: { get: jest.fn().mockReturnValue("application/json") },
+          json: jest.fn().mockResolvedValue({
+            jsonrpc: "2.0",
+            id: "test-id",
+            error: { code: -32601, message: "Method not found" },
+          }),
+        };
+
+        const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+        globalThis.fetch = mockFetch;
+
+        await expect(connection.call("invalid/method")).rejects.toThrow(
+          "MCP call failed: Method not found",
+        );
+      });
+
+      it("should send JSON-RPC notifications", async () => {
+        const mockResponse = {
+          ok: true,
+          headers: { get: jest.fn().mockReturnValue("application/json") },
+          json: jest.fn().mockResolvedValue({}),
+        };
+
+        const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+        globalThis.fetch = mockFetch;
+
+        await connection.notify("client/ready", { status: "connected" });
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          "https://example.com/mcp",
+          expect.objectContaining({
+            method: "POST",
+            body: expect.stringContaining('"method":"client/ready"'),
+          }),
+        );
+      });
+
+      it("should handle HTTP errors", async () => {
+        const mockResponse = {
+          ok: false,
+          status: 500,
+          statusText: "Internal Server Error",
+          headers: { get: jest.fn().mockReturnValue("application/json") },
+        };
+
+        const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+        globalThis.fetch = mockFetch;
+
+        await expect(connection.call("test/method")).rejects.toThrow(
+          "HTTP error: 500 Internal Server Error",
+        );
+      });
+
+      it("should handle invalid content type", async () => {
+        const mockResponse = {
+          ok: true,
+          headers: { get: jest.fn().mockReturnValue("text/plain") },
+          json: jest.fn().mockResolvedValue({}),
+        };
+
+        const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+        globalThis.fetch = mockFetch;
+
+        await expect(connection.call("test/method")).rejects.toThrow(
+          "Invalid response content type. Expected application/json",
+        );
+      });
+
+      it("should close connection properly", async () => {
+        expect(connection.isConnected).toBe(true);
+
+        await connection.close();
+
+        expect(connection.isConnected).toBe(false);
+
+        await expect(connection.call("test/method")).rejects.toThrow(
+          "MCP connection is not active",
+        );
+      });
+    });
+  });
 });

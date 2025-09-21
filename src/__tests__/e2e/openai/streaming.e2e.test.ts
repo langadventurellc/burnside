@@ -3,7 +3,6 @@ import type { BridgeClient } from "../../../client/bridgeClient";
 import type { StreamDelta } from "../../../client/streamDelta";
 import type { Message } from "../../../core/messages/message";
 import { createTestClient } from "../shared/openAIModelHelpers";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered";
 import { getTestModel } from "../shared/getTestModel";
 import { loadTestConfig } from "../shared/openAITestConfig";
 import { createTestMessages } from "../shared/createTestMessages";
@@ -98,16 +97,12 @@ describe("OpenAI Streaming E2E", () => {
     loadTestConfig(); // Validate environment configuration
     client = createTestClient();
     testModel = getTestModel();
-    ensureModelRegistered(client, testModel);
   });
 
   describe("Basic Streaming", () => {
     test.each(openaiModels)(
       "should stream chat completion deltas with $name ($id)",
       async ({ id: modelId }) => {
-        // Ensure the model is registered
-        ensureModelRegistered(client, modelId);
-
         const messages = createTestMessages("Hello! Please respond briefly.");
 
         const streamPromise = client.stream({

@@ -3,7 +3,6 @@ import type { BridgeClient } from "../../../client/bridgeClient";
 import type { StreamDelta } from "../../../client/streamDelta";
 import type { Message } from "../../../core/messages/message";
 import { createGoogleTestClient } from "../shared/googleModelHelpers";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered";
 import { getGoogleTestModel } from "../shared/getGoogleTestModel";
 import { loadGoogleTestConfig } from "../shared/googleTestConfig";
 import { createTestMessages } from "../shared/createTestMessages";
@@ -106,7 +105,6 @@ describe("Google Streaming E2E", () => {
     loadGoogleTestConfig();
     client = createGoogleTestClient();
     testModel = getGoogleTestModel();
-    ensureModelRegistered(client, testModel);
   });
 
   describe("Basic Streaming", () => {

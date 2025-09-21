@@ -39,6 +39,7 @@ const createMockRuntimeAdapter = (): RuntimeAdapter => ({
   readFile: jest.fn(),
   writeFile: jest.fn(),
   fileExists: jest.fn(),
+  createMcpConnection: jest.fn(),
 });
 
 // Mock console.error to avoid noise in tests

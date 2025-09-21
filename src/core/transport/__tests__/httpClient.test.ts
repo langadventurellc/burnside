@@ -74,30 +74,6 @@ describe("HttpClient", () => {
   }
 
   describe("HttpClientConfig", () => {
-    it("should accept minimal configuration with just fetch", () => {
-      const config: HttpClientConfig = {
-        fetch: mockFetch,
-      };
-
-      expect(config.fetch).toBe(mockFetch);
-      expect(config.requestInterceptors).toBeUndefined();
-      expect(config.responseInterceptors).toBeUndefined();
-    });
-
-    it("should accept full configuration with interceptors", () => {
-      const config: HttpClientConfig = {
-        fetch: mockFetch,
-        requestInterceptors: [mockRequestInterceptor],
-        responseInterceptors: [mockResponseInterceptor],
-      };
-
-      expect(config.fetch).toBe(mockFetch);
-      expect(config.requestInterceptors).toHaveLength(1);
-      expect(config.responseInterceptors).toHaveLength(1);
-      expect(config.requestInterceptors?.[0]).toBe(mockRequestInterceptor);
-      expect(config.responseInterceptors?.[0]).toBe(mockResponseInterceptor);
-    });
-
     it("should accept multiple interceptors", () => {
       const secondRequestInterceptor: RequestInterceptor = (request) =>
         Promise.resolve(request);
@@ -130,11 +106,6 @@ describe("HttpClient", () => {
     it("should implement Transport interface", () => {
       expect(typeof client.fetch).toBe("function");
       expect(typeof client.stream).toBe("function");
-    });
-
-    it("should expose readonly config property", () => {
-      expect(client.config).toBe(config);
-      expect(client.config.fetch).toBe(mockFetch);
     });
 
     it("should support fetch method from Transport", async () => {

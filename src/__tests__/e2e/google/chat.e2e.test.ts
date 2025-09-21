@@ -2,7 +2,6 @@ import { describe, test, expect, beforeAll } from "@jest/globals";
 import type { BridgeClient } from "../../../client/bridgeClient";
 import type { Message } from "../../../core/messages/message";
 import { createGoogleTestClient } from "../shared/googleModelHelpers";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered";
 import { getGoogleTestModel } from "../shared/getGoogleTestModel";
 import { loadGoogleTestConfig } from "../shared/googleTestConfig";
 import { validateMessageSchema } from "../shared/testHelpers";
@@ -38,7 +37,6 @@ describe("Google Gemini Chat Completion E2E", () => {
     loadGoogleTestConfig(); // Validate environment configuration
     client = createGoogleTestClient();
     testModel = getGoogleTestModel();
-    ensureModelRegistered(client, testModel);
   });
 
   describe("Basic Chat Functionality", () => {
@@ -46,9 +44,6 @@ describe("Google Gemini Chat Completion E2E", () => {
     test.each(googleModels)(
       "should complete simple chat request with $name ($id)",
       async ({ id: modelId }) => {
-        // Ensure the model is registered
-        ensureModelRegistered(client, modelId);
-
         const messages = createTestMessages("Say hello.");
 
         const response = await withTimeout(

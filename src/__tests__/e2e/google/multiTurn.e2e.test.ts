@@ -1,7 +1,6 @@
 import { describe, test, expect, beforeAll } from "@jest/globals";
 import type { BridgeClient } from "../../../client/bridgeClient.js";
 import { createGoogleTestClient } from "../shared/googleModelHelpers.js";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered.js";
 import { getGoogleTestModel } from "../shared/getGoogleTestModel.js";
 import { loadGoogleTestConfig } from "../shared/googleTestConfig.js";
 import { validateMessageSchema } from "../shared/testHelpers.js";
@@ -27,7 +26,6 @@ describe("Google Multi-Turn Conversation E2E", () => {
     loadGoogleTestConfig(); // Validate environment configuration
     client = createGoogleTestClient();
     testModel = getGoogleTestModel();
-    ensureModelRegistered(client, testModel);
 
     // Ensure model supports tool calls
     const modelInfo = client.getModelRegistry().get(testModel);

@@ -25,6 +25,8 @@
 import type { PlatformInfo } from "./platformInfo";
 import type { TimerHandle } from "./timerHandle";
 import type { FileOperationOptions } from "./fileOperationOptions";
+import type { McpConnectionOptions } from "./mcpConnectionOptions";
+import type { McpConnection } from "./mcpConnection";
 
 /**
  * Runtime adapter interface defining platform abstraction contracts.
@@ -117,6 +119,72 @@ export interface RuntimeAdapter {
     headers: Record<string, string>;
     stream: AsyncIterable<Uint8Array>;
   }>;
+
+  /**
+   * Create an MCP (Model Context Protocol) connection.
+   *
+   * Establishes a JSON-RPC 2.0 connection to an MCP server for dynamic tool
+   * discovery and execution. The connection supports request/response patterns
+   * and notifications according to the MCP specification.
+   *
+   * Platform-specific behavior:
+   * - Node.js: Supports both local and remote MCP servers
+   * - Electron: Supports remote MCP servers with process-appropriate transport
+   * - React Native: Remote-only MCP servers using existing SSE infrastructure
+   *
+   * Connection establishment follows the same cancellation patterns as existing
+   * fetch and stream operations via the AbortSignal in options.signal.
+   *
+   * @param serverUrl - URL of the MCP server to connect to
+   * @param options - Optional connection configuration including AbortSignal
+   * @returns Promise resolving to an active MCP connection
+   *
+   * @throws {RuntimeError} When connection establishment fails
+   * @throws {Error} When serverUrl is invalid or options are malformed
+   *
+   * @example Basic connection
+   * ```typescript
+   * const connection = await adapter.createMcpConnection('http://localhost:3000');
+   *
+   * // Use connection for JSON-RPC communication
+   * const tools = await connection.call('tools/list');
+   * console.log('Available tools:', tools);
+   *
+   * // Clean up when done
+   * await connection.close();
+   * ```
+   *
+   * @example Connection with cancellation
+   * ```typescript
+   * const controller = new AbortController();
+   * setTimeout(() => controller.abort(), 10000); // Cancel after 10s
+   *
+   * try {
+   *   const connection = await adapter.createMcpConnection(
+   *     'http://localhost:3000',
+   *     { signal: controller.signal }
+   *   );
+   *   // Use connection...
+   * } catch (error) {
+   *   if (error.name === 'AbortError') {
+   *     console.log('Connection was cancelled');
+   *   }
+   * }
+   * ```
+   *
+   * @example Platform-aware usage
+   * ```typescript
+   * const serverUrl = adapter.platformInfo.platform === 'react-native'
+   *   ? 'https://remote-mcp-server.com'  // Remote only for RN
+   *   : 'http://localhost:3000';         // Local OK for Node/Electron
+   *
+   * const connection = await adapter.createMcpConnection(serverUrl);
+   * ```
+   */
+  createMcpConnection(
+    serverUrl: string,
+    options?: McpConnectionOptions,
+  ): Promise<McpConnection>;
 
   // Timer Operations
   /**

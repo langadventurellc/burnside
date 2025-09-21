@@ -59,13 +59,36 @@ function isOpenAIToolCall(value: unknown): value is OpenAIToolCall {
 export function extractToolCallsFromMessage(message: Message): ToolCall[] {
   const toolCalls: ToolCall[] = [];
 
+  // Check for tool calls in the message object itself (newer format)
+  const messageWithToolCalls = message as Message & { toolCalls?: ToolCall[] };
+  if (
+    messageWithToolCalls.toolCalls &&
+    Array.isArray(messageWithToolCalls.toolCalls)
+  ) {
+    logger.debug("Tool call extraction started", {
+      messageRole: message.role,
+      hasDirectToolCalls: true,
+      toolCallsCount: messageWithToolCalls.toolCalls.length,
+    });
+
+    // Direct tool calls are already in the correct format
+    toolCalls.push(...messageWithToolCalls.toolCalls);
+
+    logger.info("Tool call extraction completed (direct format)", {
+      extractedToolCalls: toolCalls.length,
+      toolNames: toolCalls.map((tc) => tc.name),
+    });
+
+    return toolCalls;
+  }
+
   logger.debug("Tool call extraction started", {
     messageRole: message.role,
     hasMetadata: Boolean(message.metadata),
     hasToolCalls: Boolean(message.metadata?.tool_calls),
   });
 
-  // Check message metadata for tool calls (OpenAI format)
+  // Check message metadata for tool calls (legacy OpenAI format)
   const toolCallsData = message.metadata?.tool_calls;
   if (toolCallsData && Array.isArray(toolCallsData)) {
     logger.debug("Processing tool calls from message metadata", {

@@ -3,7 +3,6 @@ import type { BridgeClient } from "../../../client/bridgeClient";
 import type { StreamDelta } from "../../../client/streamDelta";
 import type { Message } from "../../../core/messages/message";
 import { createAnthropicTestClient } from "../shared/anthropicModelHelpers";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered";
 import { getAnthropicTestModel } from "../shared/getAnthropicTestModel";
 import { loadAnthropicTestConfig } from "../shared/anthropicTestConfig";
 import { createTestMessages } from "../shared/createTestMessages";
@@ -106,7 +105,6 @@ describe("Anthropic Streaming E2E", () => {
     loadAnthropicTestConfig(); // Validate environment configuration
     client = createAnthropicTestClient();
     testModel = getAnthropicTestModel();
-    ensureModelRegistered(client, testModel);
   });
 
   describe("Basic Streaming", () => {
@@ -114,9 +112,6 @@ describe("Anthropic Streaming E2E", () => {
     test.each(anthropicModels)(
       "should stream chat completion deltas with $name ($id)",
       async ({ id: modelId }) => {
-        // Ensure the model is registered
-        ensureModelRegistered(client, modelId);
-
         const messages = createTestMessages("Test message");
 
         const streamPromise = client.stream({

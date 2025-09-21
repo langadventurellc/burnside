@@ -1,7 +1,6 @@
 import { describe, test, expect, beforeAll } from "@jest/globals";
 import type { BridgeClient } from "../../../client/bridgeClient";
 import { createTestClient } from "../shared/xaiModelHelpers";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered";
 import { getXaiTestModel } from "../shared/getXaiTestModel";
 import { loadXaiTestConfig } from "../shared/xaiTestConfig";
 import { validateMessageSchema } from "../shared/testHelpers";
@@ -25,7 +24,6 @@ describe("xAI Multi-Turn Conversation E2E", () => {
     loadXaiTestConfig(); // Validate environment configuration
     client = createTestClient();
     testModel = getXaiTestModel();
-    ensureModelRegistered(client, testModel);
 
     // Ensure model supports tool calls
     const modelInfo = client.getModelRegistry().get(testModel);

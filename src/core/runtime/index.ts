@@ -25,6 +25,8 @@ export type { PlatformInfo } from "./platformInfo";
 export type { PlatformCapabilities } from "./platformCapabilities";
 export type { TimerHandle } from "./timerHandle";
 export type { FileOperationOptions } from "./fileOperationOptions";
+export type { McpConnectionOptions } from "./mcpConnectionOptions";
+export type { McpConnection } from "./mcpConnection";
 
 // Error handling
 export { RuntimeError } from "./runtimeError";

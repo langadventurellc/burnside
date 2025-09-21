@@ -2,7 +2,6 @@ import { describe, test, expect, beforeAll } from "@jest/globals";
 import type { BridgeClient } from "../../../client/bridgeClient";
 import type { Message } from "../../../core/messages/message";
 import { createAnthropicTestClient } from "../shared/anthropicModelHelpers";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered";
 import { getAnthropicTestModel } from "../shared/getAnthropicTestModel";
 import { loadAnthropicTestConfig } from "../shared/anthropicTestConfig";
 import { validateMessageSchema } from "../shared/testHelpers";
@@ -38,7 +37,6 @@ describe("Anthropic Chat Completion E2E", () => {
     loadAnthropicTestConfig(); // Validate environment configuration
     client = createAnthropicTestClient();
     testModel = getAnthropicTestModel();
-    ensureModelRegistered(client, testModel);
   });
 
   describe("Basic Chat Functionality", () => {
@@ -46,9 +44,6 @@ describe("Anthropic Chat Completion E2E", () => {
     test.each(anthropicModels)(
       "should complete simple chat request with $name ($id)",
       async ({ id: modelId }) => {
-        // Ensure the model is registered
-        ensureModelRegistered(client, modelId);
-
         const messages = createTestMessages("Say hello.");
 
         const response = await withTimeout(

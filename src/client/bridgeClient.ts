@@ -43,6 +43,8 @@ import { shouldExecuteTools } from "./shouldExecuteTools";
 import { validateToolDefinitions } from "./validateToolDefinitions";
 import { shouldExecuteMultiTurn } from "./shouldExecuteMultiTurn";
 import { StreamingInterruptionWrapper } from "./streamingInterruptionWrapper";
+import { McpClient } from "../tools/mcp/mcpClient";
+import { McpToolRegistry } from "../tools/mcp/mcpToolRegistry";
 
 /**
  * Bridge Client Class
@@ -83,6 +85,8 @@ export class BridgeClient {
   private readonly httpTransport: Transport;
   private readonly runtimeAdapter: RuntimeAdapter;
   private readonly initializedProviders = new Set<string>();
+  private readonly mcpClients = new Map<string, McpClient>();
+  private readonly mcpToolRegistries = new Map<string, McpToolRegistry>();
   private toolRouter?: ToolRouter;
   private agentLoop?: AgentLoop;
 
@@ -310,9 +314,18 @@ export class BridgeClient {
    * @throws {ProviderError} When provider-specific errors occur (normalized via provider plugin)
    */
   async chat(request: ChatRequest): Promise<Message> {
-    // Validate tools if provided
-    if (request.tools && request.tools.length > 0) {
-      validateToolDefinitions(request.tools);
+    // Auto-include registered tools if tool system is enabled and no tools explicitly provided
+    let toolsToUse = request.tools;
+    if (!toolsToUse && this.isToolsEnabled() && this.toolRouter) {
+      const registeredTools = this.toolRouter.getRegisteredTools();
+      if (registeredTools.length > 0) {
+        toolsToUse = registeredTools;
+      }
+    }
+
+    // Validate tools if provided or auto-included
+    if (toolsToUse && toolsToUse.length > 0) {
+      validateToolDefinitions(toolsToUse);
 
       if (!shouldExecuteTools(true, this.isToolsEnabled())) {
         throw new BridgeError(
@@ -339,11 +352,12 @@ export class BridgeClient {
     const providerConfig = this.getProviderConfigOrThrow(id);
     await this.initializeProviderIfNeeded(plugin, providerConfig);
 
-    // Translate request
+    // Translate request with auto-included tools
     const httpReq = plugin.translateRequest({
       ...request,
       model: modelId.split(":")[1],
       stream: false,
+      tools: toolsToUse, // Use auto-included tools
     });
 
     // Apply timeout and combine with external signal
@@ -374,7 +388,7 @@ export class BridgeClient {
       };
 
       // Check for tool calls and execute if needed
-      if (request.tools && request.tools.length > 0 && this.isToolsEnabled()) {
+      if (toolsToUse && toolsToUse.length > 0 && this.isToolsEnabled()) {
         // Determine execution path: multi-turn vs single-turn
         if (shouldExecuteMultiTurn(request, this.isToolsEnabled())) {
           // Multi-turn execution path
@@ -826,8 +840,76 @@ export class BridgeClient {
     this.toolRouter = new ToolRouter(toolRegistry, 5000, this.runtimeAdapter);
     this.agentLoop = new AgentLoop(this.toolRouter, this.runtimeAdapter);
 
+    // Initialize MCP tool discovery if configured
+    this.initializeMcpTools(this.toolRouter);
+
     // Mark tool system as initialized
     this.config.toolSystemInitialized = true;
+  }
+
+  /**
+   * Initialize MCP tool discovery from configured servers
+   */
+  private initializeMcpTools(toolRouter: ToolRouter): void {
+    // Check if MCP servers are configured
+    if (
+      !this.config.tools?.mcpServers ||
+      this.config.tools.mcpServers.length === 0
+    ) {
+      return;
+    }
+
+    // Process each configured MCP server
+    for (const serverConfig of this.config.tools.mcpServers) {
+      this.connectToMcpServer(serverConfig, toolRouter);
+    }
+  }
+
+  /**
+   * Connect to an individual MCP server and register its tools
+   */
+  private connectToMcpServer(
+    serverConfig: { name: string; url: string },
+    toolRouter: ToolRouter,
+  ): void {
+    void (async () => {
+      try {
+        logger.info(
+          `Connecting to MCP server: ${serverConfig.name} at ${serverConfig.url}`,
+        );
+
+        // Create MCP client
+        const mcpClient = new McpClient(this.runtimeAdapter, serverConfig.url);
+
+        // Attempt connection
+        await mcpClient.connect();
+
+        // Store successful connection
+        this.mcpClients.set(serverConfig.name, mcpClient);
+
+        // Register tools using McpToolRegistry
+        const mcpToolRegistry = new McpToolRegistry(mcpClient);
+
+        await mcpToolRegistry.registerMcpTools(toolRouter);
+
+        // Store registry for cleanup during disposal
+        this.mcpToolRegistries.set(serverConfig.name, mcpToolRegistry);
+
+        logger.info(
+          `Successfully registered MCP tools from server: ${serverConfig.name}`,
+        );
+      } catch (error) {
+        // Log connection failures as warnings, not errors
+        const message =
+          error instanceof Error ? error.message : "Unknown connection error";
+        logger.warn(
+          `Failed to connect to MCP server ${serverConfig.name}: ${message}`,
+          { error },
+        );
+
+        // Continue processing other servers - don't fail initialization
+      }
+    })();
   }
 
   /**
@@ -915,6 +997,115 @@ export class BridgeClient {
     }
 
     return formatToolResultsAsMessages(toolResults);
+  }
+
+  /**
+   * Dispose Client Resources
+   *
+   * Properly cleans up MCP connections and tools when the client is disposed.
+   * This ensures resource cleanup and prevents connection leaks when clients
+   * are destroyed.
+   *
+   * This method is idempotent and safe to call multiple times. Cleanup errors
+   * are logged but do not throw exceptions to avoid breaking disposal workflows.
+   *
+   * @example
+   * ```typescript
+   * const client = new BridgeClient(config);
+   * // ... use client
+   * await client.dispose(); // Clean up resources
+   * ```
+   */
+  async dispose(): Promise<void> {
+    logger.info("Starting BridgeClient disposal and resource cleanup");
+
+    try {
+      await this.disconnectMcpClients();
+      this.unregisterMcpTools();
+      logger.info("BridgeClient disposal completed successfully");
+    } catch (error) {
+      logger.error("Error during BridgeClient disposal", { error });
+    }
+  }
+
+  /**
+   * Disconnect All MCP Clients
+   *
+   * Private method that disconnects all stored MCP clients and clears
+   * the internal storage. Handles errors gracefully without throwing.
+   */
+  private async disconnectMcpClients(): Promise<void> {
+    if (this.mcpClients.size === 0) {
+      logger.debug("No MCP clients to disconnect");
+      return;
+    }
+
+    logger.info(`Disconnecting ${this.mcpClients.size} MCP clients`);
+
+    const disconnectPromises = Array.from(this.mcpClients.entries()).map(
+      async ([serverUrl, client]) => {
+        try {
+          await client.disconnect();
+          logger.debug(`Successfully disconnected MCP client: ${serverUrl}`);
+        } catch (error) {
+          logger.warn(`Failed to disconnect MCP client: ${serverUrl}`, {
+            error,
+          });
+        }
+      },
+    );
+
+    await Promise.all(disconnectPromises);
+    this.mcpClients.clear();
+    logger.info("All MCP clients disconnected and cleared");
+  }
+
+  /**
+   * Unregister MCP Tools
+   *
+   * Private method that removes all MCP tools from the tool registry.
+   * Uses stored McpToolRegistry instances to properly unregister tools.
+   * Handles errors gracefully without throwing.
+   */
+  private unregisterMcpTools(): void {
+    if (!this.toolRouter) {
+      logger.debug("No tool router available for MCP tool cleanup");
+      return;
+    }
+
+    if (this.mcpToolRegistries.size === 0) {
+      logger.debug("No MCP tool registries to clean up");
+      return;
+    }
+
+    logger.info(
+      `Unregistering tools from ${this.mcpToolRegistries.size} MCP registries`,
+    );
+
+    let totalUnregistered = 0;
+    for (const [serverUrl, registry] of this.mcpToolRegistries.entries()) {
+      try {
+        const toolCountBefore = registry.getRegisteredToolCount();
+        registry.unregisterMcpTools(this.toolRouter);
+        const toolCountAfter = registry.getRegisteredToolCount();
+        const unregisteredCount = toolCountBefore - toolCountAfter;
+
+        totalUnregistered += unregisteredCount;
+        logger.debug(
+          `Unregistered ${unregisteredCount} tools from MCP server: ${serverUrl}`,
+        );
+      } catch (error) {
+        logger.warn(
+          `Failed to unregister tools from MCP server: ${serverUrl}`,
+          { error },
+        );
+      }
+    }
+
+    this.mcpToolRegistries.clear();
+    logger.info(
+      `MCP tool cleanup completed: ${totalUnregistered} total tools unregistered`,
+    );
   }
 
   /**

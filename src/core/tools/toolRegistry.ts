@@ -79,6 +79,34 @@ export interface ToolRegistry {
   unregister(name: string): boolean;
 
   /**
+   * Add a tool with name, definition, and handler (alias for register)
+   *
+   * @param name - Unique tool name (alphanumeric, underscore, dash only)
+   * @param definition - Tool definition with schema and metadata
+   * @param handler - Tool execution handler function
+   * @throws {ToolError} When tool name is invalid, definition fails validation, or tool already exists
+   *
+   * @example
+   * ```typescript
+   * registry.addTool("echo", echoDefinition, echoHandler);
+   * ```
+   */
+  addTool(name: string, definition: ToolDefinition, handler: ToolHandler): void;
+
+  /**
+   * Remove a tool by name (alias for unregister)
+   *
+   * @param name - Tool name to remove
+   * @returns true if tool was removed, false if tool didn't exist
+   *
+   * @example
+   * ```typescript
+   * const removed = registry.removeTool("echo"); // true if existed
+   * ```
+   */
+  removeTool(name: string): boolean;
+
+  /**
    * Check if a tool is registered
    *
    * @param name - Tool name to check

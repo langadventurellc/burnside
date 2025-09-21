@@ -211,6 +211,22 @@ export class InMemoryToolRegistry implements ToolRegistry {
   }
 
   /**
+   * Add a tool with name, definition, and handler (alias for register)
+   *
+   * @param name - Unique tool name (alphanumeric, underscore, dash only)
+   * @param definition - Tool definition with schema and metadata
+   * @param handler - Tool execution handler function
+   * @throws ToolError when tool name is invalid, definition fails validation, or tool already exists
+   */
+  addTool(
+    name: string,
+    definition: ToolDefinition,
+    handler: ToolHandler,
+  ): void {
+    this.register(name, definition, handler);
+  }
+
+  /**
    * Unregister a tool by name
    *
    * @param name - Tool name to unregister
@@ -231,6 +247,16 @@ export class InMemoryToolRegistry implements ToolRegistry {
     }
 
     return removed;
+  }
+
+  /**
+   * Remove a tool by name (alias for unregister)
+   *
+   * @param name - Tool name to remove
+   * @returns true if tool was removed, false if tool didn't exist
+   */
+  removeTool(name: string): boolean {
+    return this.unregister(name);
   }
 
   /**

@@ -107,6 +107,40 @@ export const BridgeConfigSchema = z
           .max(10, "Max concurrent tools must not exceed 10")
           .optional()
           .describe("Maximum concurrent tool executions"),
+        /** MCP server configurations */
+        mcpServers: z
+          .array(
+            z.object({
+              /** MCP server name */
+              name: z
+                .string()
+                .min(1, "MCP server name cannot be empty")
+                .describe("MCP server name"),
+              /** MCP server URL */
+              url: z
+                .string()
+                .url("MCP server URL must be valid")
+                .refine(
+                  (url) =>
+                    url.startsWith("http://") || url.startsWith("https://"),
+                  "MCP server URL must use HTTP or HTTPS protocol",
+                )
+                .describe("MCP server URL"),
+            }),
+          )
+          .optional()
+          .describe("MCP server configurations")
+          .refine((servers) => {
+            const names = servers?.map((s) => s.name) || [];
+            return names.length === new Set(names).size;
+          }, "MCP server names must be unique"),
+        /** Strategy for handling MCP tool failures when connections are lost */
+        mcpToolFailureStrategy: z
+          .enum(["immediate_unregister", "mark_unavailable"])
+          .optional()
+          .describe(
+            "Strategy for handling MCP tool failures: 'immediate_unregister' removes tools from registry on connection loss, 'mark_unavailable' keeps tools registered but returns errors on execution. Defaults to 'immediate_unregister' when not specified.",
+          ),
       })
       .optional()
       .describe("Tool system configuration"),
