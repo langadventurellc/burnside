@@ -8,10 +8,16 @@ prerequisites: []
 affectedFiles:
   src/core/config/bridgeConfigSchema.ts: Extended tools object schema with
     optional mcpServers field including name/URL validation, HTTP/HTTPS protocol
-    enforcement, and server name uniqueness constraints
+    enforcement, and server name uniqueness constraints; Added
+    mcpToolFailureStrategy optional field with Zod enum validation for
+    'immediate_unregister' and 'mark_unavailable' strategies, including
+    comprehensive describe() documentation
   src/core/config/__tests__/bridgeConfigSchema.test.ts: Added comprehensive unit
     tests for MCP server validation covering valid/invalid configurations,
-    protocol validation, duplicate name detection, and integration scenarios
+    protocol validation, duplicate name detection, and integration scenarios;
+    Added comprehensive test coverage for mcpToolFailureStrategy including valid
+    enum values, invalid value rejection, undefined handling, integration with
+    complete tools configuration, and TypeScript type inference verification
   src/core/config/mcpServerSchema.ts:
     Created Zod schema for individual MCP server
     configuration with name and URL validation including HTTP/HTTPS protocol
@@ -33,7 +39,9 @@ affectedFiles:
     cases, and TypeScript type compatibility
   src/core/config/toolsConfig.ts: Updated JSDoc documentation to include
     comprehensive MCP server configuration examples showing name and URL fields
-    with realistic usage scenarios
+    with realistic usage scenarios; Updated JSDoc example to include
+    mcpToolFailureStrategy field with explanatory comment showing default usage
+    pattern
   src/core/config/mcpServerTypes.ts: Created new file exporting McpServerConfig
     type for individual MCP server configuration with proper type inference from
     BridgeConfigSchema

@@ -134,6 +134,13 @@ export const BridgeConfigSchema = z
             const names = servers?.map((s) => s.name) || [];
             return names.length === new Set(names).size;
           }, "MCP server names must be unique"),
+        /** Strategy for handling MCP tool failures when connections are lost */
+        mcpToolFailureStrategy: z
+          .enum(["immediate_unregister", "mark_unavailable"])
+          .optional()
+          .describe(
+            "Strategy for handling MCP tool failures: 'immediate_unregister' removes tools from registry on connection loss, 'mark_unavailable' keeps tools registered but returns errors on execution. Defaults to 'immediate_unregister' when not specified.",
+          ),
       })
       .optional()
       .describe("Tool system configuration"),

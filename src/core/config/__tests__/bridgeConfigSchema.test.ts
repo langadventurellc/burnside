@@ -1037,6 +1037,161 @@ describe("BridgeConfigSchema", () => {
     });
   });
 
+  describe("mcpToolFailureStrategy configuration", () => {
+    describe("valid mcpToolFailureStrategy configurations", () => {
+      it("should accept 'immediate_unregister' strategy", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+            mcpToolFailureStrategy: "immediate_unregister" as const,
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools?.mcpToolFailureStrategy).toBe(
+          "immediate_unregister",
+        );
+      });
+
+      it("should accept 'mark_unavailable' strategy", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+            mcpToolFailureStrategy: "mark_unavailable" as const,
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools?.mcpToolFailureStrategy).toBe("mark_unavailable");
+      });
+
+      it("should accept undefined as a valid value", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+            mcpToolFailureStrategy: undefined as any,
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools?.mcpToolFailureStrategy).toBeUndefined();
+      });
+
+      it("should leave field undefined when not specified", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools?.mcpToolFailureStrategy).toBeUndefined();
+      });
+
+      it("should work with complete tools configuration including MCP servers", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+            executionTimeoutMs: 5000,
+            maxConcurrentTools: 2,
+            mcpServers: [
+              {
+                name: "test-server",
+                url: "https://example.com/mcp",
+              },
+            ],
+            mcpToolFailureStrategy: "mark_unavailable" as const,
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools?.mcpToolFailureStrategy).toBe("mark_unavailable");
+        expect(result.tools?.mcpServers).toHaveLength(1);
+        expect(result.tools?.enabled).toBe(true);
+      });
+    });
+
+    describe("invalid mcpToolFailureStrategy configurations", () => {
+      it("should reject invalid strategy value", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+            mcpToolFailureStrategy: "invalid_strategy" as any,
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(config)).toThrow(
+          /Invalid enum value/,
+        );
+      });
+
+      it("should reject empty string strategy", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+            mcpToolFailureStrategy: "" as any,
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(config)).toThrow(
+          /Invalid enum value/,
+        );
+      });
+
+      it("should reject numeric strategy value", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+            mcpToolFailureStrategy: 123 as any,
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(config)).toThrow(
+          /Expected.*immediate_unregister.*mark_unavailable/,
+        );
+      });
+    });
+
+    describe("mcpToolFailureStrategy type inference", () => {
+      it("should infer correct types for failure strategy", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+            mcpToolFailureStrategy: "immediate_unregister" as const,
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+
+        // TypeScript compilation test
+        const toolsConfig = result.tools;
+        if (toolsConfig && toolsConfig.mcpToolFailureStrategy) {
+          const strategy: "immediate_unregister" | "mark_unavailable" =
+            toolsConfig.mcpToolFailureStrategy;
+          expect(strategy).toBe("immediate_unregister");
+        }
+      });
+    });
+  });
+
   describe("retry policy configuration integration", () => {
     it("should accept configuration with retry policy enabled", () => {
       const config = {

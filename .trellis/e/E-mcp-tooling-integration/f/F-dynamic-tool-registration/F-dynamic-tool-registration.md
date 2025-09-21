@@ -15,15 +15,26 @@ affectedFiles:
     Added comprehensive test coverage
     with 20 new test cases verifying identical behavior, validation, error
     handling, and cross-method compatibility
+  src/core/config/bridgeConfigSchema.ts: Added mcpToolFailureStrategy optional
+    field with Zod enum validation for 'immediate_unregister' and
+    'mark_unavailable' strategies, including comprehensive describe()
+    documentation
+  src/core/config/toolsConfig.ts: Updated JSDoc example to include
+    mcpToolFailureStrategy field with explanatory comment showing default usage
+    pattern
+  src/core/config/__tests__/bridgeConfigSchema.test.ts: Added comprehensive test
+    coverage for mcpToolFailureStrategy including valid enum values, invalid
+    value rejection, undefined handling, integration with complete tools
+    configuration, and TypeScript type inference verification
 log: []
 schema: v1.0
 childrenIds:
-  - T-add-dynamic-tool-addition-and
   - T-add-failure-strategy
   - T-add-mcp-connection-cleanup-to
   - T-extend-bridgeclientinitializet
   - T-implement-tool-failure
   - T-update-tool-router-to-handle
+  - T-add-dynamic-tool-addition-and
 created: 2025-09-20T19:18:45.587Z
 updated: 2025-09-20T19:18:45.587Z
 ---

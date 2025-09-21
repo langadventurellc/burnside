@@ -23,7 +23,9 @@ import type { BridgeConfigSchema } from "./bridgeConfigSchema";
  *       name: "database-tools",
  *       url: "https://internal.company.com/mcp"
  *     }
- *   ]
+ *   ],
+ *   // Controls how MCP tools behave when server connections are lost
+ *   mcpToolFailureStrategy: "immediate_unregister"
  * };
  * ```
  */

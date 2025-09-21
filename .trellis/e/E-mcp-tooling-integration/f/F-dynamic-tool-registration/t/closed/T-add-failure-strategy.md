@@ -1,12 +1,34 @@
 ---
 id: T-add-failure-strategy
 title: Add failure strategy configuration to tools schema
-status: open
+status: done
 priority: medium
 parent: F-dynamic-tool-registration
 prerequisites: []
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/config/bridgeConfigSchema.ts: Added mcpToolFailureStrategy optional
+    field with Zod enum validation for 'immediate_unregister' and
+    'mark_unavailable' strategies, including comprehensive describe()
+    documentation
+  src/core/config/toolsConfig.ts: Updated JSDoc example to include
+    mcpToolFailureStrategy field with explanatory comment showing default usage
+    pattern
+  src/core/config/__tests__/bridgeConfigSchema.test.ts: Added comprehensive test
+    coverage for mcpToolFailureStrategy including valid enum values, invalid
+    value rejection, undefined handling, integration with complete tools
+    configuration, and TypeScript type inference verification
+log:
+  - Successfully implemented MCP tool failure strategy configuration in the
+    tools schema. Added optional `mcpToolFailureStrategy` field supporting
+    'immediate_unregister' and 'mark_unavailable' strategies with Zod enum
+    validation. The field is properly optional (allowing backward
+    compatibility), includes comprehensive documentation explaining each
+    strategy's behavior, and defaults to 'immediate_unregister' when not
+    specified (documented behavior, not schema default). Added complete test
+    coverage including valid/invalid value validation, type inference
+    verification, and integration with existing tools configuration. All quality
+    checks pass including TypeScript compilation, linting, formatting, and full
+    test suite.
 schema: v1.0
 childrenIds: []
 created: 2025-09-21T00:42:22.129Z
