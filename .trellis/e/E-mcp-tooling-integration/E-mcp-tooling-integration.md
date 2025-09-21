@@ -217,12 +217,21 @@ affectedFiles:
     MCP tool discovery. Added imports for McpClient and McpToolRegistry. Added
     private mcpClients field for connection management. Implemented
     initializeMcpTools() and connectToMcpServer() methods with graceful error
-    handling and warning-level logging for connection failures.
+    handling and warning-level logging for connection failures.; Added dispose()
+    method with private helpers disconnectMcpClients() and unregisterMcpTools().
+    Added mcpToolRegistries field to track tool registries for cleanup. Modified
+    connectToMcpServer() to store registries during initialization. All cleanup
+    operations handle errors gracefully without throwing.
   src/client/__tests__/bridgeClientMcpIntegration.test.ts: Created comprehensive
     test suite covering MCP integration scenarios including successful
     initialization, graceful error handling, mixed success/failure scenarios,
     backward compatibility, and proper cleanup. All tests pass with proper
     mocking of MCP components.
+  src/client/__tests__/bridgeClientDisposal.test.ts: "Created comprehensive test
+    suite with 9 test cases covering disposal scenarios: basic disposal,
+    idempotent behavior, MCP client disconnection, tool unregistration, error
+    handling, missing tool router gracefully, and resource cleanup verification.
+    All tests pass with proper mocking."
 log: []
 schema: v1.0
 childrenIds:

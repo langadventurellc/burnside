@@ -1,13 +1,28 @@
 ---
 id: T-add-mcp-connection-cleanup-to
 title: Add MCP connection cleanup to BridgeClient disposal
-status: open
+status: done
 priority: medium
 parent: F-dynamic-tool-registration
 prerequisites:
   - T-extend-bridgeclientinitializet
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/client/bridgeClient.ts: Added dispose() method with private helpers
+    disconnectMcpClients() and unregisterMcpTools(). Added mcpToolRegistries
+    field to track tool registries for cleanup. Modified connectToMcpServer() to
+    store registries during initialization. All cleanup operations handle errors
+    gracefully without throwing.
+  src/client/__tests__/bridgeClientDisposal.test.ts: "Created comprehensive test
+    suite with 9 test cases covering disposal scenarios: basic disposal,
+    idempotent behavior, MCP client disconnection, tool unregistration, error
+    handling, missing tool router gracefully, and resource cleanup verification.
+    All tests pass with proper mocking."
+log:
+  - Successfully implemented dispose() method for BridgeClient with
+    comprehensive MCP connection cleanup and tool unregistration. The
+    implementation includes proper error handling, idempotent operation design,
+    and extensive logging for debugging. All acceptance criteria met with full
+    test coverage including edge cases and error scenarios.
 schema: v1.0
 childrenIds: []
 created: 2025-09-21T00:43:01.553Z
