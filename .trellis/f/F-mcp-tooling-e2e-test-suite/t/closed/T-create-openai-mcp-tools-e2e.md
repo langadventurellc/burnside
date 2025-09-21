@@ -1,13 +1,26 @@
 ---
 id: T-create-openai-mcp-tools-e2e
 title: Create OpenAI MCP Tools E2E Test
-status: open
+status: done
 priority: medium
 parent: F-mcp-tooling-e2e-test-suite
 prerequisites:
   - T-create-mcp-test-helpers-and
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/__tests__/e2e/openai/mcpTools.e2e.test.ts: "New E2E test file implementing
+    OpenAI MCP tool integration validation with two test suites: MCP Tool
+    Discovery (validates client configuration) and MCP Tool Execution (validates
+    tool execution through OpenAI chat API). Follows existing OpenAI E2E test
+    patterns with proper timeout handling, validation, and cleanup."
+log:
+  - Successfully implemented OpenAI MCP Tools E2E test that validates MCP tool
+    integration with OpenAI provider. Created comprehensive test file with MCP
+    tool discovery and execution validation following existing E2E test
+    patterns. The test verifies that MCP tools can be discovered and executed
+    through OpenAI chat requests with proper response formatting. Used shared
+    MCP test utilities and followed project coding standards. All quality checks
+    pass (lint, format, type-check) and E2E tests are green with 2 passing test
+    cases.
 schema: v1.0
 childrenIds: []
 created: 2025-09-21T02:42:30.351Z

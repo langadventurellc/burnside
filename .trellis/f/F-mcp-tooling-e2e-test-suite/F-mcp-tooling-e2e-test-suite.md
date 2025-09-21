@@ -45,14 +45,19 @@ affectedFiles:
   src/__tests__/e2e/shared/mcpTestHelpers.test.ts: Comprehensive unit test suite
     with 26 test cases covering all utility functions, error scenarios, and edge
     cases
+  src/__tests__/e2e/openai/mcpTools.e2e.test.ts: "New E2E test file implementing
+    OpenAI MCP tool integration validation with two test suites: MCP Tool
+    Discovery (validates client configuration) and MCP Tool Execution (validates
+    tool execution through OpenAI chat API). Follows existing OpenAI E2E test
+    patterns with proper timeout handling, validation, and cleanup."
 log: []
 schema: v1.0
 childrenIds:
   - T-create-anthropic-mcp-tools
   - T-create-google-mcp-tools-e2e
-  - T-create-mcp-test-helpers-and
   - T-create-openai-mcp-tools-e2e
   - T-create-xai-mcp-tools-e2e-test
+  - T-create-mcp-test-helpers-and
   - T-create-mock-mcp-server-for
 created: 2025-09-21T02:33:20.072Z
 updated: 2025-09-21T02:33:20.072Z
