@@ -49,17 +49,19 @@ describe("MCP Test Helpers", () => {
       expect(config.tools?.mcpServers?.[0]?.name).toBe(serverName);
     });
 
-    test("throws ValidationError for empty server URL", () => {
+    test("throws ValidationError for empty server configuration", () => {
       expect(() => createMcpTestConfig("")).toThrow(ValidationError);
-      expect(() => createMcpTestConfig("")).toThrow("Server URL is required");
+      expect(() => createMcpTestConfig("")).toThrow(
+        "Server configuration is required",
+      );
     });
 
-    test("throws ValidationError for non-string server URL", () => {
+    test("throws ValidationError for invalid server configuration", () => {
       expect(() => createMcpTestConfig(null as unknown as string)).toThrow(
         ValidationError,
       );
       expect(() => createMcpTestConfig(123 as unknown as string)).toThrow(
-        "Server URL is required",
+        "Server configuration must be a URL string or command object with 'command' property",
       );
     });
 

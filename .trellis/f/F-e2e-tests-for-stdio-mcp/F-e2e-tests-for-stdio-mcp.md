@@ -21,13 +21,27 @@ affectedFiles:
   src/__tests__/e2e/shared/__tests__/stdioTelemetryReader.test.ts:
     Added comprehensive unit tests covering all functionality, error scenarios,
     and edge cases
+  src/core/config/mcpServerSchema.ts: Extended schema to support both HTTP and
+    STDIO transport types using union schema for backward compatibility
+  src/core/config/mcpServerConfig.ts: Updated documentation to show both HTTP and STDIO configuration examples
+  src/__tests__/e2e/shared/createMcpTestConfig.ts: Enhanced to accept both URL
+    strings (HTTP) and command objects (STDIO) while maintaining backward
+    compatibility
+  src/__tests__/e2e/shared/stdioMcpServerManager.ts: Created new class to manage
+    STDIO MCP server subprocess lifecycle with MockMcpServer-compatible
+    interface
+  src/__tests__/e2e/shared/setupMcpServer.ts: Added optional transport parameter
+    with function overloads for type safety, supporting both HTTP and STDIO
+    transports
+  src/__tests__/e2e/shared/mcpTestHelpers.test.ts: Updated test assertions to
+    match new error messages for enhanced functionality
 log: []
 schema: v1.0
 childrenIds:
   - T-create-anthropic-stdio-mcp
-  - T-create-stdio-telemetry-reader
   - T-update-test-helpers-for-stdio
   - T-create-stdio-mock-mcp-server
+  - T-create-stdio-telemetry-reader
 created: 2025-09-21T17:03:53.515Z
 updated: 2025-09-21T17:03:53.515Z
 ---

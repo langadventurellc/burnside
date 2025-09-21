@@ -1,14 +1,34 @@
 ---
 id: T-update-test-helpers-for-stdio
 title: Update test helpers for STDIO transport support
-status: open
+status: done
 priority: high
 parent: F-e2e-tests-for-stdio-mcp
 prerequisites:
   - T-create-stdio-mock-mcp-server
   - T-create-stdio-telemetry-reader
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/config/mcpServerSchema.ts: Extended schema to support both HTTP and
+    STDIO transport types using union schema for backward compatibility
+  src/core/config/mcpServerConfig.ts: Updated documentation to show both HTTP and STDIO configuration examples
+  src/__tests__/e2e/shared/createMcpTestConfig.ts: Enhanced to accept both URL
+    strings (HTTP) and command objects (STDIO) while maintaining backward
+    compatibility
+  src/__tests__/e2e/shared/stdioMcpServerManager.ts: Created new class to manage
+    STDIO MCP server subprocess lifecycle with MockMcpServer-compatible
+    interface
+  src/__tests__/e2e/shared/setupMcpServer.ts: Added optional transport parameter
+    with function overloads for type safety, supporting both HTTP and STDIO
+    transports
+  src/__tests__/e2e/shared/mcpTestHelpers.test.ts: Updated test assertions to
+    match new error messages for enhanced functionality
+log:
+  - Successfully implemented comprehensive support for both HTTP and STDIO
+    transport types in test helpers while maintaining full backward
+    compatibility. Extended MCP server schema, created StdioMcpServerManager for
+    subprocess management, updated setupMcpServer with transport options, and
+    enhanced createMcpTestConfig to support both URL strings and command
+    objects. All tests pass and existing functionality remains unchanged.
 schema: v1.0
 childrenIds: []
 created: 2025-09-21T17:15:18.894Z

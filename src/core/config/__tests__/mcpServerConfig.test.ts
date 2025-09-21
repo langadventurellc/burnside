@@ -180,7 +180,10 @@ describe("MCP Server Configuration Types and Validation", () => {
       if (validateMcpServerConfig(unknownInput)) {
         // TypeScript should infer unknownInput as McpServerConfig here
         expect(unknownInput.name).toBe("test-server");
-        expect(unknownInput.url).toBe("https://api.example.com/mcp");
+        // Type guard to check if this is an HTTP config (has url property)
+        if ("url" in unknownInput) {
+          expect(unknownInput.url).toBe("https://api.example.com/mcp");
+        }
       }
     });
   });
@@ -232,7 +235,10 @@ describe("MCP Server Configuration Types and Validation", () => {
       if (validateMcpServerConfigs(unknownInput)) {
         // TypeScript should infer unknownInput as McpServerConfig[] here
         expect(unknownInput[0].name).toBe("server1");
-        expect(unknownInput[0].url).toBe("https://api1.com/mcp");
+        // Type guard to check if this is an HTTP config (has url property)
+        if ("url" in unknownInput[0]) {
+          expect(unknownInput[0].url).toBe("https://api1.com/mcp");
+        }
       }
     });
   });
