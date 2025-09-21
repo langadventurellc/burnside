@@ -3,7 +3,7 @@
  *
  * Defines standardized error codes for MCP (Model Context Protocol) operations.
  * These codes categorize different failure types for connection, capability,
- * tool, and protocol errors.
+ * tool, and protocol errors, including JSON-RPC standard error codes.
  */
 
 /**
@@ -37,4 +37,85 @@ export const MCP_ERROR_CODES = {
 
   // General MCP errors
   UNKNOWN_ERROR: "MCP_UNKNOWN_ERROR",
+} as const;
+
+/**
+ * JSON-RPC 2.0 standard error codes as defined in the specification
+ */
+export const JSONRPC_ERROR_CODES = {
+  PARSE_ERROR: -32700,
+  INVALID_REQUEST: -32600,
+  METHOD_NOT_FOUND: -32601,
+  INVALID_PARAMS: -32602,
+  INTERNAL_ERROR: -32603,
+  // Custom MCP error codes (reserved range -32000 to -32099)
+  TOOL_EXECUTION_FAILED: -32000,
+  TOOL_NOT_FOUND: -32001,
+  TOOL_INVALID_PARAMS: -32002,
+  CAPABILITY_ERROR: -32003,
+  CONNECTION_ERROR: -32004,
+} as const;
+
+/**
+ * Error severity levels for recovery decision making
+ */
+export const ERROR_SEVERITY = {
+  RECOVERABLE: "recoverable", // Temporary failures, retry possible
+  TEMPORARY: "temporary", // May recover over time, back off and retry
+  PERMANENT: "permanent", // Permanent failures, no retry
+} as const;
+
+/**
+ * Mapping JSON-RPC error codes to appropriate Bridge error types
+ */
+export const JSONRPC_TO_BRIDGE_ERROR_TYPE = {
+  [JSONRPC_ERROR_CODES.PARSE_ERROR]: "ProviderError",
+  [JSONRPC_ERROR_CODES.INVALID_REQUEST]: "ProviderError",
+  [JSONRPC_ERROR_CODES.METHOD_NOT_FOUND]: "ProviderError",
+  [JSONRPC_ERROR_CODES.INVALID_PARAMS]: "ToolError",
+  [JSONRPC_ERROR_CODES.INTERNAL_ERROR]: "ProviderError",
+  [JSONRPC_ERROR_CODES.TOOL_EXECUTION_FAILED]: "ToolError",
+  [JSONRPC_ERROR_CODES.TOOL_NOT_FOUND]: "ToolError",
+  [JSONRPC_ERROR_CODES.TOOL_INVALID_PARAMS]: "ToolError",
+  [JSONRPC_ERROR_CODES.CAPABILITY_ERROR]: "ProviderError",
+  [JSONRPC_ERROR_CODES.CONNECTION_ERROR]: "TransportError",
+} as const;
+
+/**
+ * Error severity mapping for recovery decisions
+ */
+export const ERROR_SEVERITY_MAPPING = {
+  [MCP_ERROR_CODES.CONNECTION_TIMEOUT]: ERROR_SEVERITY.RECOVERABLE,
+  [MCP_ERROR_CODES.CONNECTION_LOST]: ERROR_SEVERITY.RECOVERABLE,
+  [MCP_ERROR_CODES.CONNECTION_REFUSED]: ERROR_SEVERITY.TEMPORARY,
+  [MCP_ERROR_CODES.CONNECTION_FAILED]: ERROR_SEVERITY.TEMPORARY,
+  [MCP_ERROR_CODES.RECONNECTION_FAILED]: ERROR_SEVERITY.PERMANENT,
+  [MCP_ERROR_CODES.TOOL_EXECUTION_FAILED]: ERROR_SEVERITY.RECOVERABLE,
+  [MCP_ERROR_CODES.TOOL_NOT_FOUND]: ERROR_SEVERITY.PERMANENT,
+  [MCP_ERROR_CODES.TOOL_INVALID_PARAMS]: ERROR_SEVERITY.PERMANENT,
+  [MCP_ERROR_CODES.PROTOCOL_ERROR]: ERROR_SEVERITY.PERMANENT,
+  [MCP_ERROR_CODES.INVALID_RESPONSE]: ERROR_SEVERITY.RECOVERABLE,
+  [MCP_ERROR_CODES.CAPABILITY_NEGOTIATION_FAILED]: ERROR_SEVERITY.PERMANENT,
+  [MCP_ERROR_CODES.PROMPTS_NOT_SUPPORTED]: ERROR_SEVERITY.PERMANENT,
+  [MCP_ERROR_CODES.RESOURCES_NOT_SUPPORTED]: ERROR_SEVERITY.PERMANENT,
+} as const;
+
+/**
+ * JSON-RPC error code descriptions for user-friendly messages
+ */
+export const JSONRPC_ERROR_DESCRIPTIONS = {
+  [JSONRPC_ERROR_CODES.PARSE_ERROR]: "Parse error - Invalid JSON received",
+  [JSONRPC_ERROR_CODES.INVALID_REQUEST]:
+    "Invalid Request - JSON-RPC request object is invalid",
+  [JSONRPC_ERROR_CODES.METHOD_NOT_FOUND]:
+    "Method not found - Requested method does not exist",
+  [JSONRPC_ERROR_CODES.INVALID_PARAMS]:
+    "Invalid params - Invalid method parameters",
+  [JSONRPC_ERROR_CODES.INTERNAL_ERROR]:
+    "Internal error - Server encountered internal error",
+  [JSONRPC_ERROR_CODES.TOOL_EXECUTION_FAILED]: "Tool execution failed",
+  [JSONRPC_ERROR_CODES.TOOL_NOT_FOUND]: "Tool not found",
+  [JSONRPC_ERROR_CODES.TOOL_INVALID_PARAMS]: "Invalid tool parameters",
+  [JSONRPC_ERROR_CODES.CAPABILITY_ERROR]: "Capability negotiation error",
+  [JSONRPC_ERROR_CODES.CONNECTION_ERROR]: "Connection error",
 } as const;

@@ -1,7 +1,7 @@
 ---
 id: F-mcp-protocol-core-implementati
 title: MCP Protocol Core Implementation
-status: in-progress
+status: done
 priority: medium
 parent: E-mcp-tooling-integration
 prerequisites:
@@ -11,16 +11,23 @@ affectedFiles:
     with MCP-specific error codes and context information
   src/tools/mcp/mcpErrorCodes.ts:
     Defined standardized error codes for connection,
-    capability, tool, and protocol errors
+    capability, tool, and protocol errors; Enhanced with JSON-RPC error codes,
+    error severity levels, error type mappings, and utility functions for error
+    classification and description
   src/tools/mcp/mcpConnectionError.ts:
     Implemented connection-specific error class
     with static factory methods for timeout, refusal, loss, and reconnection
-    failures
+    failures; Enhanced to extend TransportError while preserving MCP-specific
+    error codes, added isRecoverable() method for retry logic
   src/tools/mcp/mcpCapabilityError.ts:
     Created capability negotiation error class
-    with tools-only enforcement and rejection of prompts/resources
+    with tools-only enforcement and rejection of prompts/resources; Enhanced to
+    extend ProviderError while preserving MCP-specific error codes, added
+    getCapabilityMismatch() method for debugging
   src/tools/mcp/mcpToolError.ts: Implemented tool operation error class for
-    discovery, execution, and parameter validation failures
+    discovery, execution, and parameter validation failures; Enhanced to extend
+    ToolError while preserving MCP-specific error codes, added
+    getExecutionDetails() method for debugging context
   src/tools/mcp/createMcpError.ts:
     Created error factory functions for convenient
     error creation with proper context
@@ -44,11 +51,15 @@ affectedFiles:
     management, capability negotiation, health monitoring, exponential backoff
     reconnection, and tool operations; Enhanced existing McpClient with
     discoverTools() and getToolDefinition() methods for Bridge-compatible tool
-    discovery
+    discovery; Integrated error normalizer and error recovery components,
+    enhanced capability negotiation with proper error handling using normalized
+    errors and recovery strategies
   src/tools/mcp/index.ts: Barrel export file providing clean API surface for all
     MCP functionality; Updated module exports to include new tool types and
     schema translation functions; Exported new tool integration classes
-    (createMcpToolHandler and McpToolRegistry) for public API
+    (createMcpToolHandler and McpToolRegistry) for public API; Updated exports
+    to include all new error handling components and utilities for external
+    consumption
   src/tools/index.ts: Updated main tools exports to include MCP module for Model
     Context Protocol integration
   src/tools/mcp/__tests__/mcpError.test.ts: Comprehensive test suite for all MCP
@@ -84,13 +95,24 @@ affectedFiles:
   src/tools/mcp/mcpToolRegistry.ts: Created dynamic tool lifecycle management
     class with registration/unregistration, connection handlers, and
     comprehensive error handling
-log: []
+  src/tools/mcp/isValidJsonRpcErrorCode.ts: Created utility function to validate
+    JSON-RPC error codes with type-safe implementation
+  src/tools/mcp/getErrorSeverity.ts: Created utility function to determine error
+    severity for recovery decision making
+  src/tools/mcp/mcpErrorNormalizer.ts: Created comprehensive error normalizer
+    implementing ErrorNormalizer interface with JSON-RPC error mapping, error
+    sanitization, and static factory methods for common error scenarios
+  src/tools/mcp/mcpErrorRecovery.ts: Created error recovery system with
+    exponential backoff, circuit breaker patterns, connection health monitoring,
+    and graceful degradation strategies
+log:
+  - "Auto-completed: All child tasks are complete"
 schema: v1.0
 childrenIds:
-  - T-implement-mcp-error-handling
-  - T-integrate-mcp-tools-with
   - T-create-mcp-client-class-with
+  - T-implement-mcp-error-handling
   - T-implement-tool-discovery-and
+  - T-integrate-mcp-tools-with
 created: 2025-09-20T19:18:00.028Z
 updated: 2025-09-20T19:18:00.028Z
 ---

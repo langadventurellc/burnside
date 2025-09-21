@@ -12,19 +12,51 @@
  * ```
  */
 
-import { McpError } from "./mcpError";
+import { ToolError } from "../../core/errors/toolError";
 import { MCP_ERROR_CODES } from "./mcpErrorCodes";
+import { getErrorSeverity } from "./getErrorSeverity";
 
 /**
  * Error thrown when MCP tool operations fail.
  *
  * Used for tool discovery failures, tool execution errors, and tool
  * parameter validation issues. Includes context about the specific
- * tool and operation that failed.
+ * tool and operation that failed. Extends ToolError for proper error taxonomy integration.
  */
-export class McpToolError extends McpError {
+export class McpToolError extends ToolError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, MCP_ERROR_CODES.TOOL_EXECUTION_FAILED, context);
+    // Use the code from context if available, otherwise default
+    const errorCode =
+      (context?.code as string) || MCP_ERROR_CODES.TOOL_EXECUTION_FAILED;
+    super(message, { ...context, code: errorCode });
+    // Override the code to be MCP-specific while maintaining ToolError taxonomy
+    Object.defineProperty(this, "code", {
+      value: errorCode,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    });
+  }
+
+  /**
+   * Get execution details for debugging
+   */
+  getExecutionDetails(): {
+    toolName?: string;
+    serverUrl?: string;
+    errorType?: string;
+    recoverable: boolean;
+  } {
+    const errorCode =
+      (this.context?.code as string) || MCP_ERROR_CODES.TOOL_EXECUTION_FAILED;
+    const severity = getErrorSeverity(errorCode);
+
+    return {
+      toolName: this.context?.toolName as string,
+      serverUrl: this.context?.serverUrl as string,
+      errorType: this.context?.errorType as string,
+      recoverable: severity === "recoverable" || severity === "temporary",
+    };
   }
 
   /**

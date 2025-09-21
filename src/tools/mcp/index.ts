@@ -33,8 +33,16 @@ export { McpCapabilityError } from "./mcpCapabilityError";
 export { McpToolError } from "./mcpToolError";
 
 // Error codes and utilities
-export { MCP_ERROR_CODES } from "./mcpErrorCodes";
+export {
+  MCP_ERROR_CODES,
+  JSONRPC_ERROR_CODES,
+  ERROR_SEVERITY,
+} from "./mcpErrorCodes";
 export { createMcpError } from "./createMcpError";
+export { McpErrorNormalizer } from "./mcpErrorNormalizer";
+export { McpErrorRecovery } from "./mcpErrorRecovery";
+export { isValidJsonRpcErrorCode } from "./isValidJsonRpcErrorCode";
+export { getErrorSeverity } from "./getErrorSeverity";
 
 // Capability negotiation
 export { validateToolsOnlyCapabilities } from "./mcpCapabilities";

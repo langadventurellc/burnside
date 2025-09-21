@@ -12,19 +12,40 @@
  * ```
  */
 
-import { McpError } from "./mcpError";
+import { TransportError } from "../../core/errors/transportError";
 import { MCP_ERROR_CODES } from "./mcpErrorCodes";
+import { getErrorSeverity } from "./getErrorSeverity";
 
 /**
  * Error thrown when MCP connection operations fail.
  *
  * Used for connection establishment failures, connection loss, timeouts,
  * and reconnection failures. Includes context about the server and
- * connection parameters.
+ * connection parameters. Extends TransportError for proper error taxonomy integration.
  */
-export class McpConnectionError extends McpError {
+export class McpConnectionError extends TransportError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, MCP_ERROR_CODES.CONNECTION_FAILED, context);
+    // Use the code from context if available, otherwise default
+    const errorCode =
+      (context?.code as string) || MCP_ERROR_CODES.CONNECTION_FAILED;
+    super(message, { ...context, code: errorCode });
+    // Override the code to be MCP-specific while maintaining TransportError taxonomy
+    Object.defineProperty(this, "code", {
+      value: errorCode,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    });
+  }
+
+  /**
+   * Check if this error is recoverable for retry logic
+   */
+  isRecoverable(): boolean {
+    const errorCode =
+      (this.context?.code as string) || MCP_ERROR_CODES.CONNECTION_FAILED;
+    const severity = getErrorSeverity(errorCode);
+    return severity === "recoverable" || severity === "temporary";
   }
 
   /**

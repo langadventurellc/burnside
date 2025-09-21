@@ -26,7 +26,9 @@ import type { BackoffConfig } from "../../core/transport/retry/backoffConfig";
 import type { McpClientOptions } from "./mcpClientOptions";
 import { McpConnectionError } from "./mcpConnectionError";
 import { McpToolError } from "./mcpToolError";
-import { createMcpError } from "./createMcpError";
+import { McpCapabilityError } from "./mcpCapabilityError";
+import { McpErrorNormalizer } from "./mcpErrorNormalizer";
+import { McpErrorRecovery } from "./mcpErrorRecovery";
 import { createToolsOnlyRequest } from "./createToolsOnlyRequest";
 import { validateInitializeResponse } from "./validateInitializeResponse";
 import type { McpInitializeResponse } from "./mcpInitializeResponse";
@@ -84,6 +86,8 @@ export class McpClient {
   };
   private readonly logger: SimpleLogger;
   private readonly backoffStrategy: ExponentialBackoffStrategy;
+  private readonly errorNormalizer: McpErrorNormalizer;
+  private readonly errorRecovery: McpErrorRecovery;
 
   private connection: McpConnection | null = null;
   private status: ConnectionStatus = ConnectionStatus.DISCONNECTED;
@@ -127,6 +131,15 @@ export class McpClient {
       multiplier: 2,
     };
     this.backoffStrategy = new ExponentialBackoffStrategy(backoffConfig);
+
+    // Setup error handling
+    this.errorNormalizer = new McpErrorNormalizer();
+    this.errorRecovery = new McpErrorRecovery({
+      maxRetries: this.options.maxRetries,
+      baseDelayMs: this.options.baseRetryDelay,
+      maxDelayMs: this.options.maxRetryDelay,
+      jitterFactor: this.options.retryJitter ? 0.1 : 0,
+    });
   }
 
   /**
@@ -367,14 +380,31 @@ export class McpClient {
         `Capability negotiation successful with MCP server: ${this.serverUrl}`,
       );
     } catch (error) {
-      if (error instanceof Error) {
-        const message = error.message;
-        throw createMcpError.capability(
-          `Capability negotiation failed: ${message}`,
-          { serverUrl: this.serverUrl, originalError: error },
-        );
+      this.logger.error(`Capability negotiation failed: ${String(error)}`);
+
+      // Use error normalizer to handle capability errors properly
+      const normalizedError = this.errorNormalizer.normalize(error, {
+        serverUrl: this.serverUrl,
+        operation: "capability_negotiation",
+      });
+
+      // Create appropriate capability error
+      if (normalizedError.type === "ProviderError") {
+        throw new McpCapabilityError(normalizedError.message, {
+          ...normalizedError.context,
+          serverUrl: this.serverUrl,
+          originalError: error instanceof Error ? error.name : String(error),
+        });
       }
-      throw error;
+
+      // Fallback to generic capability error
+      throw new McpCapabilityError(
+        `Capability negotiation failed: ${String(error)}`,
+        {
+          serverUrl: this.serverUrl,
+          originalError: error instanceof Error ? error.name : String(error),
+        },
+      );
     }
   }
 

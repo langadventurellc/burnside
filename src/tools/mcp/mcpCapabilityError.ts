@@ -13,19 +13,53 @@
  * ```
  */
 
-import { McpError } from "./mcpError";
+import { ProviderError } from "../../core/errors/providerError";
 import { MCP_ERROR_CODES } from "./mcpErrorCodes";
+import { getErrorSeverity } from "./getErrorSeverity";
 
 /**
  * Error thrown when MCP capability negotiation fails.
  *
  * Used when servers advertise unsupported capabilities (prompts/resources),
  * capability exchange fails, or server capabilities are invalid.
- * This enforces the tools-only scope limitation.
+ * This enforces the tools-only scope limitation. Extends ProviderError for proper error taxonomy integration.
  */
-export class McpCapabilityError extends McpError {
+export class McpCapabilityError extends ProviderError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, MCP_ERROR_CODES.CAPABILITY_NEGOTIATION_FAILED, context);
+    // Use the code from context if available, otherwise default
+    const errorCode =
+      (context?.code as string) ||
+      MCP_ERROR_CODES.CAPABILITY_NEGOTIATION_FAILED;
+    super(message, { ...context, code: errorCode });
+    // Override the code to be MCP-specific while maintaining ProviderError taxonomy
+    Object.defineProperty(this, "code", {
+      value: errorCode,
+      writable: false,
+      enumerable: true,
+      configurable: false,
+    });
+  }
+
+  /**
+   * Get capability mismatch details for debugging
+   */
+  getCapabilityMismatch(): {
+    rejectedCapability?: string;
+    rejectedCapabilities?: string[];
+    serverUrl?: string;
+    recoverable: boolean;
+  } {
+    const errorCode =
+      (this.context?.code as string) ||
+      MCP_ERROR_CODES.CAPABILITY_NEGOTIATION_FAILED;
+    const severity = getErrorSeverity(errorCode);
+
+    return {
+      rejectedCapability: this.context?.rejectedCapability as string,
+      rejectedCapabilities: this.context?.rejectedCapabilities as string[],
+      serverUrl: this.context?.serverUrl as string,
+      recoverable: severity === "recoverable" || severity === "temporary",
+    };
   }
 
   /**
