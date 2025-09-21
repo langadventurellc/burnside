@@ -46,14 +46,29 @@ affectedFiles:
     idempotent behavior, MCP client disconnection, tool unregistration, error
     handling, missing tool router gracefully, and resource cleanup verification.
     All tests pass with proper mocking."
+  src/tools/mcp/mcpToolRegistry.ts: Extended constructor to accept failure
+    strategy parameter with default 'immediate_unregister'. Added connection
+    state tracking with isConnected field. Implemented
+    createConnectionAwareToolHandler() method that creates strategy-aware tool
+    handlers. Added applyFailureStrategy() method to handle connection loss
+    based on configured strategy. Updated connection handlers to track
+    connection state and apply strategy on disconnect. Fixed
+    validateRegistrationSuccess() to handle already-registered tools correctly.
+  src/tools/mcp/__tests__/mcpToolRegistry.test.ts: Created comprehensive test
+    suite with 21 test cases covering constructor with different strategies,
+    tool registration/unregistration, connection event handlers for both
+    strategies, tool handler behavior during connected/disconnected states,
+    registry information methods, and error handling scenarios. Tests verify
+    immediate_unregister removes tools on disconnect while mark_unavailable
+    keeps tools but returns connection errors.
 log: []
 schema: v1.0
 childrenIds:
-  - T-add-mcp-connection-cleanup-to
   - T-implement-tool-failure
   - T-update-tool-router-to-handle
   - T-add-dynamic-tool-addition-and
   - T-add-failure-strategy
+  - T-add-mcp-connection-cleanup-to
   - T-extend-bridgeclientinitializet
 created: 2025-09-20T19:18:45.587Z
 updated: 2025-09-20T19:18:45.587Z

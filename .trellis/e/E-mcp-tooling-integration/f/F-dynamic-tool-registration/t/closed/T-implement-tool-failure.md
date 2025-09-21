@@ -1,13 +1,42 @@
 ---
 id: T-implement-tool-failure
 title: Implement tool failure strategy logic in McpToolRegistry
-status: open
+status: done
 priority: medium
 parent: F-dynamic-tool-registration
 prerequisites:
   - T-add-failure-strategy
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/tools/mcp/mcpToolRegistry.ts: Extended constructor to accept failure
+    strategy parameter with default 'immediate_unregister'. Added connection
+    state tracking with isConnected field. Implemented
+    createConnectionAwareToolHandler() method that creates strategy-aware tool
+    handlers. Added applyFailureStrategy() method to handle connection loss
+    based on configured strategy. Updated connection handlers to track
+    connection state and apply strategy on disconnect. Fixed
+    validateRegistrationSuccess() to handle already-registered tools correctly.
+  src/tools/mcp/__tests__/mcpToolRegistry.test.ts: Created comprehensive test
+    suite with 21 test cases covering constructor with different strategies,
+    tool registration/unregistration, connection event handlers for both
+    strategies, tool handler behavior during connected/disconnected states,
+    registry information methods, and error handling scenarios. Tests verify
+    immediate_unregister removes tools on disconnect while mark_unavailable
+    keeps tools but returns connection errors.
+log:
+  - Successfully implemented tool failure strategy logic in McpToolRegistry.
+    Extended constructor to accept configurable failure strategy
+    ('immediate_unregister' or 'mark_unavailable') with default to
+    'immediate_unregister'. Implemented immediate_unregister strategy that
+    removes tools from registry on connection loss using existing
+    unregisterMcpTools() method. Implemented mark_unavailable strategy that
+    keeps tools registered but returns McpConnectionError when tools are called
+    during disconnection. Updated connection event handlers to apply configured
+    strategy on disconnect and track connection state. Modified tool handler
+    creation to use connection-aware handlers that check connection status for
+    mark_unavailable strategy. Added comprehensive test suite with 21 passing
+    tests covering both strategies, connection lifecycle, tool execution
+    behavior, and error handling. All quality checks pass including TypeScript
+    compilation, linting, formatting, and full test suite.
 schema: v1.0
 childrenIds: []
 created: 2025-09-21T00:43:22.960Z

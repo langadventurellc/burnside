@@ -16,9 +16,11 @@
 
 import type { ToolRouter } from "../../core/tools/toolRouter";
 import type { ToolDefinition } from "../../core/tools/toolDefinition";
+import type { ToolHandler } from "../../core/tools/toolHandler";
 import type { McpClient } from "./mcpClient";
 import { createMcpToolHandler } from "./mcpToolHandler";
 import { McpToolError } from "./mcpToolError";
+import { McpConnectionError } from "./mcpConnectionError";
 import { logger } from "../../core/logging";
 
 /**
@@ -27,9 +29,17 @@ import { logger } from "../../core/logging";
 export class McpToolRegistry {
   private readonly mcpClient: McpClient;
   private readonly registeredTools = new Map<string, string>(); // toolId -> originalToolName
+  private readonly failureStrategy: "immediate_unregister" | "mark_unavailable";
+  private isConnected = true; // Track connection state for mark_unavailable strategy
 
-  constructor(mcpClient: McpClient) {
+  constructor(
+    mcpClient: McpClient,
+    failureStrategy:
+      | "immediate_unregister"
+      | "mark_unavailable" = "immediate_unregister",
+  ) {
     this.mcpClient = mcpClient;
+    this.failureStrategy = failureStrategy;
   }
 
   /**
@@ -80,8 +90,7 @@ export class McpToolRegistry {
           continue;
         }
 
-        const toolHandler = createMcpToolHandler(
-          this.mcpClient,
+        const toolHandler = this.createConnectionAwareToolHandler(
           toolDefinition.name,
         );
         toolRouter.register(toolId, toolDefinition, toolHandler);
@@ -134,7 +143,13 @@ export class McpToolRegistry {
       errors: Array<{ toolName: string; error: string }>;
     },
   ): void {
-    if (totalTools > 0 && result.registeredCount === 0) {
+    // Only fail if tools were discovered but none were registered AND there were errors
+    // If registeredCount is 0 but no errors, it means tools were already registered
+    if (
+      totalTools > 0 &&
+      result.registeredCount === 0 &&
+      result.errors.length > 0
+    ) {
       throw new McpToolError("Failed to register any MCP tools", {
         totalTools,
         errors: result.errors,
@@ -212,14 +227,74 @@ export class McpToolRegistry {
     return {
       onConnect: async () => {
         logger.debug("MCP connection established, registering tools");
+        this.isConnected = true;
         await this.registerMcpTools(toolRouter);
       },
       onDisconnect: () => {
-        logger.debug("MCP connection lost, unregistering tools");
-        this.unregisterMcpTools(toolRouter);
+        logger.debug("MCP connection lost, applying failure strategy", {
+          strategy: this.failureStrategy,
+        });
+        this.isConnected = false;
+        this.applyFailureStrategy(toolRouter);
         return Promise.resolve();
       },
     };
+  }
+
+  /**
+   * Create a connection-aware tool handler that respects the failure strategy
+   *
+   * @param toolName - Name of the MCP tool
+   * @returns ToolHandler that checks connection status for mark_unavailable strategy
+   */
+  private createConnectionAwareToolHandler(toolName: string): ToolHandler {
+    if (this.failureStrategy === "mark_unavailable") {
+      // Return handler that checks connection status before execution
+      return async (parameters: Record<string, unknown>, context: unknown) => {
+        if (!this.isConnected) {
+          throw new McpConnectionError(
+            `MCP tool '${toolName}' is temporarily unavailable due to connection loss`,
+            { toolName, strategy: "mark_unavailable" },
+          );
+        }
+
+        // Use the original handler if connected
+        const originalHandler = createMcpToolHandler(this.mcpClient, toolName);
+        return originalHandler(parameters, context);
+      };
+    } else {
+      // For immediate_unregister strategy, use the original handler
+      return createMcpToolHandler(this.mcpClient, toolName);
+    }
+  }
+
+  /**
+   * Apply the configured failure strategy when connection is lost
+   *
+   * @param toolRouter - ToolRouter instance for tool management
+   */
+  private applyFailureStrategy(toolRouter: ToolRouter): void {
+    switch (this.failureStrategy) {
+      case "immediate_unregister":
+        logger.debug("Applying immediate_unregister strategy");
+        this.unregisterMcpTools(toolRouter);
+        break;
+      case "mark_unavailable":
+        logger.debug(
+          "Applying mark_unavailable strategy - tools remain registered",
+        );
+        // Tools remain registered but will return errors when called
+        break;
+      default:
+        logger.warn(
+          "Unknown failure strategy, defaulting to immediate_unregister",
+          {
+            strategy: this.failureStrategy,
+          },
+        );
+        this.unregisterMcpTools(toolRouter);
+        break;
+    }
   }
 
   /**
