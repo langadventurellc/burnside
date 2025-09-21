@@ -1,14 +1,42 @@
 ---
 id: F-mcp-tooling-e2e-test-suite
 title: Basic MCP Tooling E2E Validation
-status: open
+status: in-progress
 priority: medium
 parent: none
 prerequisites: []
-affectedFiles: {}
+affectedFiles:
+  src/__tests__/e2e/shared/mockMcpServer.ts:
+    Core Mock MCP Server implementation -
+    lightweight JSON-RPC 2.0 compliant server with dynamic port allocation, tool
+    registry, and proper error handling
+  src/__tests__/e2e/shared/mockMcpServerOptions.ts: Configuration interface for Mock MCP Server options
+  src/__tests__/e2e/shared/mcpToolDefinition.ts: MCP tool definition interface for server registry
+  src/__tests__/e2e/shared/mockMcpServer.test.ts:
+    Comprehensive unit tests with 23
+    test cases covering server lifecycle, JSON-RPC protocol compliance, error
+    handling, and tool execution
+  src/__tests__/e2e/shared/mcpTestEnvironmentInterface.ts: Interface for complete MCP test environment containing server and client
+  src/__tests__/e2e/shared/mcpTestEnvironmentOptions.ts: Configuration options for MCP test environment setup
+  src/__tests__/e2e/shared/mcpToolResultExpectation.ts: Validation schema interface for MCP tool execution results
+  src/__tests__/e2e/shared/mcpTestData.ts: Test data structure interface for consistent MCP testing
+  src/__tests__/e2e/shared/createMcpTestEnvironment.ts:
+    Helper function to create
+    complete MCP test environment with server and connected client
+  src/__tests__/e2e/shared/validateMcpToolResult.ts: Validation function for MCP tool execution results against expected criteria
+  src/__tests__/e2e/shared/cleanupMcpTestEnvironment.ts: Safe cleanup function for MCP test environments
+  src/__tests__/e2e/shared/generateMcpTestData.ts: Test data generation function for consistent MCP testing scenarios
+  src/__tests__/e2e/shared/index.ts: Updated barrel export to include all MCP
+    testing utilities and type definitions
 log: []
 schema: v1.0
-childrenIds: []
+childrenIds:
+  - T-create-anthropic-mcp-tools
+  - T-create-google-mcp-tools-e2e
+  - T-create-mcp-test-helpers-and
+  - T-create-mock-mcp-server-for
+  - T-create-openai-mcp-tools-e2e
+  - T-create-xai-mcp-tools-e2e-test
 created: 2025-09-21T02:33:20.072Z
 updated: 2025-09-21T02:33:20.072Z
 ---
