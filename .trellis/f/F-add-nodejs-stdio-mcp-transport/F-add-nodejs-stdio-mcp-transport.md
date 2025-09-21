@@ -53,10 +53,17 @@ affectedFiles:
   src/tools/mcp/mcpClient.ts: Updated constructor to accept McpServerConfig
     instead of URL string. Added helper method getServerId() for logging and
     error reporting. Updated all internal references to use server configuration
-    objects.
+    objects.; Updated JSDoc examples to show both HTTP and STDIO server
+    configurations. Improved getServerId() method to prioritize server name and
+    include transport details in parentheses for better identification
+    consistency across transport types.
   src/tools/mcp/__tests__/mcpClient.test.ts: Updated test file to use
     urlToMcpServerConfig helper function for converting URL strings to
-    configuration objects in test scenarios.
+    configuration objects in test scenarios.; Removed dependency on
+    urlToMcpServerConfig utility and updated all tests to use McpServerConfig
+    objects directly. Added separate HTTP and STDIO server configurations, new
+    test case for STDIO server creation and connection, ensuring both transport
+    types work identically through the client interface.
   src/core/runtime/__tests__/nodeRuntimeAdapter.test.ts: Updated to use
     McpServerConfig objects in tests. Added import for urlToMcpServerConfig
     utility and updated all test cases.; Added 5 new test cases for STDIO
@@ -98,10 +105,10 @@ schema: v1.0
 childrenIds:
   - T-update-bridgeclient-for-mcp
   - T-update-mcpclient-for-server
-  - T-update-reactnativeruntimeadapt
   - T-extend-mcp-server-configuratio
   - T-implement-nodestdiomcpconnecti
   - T-update-noderuntimeadapter-for
+  - T-update-reactnativeruntimeadapt
   - T-update-runtimeadapter
 created: 2025-09-21T13:54:00.163Z
 updated: 2025-09-21T13:54:00.163Z

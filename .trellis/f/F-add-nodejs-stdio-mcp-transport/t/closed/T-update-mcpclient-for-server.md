@@ -1,14 +1,28 @@
 ---
 id: T-update-mcpclient-for-server
 title: Update McpClient for server configuration objects
-status: open
+status: done
 priority: high
 parent: F-add-nodejs-stdio-mcp-transport
 prerequisites:
   - T-update-noderuntimeadapter-for
   - T-update-reactnativeruntimeadapt
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/tools/mcp/mcpClient.ts: Updated JSDoc examples to show both HTTP and STDIO
+    server configurations. Improved getServerId() method to prioritize server
+    name and include transport details in parentheses for better identification
+    consistency across transport types.
+  src/tools/mcp/__tests__/mcpClient.test.ts: Removed dependency on
+    urlToMcpServerConfig utility and updated all tests to use McpServerConfig
+    objects directly. Added separate HTTP and STDIO server configurations, new
+    test case for STDIO server creation and connection, ensuring both transport
+    types work identically through the client interface.
+log:
+  - Updated McpClient to use server configuration objects instead of URL
+    strings, with improved server identification and comprehensive test coverage
+    for both HTTP and STDIO transport types. The client now prioritizes server
+    names for consistent identification across transport types and includes
+    updated JSDoc examples showing both HTTP and STDIO usage patterns.
 schema: v1.0
 childrenIds: []
 created: 2025-09-21T14:17:11.323Z

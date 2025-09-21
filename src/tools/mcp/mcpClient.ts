@@ -5,9 +5,22 @@
  * and provides tools-only MCP server communication. Handles connection establishment,
  * health monitoring, exponential backoff reconnection, and tool operations.
  *
- * @example Basic usage
+ * @example HTTP server usage
  * ```typescript
- * const client = new McpClient(adapter, 'http://localhost:3000');
+ * const httpConfig = { name: 'api-server', url: 'http://localhost:3000' };
+ * const client = new McpClient(adapter, httpConfig);
+ * await client.connect();
+ *
+ * const tools = await client.listTools();
+ * const result = await client.callTool('calculator', { operation: 'add', a: 1, b: 2 });
+ *
+ * await client.disconnect();
+ * ```
+ *
+ * @example STDIO server usage
+ * ```typescript
+ * const stdioConfig = { name: 'local-tools', command: '/usr/local/bin/mcp-tools', args: ['--config', 'dev.json'] };
+ * const client = new McpClient(adapter, stdioConfig);
  * await client.connect();
  *
  * const tools = await client.listTools();
@@ -99,11 +112,13 @@ export class McpClient {
    * Get server identifier for logging and error reporting
    */
   private getServerId(): string {
-    return (
-      this.serverConfig.url ||
-      `command:${this.serverConfig.command}` ||
-      this.serverConfig.name
-    );
+    // Prioritize server name for consistent identification across transport types
+    if (this.serverConfig.url) {
+      return `${this.serverConfig.name} (${this.serverConfig.url})`;
+    } else if (this.serverConfig.command) {
+      return `${this.serverConfig.name} (${this.serverConfig.command})`;
+    }
+    return this.serverConfig.name;
   }
 
   constructor(
