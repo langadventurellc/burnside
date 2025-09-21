@@ -50,15 +50,22 @@ affectedFiles:
     Discovery (validates client configuration) and MCP Tool Execution (validates
     tool execution through OpenAI chat API). Follows existing OpenAI E2E test
     patterns with proper timeout handling, validation, and cleanup."
+  src/__tests__/e2e/anthropic/mcpTools.e2e.test.ts: "New E2E test file
+    implementing Anthropic MCP tool integration validation with two test suites:
+    MCP Tool Discovery (validates client configuration) and MCP Tool Execution
+    (validates tool execution through Anthropic chat API). Follows existing
+    Anthropic E2E test patterns with proper timeout handling, validation, and
+    cleanup. Uses modelSeed: 'builtin' to ensure correct provider plugin mapping
+    and registers AnthropicMessagesV1Provider with proper initialization."
 log: []
 schema: v1.0
 childrenIds:
   - T-create-anthropic-mcp-tools
   - T-create-google-mcp-tools-e2e
-  - T-create-openai-mcp-tools-e2e
   - T-create-xai-mcp-tools-e2e-test
   - T-create-mcp-test-helpers-and
   - T-create-mock-mcp-server-for
+  - T-create-openai-mcp-tools-e2e
 created: 2025-09-21T02:33:20.072Z
 updated: 2025-09-21T02:33:20.072Z
 ---
