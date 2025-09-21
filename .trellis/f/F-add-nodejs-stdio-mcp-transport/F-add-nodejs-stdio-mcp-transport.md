@@ -1,7 +1,7 @@
 ---
 id: F-add-nodejs-stdio-mcp-transport
 title: Add Node.js STDIO MCP Transport
-status: in-progress
+status: done
 priority: medium
 parent: none
 prerequisites: []
@@ -14,11 +14,16 @@ affectedFiles:
     suite for STDIO MCP server configurations including valid scenarios
     (command-only, command+args, mixed HTTP/STDIO), invalid scenarios
     (conflicting fields, validation errors), and type inference tests.
-  src/client/bridgeClient.ts: Updated connectToMcpServer method signature to
+  src/client/bridgeClient.ts: "Updated connectToMcpServer method signature to
     handle new optional fields and added temporary filtering to only process
     HTTP servers until STDIO implementation is added in future tasks.; Updated
     to pass complete server configuration objects to McpClient constructor
-    instead of extracting URL strings.
+    instead of extracting URL strings.; Updated disconnectMcpClients() and
+    unregisterMcpTools() methods to use server names instead of serverUrl
+    variable names in logging. Removed temporary HTTP-only filtering in
+    initializeMcpTools() and connectToMcpServer() methods to support both HTTP
+    and STDIO transport types. Updated logging to show appropriate transport
+    information (HTTP: URL or STDIO: command)."
   src/core/runtime/runtimeAdapter.ts: "Updated createMcpConnection method
     signature from (serverUrl: string, options?) to (serverConfig:
     McpServerConfig, options?). Added comprehensive JSDoc documentation with
@@ -89,9 +94,15 @@ affectedFiles:
     configuration preservation verification, 4) Invalid configuration (neither
     url nor command) error handling. Tests validate proper error wrapping by
     outer catch block and use toMatchObject for context validation."
-  src/client/__tests__/bridgeClientMcpIntegration.test.ts: Updated test
+  src/client/__tests__/bridgeClientMcpIntegration.test.ts: "Updated test
     expectations to expect complete McpServerConfig objects with both name and
-    url properties instead of URL strings.
+    url properties instead of URL strings.; Added comprehensive test suite for
+    MCP server configuration integration including 7 new test cases: STDIO
+    server configurations with and without args, mixed HTTP/STDIO scenarios,
+    STDIO connection failure handling, mixed success/failure scenarios,
+    transport-agnostic behavior verification, and backward compatibility
+    validation. All tests verify correct McpServerConfig objects are passed to
+    McpClient constructor."
   src/core/runtime/adapters/nodeStdioMcpConnection.ts: Created complete
     NodeStdioMcpConnection class implementing McpConnection interface with
     subprocess management, JSON-RPC over stdin/stdout, request/response
@@ -100,13 +111,14 @@ affectedFiles:
     Created comprehensive unit test suite with 28 tests covering all
     functionality including subprocess lifecycle, JSON-RPC communication, error
     scenarios, and timeout handling using Jest fake timers
-log: []
+log:
+  - "Auto-completed: All child tasks are complete"
 schema: v1.0
 childrenIds:
-  - T-update-bridgeclient-for-mcp
-  - T-update-mcpclient-for-server
   - T-extend-mcp-server-configuratio
   - T-implement-nodestdiomcpconnecti
+  - T-update-bridgeclient-for-mcp
+  - T-update-mcpclient-for-server
   - T-update-noderuntimeadapter-for
   - T-update-reactnativeruntimeadapt
   - T-update-runtimeadapter

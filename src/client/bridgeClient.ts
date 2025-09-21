@@ -861,14 +861,7 @@ export class BridgeClient {
 
     // Process each configured MCP server
     for (const serverConfig of this.config.tools.mcpServers) {
-      // Only process HTTP servers for now - STDIO support will be added in future tasks
-      if (serverConfig.url) {
-        this.connectToMcpServer(serverConfig, toolRouter);
-      } else {
-        logger.warn(
-          `Skipping STDIO MCP server ${serverConfig.name} - STDIO support not yet implemented`,
-        );
-      }
+      this.connectToMcpServer(serverConfig, toolRouter);
     }
   }
 
@@ -884,18 +877,14 @@ export class BridgeClient {
     },
     toolRouter: ToolRouter,
   ): void {
-    // Only handle HTTP servers in this method
-    if (!serverConfig.url) {
-      logger.warn(
-        `Cannot connect to MCP server ${serverConfig.name} - URL required for current implementation`,
-      );
-      return;
-    }
-
     void (async () => {
       try {
+        // Log connection attempt with appropriate transport details
+        const transportInfo = serverConfig.url
+          ? `HTTP: ${serverConfig.url}`
+          : `STDIO: ${serverConfig.command}`;
         logger.info(
-          `Connecting to MCP server: ${serverConfig.name} at ${serverConfig.url}`,
+          `Connecting to MCP server: ${serverConfig.name} (${transportInfo})`,
         );
 
         // Create MCP client
@@ -1063,12 +1052,12 @@ export class BridgeClient {
     logger.info(`Disconnecting ${this.mcpClients.size} MCP clients`);
 
     const disconnectPromises = Array.from(this.mcpClients.entries()).map(
-      async ([serverUrl, client]) => {
+      async ([serverName, client]) => {
         try {
           await client.disconnect();
-          logger.debug(`Successfully disconnected MCP client: ${serverUrl}`);
+          logger.debug(`Successfully disconnected MCP client: ${serverName}`);
         } catch (error) {
-          logger.warn(`Failed to disconnect MCP client: ${serverUrl}`, {
+          logger.warn(`Failed to disconnect MCP client: ${serverName}`, {
             error,
           });
         }
@@ -1103,7 +1092,7 @@ export class BridgeClient {
     );
 
     let totalUnregistered = 0;
-    for (const [serverUrl, registry] of this.mcpToolRegistries.entries()) {
+    for (const [serverName, registry] of this.mcpToolRegistries.entries()) {
       try {
         const toolCountBefore = registry.getRegisteredToolCount();
         registry.unregisterMcpTools(this.toolRouter);
@@ -1112,11 +1101,11 @@ export class BridgeClient {
 
         totalUnregistered += unregisteredCount;
         logger.debug(
-          `Unregistered ${unregisteredCount} tools from MCP server: ${serverUrl}`,
+          `Unregistered ${unregisteredCount} tools from MCP server: ${serverName}`,
         );
       } catch (error) {
         logger.warn(
-          `Failed to unregister tools from MCP server: ${serverUrl}`,
+          `Failed to unregister tools from MCP server: ${serverName}`,
           { error },
         );
       }

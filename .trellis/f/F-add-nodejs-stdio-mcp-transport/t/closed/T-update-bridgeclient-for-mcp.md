@@ -1,13 +1,34 @@
 ---
 id: T-update-bridgeclient-for-mcp
 title: Update BridgeClient for MCP server configuration integration
-status: open
+status: done
 priority: high
 parent: F-add-nodejs-stdio-mcp-transport
 prerequisites:
   - T-update-mcpclient-for-server
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/client/bridgeClient.ts: "Updated disconnectMcpClients() and
+    unregisterMcpTools() methods to use server names instead of serverUrl
+    variable names in logging. Removed temporary HTTP-only filtering in
+    initializeMcpTools() and connectToMcpServer() methods to support both HTTP
+    and STDIO transport types. Updated logging to show appropriate transport
+    information (HTTP: URL or STDIO: command)."
+  src/client/__tests__/bridgeClientMcpIntegration.test.ts: "Added comprehensive
+    test suite for MCP server configuration integration including 7 new test
+    cases: STDIO server configurations with and without args, mixed HTTP/STDIO
+    scenarios, STDIO connection failure handling, mixed success/failure
+    scenarios, transport-agnostic behavior verification, and backward
+    compatibility validation. All tests verify correct McpServerConfig objects
+    are passed to McpClient constructor."
+log:
+  - Successfully updated BridgeClient for MCP server configuration integration.
+    All MCP client instantiations now pass complete server configuration objects
+    instead of URL strings, enabling seamless support for both HTTP and STDIO
+    MCP servers. Updated error messages and logging to use server names instead
+    of URLs for consistency. Removed temporary HTTP-only filtering to support
+    all transport types. Added comprehensive unit tests covering STDIO
+    configurations, mixed transport scenarios, error handling, and backward
+    compatibility. All quality checks pass.
 schema: v1.0
 childrenIds: []
 created: 2025-09-21T14:17:46.586Z
