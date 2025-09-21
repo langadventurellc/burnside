@@ -58,3 +58,7 @@ export type { McpToolResult } from "./mcpToolResult";
 export { translateMcpToToolDefinition } from "./translateMcpToToolDefinition";
 export { translateToolDefinitionToMcp } from "./translateToolDefinitionToMcp";
 export { validateMcpToolDefinition } from "./validateMcpToolDefinition";
+
+// Tool integration
+export { createMcpToolHandler } from "./mcpToolHandler";
+export { McpToolRegistry } from "./mcpToolRegistry";

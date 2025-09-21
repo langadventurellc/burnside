@@ -117,7 +117,8 @@ affectedFiles:
     error creation with proper context
   src/tools/mcp/mcpClientOptions.ts: Defined comprehensive client options
     interface extending base connection options with retry, health monitoring,
-    and logging configuration
+    and logging configuration; Added onConnect and onDisconnect lifecycle
+    callback options for dynamic tool management
   src/tools/mcp/mcpClientCapabilities.ts: Created client capabilities interface for tools-only MCP requests
   src/tools/mcp/mcpServerCapabilities.ts: Defined server capabilities interface
     for validation and capability negotiation
@@ -137,7 +138,8 @@ affectedFiles:
     discovery
   src/tools/mcp/index.ts: Barrel export file providing clean API surface for all
     MCP functionality; Updated module exports to include new tool types and
-    schema translation functions
+    schema translation functions; Exported new tool integration classes
+    (createMcpToolHandler and McpToolRegistry) for public API
   src/tools/index.ts: Updated main tools exports to include MCP module for Model
     Context Protocol integration
   src/tools/mcp/__tests__/mcpError.test.ts: Comprehensive test suite for all MCP
@@ -167,6 +169,12 @@ affectedFiles:
   src/tools/mcp/__tests__/translateMcpToToolDefinition.test.ts:
     Created comprehensive test suite covering translation scenarios, validation
     errors, and edge cases with 11 passing tests
+  src/tools/mcp/mcpToolHandler.ts: Created function-based ToolHandler
+    implementation for MCP tools with connection validation, error handling, and
+    response normalization
+  src/tools/mcp/mcpToolRegistry.ts: Created dynamic tool lifecycle management
+    class with registration/unregistration, connection handlers, and
+    comprehensive error handling
 log: []
 schema: v1.0
 childrenIds:

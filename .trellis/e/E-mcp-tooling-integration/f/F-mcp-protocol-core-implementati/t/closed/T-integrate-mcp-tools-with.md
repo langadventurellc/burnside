@@ -1,13 +1,33 @@
 ---
 id: T-integrate-mcp-tools-with
 title: Integrate MCP tools with ToolRouter and dynamic registration
-status: open
+status: done
 priority: high
 parent: F-mcp-protocol-core-implementati
 prerequisites:
   - T-implement-tool-discovery-and
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/tools/mcp/mcpToolHandler.ts: Created function-based ToolHandler
+    implementation for MCP tools with connection validation, error handling, and
+    response normalization
+  src/tools/mcp/mcpToolRegistry.ts: Created dynamic tool lifecycle management
+    class with registration/unregistration, connection handlers, and
+    comprehensive error handling
+  src/tools/mcp/mcpClientOptions.ts: Added onConnect and onDisconnect lifecycle
+    callback options for dynamic tool management
+  src/tools/mcp/index.ts: Exported new tool integration classes
+    (createMcpToolHandler and McpToolRegistry) for public API
+log:
+  - Successfully implemented MCP tool integration with ToolRouter and dynamic
+    registration. Created function-based MCP tool handlers that bridge MCP tool
+    execution with the standard ToolHandler interface, enabling seamless tool
+    execution through ToolRouter. Implemented McpToolRegistry for dynamic tool
+    lifecycle management with automatic registration on connection and cleanup
+    on disconnect. Added lifecycle callbacks to McpClientOptions for connection
+    event handling. All MCP tools are namespaced with "mcp:" prefix to prevent
+    conflicts. Integration includes comprehensive error handling, response
+    normalization, and logging. All quality checks pass with full TypeScript
+    compatibility.
 schema: v1.0
 childrenIds: []
 created: 2025-09-20T22:56:01.049Z

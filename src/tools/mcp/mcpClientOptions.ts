@@ -141,4 +141,42 @@ export interface McpClientOptions extends McpConnectionOptions {
    * ```
    */
   retryJitter?: boolean;
+
+  /**
+   * Optional callback invoked when the MCP client successfully connects.
+   *
+   * Use this to register tools or perform other setup tasks that depend
+   * on an active MCP connection. The callback is called after capability
+   * negotiation completes successfully.
+   *
+   * @example
+   * ```typescript
+   * const options = {
+   *   onConnect: async () => {
+   *     console.log('MCP server connected');
+   *     await registry.registerMcpTools();
+   *   }
+   * };
+   * ```
+   */
+  onConnect?: () => Promise<void> | void;
+
+  /**
+   * Optional callback invoked when the MCP client disconnects.
+   *
+   * Use this to cleanup tools or handle connection loss scenarios.
+   * The callback is called when the connection is lost or explicitly
+   * disconnected.
+   *
+   * @example
+   * ```typescript
+   * const options = {
+   *   onDisconnect: async () => {
+   *     console.log('MCP server disconnected');
+   *     await registry.unregisterMcpTools();
+   *   }
+   * };
+   * ```
+   */
+  onDisconnect?: () => Promise<void> | void;
 }
