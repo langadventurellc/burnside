@@ -1,7 +1,7 @@
 ---
 id: F-mcp-tooling-e2e-test-suite
 title: Basic MCP Tooling E2E Validation
-status: in-progress
+status: done
 priority: medium
 parent: none
 prerequisites: []
@@ -64,15 +64,25 @@ affectedFiles:
     patterns with proper timeout handling, validation, and cleanup. Uses
     GoogleGeminiV1Provider with proper initialization and leverages shared MCP
     test utilities."
-log: []
+  src/__tests__/e2e/xai/mcpTools.e2e.test.ts:
+    "New E2E test file implementing xAI
+    MCP tool integration validation with two test suites: MCP Tool Discovery
+    (validates client configuration) and MCP Tool Execution (validates tool
+    execution through xAI chat API). Follows existing xAI E2E test patterns with
+    proper timeout handling, validation, and cleanup. Uses XAIV1Provider with
+    proper initialization and leverages shared MCP test utilities. Discovered
+    xAI requires higher token limits (1000) for successful tool execution due to
+    reasoning behavior."
+log:
+  - "Auto-completed: All child tasks are complete"
 schema: v1.0
 childrenIds:
-  - T-create-google-mcp-tools-e2e
-  - T-create-xai-mcp-tools-e2e-test
   - T-create-anthropic-mcp-tools
+  - T-create-google-mcp-tools-e2e
   - T-create-mcp-test-helpers-and
   - T-create-mock-mcp-server-for
   - T-create-openai-mcp-tools-e2e
+  - T-create-xai-mcp-tools-e2e-test
 created: 2025-09-21T02:33:20.072Z
 updated: 2025-09-21T02:33:20.072Z
 ---
