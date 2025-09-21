@@ -7,10 +7,12 @@
 import type { ChatRequest } from "../../client/chatRequest";
 import type { Message } from "../../core/messages/message";
 import type { ContentPart } from "../../core/messages/contentPart";
+import type { ToolDefinition } from "../../core/tools/toolDefinition";
 import type { ProviderHttpRequest } from "../../core/transport/providerHttpRequest";
 import { createHttpRequest } from "../../core/providers/createHttpRequest";
 import { ValidationError } from "../../core/errors/validationError";
 import type { AnthropicMessagesConfigType } from "./configSchema";
+import { z } from "zod";
 
 /**
  * Convert unified ContentPart to Anthropic message content format
@@ -92,6 +94,75 @@ function extractSystemMessage(messages: Message[]): string | undefined {
 }
 
 /**
+ * Convert Zod schema to JSON Schema for Anthropic API
+ */
+function zodToJsonSchema(zodSchema: z.ZodType): Record<string, unknown> {
+  // For now, we'll handle basic Zod types commonly used in tools
+  // This is a simplified implementation - a full Zod to JSON Schema converter would be more complex
+
+  if (zodSchema instanceof z.ZodObject) {
+    const shape = zodSchema.shape as Record<string, z.ZodTypeAny>;
+    const properties: Record<string, unknown> = {};
+    const required: string[] = [];
+
+    for (const [key, value] of Object.entries(shape)) {
+      if (value instanceof z.ZodString) {
+        properties[key] = { type: "string" };
+        if (!value.isOptional()) {
+          required.push(key);
+        }
+      } else if (value instanceof z.ZodNumber) {
+        properties[key] = { type: "number" };
+        if (!value.isOptional()) {
+          required.push(key);
+        }
+      } else if (value instanceof z.ZodBoolean) {
+        properties[key] = { type: "boolean" };
+        if (!value.isOptional()) {
+          required.push(key);
+        }
+      } else {
+        // Fallback for other types
+        properties[key] = { type: "string" };
+        if (!value.isOptional()) {
+          required.push(key);
+        }
+      }
+    }
+
+    return {
+      type: "object",
+      properties,
+      ...(required.length > 0 && { required }),
+    };
+  }
+
+  // Fallback for non-object schemas
+  return { type: "object" };
+}
+
+/**
+ * Convert ToolDefinition to Anthropic tool format
+ */
+function convertToolDefinition(tool: ToolDefinition): Record<string, unknown> {
+  let inputSchema: Record<string, unknown>;
+
+  // Handle both Zod schemas and JSON Schema objects
+  if (tool.inputSchema instanceof z.ZodType) {
+    inputSchema = zodToJsonSchema(tool.inputSchema);
+  } else {
+    // Assume it's already a JSON Schema object
+    inputSchema = tool.inputSchema as Record<string, unknown>;
+  }
+
+  return {
+    name: tool.name,
+    description: tool.description,
+    input_schema: inputSchema,
+  };
+}
+
+/**
  * Build Anthropic request body from unified request
  */
 function buildAnthropicRequestBody(
@@ -148,14 +219,13 @@ function buildAnthropicRequestBody(
     anthropicRequest.stream = true;
   }
 
-  // Add tools placeholder (will be implemented in separate task)
+  // Add tools if present
   if (
     request.tools &&
     Array.isArray(request.tools) &&
     request.tools.length > 0
   ) {
-    // Placeholder - detailed implementation in separate task
-    anthropicRequest.tools = [];
+    anthropicRequest.tools = request.tools.map(convertToolDefinition);
   }
 
   return anthropicRequest;

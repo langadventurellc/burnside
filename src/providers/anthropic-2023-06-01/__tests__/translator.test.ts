@@ -192,7 +192,7 @@ describe("translateChatRequest", () => {
       ]);
     });
 
-    test("should include tools placeholder when tools provided", () => {
+    test("should convert tools to Anthropic format when tools provided", () => {
       const request: ChatRequest & { stream?: boolean } = {
         model: "claude-3-sonnet-20240229",
         maxTokens: 1000,
@@ -214,7 +214,16 @@ describe("translateChatRequest", () => {
       const result = translateChatRequest(request, mockConfig);
       const body = parseBody(result.body);
 
-      expect(body.tools).toEqual([]);
+      expect(body.tools).toEqual([
+        {
+          name: "test_tool",
+          description: "A test tool",
+          input_schema: {
+            type: "object",
+            properties: {},
+          },
+        },
+      ]);
     });
   });
 

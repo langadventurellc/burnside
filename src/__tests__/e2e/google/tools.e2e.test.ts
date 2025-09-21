@@ -9,6 +9,7 @@ import { createTestMessages } from "../shared/createTestMessages.js";
 import { withTimeout } from "../shared/withTimeout.js";
 import { createTestTool } from "../shared/createTestTool.js";
 import { testToolHandler } from "../shared/testToolHandler.js";
+import { createTrackingTestTool } from "../shared/createTrackingTestTool.js";
 import { defaultLlmModels } from "../../../data/defaultLlmModels.js";
 
 // Extract Google models that support tool calls
@@ -84,95 +85,49 @@ describe("Google Gemini Tool Execution E2E", () => {
   });
 
   describe("Function Calling with Tools", () => {
-    // Parameterized test for all tool-capable Google models
+    // Parameterized test for all tool-capable Google models - validates actual tool execution
     test.each(googleModels)(
-      "should handle chat requests with tools using $name ($id)",
+      "should execute tools when requested using $name ($id)",
       async ({ id: modelId }) => {
         ensureModelRegistered(client, modelId);
+
+        // Create a tracking test tool for this specific test
+        const { toolDefinition, executionTracker, handler } =
+          createTrackingTestTool();
+        const testClient = createGoogleTestClient();
+        ensureModelRegistered(testClient, modelId);
+        testClient.registerTool(
+          toolDefinition,
+          handler as (params: Record<string, unknown>) => Promise<unknown>,
+        );
 
         const messages = createTestMessages(
           "Use the e2e_echo_tool to echo the message 'Hello from tool test'",
         );
 
         const response = await withTimeout(
-          client.chat({
+          testClient.chat({
             messages,
             model: modelId,
-            maxTokens: 100,
+            maxTokens: 1000,
           }),
           25000,
         );
 
-        // Should receive a valid response
-        expect(response).toBeDefined();
+        // Validate response structure
         validateMessageSchema(response);
         expect(response.role).toBe("assistant");
         expect(response.content).toBeDefined();
-        expect(Array.isArray(response.content)).toBe(true);
+
+        // Validate tool execution actually occurred
+        expect(executionTracker.wasExecuted()).toBe(true);
+        expect(executionTracker.hasParameters()).toBe(true);
       },
       30000,
     );
-
-    test("should process tool calls in chat responses", async () => {
-      const messages = createTestMessages(
-        "Use the e2e_echo_tool to echo the message 'Test tool call processing'",
-      );
-
-      const response = await withTimeout(
-        client.chat({
-          messages,
-          model: testModel,
-          maxTokens: 100,
-        }),
-        25000,
-      );
-
-      // Validate basic response structure
-      validateMessageSchema(response);
-      expect(response.role).toBe("assistant");
-      expect(response.content).toBeDefined();
-      expect(Array.isArray(response.content)).toBe(true);
-
-      // Response should be well-formed even with tool processing
-      if (response.content.length > 0 && response.content[0].type === "text") {
-        expect(response.content[0].text).toBeTruthy();
-      }
-    });
   });
 
   describe("Tool System Integration", () => {
-    test("should handle tool execution through BridgeClient", async () => {
-      // Create a separate client to test tool integration
-      const testClient = createGoogleTestClient();
-      ensureModelRegistered(testClient, testModel);
-
-      const toolDef = createTestTool();
-      testClient.registerTool(
-        toolDef,
-        testToolHandler as (
-          params: Record<string, unknown>,
-        ) => Promise<unknown>,
-      );
-
-      const messages = createTestMessages(
-        "Please use the e2e_echo_tool to echo back the message 'Integration test'",
-      );
-
-      const response = await withTimeout(
-        testClient.chat({
-          messages,
-          model: testModel,
-          maxTokens: 100,
-        }),
-        25000,
-      );
-
-      // Tool execution should result in valid response
-      validateMessageSchema(response);
-      expect(response.role).toBe("assistant");
-      expect(response.content).toBeDefined();
-    });
-
     test("should handle requests when tools are available but not used", async () => {
       const messages = createTestMessages(
         "Just say hello, don't use any tools",
@@ -312,34 +267,23 @@ describe("Google Gemini Tool Execution E2E", () => {
   });
 
   describe("Tool Behavior Validation", () => {
-    test("should maintain message format consistency across tool calls", async () => {
+    test("should handle complex tool requests with execution validation", async () => {
+      // Create a tracking test tool for this specific test
+      const { toolDefinition, executionTracker, handler } =
+        createTrackingTestTool();
+      const testClient = createGoogleTestClient();
+      ensureModelRegistered(testClient, testModel);
+      testClient.registerTool(
+        toolDefinition,
+        handler as (params: Record<string, unknown>) => Promise<unknown>,
+      );
+
       const messages = createTestMessages(
-        "Use e2e_echo_tool with the message 'format consistency test'",
+        "Please use the e2e_echo_tool multiple times: first echo 'Hello', then echo 'World'",
       );
 
       const response = await withTimeout(
-        client.chat({
-          messages,
-          model: testModel,
-          maxTokens: 100,
-        }),
-        25000,
-      );
-
-      expect(response).toBeDefined();
-      validateMessageSchema(response);
-      expect(response.role).toBe("assistant");
-      expect(response.content).toBeDefined();
-      expect(Array.isArray(response.content)).toBe(true);
-    });
-
-    test("should handle complex tool requests with special characters", async () => {
-      const messages = createTestMessages(
-        "Use the e2e_echo_tool to echo this complex message: 'Test with symbols: @#$%^&*()[]{}|;:,.<>?'",
-      );
-
-      const response = await withTimeout(
-        client.chat({
+        testClient.chat({
           messages,
           model: testModel,
           maxTokens: 200,
@@ -347,163 +291,16 @@ describe("Google Gemini Tool Execution E2E", () => {
         25000,
       );
 
-      expect(response).toBeDefined();
+      // Validate response structure
       validateMessageSchema(response);
       expect(response.role).toBe("assistant");
       expect(response.content).toBeDefined();
-    });
 
-    test("should handle multiple tool calls in sequence", async () => {
-      const messages = createTestMessages(
-        "First use e2e_echo_tool to say 'First call', then use it again to say 'Second call'",
-      );
-
-      const response = await withTimeout(
-        client.chat({
-          messages,
-          model: testModel,
-          maxTokens: 200,
-        }),
-        25000,
-      );
-
-      expect(response).toBeDefined();
-      validateMessageSchema(response);
-      expect(response.role).toBe("assistant");
-      expect(response.content).toBeDefined();
-    });
-
-    test("should preserve conversation context across tool executions", async () => {
-      // First establish context
-      const contextMessages = createTestMessages("Remember this number: 42");
-
-      const contextResponse = await withTimeout(
-        client.chat({
-          messages: contextMessages,
-          model: testModel,
-          maxTokens: 50,
-        }),
-        25000,
-      );
-
-      expect(contextResponse).toBeDefined();
-      validateMessageSchema(contextResponse);
-
-      // Then use tool with context reference
-      const toolMessages = [
-        ...contextMessages,
-        contextResponse,
-        {
-          role: "user" as const,
-          content: [
-            {
-              type: "text" as const,
-              text: "Now use e2e_echo_tool to repeat the number I mentioned",
-            },
-          ],
-          timestamp: new Date().toISOString(),
-        },
-      ];
-
-      const response = await withTimeout(
-        client.chat({
-          messages: toolMessages,
-          model: testModel,
-          maxTokens: 100,
-        }),
-        25000,
-      );
-
-      expect(response).toBeDefined();
-      validateMessageSchema(response);
-      expect(response.role).toBe("assistant");
-    });
-
-    test("should validate tool arguments properly", async () => {
-      const messages = createTestMessages(
-        "Use e2e_echo_tool with the message 'argument validation test'",
-      );
-
-      const response = await withTimeout(
-        client.chat({
-          messages,
-          model: testModel,
-          maxTokens: 100,
-        }),
-        25000,
-      );
-
-      expect(response).toBeDefined();
-      validateMessageSchema(response);
-      expect(response.role).toBe("assistant");
-      expect(response.content).toBeDefined();
-    });
-
-    test("should format tool responses correctly", async () => {
-      const messages = createTestMessages(
-        "Use e2e_echo_tool to echo 'response formatting test'",
-      );
-
-      const response = await withTimeout(
-        client.chat({
-          messages,
-          model: testModel,
-          maxTokens: 100,
-        }),
-        25000,
-      );
-
-      expect(response).toBeDefined();
-      validateMessageSchema(response);
-      expect(response.role).toBe("assistant");
-      expect(response.content).toBeDefined();
-      expect(Array.isArray(response.content)).toBe(true);
-    });
-
-    test("should preserve metadata across tool interactions", async () => {
-      const messages = createTestMessages(
-        "Use e2e_echo_tool with 'metadata preservation test'",
-      );
-
-      const response = await withTimeout(
-        client.chat({
-          messages,
-          model: testModel,
-          maxTokens: 100,
-        }),
-        25000,
-      );
-
-      expect(response).toBeDefined();
-      validateMessageSchema(response);
-      expect(response.role).toBe("assistant");
-      expect(response.timestamp).toBeDefined();
-      expect(response.content).toBeDefined();
-    });
-
-    test("should handle tool execution timing appropriately", async () => {
-      const startTime = Date.now();
-      const messages = createTestMessages(
-        "Use e2e_echo_tool quickly with 'timing test'",
-      );
-
-      const response = await withTimeout(
-        client.chat({
-          messages,
-          model: testModel,
-          maxTokens: 100,
-        }),
-        25000,
-      );
-
-      const endTime = Date.now();
-      const duration = endTime - startTime;
-
-      expect(response).toBeDefined();
-      validateMessageSchema(response);
-      expect(response.role).toBe("assistant");
-      expect(duration).toBeLessThan(25000); // Should complete within timeout
-      expect(duration).toBeGreaterThan(0); // Should take some time
+      // Validate tool execution actually occurred
+      expect(executionTracker.wasExecuted()).toBe(true);
+      expect(executionTracker.hasParameters()).toBe(true);
+      // For complex requests, we might have multiple executions
+      expect(executionTracker.getExecutionCount()).toBeGreaterThan(0);
     });
   });
 });

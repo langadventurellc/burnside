@@ -9,6 +9,7 @@ import { createTestMessages } from "../shared/createTestMessages";
 import { withTimeout } from "../shared/withTimeout";
 import { createTestTool } from "../shared/createTestTool";
 import { testToolHandler } from "../shared/testToolHandler";
+import { createTrackingTestTool } from "../shared/createTrackingTestTool";
 import { defaultLlmModels } from "../../../data/defaultLlmModels";
 
 // Extract OpenAI models that support tool calls
@@ -84,92 +85,48 @@ describe("OpenAI Tool Execution E2E", () => {
   });
 
   describe("Function Calling with Tools", () => {
-    // Parameterized test for all tool-capable OpenAI models
+    // Parameterized test for all tool-capable OpenAI models - validates actual tool execution
     test.each(openaiModels)(
-      "should handle chat requests with tools using $name ($id)",
+      "should execute tools when requested using $name ($id)",
       async ({ id: modelId }) => {
         ensureModelRegistered(client, modelId);
+
+        // Create a tracking test tool for this specific test
+        const { toolDefinition, executionTracker, handler } =
+          createTrackingTestTool();
+        const testClient = createTestClient();
+        ensureModelRegistered(testClient, modelId);
+        testClient.registerTool(
+          toolDefinition,
+          handler as (params: Record<string, unknown>) => Promise<unknown>,
+        );
 
         const messages = createTestMessages(
           "Use the e2e_echo_tool to echo the message 'Hello from tool test'",
         );
 
         const response = await withTimeout(
-          client.chat({
+          testClient.chat({
             messages,
             model: modelId,
           }),
           25000,
         );
 
-        // Should receive a valid response
-        expect(response).toBeDefined();
+        // Validate response structure
         validateMessageSchema(response);
         expect(response.role).toBe("assistant");
         expect(response.content).toBeDefined();
-        expect(Array.isArray(response.content)).toBe(true);
+
+        // Validate tool execution actually occurred
+        expect(executionTracker.wasExecuted()).toBe(true);
+        expect(executionTracker.hasParameters()).toBe(true);
       },
       30000,
     );
-
-    test("should process tool calls in chat responses", async () => {
-      const messages = createTestMessages(
-        "Use the e2e_echo_tool to echo the message 'Test tool call processing'",
-      );
-
-      const response = await withTimeout(
-        client.chat({
-          messages,
-          model: testModel,
-        }),
-        25000,
-      );
-
-      // Validate basic response structure
-      validateMessageSchema(response);
-      expect(response.role).toBe("assistant");
-      expect(response.content).toBeDefined();
-      expect(Array.isArray(response.content)).toBe(true);
-
-      // Response should be well-formed even with tool processing
-      if (response.content.length > 0 && response.content[0].type === "text") {
-        expect(response.content[0].text).toBeTruthy();
-      }
-    });
   });
 
   describe("Tool System Integration", () => {
-    test("should handle tool execution through BridgeClient", async () => {
-      // Create a separate client to test tool integration
-      const testClient = createTestClient();
-      ensureModelRegistered(testClient, testModel);
-
-      const toolDef = createTestTool();
-      testClient.registerTool(
-        toolDef,
-        testToolHandler as (
-          params: Record<string, unknown>,
-        ) => Promise<unknown>,
-      );
-
-      const messages = createTestMessages(
-        "Please use the e2e_echo_tool to echo back the message 'Integration test'",
-      );
-
-      const response = await withTimeout(
-        testClient.chat({
-          messages,
-          model: testModel,
-        }),
-        25000,
-      );
-
-      // Tool execution should result in valid response
-      validateMessageSchema(response);
-      expect(response.role).toBe("assistant");
-      expect(response.content).toBeDefined();
-    });
-
     test("should handle requests when tools are available but not used", async () => {
       const messages = createTestMessages(
         "Just say hello, don't use any tools",
@@ -279,76 +236,39 @@ describe("OpenAI Tool Execution E2E", () => {
   });
 
   describe("Tool Behavior Validation", () => {
-    test("should maintain message format consistency with tools", async () => {
-      const messages = createTestMessages(
-        "Use the e2e_echo_tool to echo 'Format consistency test'",
+    test("should handle complex tool requests with execution validation", async () => {
+      // Create a tracking test tool for this specific test
+      const { toolDefinition, executionTracker, handler } =
+        createTrackingTestTool();
+      const testClient = createTestClient();
+      ensureModelRegistered(testClient, testModel);
+      testClient.registerTool(
+        toolDefinition,
+        handler as (params: Record<string, unknown>) => Promise<unknown>,
       );
 
-      const response = await withTimeout(
-        client.chat({
-          messages,
-          model: testModel,
-        }),
-        25000,
-      );
-
-      // Validate response maintains consistent format
-      validateMessageSchema(response);
-      expect(response).toHaveProperty("role");
-      expect(response).toHaveProperty("content");
-      expect(response.role).toBe("assistant");
-      expect(Array.isArray(response.content)).toBe(true);
-
-      // Should have timestamp and id
-      expect(response.timestamp).toBeTruthy();
-      expect(response.id).toBeTruthy();
-    });
-
-    test("should handle complex tool requests appropriately", async () => {
       const messages = createTestMessages(
         "Please use the e2e_echo_tool multiple times: first echo 'Hello', then echo 'World'",
       );
 
       const response = await withTimeout(
-        client.chat({
+        testClient.chat({
           messages,
           model: testModel,
         }),
         25000,
       );
 
-      // Should handle complex requests gracefully
+      // Validate response structure
       validateMessageSchema(response);
       expect(response.role).toBe("assistant");
       expect(response.content).toBeDefined();
-      expect(response.content.length).toBeGreaterThan(0);
-    });
 
-    test("should preserve metadata in tool responses", async () => {
-      const messages = createTestMessages(
-        "Use the e2e_echo_tool to echo 'Metadata preservation test'",
-      );
-
-      const response = await withTimeout(
-        client.chat({
-          messages,
-          model: testModel,
-        }),
-        25000,
-      );
-
-      // Should have proper metadata structure
-      validateMessageSchema(response);
-
-      if (response.metadata) {
-        expect(typeof response.metadata).toBe("object");
-      }
-
-      // Should maintain basic message properties
-      expect(response.role).toBe("assistant");
-      expect(response.content).toBeDefined();
-      expect(response.timestamp).toBeTruthy();
-      expect(response.id).toBeTruthy();
+      // Validate tool execution actually occurred
+      expect(executionTracker.wasExecuted()).toBe(true);
+      expect(executionTracker.hasParameters()).toBe(true);
+      // For complex requests, we might have multiple executions
+      expect(executionTracker.getExecutionCount()).toBeGreaterThan(0);
     });
   });
 });
