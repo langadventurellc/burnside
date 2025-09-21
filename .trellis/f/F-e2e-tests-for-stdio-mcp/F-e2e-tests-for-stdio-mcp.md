@@ -9,13 +9,25 @@ affectedFiles:
   src/__tests__/e2e/shared/bin/stdio-mcp-server.js: Created standalone Node.js
     executable implementing JSON-RPC 2.0 MCP server over stdin/stdout with
     cross-platform telemetry tracking, signal handling, and error management
+  src/__tests__/e2e/shared/stdioTelemetryReader.ts: Created main
+    StdioTelemetryReader class with file-based telemetry reading, caching, error
+    handling, and MockMcpServer-compatible interface
+  src/__tests__/e2e/shared/createStdioTelemetryReader.ts:
+    Created factory function
+    for default OS temp directory telemetry reader instantiation
+  src/__tests__/e2e/shared/createStdioTelemetryReaderWithPath.ts:
+    Created factory function for custom base directory telemetry reader
+    instantiation
+  src/__tests__/e2e/shared/__tests__/stdioTelemetryReader.test.ts:
+    Added comprehensive unit tests covering all functionality, error scenarios,
+    and edge cases
 log: []
 schema: v1.0
 childrenIds:
   - T-create-anthropic-stdio-mcp
-  - T-create-stdio-mock-mcp-server
   - T-create-stdio-telemetry-reader
   - T-update-test-helpers-for-stdio
+  - T-create-stdio-mock-mcp-server
 created: 2025-09-21T17:03:53.515Z
 updated: 2025-09-21T17:03:53.515Z
 ---
