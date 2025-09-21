@@ -1,12 +1,30 @@
 ---
 id: T-extend-mcp-server-configuratio
 title: Extend MCP server configuration schema for STDIO support
-status: open
+status: done
 priority: high
 parent: F-add-nodejs-stdio-mcp-transport
 prerequisites: []
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/config/bridgeConfigSchema.ts: Extended MCP server schema to support
+    optional 'url', 'command', and 'args' fields with XOR validation ensuring
+    exactly one of 'url' or 'command' is present. Updated JSDoc comments and
+    error messages.
+  src/core/config/__tests__/bridgeConfigSchema.test.ts: Added comprehensive test
+    suite for STDIO MCP server configurations including valid scenarios
+    (command-only, command+args, mixed HTTP/STDIO), invalid scenarios
+    (conflicting fields, validation errors), and type inference tests.
+  src/client/bridgeClient.ts: Updated connectToMcpServer method signature to
+    handle new optional fields and added temporary filtering to only process
+    HTTP servers until STDIO implementation is added in future tasks.
+log:
+  - Successfully extended MCP server configuration schema to support STDIO
+    transport alongside existing HTTP transport. The schema now accepts either
+    URL-based HTTP configurations or command-based STDIO configurations with
+    mutual exclusivity validation. Added comprehensive test coverage for all new
+    STDIO configuration scenarios including validation, error handling, and type
+    inference. All existing HTTP server configurations remain fully backward
+    compatible.
 schema: v1.0
 childrenIds: []
 created: 2025-09-21T14:13:58.234Z

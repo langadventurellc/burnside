@@ -861,7 +861,14 @@ export class BridgeClient {
 
     // Process each configured MCP server
     for (const serverConfig of this.config.tools.mcpServers) {
-      this.connectToMcpServer(serverConfig, toolRouter);
+      // Only process HTTP servers for now - STDIO support will be added in future tasks
+      if (serverConfig.url) {
+        this.connectToMcpServer(serverConfig, toolRouter);
+      } else {
+        logger.warn(
+          `Skipping STDIO MCP server ${serverConfig.name} - STDIO support not yet implemented`,
+        );
+      }
     }
   }
 
@@ -869,9 +876,22 @@ export class BridgeClient {
    * Connect to an individual MCP server and register its tools
    */
   private connectToMcpServer(
-    serverConfig: { name: string; url: string },
+    serverConfig: {
+      name: string;
+      url?: string;
+      command?: string;
+      args?: string[];
+    },
     toolRouter: ToolRouter,
   ): void {
+    // Only handle HTTP servers in this method
+    if (!serverConfig.url) {
+      logger.warn(
+        `Cannot connect to MCP server ${serverConfig.name} - URL required for current implementation`,
+      );
+      return;
+    }
+
     void (async () => {
       try {
         logger.info(
@@ -879,7 +899,7 @@ export class BridgeClient {
         );
 
         // Create MCP client
-        const mcpClient = new McpClient(this.runtimeAdapter, serverConfig.url);
+        const mcpClient = new McpClient(this.runtimeAdapter, serverConfig.url!);
 
         // Attempt connection
         await mcpClient.connect();
