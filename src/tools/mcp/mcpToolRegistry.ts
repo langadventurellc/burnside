@@ -93,7 +93,14 @@ export class McpToolRegistry {
         const toolHandler = this.createConnectionAwareToolHandler(
           toolDefinition.name,
         );
-        toolRouter.register(toolId, toolDefinition, toolHandler);
+
+        // Create a new tool definition with the prefixed name for registration
+        const prefixedToolDefinition = {
+          ...toolDefinition,
+          name: toolId, // Use the prefixed toolId as the name
+        };
+
+        toolRouter.register(toolId, prefixedToolDefinition, toolHandler);
         this.registeredTools.set(toolId, toolDefinition.name);
         registeredCount++;
 
@@ -325,7 +332,9 @@ export class McpToolRegistry {
    * @returns Namespaced tool ID
    */
   private generateToolId(toolName: string): string {
-    // Use "mcp:" prefix to namespace MCP tools and avoid conflicts
-    return `mcp:${toolName}`;
+    // Use "mcp_" prefix to namespace MCP tools and avoid conflicts
+    // Note: Using underscore instead of colon for LLM provider compliance
+    // (OpenAI, Claude, Gemini require alphanumeric + underscore/hyphen only)
+    return `mcp_${toolName}`;
   }
 }

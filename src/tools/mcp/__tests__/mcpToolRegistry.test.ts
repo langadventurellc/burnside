@@ -115,13 +115,19 @@ describe("McpToolRegistry", () => {
       expect(mockMcpClient.discoverTools).toHaveBeenCalledTimes(1);
       expect(mockToolRouter.register).toHaveBeenCalledTimes(2);
       expect(mockToolRouter.register).toHaveBeenCalledWith(
-        "mcp:calculator",
-        mockToolDefinitions[0],
+        "mcp_calculator",
+        {
+          ...mockToolDefinitions[0],
+          name: "mcp_calculator", // Tool definition name should be prefixed
+        },
         expect.any(Function),
       );
       expect(mockToolRouter.register).toHaveBeenCalledWith(
-        "mcp:weather",
-        mockToolDefinitions[1],
+        "mcp_weather",
+        {
+          ...mockToolDefinitions[1],
+          name: "mcp_weather", // Tool definition name should be prefixed
+        },
         expect.any(Function),
       );
       expect(registry.getRegisteredToolCount()).toBe(2);
@@ -336,14 +342,14 @@ describe("McpToolRegistry", () => {
     it("should return correct registered tool IDs", () => {
       const toolIds = registry.getRegisteredToolIds();
       expect(toolIds).toHaveLength(2);
-      expect(toolIds).toContain("mcp:calculator");
-      expect(toolIds).toContain("mcp:weather");
+      expect(toolIds).toContain("mcp_calculator");
+      expect(toolIds).toContain("mcp_weather");
     });
 
     it("should check if tool is registered", () => {
-      expect(registry.isToolRegistered("mcp:calculator")).toBe(true);
-      expect(registry.isToolRegistered("mcp:weather")).toBe(true);
-      expect(registry.isToolRegistered("mcp:nonexistent")).toBe(false);
+      expect(registry.isToolRegistered("mcp_calculator")).toBe(true);
+      expect(registry.isToolRegistered("mcp_weather")).toBe(true);
+      expect(registry.isToolRegistered("mcp_nonexistent")).toBe(false);
     });
   });
 

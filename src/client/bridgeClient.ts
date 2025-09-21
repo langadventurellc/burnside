@@ -314,9 +314,18 @@ export class BridgeClient {
    * @throws {ProviderError} When provider-specific errors occur (normalized via provider plugin)
    */
   async chat(request: ChatRequest): Promise<Message> {
-    // Validate tools if provided
-    if (request.tools && request.tools.length > 0) {
-      validateToolDefinitions(request.tools);
+    // Auto-include registered tools if tool system is enabled and no tools explicitly provided
+    let toolsToUse = request.tools;
+    if (!toolsToUse && this.isToolsEnabled() && this.toolRouter) {
+      const registeredTools = this.toolRouter.getRegisteredTools();
+      if (registeredTools.length > 0) {
+        toolsToUse = registeredTools;
+      }
+    }
+
+    // Validate tools if provided or auto-included
+    if (toolsToUse && toolsToUse.length > 0) {
+      validateToolDefinitions(toolsToUse);
 
       if (!shouldExecuteTools(true, this.isToolsEnabled())) {
         throw new BridgeError(
@@ -343,11 +352,12 @@ export class BridgeClient {
     const providerConfig = this.getProviderConfigOrThrow(id);
     await this.initializeProviderIfNeeded(plugin, providerConfig);
 
-    // Translate request
+    // Translate request with auto-included tools
     const httpReq = plugin.translateRequest({
       ...request,
       model: modelId.split(":")[1],
       stream: false,
+      tools: toolsToUse, // Use auto-included tools
     });
 
     // Apply timeout and combine with external signal
@@ -378,7 +388,7 @@ export class BridgeClient {
       };
 
       // Check for tool calls and execute if needed
-      if (request.tools && request.tools.length > 0 && this.isToolsEnabled()) {
+      if (toolsToUse && toolsToUse.length > 0 && this.isToolsEnabled()) {
         // Determine execution path: multi-turn vs single-turn
         if (shouldExecuteMultiTurn(request, this.isToolsEnabled())) {
           // Multi-turn execution path

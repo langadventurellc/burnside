@@ -73,6 +73,7 @@ interface McpToolResult {
  * MCP initialize response structure
  */
 interface McpInitializeResponse {
+  protocolVersion: string;
   capabilities: {
     tools?: { supported: boolean };
   };
@@ -93,6 +94,10 @@ export class MockMcpServer {
   private readonly server = createServer();
   private readonly options: Required<MockMcpServerOptions>;
   private readonly tools = new Map<string, McpToolDefinition>();
+  private readonly toolCalls = new Map<
+    string,
+    Array<{ arguments: unknown; timestamp: Date }>
+  >();
   private isRunning = false;
 
   constructor(options: MockMcpServerOptions = {}) {
@@ -214,6 +219,46 @@ export class MockMcpServer {
    */
   getRegisteredTools(): McpToolDefinition[] {
     return Array.from(this.tools.values());
+  }
+
+  /**
+   * Get all tool calls made to this server
+   */
+  getToolCalls(): Record<
+    string,
+    Array<{ arguments: unknown; timestamp: Date }>
+  > {
+    return Object.fromEntries(this.toolCalls);
+  }
+
+  /**
+   * Get calls for a specific tool
+   */
+  getToolCallsFor(
+    toolName: string,
+  ): Array<{ arguments: unknown; timestamp: Date }> {
+    return this.toolCalls.get(toolName) || [];
+  }
+
+  /**
+   * Check if a tool has been called
+   */
+  wasToolCalled(toolName: string): boolean {
+    return this.getToolCallsFor(toolName).length > 0;
+  }
+
+  /**
+   * Get the number of times a tool was called
+   */
+  getToolCallCount(toolName: string): number {
+    return this.getToolCallsFor(toolName).length;
+  }
+
+  /**
+   * Clear all tool call history
+   */
+  clearToolCallHistory(): void {
+    this.toolCalls.clear();
   }
 
   /**
@@ -387,6 +432,7 @@ export class MockMcpServer {
     }
 
     const response: McpInitializeResponse = {
+      protocolVersion: "2025-06-18",
       capabilities: {
         tools: { supported: true },
       },
@@ -476,8 +522,15 @@ export class MockMcpServer {
    * Execute a tool and return mock result
    */
   private executeTool(tool: McpToolDefinition, args: unknown): McpToolResult {
-    // For mcp_echo_tool, return predictable echo response
-    if (tool.name === "mcp_echo_tool") {
+    // Record the tool call
+    const toolCalls = this.toolCalls.get(tool.name) || [];
+    toolCalls.push({
+      arguments: args,
+      timestamp: new Date(),
+    });
+    this.toolCalls.set(tool.name, toolCalls);
+    // For echo_tool, return predictable echo response
+    if (tool.name === "echo_tool") {
       const params = (args as { message?: string }) || {};
       const message = params.message || "default message";
 
@@ -516,7 +569,7 @@ export class MockMcpServer {
    */
   private createDefaultEchoTool(): McpToolDefinition {
     return {
-      name: "mcp_echo_tool",
+      name: "echo_tool",
       description:
         "Echo tool for MCP E2E testing - returns input data with test metadata",
       inputSchema: {
