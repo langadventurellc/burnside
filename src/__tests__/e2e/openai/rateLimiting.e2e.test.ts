@@ -2,7 +2,6 @@ import { describe, test, expect, beforeAll } from "@jest/globals";
 import type { BridgeClient } from "../../../client/bridgeClient";
 import { loadTestConfig } from "../shared/openAITestConfig";
 import { getTestModel } from "../shared/getTestModel";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered";
 import {
   createRateLimitedTestClient,
   validateRateLimitingBehavior,
@@ -27,8 +26,6 @@ describe("OpenAI Rate Limiting E2E", () => {
         maxRps: 2,
         scope: "provider",
       });
-
-      ensureModelRegistered(rateLimitedClient, testModel);
 
       const request = createMinimalTestRequest("openai");
 
@@ -71,8 +68,6 @@ describe("OpenAI Rate Limiting E2E", () => {
         maxRps: 2,
         scope: "provider",
       });
-
-      ensureModelRegistered(rateLimitedClient, testModel);
 
       const request = createMinimalTestRequest("openai");
 
@@ -117,9 +112,6 @@ describe("OpenAI Rate Limiting E2E", () => {
         scope: "provider",
       });
 
-      ensureModelRegistered(client1, testModel);
-      ensureModelRegistered(client2, testModel);
-
       const request = createMinimalTestRequest("openai");
 
       // Execute requests from both clients - they should share the same rate limit bucket
@@ -163,8 +155,6 @@ describe("OpenAI Rate Limiting E2E", () => {
         maxRps: 2,
         scope: "provider:model",
       });
-
-      ensureModelRegistered(rateLimitedClient, testModel);
 
       const request = createMinimalTestRequest("openai");
 

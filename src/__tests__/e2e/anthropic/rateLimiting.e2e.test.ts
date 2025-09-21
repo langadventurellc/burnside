@@ -2,7 +2,6 @@ import { describe, test, expect, beforeAll } from "@jest/globals";
 import type { BridgeClient } from "../../../client/bridgeClient";
 import { loadAnthropicTestConfig } from "../shared/anthropicTestConfig";
 import { getAnthropicTestModel } from "../shared/getAnthropicTestModel";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered";
 import {
   createRateLimitedTestClient,
   validateRateLimitingBehavior,
@@ -27,8 +26,6 @@ describe("Anthropic Rate Limiting E2E", () => {
         maxRps: 2,
         scope: "provider",
       });
-
-      ensureModelRegistered(rateLimitedClient, testModel);
 
       const request = createMinimalTestRequest("anthropic");
 
@@ -68,8 +65,6 @@ describe("Anthropic Rate Limiting E2E", () => {
         scope: "provider",
       });
 
-      ensureModelRegistered(unthrottledClient, testModel);
-
       const request = createMinimalTestRequest("anthropic");
 
       // Execute 4 requests sequentially and measure timing
@@ -105,9 +100,6 @@ describe("Anthropic Rate Limiting E2E", () => {
         maxRps: 2,
         scope: "provider",
       });
-
-      ensureModelRegistered(client1, testModel);
-      ensureModelRegistered(client2, testModel);
 
       const request = createMinimalTestRequest("anthropic");
 
@@ -146,8 +138,6 @@ describe("Anthropic Rate Limiting E2E", () => {
         maxRps: 2,
         scope: "provider:model",
       });
-
-      ensureModelRegistered(modelScopedClient, testModel);
 
       // Test with same model (should be rate limited)
       const request = createMinimalTestRequest("anthropic");

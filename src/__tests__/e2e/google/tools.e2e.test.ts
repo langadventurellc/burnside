@@ -1,7 +1,6 @@
 import { describe, test, expect, beforeAll } from "@jest/globals";
 import type { BridgeClient } from "../../../client/bridgeClient.js";
 import { createGoogleTestClient } from "../shared/googleModelHelpers.js";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered.js";
 import { getGoogleTestModel } from "../shared/getGoogleTestModel.js";
 import { loadGoogleTestConfig } from "../shared/googleTestConfig.js";
 import { validateMessageSchema } from "../shared/testHelpers.js";
@@ -32,7 +31,6 @@ describe("Google Gemini Tool Execution E2E", () => {
     loadGoogleTestConfig(); // Validate environment configuration
     client = createGoogleTestClient();
     testModel = getGoogleTestModel();
-    ensureModelRegistered(client, testModel);
 
     // Ensure model supports tool calls
     const modelInfo = client.getModelRegistry().get(testModel);
@@ -89,13 +87,10 @@ describe("Google Gemini Tool Execution E2E", () => {
     test.each(googleModels)(
       "should execute tools when requested using $name ($id)",
       async ({ id: modelId }) => {
-        ensureModelRegistered(client, modelId);
-
         // Create a tracking test tool for this specific test
         const { toolDefinition, executionTracker, handler } =
           createTrackingTestTool();
         const testClient = createGoogleTestClient();
-        ensureModelRegistered(testClient, modelId);
         testClient.registerTool(
           toolDefinition,
           handler as (params: Record<string, unknown>) => Promise<unknown>,
@@ -173,7 +168,6 @@ describe("Google Gemini Tool Execution E2E", () => {
 
     test("should handle tool execution failures gracefully", async () => {
       const testClient = createGoogleTestClient();
-      ensureModelRegistered(testClient, testModel);
 
       // Register a tool that throws an error
       testClient.registerTool(
@@ -222,7 +216,6 @@ describe("Google Gemini Tool Execution E2E", () => {
       const disabledToolsClient = createGoogleTestClient({
         tools: { enabled: false, builtinTools: [] },
       });
-      ensureModelRegistered(disabledToolsClient, testModel);
 
       const messages = createTestMessages(
         "Use any tools if available, otherwise just respond normally",
@@ -272,7 +265,6 @@ describe("Google Gemini Tool Execution E2E", () => {
       const { toolDefinition, executionTracker, handler } =
         createTrackingTestTool();
       const testClient = createGoogleTestClient();
-      ensureModelRegistered(testClient, testModel);
       testClient.registerTool(
         toolDefinition,
         handler as (params: Record<string, unknown>) => Promise<unknown>,

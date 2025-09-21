@@ -67,7 +67,6 @@ export { prepareToolCallMessage } from "./prepareToolCallMessage";
 export { testToolHandler } from "./testToolHandler";
 export { validateApiKey } from "./validateApiKey";
 export { validateToolExecution } from "./validateToolExecution";
-export { ensureModelRegistered } from "./ensureModelRegistered";
 export { withTimeout } from "./withTimeout";
 
 // Test Helper Functions

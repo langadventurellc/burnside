@@ -2,7 +2,6 @@ import { describe, test, expect, beforeAll } from "@jest/globals";
 import type { BridgeClient } from "../../../client/bridgeClient";
 import type { Message } from "../../../core/messages/message";
 import { createTestClient } from "../shared/xaiModelHelpers";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered";
 import { getXaiTestModel } from "../shared/getXaiTestModel";
 import { loadXaiTestConfig } from "../shared/xaiTestConfig";
 import { validateMessageSchema } from "../shared/testHelpers";
@@ -36,7 +35,6 @@ describe("xAI Chat Completion E2E", () => {
     loadXaiTestConfig(); // Validate environment configuration
     client = createTestClient();
     testModel = getXaiTestModel();
-    ensureModelRegistered(client, testModel);
   });
 
   describe("Basic Chat Functionality", () => {
@@ -44,9 +42,6 @@ describe("xAI Chat Completion E2E", () => {
     test.each(xaiModels)(
       "should complete simple chat request with $name ($id)",
       async ({ id: modelId }) => {
-        // Ensure the model is registered
-        ensureModelRegistered(client, modelId);
-
         const messages = createTestMessages("Say hello.");
 
         const response = await withTimeout(

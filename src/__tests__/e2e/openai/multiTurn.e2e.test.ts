@@ -1,7 +1,6 @@
 import { describe, test, expect, beforeAll } from "@jest/globals";
 import type { BridgeClient } from "../../../client/bridgeClient";
 import { createTestClient } from "../shared/openAIModelHelpers";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered";
 import { getTestModel } from "../shared/getTestModel";
 import { loadTestConfig } from "../shared/openAITestConfig";
 import { validateMessageSchema } from "../shared/testHelpers";
@@ -27,7 +26,6 @@ describe("OpenAI Multi-Turn Conversation E2E", () => {
     loadTestConfig(); // Validate environment configuration
     client = createTestClient();
     testModel = getTestModel();
-    ensureModelRegistered(client, testModel);
 
     // Ensure model supports tool calls
     const modelInfo = client.getModelRegistry().get(testModel);

@@ -1,7 +1,6 @@
 import { describe, test, expect, beforeAll } from "@jest/globals";
 import type { BridgeClient } from "../../../client/bridgeClient";
 import { createTestClient } from "../shared/openAIModelHelpers";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered";
 import { getTestModel } from "../shared/getTestModel";
 import { loadTestConfig } from "../shared/openAITestConfig";
 import { validateMessageSchema } from "../shared/testHelpers";
@@ -32,7 +31,6 @@ describe("OpenAI Tool Execution E2E", () => {
     loadTestConfig(); // Validate environment configuration
     client = createTestClient();
     testModel = getTestModel();
-    ensureModelRegistered(client, testModel);
 
     // Ensure model supports tool calls
     const modelInfo = client.getModelRegistry().get(testModel);
@@ -89,13 +87,10 @@ describe("OpenAI Tool Execution E2E", () => {
     test.each(openaiModels)(
       "should execute tools when requested using $name ($id)",
       async ({ id: modelId }) => {
-        ensureModelRegistered(client, modelId);
-
         // Create a tracking test tool for this specific test
         const { toolDefinition, executionTracker, handler } =
           createTrackingTestTool();
         const testClient = createTestClient();
-        ensureModelRegistered(testClient, modelId);
         testClient.registerTool(
           toolDefinition,
           handler as (params: Record<string, unknown>) => Promise<unknown>,
@@ -176,7 +171,6 @@ describe("OpenAI Tool Execution E2E", () => {
 
     test("should handle tool execution failures gracefully", async () => {
       const testClient = createTestClient();
-      ensureModelRegistered(testClient, testModel);
 
       // Register a tool that will fail
       const errorToolDef = {
@@ -213,8 +207,6 @@ describe("OpenAI Tool Execution E2E", () => {
     test("should handle requests when tool system is disabled", async () => {
       // Create client without tool system
       const noToolsClient = createTestClient();
-      // Don't register any tools
-      ensureModelRegistered(noToolsClient, testModel);
 
       const messages = createTestMessages(
         "Just have a normal conversation without tools",
@@ -241,7 +233,6 @@ describe("OpenAI Tool Execution E2E", () => {
       const { toolDefinition, executionTracker, handler } =
         createTrackingTestTool();
       const testClient = createTestClient();
-      ensureModelRegistered(testClient, testModel);
       testClient.registerTool(
         toolDefinition,
         handler as (params: Record<string, unknown>) => Promise<unknown>,

@@ -1,7 +1,6 @@
 import { describe, test, expect, beforeAll } from "@jest/globals";
 import type { BridgeClient } from "../../../client/bridgeClient";
 import { createAnthropicTestClient } from "../shared/anthropicModelHelpers";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered";
 import { getAnthropicTestModel } from "../shared/getAnthropicTestModel";
 import { loadAnthropicTestConfig } from "../shared/anthropicTestConfig";
 import { validateMessageSchema } from "../shared/testHelpers";
@@ -27,7 +26,6 @@ describe("Anthropic Multi-Turn Conversation E2E", () => {
     loadAnthropicTestConfig(); // Validate environment configuration
     client = createAnthropicTestClient();
     testModel = getAnthropicTestModel();
-    ensureModelRegistered(client, testModel);
 
     // Ensure model supports tool calls
     const modelInfo = client.getModelRegistry().get(testModel);

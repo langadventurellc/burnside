@@ -2,7 +2,6 @@ import { describe, test, expect, beforeAll } from "@jest/globals";
 import type { BridgeClient } from "../../../client/bridgeClient";
 import { loadXaiTestConfig } from "../shared/xaiTestConfig";
 import { getXaiTestModel } from "../shared/getXaiTestModel";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered";
 import {
   createRateLimitedTestClient,
   validateRateLimitingBehavior,
@@ -27,8 +26,6 @@ describe("xAI Rate Limiting E2E", () => {
         maxRps: 2,
         scope: "provider",
       });
-
-      ensureModelRegistered(rateLimitedClient, testModel);
 
       const request = createMinimalTestRequest("xai");
 
@@ -68,8 +65,6 @@ describe("xAI Rate Limiting E2E", () => {
         scope: "provider",
       });
 
-      ensureModelRegistered(unthrottledClient, testModel);
-
       const request = createMinimalTestRequest("xai");
 
       // Execute 4 requests sequentially and measure timing
@@ -104,9 +99,6 @@ describe("xAI Rate Limiting E2E", () => {
         maxRps: 2,
         scope: "provider",
       });
-
-      ensureModelRegistered(client1, testModel);
-      ensureModelRegistered(client2, testModel);
 
       const request = createMinimalTestRequest("xai");
 
@@ -153,8 +145,6 @@ describe("xAI Rate Limiting E2E", () => {
         maxRps: 2,
         scope: "provider:model",
       });
-
-      ensureModelRegistered(modelScopedClient, testModel);
 
       const request = createMinimalTestRequest("xai");
 

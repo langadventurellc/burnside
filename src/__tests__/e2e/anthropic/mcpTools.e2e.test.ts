@@ -62,7 +62,7 @@ describe("Anthropic MCP Tool Basic Validation E2E", () => {
         providers: {
           anthropic: { apiKey: testConfig.anthropicApiKey },
         },
-        modelSeed: "builtin", // Explicitly use builtin seed to populate registry
+        modelSeed: "builtin",
         options: {
           logging: {
             enabled: false,

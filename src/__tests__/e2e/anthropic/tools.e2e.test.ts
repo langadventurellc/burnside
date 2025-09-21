@@ -1,7 +1,6 @@
 import { describe, test, expect, beforeAll } from "@jest/globals";
 import type { BridgeClient } from "../../../client/bridgeClient";
 import { createAnthropicTestClient } from "../shared/anthropicModelHelpers";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered";
 import { getAnthropicTestModel } from "../shared/getAnthropicTestModel";
 import { loadAnthropicTestConfig } from "../shared/anthropicTestConfig";
 import { validateMessageSchema } from "../shared/testHelpers";
@@ -32,7 +31,6 @@ describe("Anthropic Tool Execution E2E", () => {
     loadAnthropicTestConfig(); // Validate environment configuration
     client = createAnthropicTestClient();
     testModel = getAnthropicTestModel();
-    ensureModelRegistered(client, testModel);
 
     // Ensure model supports tool calls
     const modelInfo = client.getModelRegistry().get(testModel);
@@ -89,13 +87,10 @@ describe("Anthropic Tool Execution E2E", () => {
     test.each(anthropicModels)(
       "should execute tools when requested using $name ($id)",
       async ({ id: modelId }) => {
-        ensureModelRegistered(client, modelId);
-
         // Create a tracking test tool for this specific test
         const { toolDefinition, executionTracker, handler } =
           createTrackingTestTool();
         const testClient = createAnthropicTestClient();
-        ensureModelRegistered(testClient, modelId);
         testClient.registerTool(
           toolDefinition,
           handler as (params: Record<string, unknown>) => Promise<unknown>,
@@ -178,7 +173,6 @@ describe("Anthropic Tool Execution E2E", () => {
 
     test("should handle tool execution failures gracefully", async () => {
       const testClient = createAnthropicTestClient();
-      ensureModelRegistered(testClient, testModel);
 
       // Register a tool that will fail
       const errorToolDef = {
@@ -216,8 +210,6 @@ describe("Anthropic Tool Execution E2E", () => {
     test("should handle requests when tool system is disabled", async () => {
       // Create client without tool system
       const noToolsClient = createAnthropicTestClient();
-      // Don't register any tools
-      ensureModelRegistered(noToolsClient, testModel);
 
       const messages = createTestMessages(
         "Just have a normal conversation without tools",
@@ -245,7 +237,6 @@ describe("Anthropic Tool Execution E2E", () => {
       const { toolDefinition, executionTracker, handler } =
         createTrackingTestTool();
       const testClient = createAnthropicTestClient();
-      ensureModelRegistered(testClient, testModel);
       testClient.registerTool(
         toolDefinition,
         handler as (params: Record<string, unknown>) => Promise<unknown>,

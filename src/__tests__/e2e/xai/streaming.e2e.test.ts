@@ -3,7 +3,6 @@ import type { BridgeClient } from "../../../client/bridgeClient";
 import type { StreamDelta } from "../../../client/streamDelta";
 import type { Message } from "../../../core/messages/message";
 import { createTestClient } from "../shared/xaiModelHelpers";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered";
 import { getXaiTestModel } from "../shared/getXaiTestModel";
 import { loadXaiTestConfig } from "../shared/xaiTestConfig";
 import { createTestMessages } from "../shared/createTestMessages";
@@ -96,16 +95,12 @@ describe("xAI Streaming E2E", () => {
     loadXaiTestConfig(); // Validate environment configuration
     client = createTestClient();
     testModel = getXaiTestModel();
-    ensureModelRegistered(client, testModel);
   });
 
   describe("Basic Streaming", () => {
     test.each(xaiModels)(
       "should stream chat completion deltas with $name ($id)",
       async ({ id: modelId }) => {
-        // Ensure the model is registered
-        ensureModelRegistered(client, modelId);
-
         const messages = createTestMessages("Hello! Please respond briefly.");
 
         const streamPromise = client.stream({

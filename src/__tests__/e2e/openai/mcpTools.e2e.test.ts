@@ -1,6 +1,5 @@
 import { describe, test, expect, beforeAll, afterAll } from "@jest/globals";
 import type { BridgeClient } from "../../../client/bridgeClient";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered";
 import { getTestModel } from "../shared/getTestModel";
 import { loadTestConfig } from "../shared/openAITestConfig";
 import { validateMessageSchema } from "../shared/testHelpers";
@@ -62,6 +61,7 @@ describe("OpenAI MCP Tool Basic Validation E2E", () => {
       providers: {
         openai: { apiKey: testConfig.openaiApiKey },
       },
+      modelSeed: "builtin",
       options: {
         logging: {
           enabled: false,
@@ -83,7 +83,6 @@ describe("OpenAI MCP Tool Basic Validation E2E", () => {
 
     // Setup test model
     testModel = getTestModel();
-    ensureModelRegistered(client, testModel);
 
     // Ensure model supports tool calls
     const modelInfo = client.getModelRegistry().get(testModel);

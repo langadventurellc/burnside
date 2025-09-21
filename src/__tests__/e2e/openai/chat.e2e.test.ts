@@ -2,7 +2,6 @@ import { describe, test, expect, beforeAll } from "@jest/globals";
 import type { BridgeClient } from "../../../client/bridgeClient";
 import type { Message } from "../../../core/messages/message";
 import { createTestClient } from "../shared/openAIModelHelpers";
-import { ensureModelRegistered } from "../shared/ensureModelRegistered";
 import { getTestModel } from "../shared/getTestModel";
 import { loadTestConfig } from "../shared/openAITestConfig";
 import { validateMessageSchema } from "../shared/testHelpers";
@@ -38,7 +37,6 @@ describe("OpenAI Chat Completion E2E", () => {
     loadTestConfig(); // Validate environment configuration
     client = createTestClient();
     testModel = getTestModel();
-    ensureModelRegistered(client, testModel);
   });
 
   describe("Basic Chat Functionality", () => {
@@ -46,9 +44,6 @@ describe("OpenAI Chat Completion E2E", () => {
     test.each(openaiModels)(
       "should complete simple chat request with $name ($id)",
       async ({ id: modelId }) => {
-        // Ensure the model is registered
-        ensureModelRegistered(client, modelId);
-
         const messages = createTestMessages("Say hello.");
 
         const response = await withTimeout(
