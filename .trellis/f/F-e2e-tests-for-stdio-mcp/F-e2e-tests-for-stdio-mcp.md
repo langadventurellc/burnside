@@ -1,14 +1,21 @@
 ---
 id: F-e2e-tests-for-stdio-mcp
 title: E2E Tests for STDIO MCP Transport
-status: open
+status: in-progress
 priority: medium
 parent: none
 prerequisites: []
-affectedFiles: {}
+affectedFiles:
+  src/__tests__/e2e/shared/bin/stdio-mcp-server.js: Created standalone Node.js
+    executable implementing JSON-RPC 2.0 MCP server over stdin/stdout with
+    cross-platform telemetry tracking, signal handling, and error management
 log: []
 schema: v1.0
-childrenIds: []
+childrenIds:
+  - T-create-anthropic-stdio-mcp
+  - T-create-stdio-mock-mcp-server
+  - T-create-stdio-telemetry-reader
+  - T-update-test-helpers-for-stdio
 created: 2025-09-21T17:03:53.515Z
 updated: 2025-09-21T17:03:53.515Z
 ---
