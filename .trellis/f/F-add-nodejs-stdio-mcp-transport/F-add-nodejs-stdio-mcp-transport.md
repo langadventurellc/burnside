@@ -31,7 +31,10 @@ affectedFiles:
     backward compatibility during migration.
   src/core/runtime/adapters/nodeRuntimeAdapter.ts: Updated createMcpConnection
     method to accept McpServerConfig. Currently supports HTTP servers with
-    proper error handling for STDIO (to be implemented in future tasks).
+    proper error handling for STDIO (to be implemented in future tasks).;
+    Updated to support STDIO MCP connections by adding NodeStdioMcpConnection
+    import and replacing STDIO placeholder error with actual STDIO connection
+    creation logic
   src/core/runtime/adapters/electronRuntimeAdapter.ts:
     Updated createMcpConnection
     method to accept McpServerConfig. Same as Node adapter with appropriate
@@ -49,7 +52,10 @@ affectedFiles:
     configuration objects in test scenarios.
   src/core/runtime/__tests__/nodeRuntimeAdapter.test.ts: Updated to use
     McpServerConfig objects in tests. Added import for urlToMcpServerConfig
-    utility and updated all test cases.
+    utility and updated all test cases.; Added 5 new test cases for STDIO
+    functionality including connection creation, options passing, error
+    handling, and validation that neither url nor command scenarios are properly
+    handled
   src/core/runtime/__tests__/runtimeAdapterMcp.test.ts: Updated all test
     expectations to expect McpServerConfig objects instead of URL strings. Fixed
     mock calls and assertions throughout the test suite.
@@ -66,6 +72,14 @@ affectedFiles:
   src/client/__tests__/bridgeClientMcpIntegration.test.ts: Updated test
     expectations to expect complete McpServerConfig objects with both name and
     url properties instead of URL strings.
+  src/core/runtime/adapters/nodeStdioMcpConnection.ts: Created complete
+    NodeStdioMcpConnection class implementing McpConnection interface with
+    subprocess management, JSON-RPC over stdin/stdout, request/response
+    correlation, and comprehensive error handling
+  src/core/runtime/adapters/__tests__/nodeStdioMcpConnection.test.ts:
+    Created comprehensive unit test suite with 28 tests covering all
+    functionality including subprocess lifecycle, JSON-RPC communication, error
+    scenarios, and timeout handling using Jest fake timers
 log: []
 schema: v1.0
 childrenIds:
@@ -74,8 +88,8 @@ childrenIds:
   - T-update-mcpclient-for-server
   - T-update-noderuntimeadapter-for
   - T-update-reactnativeruntimeadapt
-  - T-update-runtimeadapter
   - T-extend-mcp-server-configuratio
+  - T-update-runtimeadapter
 created: 2025-09-21T13:54:00.163Z
 updated: 2025-09-21T13:54:00.163Z
 ---

@@ -8,6 +8,13 @@
 import { NodeRuntimeAdapter } from "../adapters/nodeRuntimeAdapter";
 import { RuntimeError } from "../runtimeError";
 import { urlToMcpServerConfig } from "../mcpServerConfigUtils";
+import { NodeStdioMcpConnection } from "../adapters/nodeStdioMcpConnection";
+
+// Mock NodeStdioMcpConnection
+jest.mock("../adapters/nodeStdioMcpConnection");
+const MockedNodeStdioMcpConnection = NodeStdioMcpConnection as jest.MockedClass<
+  typeof NodeStdioMcpConnection
+>;
 
 // Mock fs/promises for dynamic imports
 const mockFs = {
@@ -655,6 +662,133 @@ describe("NodeRuntimeAdapter", () => {
         controller.abort();
 
         await expect(promise).rejects.toThrow();
+      });
+
+      describe("STDIO server support", () => {
+        const mockStdioConnection = {
+          initialize: jest.fn(),
+          isConnected: true,
+          call: jest.fn(),
+          notify: jest.fn(),
+          close: jest.fn(),
+        };
+
+        beforeEach(() => {
+          MockedNodeStdioMcpConnection.mockClear();
+          MockedNodeStdioMcpConnection.mockImplementation(
+            () => mockStdioConnection as any,
+          );
+          mockStdioConnection.initialize.mockClear();
+          mockStdioConnection.call.mockClear();
+          mockStdioConnection.notify.mockClear();
+          mockStdioConnection.close.mockClear();
+        });
+
+        it("should create STDIO connection when command is provided", async () => {
+          mockStdioConnection.initialize.mockResolvedValue(undefined);
+
+          const serverConfig = {
+            name: "test-stdio-server",
+            command: "/usr/local/bin/mcp-server",
+            args: ["--config", "test.json"],
+          };
+
+          const connection = await adapter.createMcpConnection(serverConfig);
+
+          expect(MockedNodeStdioMcpConnection).toHaveBeenCalledWith(
+            "/usr/local/bin/mcp-server",
+            ["--config", "test.json"],
+            {},
+          );
+          expect(mockStdioConnection.initialize).toHaveBeenCalled();
+          expect(connection).toBe(mockStdioConnection);
+        });
+
+        it("should create STDIO connection with default empty args", async () => {
+          mockStdioConnection.initialize.mockResolvedValue(undefined);
+
+          const serverConfig = {
+            name: "test-stdio-server",
+            command: "/usr/local/bin/mcp-server",
+          };
+
+          const connection = await adapter.createMcpConnection(serverConfig);
+
+          expect(MockedNodeStdioMcpConnection).toHaveBeenCalledWith(
+            "/usr/local/bin/mcp-server",
+            [],
+            {},
+          );
+          expect(mockStdioConnection.initialize).toHaveBeenCalled();
+          expect(connection).toBe(mockStdioConnection);
+        });
+
+        it("should pass options to STDIO connection", async () => {
+          mockStdioConnection.initialize.mockResolvedValue(undefined);
+
+          const serverConfig = {
+            name: "test-stdio-server",
+            command: "/usr/local/bin/mcp-server",
+            args: ["--verbose"],
+          };
+
+          const options = {
+            timeout: 10000,
+            headers: { "X-Custom": "test" },
+          };
+
+          const connection = await adapter.createMcpConnection(
+            serverConfig,
+            options,
+          );
+
+          expect(MockedNodeStdioMcpConnection).toHaveBeenCalledWith(
+            "/usr/local/bin/mcp-server",
+            ["--verbose"],
+            options,
+          );
+          expect(mockStdioConnection.initialize).toHaveBeenCalled();
+          expect(connection).toBe(mockStdioConnection);
+        });
+
+        it("should throw error when neither url nor command is provided", async () => {
+          const serverConfig = {
+            name: "invalid-server",
+          };
+
+          await expect(
+            adapter.createMcpConnection(serverConfig),
+          ).rejects.toThrow(RuntimeError);
+          await expect(
+            adapter.createMcpConnection(serverConfig),
+          ).rejects.toThrow(
+            "Server configuration must specify either 'url' or 'command'",
+          );
+        });
+
+        it("should handle STDIO connection initialization failure", async () => {
+          const initError = new Error("Failed to spawn subprocess");
+          mockStdioConnection.initialize.mockRejectedValue(initError);
+
+          const serverConfig = {
+            name: "test-stdio-server",
+            command: "/invalid/path/mcp-server",
+          };
+
+          await expect(
+            adapter.createMcpConnection(serverConfig),
+          ).rejects.toThrow(RuntimeError);
+          await expect(
+            adapter.createMcpConnection(serverConfig),
+          ).rejects.toThrow("Failed to create MCP connection");
+
+          expect(MockedNodeStdioMcpConnection).toHaveBeenCalledWith(
+            "/invalid/path/mcp-server",
+            [],
+            {},
+          );
+          expect(mockStdioConnection.initialize).toHaveBeenCalled();
+        });
       });
     });
 

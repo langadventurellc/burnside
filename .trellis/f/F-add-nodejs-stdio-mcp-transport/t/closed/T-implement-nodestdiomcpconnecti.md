@@ -1,13 +1,35 @@
 ---
 id: T-implement-nodestdiomcpconnecti
 title: Implement NodeStdioMcpConnection class
-status: open
+status: done
 priority: high
 parent: F-add-nodejs-stdio-mcp-transport
 prerequisites:
   - T-update-runtimeadapter
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/runtime/adapters/nodeStdioMcpConnection.ts: Created complete
+    NodeStdioMcpConnection class implementing McpConnection interface with
+    subprocess management, JSON-RPC over stdin/stdout, request/response
+    correlation, and comprehensive error handling
+  src/core/runtime/adapters/__tests__/nodeStdioMcpConnection.test.ts:
+    Created comprehensive unit test suite with 28 tests covering all
+    functionality including subprocess lifecycle, JSON-RPC communication, error
+    scenarios, and timeout handling using Jest fake timers
+  src/core/runtime/adapters/nodeRuntimeAdapter.ts: Updated to support STDIO MCP
+    connections by adding NodeStdioMcpConnection import and replacing STDIO
+    placeholder error with actual STDIO connection creation logic
+  src/core/runtime/__tests__/nodeRuntimeAdapter.test.ts: Added 5 new test cases
+    for STDIO functionality including connection creation, options passing,
+    error handling, and validation that neither url nor command scenarios are
+    properly handled
+log:
+  - Successfully implemented NodeStdioMcpConnection class that enables STDIO
+    (stdin/stdout) communication with MCP servers in Node.js environments. The
+    implementation includes subprocess management, JSON-RPC communication over
+    newline-delimited streams, request/response correlation, comprehensive error
+    handling, and full integration with the existing NodeRuntimeAdapter. All 28
+    unit tests pass and the feature is now fully functional for local MCP server
+    communication.
 schema: v1.0
 childrenIds: []
 created: 2025-09-21T14:15:16.548Z

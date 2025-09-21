@@ -15,6 +15,7 @@ import type { McpConnection } from "../mcpConnection";
 import type { McpServerConfig } from "../mcpServerConfig";
 import { RuntimeError } from "../runtimeError";
 import { getPlatformCapabilities } from "../getPlatformCapabilities";
+import { NodeStdioMcpConnection } from "./nodeStdioMcpConnection";
 
 /**
  * JSON-RPC 2.0 request structure for MCP communication.
@@ -374,29 +375,39 @@ export class NodeRuntimeAdapter implements RuntimeAdapter {
     options?: McpConnectionOptions,
   ): Promise<McpConnection> {
     try {
-      // For now, only support HTTP servers (URL-based)
-      // STDIO support will be added in future tasks
-      if (!serverConfig.url) {
+      // Support both HTTP and STDIO servers
+      if (serverConfig.command) {
+        // STDIO server configuration
+        const connection = new NodeStdioMcpConnection(
+          serverConfig.command,
+          serverConfig.args || [],
+          options || {},
+        );
+        await connection.initialize();
+        return connection;
+      } else if (serverConfig.url) {
+        // HTTP server configuration
+        // Validate the server URL
+        this.validateMcpServerUrl(serverConfig.url);
+
+        // Create connection instance using this adapter's fetch method
+        const connection = new NodeMcpConnection(
+          serverConfig.url,
+          (input, init) => this.fetch(input, init),
+          options,
+        );
+
+        // Initialize the connection
+        await connection.initialize(options?.signal);
+
+        return connection;
+      } else {
         throw new RuntimeError(
-          "STDIO MCP servers not yet implemented in NodeRuntimeAdapter",
-          "MCP_STDIO_NOT_IMPLEMENTED",
+          "Server configuration must specify either 'url' or 'command'",
+          "RUNTIME_MCP_INVALID_CONFIG",
+          { serverConfig },
         );
       }
-
-      // Validate the server URL
-      this.validateMcpServerUrl(serverConfig.url);
-
-      // Create connection instance using this adapter's fetch method
-      const connection = new NodeMcpConnection(
-        serverConfig.url,
-        (input, init) => this.fetch(input, init),
-        options,
-      );
-
-      // Initialize the connection
-      await connection.initialize(options?.signal);
-
-      return connection;
     } catch (error) {
       throw new RuntimeError(
         `Failed to create MCP connection: ${error instanceof Error ? error.message : "Unknown error"}`,
