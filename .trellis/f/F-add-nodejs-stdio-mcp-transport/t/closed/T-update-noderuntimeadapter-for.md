@@ -1,13 +1,21 @@
 ---
 id: T-update-noderuntimeadapter-for
 title: Update NodeRuntimeAdapter for transport routing
-status: open
+status: done
 priority: high
 parent: F-add-nodejs-stdio-mcp-transport
 prerequisites:
   - T-implement-nodestdiomcpconnecti
 affectedFiles: {}
-log: []
+log:
+  - "Task was already completed - verified that NodeRuntimeAdapter correctly
+    implements transport routing for both HTTP and STDIO MCP connections. The
+    implementation includes: updated method signature to accept McpServerConfig,
+    proper transport detection based on url vs command fields, routing to
+    appropriate connection implementations (NodeMcpConnection for HTTP,
+    NodeStdioMcpConnection for STDIO), configuration validation with clear error
+    messages, and comprehensive test coverage. All requirements from the task
+    description have been fulfilled."
 schema: v1.0
 childrenIds: []
 created: 2025-09-21T14:15:55.343Z

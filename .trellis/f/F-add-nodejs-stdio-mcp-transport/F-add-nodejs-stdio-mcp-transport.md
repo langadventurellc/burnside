@@ -42,7 +42,14 @@ affectedFiles:
   src/core/runtime/adapters/reactNativeRuntimeAdapter.ts: Updated
     createMcpConnection method to accept McpServerConfig. HTTP-only support with
     clear error messages for STDIO configurations which are not supported in
-    React Native environment.
+    React Native environment.; Added explicit STDIO configuration detection by
+    checking serverConfig.command field. Throws RuntimeError with clear error
+    message 'STDIO MCP servers are not supported on React Native platform. Use
+    HTTP-based MCP servers instead.' using error code
+    RUNTIME_MCP_STDIO_NOT_SUPPORTED. Enhanced invalid configuration error
+    handling with descriptive message and RUNTIME_MCP_INVALID_CONFIG error code.
+    Both errors include comprehensive context with serverConfig, platform, and
+    supportedTransports for debugging.
   src/tools/mcp/mcpClient.ts: Updated constructor to accept McpServerConfig
     instead of URL string. Added helper method getServerId() for logging and
     error reporting. Updated all internal references to use server configuration
@@ -67,8 +74,14 @@ affectedFiles:
     Updated all createMcpConnection calls to use urlToMcpServerConfig wrapper
     function throughout the comprehensive test suite.
   src/core/runtime/adapters/__tests__/reactNativeRuntimeAdapter.test.ts:
-    Updated all createMcpConnection calls and error expectations to work with
-    the new McpServerConfig interface and proper error handling.
+    "Updated all createMcpConnection calls and error expectations to work with
+    the new McpServerConfig interface and proper error handling.; Added 4 new
+    comprehensive test cases for STDIO detection functionality: 1) STDIO
+    configuration rejection with full error validation including message, code,
+    and context, 2) STDIO command-only configuration rejection, 3) HTTP
+    configuration preservation verification, 4) Invalid configuration (neither
+    url nor command) error handling. Tests validate proper error wrapping by
+    outer catch block and use toMatchObject for context validation."
   src/client/__tests__/bridgeClientMcpIntegration.test.ts: Updated test
     expectations to expect complete McpServerConfig objects with both name and
     url properties instead of URL strings.
@@ -83,12 +96,12 @@ affectedFiles:
 log: []
 schema: v1.0
 childrenIds:
-  - T-implement-nodestdiomcpconnecti
   - T-update-bridgeclient-for-mcp
   - T-update-mcpclient-for-server
-  - T-update-noderuntimeadapter-for
   - T-update-reactnativeruntimeadapt
   - T-extend-mcp-server-configuratio
+  - T-implement-nodestdiomcpconnecti
+  - T-update-noderuntimeadapter-for
   - T-update-runtimeadapter
 created: 2025-09-21T13:54:00.163Z
 updated: 2025-09-21T13:54:00.163Z

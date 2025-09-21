@@ -1,13 +1,39 @@
 ---
 id: T-update-reactnativeruntimeadapt
 title: Update ReactNativeRuntimeAdapter for STDIO error handling
-status: open
+status: done
 priority: medium
 parent: F-add-nodejs-stdio-mcp-transport
 prerequisites:
   - T-update-runtimeadapter
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/core/runtime/adapters/reactNativeRuntimeAdapter.ts: Added explicit STDIO
+    configuration detection by checking serverConfig.command field. Throws
+    RuntimeError with clear error message 'STDIO MCP servers are not supported
+    on React Native platform. Use HTTP-based MCP servers instead.' using error
+    code RUNTIME_MCP_STDIO_NOT_SUPPORTED. Enhanced invalid configuration error
+    handling with descriptive message and RUNTIME_MCP_INVALID_CONFIG error code.
+    Both errors include comprehensive context with serverConfig, platform, and
+    supportedTransports for debugging.
+  src/core/runtime/adapters/__tests__/reactNativeRuntimeAdapter.test.ts:
+    "Added 4 new comprehensive test cases for STDIO detection functionality: 1)
+    STDIO configuration rejection with full error validation including message,
+    code, and context, 2) STDIO command-only configuration rejection, 3) HTTP
+    configuration preservation verification, 4) Invalid configuration (neither
+    url nor command) error handling. Tests validate proper error wrapping by
+    outer catch block and use toMatchObject for context validation."
+log:
+  - Implemented STDIO configuration detection and rejection in
+    ReactNativeRuntimeAdapter with clear error messages explaining platform
+    limitations. Added explicit check for serverConfig.command field to detect
+    STDIO configurations and throw descriptive RuntimeError with specific error
+    code RUNTIME_MCP_STDIO_NOT_SUPPORTED. Enhanced error handling for invalid
+    configurations (neither url nor command) with RUNTIME_MCP_INVALID_CONFIG
+    error code. All error messages include helpful context with platform
+    information and supported transports. Preserved all existing HTTP transport
+    functionality and validation. Added comprehensive unit tests covering STDIO
+    rejection scenarios, HTTP configuration preservation, and invalid
+    configuration handling with proper error message and context validation.
 schema: v1.0
 childrenIds: []
 created: 2025-09-21T14:16:31.130Z

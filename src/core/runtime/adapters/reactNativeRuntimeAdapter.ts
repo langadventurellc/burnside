@@ -395,12 +395,29 @@ export class ReactNativeRuntimeAdapter implements RuntimeAdapter {
     options?: McpConnectionOptions,
   ): Promise<McpConnection> {
     try {
-      // React Native only supports HTTP servers (URL-based)
-      // STDIO servers are not supported in React Native environment
+      // Check for STDIO configuration (command field)
+      if (serverConfig.command) {
+        throw new RuntimeError(
+          "STDIO MCP servers are not supported on React Native platform. Use HTTP-based MCP servers instead.",
+          "RUNTIME_MCP_STDIO_NOT_SUPPORTED",
+          {
+            serverConfig,
+            platform: "react-native",
+            supportedTransports: ["http", "https"],
+          },
+        );
+      }
+
+      // Check for HTTP configuration (url field)
       if (!serverConfig.url) {
         throw new RuntimeError(
-          "STDIO MCP servers are not supported in React Native environment",
-          "MCP_STDIO_NOT_SUPPORTED",
+          "Invalid server configuration. React Native requires HTTP-based MCP servers with 'url' field.",
+          "RUNTIME_MCP_INVALID_CONFIG",
+          {
+            serverConfig,
+            platform: "react-native",
+            supportedTransports: ["http", "https"],
+          },
         );
       }
 
