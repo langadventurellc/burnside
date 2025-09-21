@@ -27,16 +27,33 @@ affectedFiles:
   src/__tests__/e2e/shared/cleanupMcpTestEnvironment.ts: Safe cleanup function for MCP test environments
   src/__tests__/e2e/shared/generateMcpTestData.ts: Test data generation function for consistent MCP testing scenarios
   src/__tests__/e2e/shared/index.ts: Updated barrel export to include all MCP
-    testing utilities and type definitions
+    testing utilities and type definitions; Updated barrel export file to
+    include new MCP test utilities alongside existing E2E infrastructure,
+    properly organizing all shared test functionality
+  src/__tests__/e2e/shared/createMcpTestConfig.ts: New utility function that
+    creates valid BridgeConfig with MCP server configuration, following existing
+    test config patterns with proper validation
+  src/__tests__/e2e/shared/setupMcpServer.ts: New lifecycle management function
+    that starts MockMcpServer and returns server, config, and cleanup function
+    with proper error handling
+  src/__tests__/e2e/shared/validateMcpToolExecution.ts: New validation function
+    for MCP tool execution results with structured error messages and type
+    checking
+  src/__tests__/e2e/shared/createMcpTestClient.ts: New client creation function
+    that creates BridgeClient with MCP configuration and optional overrides
+    using proper type merging
+  src/__tests__/e2e/shared/mcpTestHelpers.test.ts: Comprehensive unit test suite
+    with 26 test cases covering all utility functions, error scenarios, and edge
+    cases
 log: []
 schema: v1.0
 childrenIds:
   - T-create-anthropic-mcp-tools
   - T-create-google-mcp-tools-e2e
   - T-create-mcp-test-helpers-and
-  - T-create-mock-mcp-server-for
   - T-create-openai-mcp-tools-e2e
   - T-create-xai-mcp-tools-e2e-test
+  - T-create-mock-mcp-server-for
 created: 2025-09-21T02:33:20.072Z
 updated: 2025-09-21T02:33:20.072Z
 ---

@@ -1,13 +1,41 @@
 ---
 id: T-create-mcp-test-helpers-and
 title: Create MCP Test Helpers and Utilities
-status: open
+status: done
 priority: high
 parent: F-mcp-tooling-e2e-test-suite
 prerequisites:
   - T-create-mock-mcp-server-for
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/__tests__/e2e/shared/createMcpTestConfig.ts: New utility function that
+    creates valid BridgeConfig with MCP server configuration, following existing
+    test config patterns with proper validation
+  src/__tests__/e2e/shared/setupMcpServer.ts: New lifecycle management function
+    that starts MockMcpServer and returns server, config, and cleanup function
+    with proper error handling
+  src/__tests__/e2e/shared/validateMcpToolExecution.ts: New validation function
+    for MCP tool execution results with structured error messages and type
+    checking
+  src/__tests__/e2e/shared/createMcpTestClient.ts: New client creation function
+    that creates BridgeClient with MCP configuration and optional overrides
+    using proper type merging
+  src/__tests__/e2e/shared/mcpTestHelpers.test.ts: Comprehensive unit test suite
+    with 26 test cases covering all utility functions, error scenarios, and edge
+    cases
+  src/__tests__/e2e/shared/index.ts:
+    Updated barrel export file to include new MCP
+    test utilities alongside existing E2E infrastructure, properly organizing
+    all shared test functionality
+log:
+  - Successfully implemented comprehensive MCP test helpers and utilities that
+    provide shared testing infrastructure for MCP E2E testing across all
+    providers. Created four main utility functions (createMcpTestConfig,
+    setupMcpServer, validateMcpToolExecution, createMcpTestClient) following
+    existing codebase patterns and the one-export-per-file constraint. All
+    utilities include robust error handling, type safety, and comprehensive unit
+    tests (26 test cases). Updated the shared index.ts barrel export to include
+    all MCP testing utilities alongside existing E2E test infrastructure. All
+    quality checks pass (lint, format, type-check) and unit tests are green.
 schema: v1.0
 childrenIds: []
 created: 2025-09-21T02:41:51.483Z
