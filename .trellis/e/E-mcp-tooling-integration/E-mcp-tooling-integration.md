@@ -212,6 +212,17 @@ affectedFiles:
     Added comprehensive test coverage
     with 20 new test cases verifying identical behavior, validation, error
     handling, and cross-method compatibility
+  src/client/bridgeClient.ts:
+    Extended initializeToolSystem() method to integrate
+    MCP tool discovery. Added imports for McpClient and McpToolRegistry. Added
+    private mcpClients field for connection management. Implemented
+    initializeMcpTools() and connectToMcpServer() methods with graceful error
+    handling and warning-level logging for connection failures.
+  src/client/__tests__/bridgeClientMcpIntegration.test.ts: Created comprehensive
+    test suite covering MCP integration scenarios including successful
+    initialization, graceful error handling, mixed success/failure scenarios,
+    backward compatibility, and proper cleanup. All tests pass with proper
+    mocking of MCP components.
 log: []
 schema: v1.0
 childrenIds:

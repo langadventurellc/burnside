@@ -1,0 +1,315 @@
+/**
+ * @jest-environment node
+ */
+
+import { BridgeClient } from "../bridgeClient";
+import { McpClient } from "../../tools/mcp/mcpClient";
+import { McpToolRegistry } from "../../tools/mcp/mcpToolRegistry";
+import type { BridgeConfig } from "../../core/config/bridgeConfig";
+import type { RuntimeAdapter } from "../../core/runtime/runtimeAdapter";
+
+// Mock dependencies
+jest.mock("../../tools/mcp/mcpClient");
+jest.mock("../../tools/mcp/mcpToolRegistry");
+jest.mock("../../core/logging", () => ({
+  logger: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  },
+}));
+
+const MockedMcpClient = McpClient as jest.MockedClass<typeof McpClient>;
+const MockedMcpToolRegistry = McpToolRegistry as jest.MockedClass<
+  typeof McpToolRegistry
+>;
+
+describe("BridgeClient MCP Integration", () => {
+  let mockRuntimeAdapter: RuntimeAdapter;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockRuntimeAdapter = {
+      createMcpConnection: jest.fn(),
+      setTimeout: jest.fn(),
+      clearTimeout: jest.fn(),
+    } as any;
+
+    // Setup default mock behavior
+    const mockMcpClientInstance = {
+      connect: jest.fn().mockResolvedValue(undefined),
+      disconnect: jest.fn().mockResolvedValue(undefined),
+      isConnected: true,
+    };
+    MockedMcpClient.mockImplementation(() => mockMcpClientInstance as any);
+
+    const mockMcpToolRegistryInstance = {
+      registerMcpTools: jest.fn().mockResolvedValue(undefined),
+      unregisterMcpTools: jest.fn(),
+    };
+    MockedMcpToolRegistry.mockImplementation(
+      () => mockMcpToolRegistryInstance as any,
+    );
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe("MCP Tool Discovery Integration", () => {
+    it("should successfully initialize with MCP server configuration", async () => {
+      const config: BridgeConfig = {
+        defaultProvider: "openai",
+        providers: { openai: { apiKey: "test-key" } },
+        defaultModel: "openai:gpt-4",
+        tools: {
+          enabled: true,
+          builtinTools: ["echo"],
+          mcpServers: [
+            { name: "test-server", url: "http://localhost:3000" },
+            { name: "another-server", url: "http://localhost:3001" },
+          ],
+        },
+      };
+
+      new BridgeClient(config, {
+        runtimeAdapter: mockRuntimeAdapter,
+      });
+
+      // Allow async MCP initialization to complete
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(MockedMcpClient).toHaveBeenCalledTimes(2);
+      expect(MockedMcpClient).toHaveBeenCalledWith(
+        mockRuntimeAdapter,
+        "http://localhost:3000",
+      );
+      expect(MockedMcpClient).toHaveBeenCalledWith(
+        mockRuntimeAdapter,
+        "http://localhost:3001",
+      );
+
+      expect(MockedMcpToolRegistry).toHaveBeenCalledTimes(2);
+    });
+
+    it("should handle graceful degradation when MCP servers fail to connect", async () => {
+      const mockMcpClientInstance = {
+        connect: jest.fn().mockRejectedValue(new Error("Connection failed")),
+        disconnect: jest.fn().mockResolvedValue(undefined),
+        isConnected: false,
+      };
+      MockedMcpClient.mockImplementation(() => mockMcpClientInstance as any);
+
+      const config: BridgeConfig = {
+        defaultProvider: "openai",
+        providers: { openai: { apiKey: "test-key" } },
+        defaultModel: "openai:gpt-4",
+        tools: {
+          enabled: true,
+          builtinTools: ["echo"],
+          mcpServers: [
+            { name: "failing-server", url: "http://localhost:9999" },
+          ],
+        },
+      };
+
+      // Should not throw during client initialization
+      expect(() => {
+        new BridgeClient(config, {
+          runtimeAdapter: mockRuntimeAdapter,
+        });
+      }).not.toThrow();
+
+      // Allow async MCP initialization to complete
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(MockedMcpClient).toHaveBeenCalledWith(
+        mockRuntimeAdapter,
+        "http://localhost:9999",
+      );
+      expect(mockMcpClientInstance.connect).toHaveBeenCalled();
+      // Registry should not be called when connection fails
+      expect(MockedMcpToolRegistry).not.toHaveBeenCalled();
+    });
+
+    it("should handle mixed success/failure scenarios with multiple servers", async () => {
+      let callCount = 0;
+      const mockMcpClientInstance = {
+        connect: jest.fn().mockImplementation(() => {
+          callCount++;
+          if (callCount === 1) {
+            return Promise.resolve(); // First server succeeds
+          }
+          return Promise.reject(new Error("Second server fails")); // Second server fails
+        }),
+        disconnect: jest.fn().mockResolvedValue(undefined),
+        isConnected: true,
+      };
+      MockedMcpClient.mockImplementation(() => mockMcpClientInstance as any);
+
+      const config: BridgeConfig = {
+        defaultProvider: "openai",
+        providers: { openai: { apiKey: "test-key" } },
+        defaultModel: "openai:gpt-4",
+        tools: {
+          enabled: true,
+          builtinTools: ["echo"],
+          mcpServers: [
+            { name: "good-server", url: "http://localhost:3000" },
+            { name: "bad-server", url: "http://localhost:9999" },
+          ],
+        },
+      };
+
+      new BridgeClient(config, {
+        runtimeAdapter: mockRuntimeAdapter,
+      });
+
+      // Allow async MCP initialization to complete
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(MockedMcpClient).toHaveBeenCalledTimes(2);
+      expect(mockMcpClientInstance.connect).toHaveBeenCalledTimes(2);
+      // Only one registry call should succeed
+      expect(MockedMcpToolRegistry).toHaveBeenCalledTimes(1);
+    });
+
+    it("should not attempt MCP initialization when no servers configured", () => {
+      const config: BridgeConfig = {
+        defaultProvider: "openai",
+        providers: { openai: { apiKey: "test-key" } },
+        defaultModel: "openai:gpt-4",
+        tools: {
+          enabled: true,
+          builtinTools: ["echo"],
+          // No mcpServers configured
+        },
+      };
+
+      new BridgeClient(config, {
+        runtimeAdapter: mockRuntimeAdapter,
+      });
+
+      expect(MockedMcpClient).not.toHaveBeenCalled();
+      expect(MockedMcpToolRegistry).not.toHaveBeenCalled();
+    });
+
+    it("should not attempt MCP initialization when mcpServers is empty array", () => {
+      const config: BridgeConfig = {
+        defaultProvider: "openai",
+        providers: { openai: { apiKey: "test-key" } },
+        defaultModel: "openai:gpt-4",
+        tools: {
+          enabled: true,
+          builtinTools: ["echo"],
+          mcpServers: [], // Empty array
+        },
+      };
+
+      new BridgeClient(config, {
+        runtimeAdapter: mockRuntimeAdapter,
+      });
+
+      expect(MockedMcpClient).not.toHaveBeenCalled();
+      expect(MockedMcpToolRegistry).not.toHaveBeenCalled();
+    });
+
+    it("should not attempt MCP initialization when tools are disabled", () => {
+      const config: BridgeConfig = {
+        defaultProvider: "openai",
+        providers: { openai: { apiKey: "test-key" } },
+        defaultModel: "openai:gpt-4",
+        // No tools configuration - tools disabled
+      };
+
+      new BridgeClient(config, {
+        runtimeAdapter: mockRuntimeAdapter,
+      });
+
+      expect(MockedMcpClient).not.toHaveBeenCalled();
+      expect(MockedMcpToolRegistry).not.toHaveBeenCalled();
+    });
+
+    it("should store successful MCP clients for cleanup", async () => {
+      const config: BridgeConfig = {
+        defaultProvider: "openai",
+        providers: { openai: { apiKey: "test-key" } },
+        defaultModel: "openai:gpt-4",
+        tools: {
+          enabled: true,
+          builtinTools: ["echo"],
+          mcpServers: [{ name: "test-server", url: "http://localhost:3000" }],
+        },
+      };
+
+      const client = new BridgeClient(config, {
+        runtimeAdapter: mockRuntimeAdapter,
+      });
+
+      // Allow async MCP initialization to complete
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Verify MCP client is stored (access private field via type assertion for testing)
+      const mcpClients = (client as any).mcpClients;
+      expect(mcpClients.size).toBe(1);
+      expect(mcpClients.has("test-server")).toBe(true);
+    });
+
+    it("should preserve existing tool system initialization behavior", () => {
+      const config: BridgeConfig = {
+        defaultProvider: "openai",
+        providers: { openai: { apiKey: "test-key" } },
+        defaultModel: "openai:gpt-4",
+        tools: {
+          enabled: true,
+          builtinTools: ["echo"],
+          mcpServers: [{ name: "test-server", url: "http://localhost:3000" }],
+        },
+      };
+
+      const client = new BridgeClient(config, {
+        runtimeAdapter: mockRuntimeAdapter,
+      });
+
+      // Verify tool system components are still initialized
+      expect((client as any).toolRouter).toBeDefined();
+      expect((client as any).agentLoop).toBeDefined();
+      expect((client as any).config.toolSystemInitialized).toBe(true);
+    });
+
+    it("should call registerMcpTools with the tool router", async () => {
+      const mockRegisterMcpTools = jest.fn().mockResolvedValue(undefined);
+      const mockMcpToolRegistryInstance = {
+        registerMcpTools: mockRegisterMcpTools,
+        unregisterMcpTools: jest.fn(),
+      };
+      MockedMcpToolRegistry.mockImplementation(
+        () => mockMcpToolRegistryInstance as any,
+      );
+
+      const config: BridgeConfig = {
+        defaultProvider: "openai",
+        providers: { openai: { apiKey: "test-key" } },
+        defaultModel: "openai:gpt-4",
+        tools: {
+          enabled: true,
+          builtinTools: ["echo"],
+          mcpServers: [{ name: "test-server", url: "http://localhost:3000" }],
+        },
+      };
+
+      const client = new BridgeClient(config, {
+        runtimeAdapter: mockRuntimeAdapter,
+      });
+
+      // Allow async MCP initialization to complete
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(mockRegisterMcpTools).toHaveBeenCalledTimes(1);
+      expect(mockRegisterMcpTools).toHaveBeenCalledWith(
+        (client as any).toolRouter,
+      );
+    });
+  });
+});

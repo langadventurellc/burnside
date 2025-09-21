@@ -43,6 +43,8 @@ import { shouldExecuteTools } from "./shouldExecuteTools";
 import { validateToolDefinitions } from "./validateToolDefinitions";
 import { shouldExecuteMultiTurn } from "./shouldExecuteMultiTurn";
 import { StreamingInterruptionWrapper } from "./streamingInterruptionWrapper";
+import { McpClient } from "../tools/mcp/mcpClient";
+import { McpToolRegistry } from "../tools/mcp/mcpToolRegistry";
 
 /**
  * Bridge Client Class
@@ -83,6 +85,7 @@ export class BridgeClient {
   private readonly httpTransport: Transport;
   private readonly runtimeAdapter: RuntimeAdapter;
   private readonly initializedProviders = new Set<string>();
+  private readonly mcpClients = new Map<string, McpClient>();
   private toolRouter?: ToolRouter;
   private agentLoop?: AgentLoop;
 
@@ -826,8 +829,73 @@ export class BridgeClient {
     this.toolRouter = new ToolRouter(toolRegistry, 5000, this.runtimeAdapter);
     this.agentLoop = new AgentLoop(this.toolRouter, this.runtimeAdapter);
 
+    // Initialize MCP tool discovery if configured
+    this.initializeMcpTools(this.toolRouter);
+
     // Mark tool system as initialized
     this.config.toolSystemInitialized = true;
+  }
+
+  /**
+   * Initialize MCP tool discovery from configured servers
+   */
+  private initializeMcpTools(toolRouter: ToolRouter): void {
+    // Check if MCP servers are configured
+    if (
+      !this.config.tools?.mcpServers ||
+      this.config.tools.mcpServers.length === 0
+    ) {
+      return;
+    }
+
+    // Process each configured MCP server
+    for (const serverConfig of this.config.tools.mcpServers) {
+      this.connectToMcpServer(serverConfig, toolRouter);
+    }
+  }
+
+  /**
+   * Connect to an individual MCP server and register its tools
+   */
+  private connectToMcpServer(
+    serverConfig: { name: string; url: string },
+    toolRouter: ToolRouter,
+  ): void {
+    void (async () => {
+      try {
+        logger.info(
+          `Connecting to MCP server: ${serverConfig.name} at ${serverConfig.url}`,
+        );
+
+        // Create MCP client
+        const mcpClient = new McpClient(this.runtimeAdapter, serverConfig.url);
+
+        // Attempt connection
+        await mcpClient.connect();
+
+        // Store successful connection
+        this.mcpClients.set(serverConfig.name, mcpClient);
+
+        // Register tools using McpToolRegistry
+        const mcpToolRegistry = new McpToolRegistry(mcpClient);
+
+        await mcpToolRegistry.registerMcpTools(toolRouter);
+
+        logger.info(
+          `Successfully registered MCP tools from server: ${serverConfig.name}`,
+        );
+      } catch (error) {
+        // Log connection failures as warnings, not errors
+        const message =
+          error instanceof Error ? error.message : "Unknown connection error";
+        logger.warn(
+          `Failed to connect to MCP server ${serverConfig.name}: ${message}`,
+          { error },
+        );
+
+        // Continue processing other servers - don't fail initialization
+      }
+    })();
   }
 
   /**
