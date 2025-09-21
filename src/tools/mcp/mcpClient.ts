@@ -19,7 +19,7 @@
 
 import type { RuntimeAdapter } from "../../core/runtime/runtimeAdapter";
 import type { McpConnection } from "../../core/runtime/mcpConnection";
-import { SimpleLogger } from "../../core/logging/simpleLogger";
+import { logger } from "../../core/logging/simpleLogger";
 import { ExponentialBackoffStrategy } from "../../core/transport/retry/exponentialBackoffStrategy";
 import type { BackoffConfig } from "../../core/transport/retry/backoffConfig";
 
@@ -84,7 +84,6 @@ export class McpClient {
     logLevel: "debug" | "info" | "warn" | "error";
     retryJitter: boolean;
   };
-  private readonly logger: SimpleLogger;
   private readonly backoffStrategy: ExponentialBackoffStrategy;
   private readonly errorNormalizer: McpErrorNormalizer;
   private readonly errorRecovery: McpErrorRecovery;
@@ -114,13 +113,6 @@ export class McpClient {
       retryJitter: options.retryJitter ?? true,
       ...options, // Include base connection options (signal, timeout, headers)
     };
-
-    // Setup logger
-    this.logger = new SimpleLogger();
-    this.logger.configure({
-      level: this.options.logLevel,
-      enabled: true,
-    });
 
     // Setup backoff strategy
     const backoffConfig: BackoffConfig = {
@@ -164,7 +156,7 @@ export class McpClient {
     this.abortController = new AbortController();
 
     try {
-      this.logger.info(`Connecting to MCP server: ${this.serverUrl}`);
+      logger.info(`Connecting to MCP server: ${this.serverUrl}`);
 
       // Create connection through runtime adapter
       const connectionOptions = {
@@ -185,9 +177,7 @@ export class McpClient {
       this.reconnectAttempts = 0;
       this.backoffStrategy.reset();
 
-      this.logger.info(
-        `Successfully connected to MCP server: ${this.serverUrl}`,
-      );
+      logger.info(`Successfully connected to MCP server: ${this.serverUrl}`);
 
       // Start health monitoring if enabled
       if (this.options.healthCheckInterval > 0) {
@@ -217,12 +207,12 @@ export class McpClient {
    * Disconnect from MCP server and cleanup resources
    */
   async disconnect(): Promise<void> {
-    this.logger.info(`Disconnecting from MCP server: ${this.serverUrl}`);
+    logger.info(`Disconnecting from MCP server: ${this.serverUrl}`);
 
     this.status = ConnectionStatus.DISCONNECTED;
     await this.cleanup();
 
-    this.logger.info(`Disconnected from MCP server: ${this.serverUrl}`);
+    logger.info(`Disconnected from MCP server: ${this.serverUrl}`);
   }
 
   /**
@@ -236,7 +226,7 @@ export class McpClient {
     }
 
     try {
-      this.logger.debug(`Listing tools from MCP server: ${this.serverUrl}`);
+      logger.debug(`Listing tools from MCP server: ${this.serverUrl}`);
 
       const response = await this.connection.call<{
         tools: McpToolDefinition[];
@@ -249,7 +239,7 @@ export class McpClient {
         );
       }
 
-      this.logger.debug(
+      logger.debug(
         `Found ${response.tools.length} tools from MCP server: ${this.serverUrl}`,
       );
       return response.tools;
@@ -274,7 +264,7 @@ export class McpClient {
     }
 
     try {
-      this.logger.debug(
+      logger.debug(
         `Calling tool '${toolName}' on MCP server: ${this.serverUrl}`,
       );
 
@@ -283,7 +273,7 @@ export class McpClient {
         arguments: params,
       });
 
-      this.logger.debug(
+      logger.debug(
         `Tool '${toolName}' completed on MCP server: ${this.serverUrl}`,
       );
       return response;
@@ -363,7 +353,7 @@ export class McpClient {
     }
 
     try {
-      this.logger.debug(
+      logger.debug(
         `Starting capability negotiation with MCP server: ${this.serverUrl}`,
       );
 
@@ -376,11 +366,11 @@ export class McpClient {
       // Validate response and ensure tools-only compliance
       validateInitializeResponse(this.serverUrl, response);
 
-      this.logger.debug(
+      logger.debug(
         `Capability negotiation successful with MCP server: ${this.serverUrl}`,
       );
     } catch (error) {
-      this.logger.error(`Capability negotiation failed: ${String(error)}`);
+      logger.error(`Capability negotiation failed: ${String(error)}`);
 
       // Use error normalizer to handle capability errors properly
       const normalizedError = this.errorNormalizer.normalize(error, {
@@ -426,7 +416,7 @@ export class McpClient {
    */
   private checkConnectionHealth(): void {
     if (!this.connection || !this.connection.isConnected) {
-      this.logger.warn(`Connection lost to MCP server: ${this.serverUrl}`);
+      logger.warn(`Connection lost to MCP server: ${this.serverUrl}`);
       void this.handleConnectionLoss();
     }
   }
@@ -443,7 +433,7 @@ export class McpClient {
     void this.cleanup();
 
     if (this.reconnectAttempts >= this.options.maxRetries) {
-      this.logger.error(
+      logger.error(
         `Max reconnection attempts (${this.options.maxRetries}) reached for MCP server: ${this.serverUrl}`,
       );
       this.status = ConnectionStatus.FAILED;
@@ -453,7 +443,7 @@ export class McpClient {
     const delay = this.backoffStrategy.calculateDelay(this.reconnectAttempts);
     this.reconnectAttempts++;
 
-    this.logger.info(
+    logger.info(
       `Attempting reconnection ${this.reconnectAttempts}/${this.options.maxRetries} ` +
         `to MCP server ${this.serverUrl} in ${delay}ms`,
     );
@@ -463,7 +453,7 @@ export class McpClient {
         try {
           await this.connect();
         } catch (error) {
-          this.logger.error(
+          logger.error(
             `Reconnection attempt ${this.reconnectAttempts} failed for MCP server: ${this.serverUrl}`,
             { error },
           );
@@ -499,7 +489,7 @@ export class McpClient {
       try {
         await this.connection.close();
       } catch (error) {
-        this.logger.warn("Error closing MCP connection", { error });
+        logger.warn("Error closing MCP connection", { error });
       }
       this.connection = null;
     }

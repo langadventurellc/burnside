@@ -26,9 +26,6 @@ async function waitForMcpToolsRegistration(
       const mcpTools = tools.filter((tool) => tool.name.startsWith("mcp_"));
 
       if (mcpTools.length > 0) {
-        console.log(
-          `MCP tools registered: ${mcpTools.map((t) => t.name).join(", ")}`,
-        );
         return;
       }
     }
