@@ -57,12 +57,19 @@ affectedFiles:
     Anthropic E2E test patterns with proper timeout handling, validation, and
     cleanup. Uses modelSeed: 'builtin' to ensure correct provider plugin mapping
     and registers AnthropicMessagesV1Provider with proper initialization."
+  src/__tests__/e2e/google/mcpTools.e2e.test.ts: "New E2E test file implementing
+    Google MCP tool integration validation with two test suites: MCP Tool
+    Discovery (validates client configuration) and MCP Tool Execution (validates
+    tool execution through Google chat API). Follows existing Google E2E test
+    patterns with proper timeout handling, validation, and cleanup. Uses
+    GoogleGeminiV1Provider with proper initialization and leverages shared MCP
+    test utilities."
 log: []
 schema: v1.0
 childrenIds:
-  - T-create-anthropic-mcp-tools
   - T-create-google-mcp-tools-e2e
   - T-create-xai-mcp-tools-e2e-test
+  - T-create-anthropic-mcp-tools
   - T-create-mcp-test-helpers-and
   - T-create-mock-mcp-server-for
   - T-create-openai-mcp-tools-e2e

@@ -1,13 +1,29 @@
 ---
 id: T-create-google-mcp-tools-e2e
 title: Create Google MCP Tools E2E Test
-status: open
+status: done
 priority: medium
 parent: F-mcp-tooling-e2e-test-suite
 prerequisites:
   - T-create-openai-mcp-tools-e2e
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/__tests__/e2e/google/mcpTools.e2e.test.ts: "New E2E test file implementing
+    Google MCP tool integration validation with two test suites: MCP Tool
+    Discovery (validates client configuration) and MCP Tool Execution (validates
+    tool execution through Google chat API). Follows existing Google E2E test
+    patterns with proper timeout handling, validation, and cleanup. Uses
+    GoogleGeminiV1Provider with proper initialization and leverages shared MCP
+    test utilities."
+log:
+  - Successfully implemented Google MCP Tools E2E test following the OpenAI
+    template pattern. Created comprehensive test file with MCP tool discovery
+    and execution validation through Google Gemini models. The test verifies
+    that MCP tools can be discovered and executed through Google chat requests
+    with proper response formatting. Used existing Google test helpers and
+    configuration patterns from the E2E infrastructure. All quality checks pass
+    (lint, format, type-check) and E2E tests are green with 2 passing test
+    cases. Google provider now has full MCP integration validation matching
+    other providers in the suite.
 schema: v1.0
 childrenIds: []
 created: 2025-09-21T02:43:14.879Z
