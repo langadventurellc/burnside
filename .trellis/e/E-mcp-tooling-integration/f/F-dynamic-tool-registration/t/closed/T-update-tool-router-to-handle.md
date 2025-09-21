@@ -1,13 +1,19 @@
 ---
 id: T-update-tool-router-to-handle
 title: Update tool router to handle connection loss via failure strategy
-status: open
+status: done
 priority: medium
 parent: F-dynamic-tool-registration
 prerequisites:
   - T-implement-tool-failure
 affectedFiles: {}
-log: []
+log:
+  - Verified that ToolRouter already handles MCP connection loss via failure
+    strategies correctly. No code modifications were required. The existing
+    error handling pipeline properly integrates both immediate_unregister (tools
+    removed, returns tool_not_found) and mark_unavailable (tools remain,
+    handlers throw McpConnectionError which is wrapped as execution_error)
+    strategies. All tests pass confirming the integration works as expected.
 schema: v1.0
 childrenIds: []
 created: 2025-09-21T00:43:59.893Z

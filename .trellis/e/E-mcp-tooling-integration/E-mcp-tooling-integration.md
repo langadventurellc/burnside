@@ -1,7 +1,7 @@
 ---
 id: E-mcp-tooling-integration
 title: MCP Tooling Integration
-status: in-progress
+status: done
 priority: medium
 parent: none
 prerequisites: []
@@ -246,7 +246,8 @@ affectedFiles:
     registry information methods, and error handling scenarios. Tests verify
     immediate_unregister removes tools on disconnect while mark_unavailable
     keeps tools but returns connection errors.
-log: []
+log:
+  - "Auto-completed: All child features are complete"
 schema: v1.0
 childrenIds:
   - F-dynamic-tool-registration

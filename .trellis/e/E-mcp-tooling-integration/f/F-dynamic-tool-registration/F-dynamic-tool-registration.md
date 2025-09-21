@@ -1,7 +1,7 @@
 ---
 id: F-dynamic-tool-registration
 title: Dynamic Tool Registration System
-status: in-progress
+status: done
 priority: medium
 parent: E-mcp-tooling-integration
 prerequisites:
@@ -61,15 +61,16 @@ affectedFiles:
     registry information methods, and error handling scenarios. Tests verify
     immediate_unregister removes tools on disconnect while mark_unavailable
     keeps tools but returns connection errors.
-log: []
+log:
+  - "Auto-completed: All child tasks are complete"
 schema: v1.0
 childrenIds:
-  - T-implement-tool-failure
-  - T-update-tool-router-to-handle
   - T-add-dynamic-tool-addition-and
   - T-add-failure-strategy
   - T-add-mcp-connection-cleanup-to
   - T-extend-bridgeclientinitializet
+  - T-implement-tool-failure
+  - T-update-tool-router-to-handle
 created: 2025-09-20T19:18:45.587Z
 updated: 2025-09-20T19:18:45.587Z
 ---
