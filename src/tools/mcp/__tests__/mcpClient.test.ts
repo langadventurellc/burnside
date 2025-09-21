@@ -8,6 +8,7 @@
 
 import { McpClient } from "../mcpClient";
 import { McpConnectionError } from "../mcpConnectionError";
+import { urlToMcpServerConfig } from "../../../core/runtime/mcpServerConfigUtils";
 import { McpToolError } from "../mcpToolError";
 import type { RuntimeAdapter } from "../../../core/runtime/runtimeAdapter";
 import type { McpConnection } from "../../../core/runtime/mcpConnection";
@@ -49,7 +50,7 @@ describe("McpClient", () => {
       createMcpConnection: jest.fn().mockResolvedValue(mockConnection),
     } as any;
 
-    client = new McpClient(mockRuntimeAdapter, serverUrl);
+    client = new McpClient(mockRuntimeAdapter, urlToMcpServerConfig(serverUrl));
 
     // Clear all timers
     jest.clearAllTimers();
@@ -64,7 +65,10 @@ describe("McpClient", () => {
 
   describe("constructor", () => {
     it("should create client with default options", () => {
-      const client = new McpClient(mockRuntimeAdapter, serverUrl);
+      const client = new McpClient(
+        mockRuntimeAdapter,
+        urlToMcpServerConfig(serverUrl),
+      );
 
       expect(client.isConnected).toBe(false);
     });
@@ -78,7 +82,7 @@ describe("McpClient", () => {
 
       const client = new McpClient(
         mockRuntimeAdapter,
-        serverUrl,
+        urlToMcpServerConfig(serverUrl),
         customOptions,
       );
 
@@ -104,7 +108,7 @@ describe("McpClient", () => {
 
       expect(client.isConnected).toBe(true);
       expect(mockRuntimeAdapter.createMcpConnection).toHaveBeenCalledWith(
-        serverUrl,
+        urlToMcpServerConfig(serverUrl),
         expect.objectContaining({
           timeout: defaultOptions.capabilityTimeout,
         }),
@@ -177,9 +181,13 @@ describe("McpClient", () => {
     });
 
     it("should start health monitoring when enabled", async () => {
-      const client = new McpClient(mockRuntimeAdapter, serverUrl, {
-        healthCheckInterval: 5000,
-      });
+      const client = new McpClient(
+        mockRuntimeAdapter,
+        urlToMcpServerConfig(serverUrl),
+        {
+          healthCheckInterval: 5000,
+        },
+      );
 
       mockConnection.call.mockResolvedValue({
         capabilities: { tools: { supported: true } },
@@ -195,9 +203,13 @@ describe("McpClient", () => {
     });
 
     it("should skip health monitoring when disabled", async () => {
-      const client = new McpClient(mockRuntimeAdapter, serverUrl, {
-        healthCheckInterval: 0,
-      });
+      const client = new McpClient(
+        mockRuntimeAdapter,
+        urlToMcpServerConfig(serverUrl),
+        {
+          healthCheckInterval: 0,
+        },
+      );
 
       mockConnection.call.mockResolvedValue({
         capabilities: { tools: { supported: true } },
@@ -368,10 +380,14 @@ describe("McpClient", () => {
     let testClient: McpClient;
 
     beforeEach(async () => {
-      testClient = new McpClient(mockRuntimeAdapter, serverUrl, {
-        healthCheckInterval: 1000, // 1 second for testing
-        maxRetries: 2,
-      });
+      testClient = new McpClient(
+        mockRuntimeAdapter,
+        urlToMcpServerConfig(serverUrl),
+        {
+          healthCheckInterval: 1000, // 1 second for testing
+          maxRetries: 2,
+        },
+      );
 
       mockConnection.call.mockResolvedValue({
         capabilities: { tools: { supported: true } },
@@ -470,9 +486,13 @@ describe("McpClient", () => {
   describe("AbortSignal support", () => {
     it("should pass AbortSignal to runtime adapter", async () => {
       const controller = new AbortController();
-      const client = new McpClient(mockRuntimeAdapter, serverUrl, {
-        signal: controller.signal,
-      });
+      const client = new McpClient(
+        mockRuntimeAdapter,
+        urlToMcpServerConfig(serverUrl),
+        {
+          signal: controller.signal,
+        },
+      );
 
       mockConnection.call.mockResolvedValue({
         capabilities: { tools: { supported: true } },
@@ -483,7 +503,7 @@ describe("McpClient", () => {
       await client.connect();
 
       expect(mockRuntimeAdapter.createMcpConnection).toHaveBeenCalledWith(
-        serverUrl,
+        urlToMcpServerConfig(serverUrl),
         expect.objectContaining({
           signal: controller.signal,
         }),

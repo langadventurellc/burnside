@@ -7,6 +7,7 @@
 
 import { NodeRuntimeAdapter } from "../adapters/nodeRuntimeAdapter";
 import { RuntimeError } from "../runtimeError";
+import { urlToMcpServerConfig } from "../mcpServerConfigUtils";
 
 // Mock fs/promises for dynamic imports
 const mockFs = {
@@ -533,7 +534,9 @@ describe("NodeRuntimeAdapter", () => {
             ),
         });
 
-        const connection = await adapter.createMcpConnection(validServerUrl);
+        const connection = await adapter.createMcpConnection(
+          urlToMcpServerConfig(validServerUrl),
+        );
 
         expect(connection).toBeDefined();
         expect(connection.isConnected).toBe(true);
@@ -562,7 +565,9 @@ describe("NodeRuntimeAdapter", () => {
             ),
         });
 
-        const connection = await adapter.createMcpConnection(httpsServerUrl);
+        const connection = await adapter.createMcpConnection(
+          urlToMcpServerConfig(httpsServerUrl),
+        );
 
         expect(connection).toBeDefined();
         expect(connection.isConnected).toBe(true);
@@ -587,7 +592,7 @@ describe("NodeRuntimeAdapter", () => {
         });
 
         const connection = await adapter.createMcpConnection(
-          validServerUrl,
+          urlToMcpServerConfig(validServerUrl),
           options,
         );
 
@@ -606,13 +611,15 @@ describe("NodeRuntimeAdapter", () => {
 
       it("should throw RuntimeError for invalid URL format", async () => {
         await expect(
-          adapter.createMcpConnection("invalid-url"),
+          adapter.createMcpConnection(urlToMcpServerConfig("invalid-url")),
         ).rejects.toThrow(RuntimeError);
       });
 
       it("should throw RuntimeError for unsupported protocol", async () => {
         await expect(
-          adapter.createMcpConnection("ftp://example.com/mcp"),
+          adapter.createMcpConnection(
+            urlToMcpServerConfig("ftp://example.com/mcp"),
+          ),
         ).rejects.toThrow(RuntimeError);
       });
 
@@ -624,7 +631,7 @@ describe("NodeRuntimeAdapter", () => {
         });
 
         await expect(
-          adapter.createMcpConnection(validServerUrl),
+          adapter.createMcpConnection(urlToMcpServerConfig(validServerUrl)),
         ).rejects.toThrow(RuntimeError);
       });
 
@@ -632,15 +639,18 @@ describe("NodeRuntimeAdapter", () => {
         mockFetch.mockRejectedValue(new Error("Network error"));
 
         await expect(
-          adapter.createMcpConnection(validServerUrl),
+          adapter.createMcpConnection(urlToMcpServerConfig(validServerUrl)),
         ).rejects.toThrow(RuntimeError);
       });
 
       it("should support AbortSignal cancellation", async () => {
         const controller = new AbortController();
-        const promise = adapter.createMcpConnection(validServerUrl, {
-          signal: controller.signal,
-        });
+        const promise = adapter.createMcpConnection(
+          urlToMcpServerConfig(validServerUrl),
+          {
+            signal: controller.signal,
+          },
+        );
 
         controller.abort();
 
@@ -670,7 +680,9 @@ describe("NodeRuntimeAdapter", () => {
             ),
         });
 
-        connection = await adapter.createMcpConnection(serverUrl);
+        connection = await adapter.createMcpConnection(
+          urlToMcpServerConfig(serverUrl),
+        );
       });
 
       describe("call", () => {

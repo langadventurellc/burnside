@@ -16,17 +16,66 @@ affectedFiles:
     (conflicting fields, validation errors), and type inference tests.
   src/client/bridgeClient.ts: Updated connectToMcpServer method signature to
     handle new optional fields and added temporary filtering to only process
-    HTTP servers until STDIO implementation is added in future tasks.
+    HTTP servers until STDIO implementation is added in future tasks.; Updated
+    to pass complete server configuration objects to McpClient constructor
+    instead of extracting URL strings.
+  src/core/runtime/runtimeAdapter.ts: "Updated createMcpConnection method
+    signature from (serverUrl: string, options?) to (serverConfig:
+    McpServerConfig, options?). Added comprehensive JSDoc documentation with
+    examples for both HTTP and STDIO configurations."
+  src/core/runtime/mcpServerConfig.ts: Created new interface defining
+    McpServerConfig type with support for both HTTP (url) and STDIO (command,
+    args) configurations. Includes clear documentation and usage examples.
+  src/core/runtime/mcpServerConfigUtils.ts: Created utility function
+    urlToMcpServerConfig() to convert URL strings to McpServerConfig objects for
+    backward compatibility during migration.
+  src/core/runtime/adapters/nodeRuntimeAdapter.ts: Updated createMcpConnection
+    method to accept McpServerConfig. Currently supports HTTP servers with
+    proper error handling for STDIO (to be implemented in future tasks).
+  src/core/runtime/adapters/electronRuntimeAdapter.ts:
+    Updated createMcpConnection
+    method to accept McpServerConfig. Same as Node adapter with appropriate
+    error handling for unsupported STDIO configurations.
+  src/core/runtime/adapters/reactNativeRuntimeAdapter.ts: Updated
+    createMcpConnection method to accept McpServerConfig. HTTP-only support with
+    clear error messages for STDIO configurations which are not supported in
+    React Native environment.
+  src/tools/mcp/mcpClient.ts: Updated constructor to accept McpServerConfig
+    instead of URL string. Added helper method getServerId() for logging and
+    error reporting. Updated all internal references to use server configuration
+    objects.
+  src/tools/mcp/__tests__/mcpClient.test.ts: Updated test file to use
+    urlToMcpServerConfig helper function for converting URL strings to
+    configuration objects in test scenarios.
+  src/core/runtime/__tests__/nodeRuntimeAdapter.test.ts: Updated to use
+    McpServerConfig objects in tests. Added import for urlToMcpServerConfig
+    utility and updated all test cases.
+  src/core/runtime/__tests__/runtimeAdapterMcp.test.ts: Updated all test
+    expectations to expect McpServerConfig objects instead of URL strings. Fixed
+    mock calls and assertions throughout the test suite.
+  src/core/runtime/__tests__/runtimeAdapter.test.ts: Updated mock signature to
+    match new interface accepting McpServerConfig instead of URL strings.
+  src/__tests__/e2e/shared/createMcpTestEnvironment.ts: Updated to use
+    urlToMcpServerConfig helper function for test environment setup.
+  src/core/runtime/adapters/__tests__/electronRuntimeAdapter.test.ts:
+    Updated all createMcpConnection calls to use urlToMcpServerConfig wrapper
+    function throughout the comprehensive test suite.
+  src/core/runtime/adapters/__tests__/reactNativeRuntimeAdapter.test.ts:
+    Updated all createMcpConnection calls and error expectations to work with
+    the new McpServerConfig interface and proper error handling.
+  src/client/__tests__/bridgeClientMcpIntegration.test.ts: Updated test
+    expectations to expect complete McpServerConfig objects with both name and
+    url properties instead of URL strings.
 log: []
 schema: v1.0
 childrenIds:
-  - T-extend-mcp-server-configuratio
   - T-implement-nodestdiomcpconnecti
   - T-update-bridgeclient-for-mcp
   - T-update-mcpclient-for-server
   - T-update-noderuntimeadapter-for
   - T-update-reactnativeruntimeadapt
   - T-update-runtimeadapter
+  - T-extend-mcp-server-configuratio
 created: 2025-09-21T13:54:00.163Z
 updated: 2025-09-21T13:54:00.163Z
 ---

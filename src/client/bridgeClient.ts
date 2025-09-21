@@ -899,7 +899,7 @@ export class BridgeClient {
         );
 
         // Create MCP client
-        const mcpClient = new McpClient(this.runtimeAdapter, serverConfig.url!);
+        const mcpClient = new McpClient(this.runtimeAdapter, serverConfig);
 
         // Attempt connection
         await mcpClient.connect();

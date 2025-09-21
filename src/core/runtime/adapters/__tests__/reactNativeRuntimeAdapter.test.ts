@@ -7,6 +7,7 @@
 
 import { ReactNativeRuntimeAdapter } from "../reactNativeRuntimeAdapter";
 import { RuntimeError } from "../../runtimeError";
+import { urlToMcpServerConfig } from "../../mcpServerConfigUtils";
 
 // Mock platform detection to return react-native
 jest.mock("../../detectPlatform", () => ({
@@ -678,7 +679,7 @@ describe("ReactNativeRuntimeAdapter", () => {
         globalThis.fetch = mockFetch;
 
         const connection = await adapter.createMcpConnection(
-          "https://example.com/mcp",
+          urlToMcpServerConfig("https://example.com/mcp"),
         );
 
         expect(connection).toBeDefined();
@@ -708,7 +709,7 @@ describe("ReactNativeRuntimeAdapter", () => {
         globalThis.fetch = mockFetch;
 
         const connection = await adapter.createMcpConnection(
-          "http://localhost:3000",
+          urlToMcpServerConfig("http://localhost:3000"),
         );
 
         expect(connection).toBeDefined();
@@ -728,7 +729,7 @@ describe("ReactNativeRuntimeAdapter", () => {
         globalThis.fetch = mockFetch;
 
         const connection = await adapter.createMcpConnection(
-          "http://192.168.1.100:3000",
+          urlToMcpServerConfig("http://192.168.1.100:3000"),
         );
 
         expect(connection).toBeDefined();
@@ -744,7 +745,9 @@ describe("ReactNativeRuntimeAdapter", () => {
         ];
 
         for (const url of testUrls) {
-          await expect(adapter.createMcpConnection(url)).rejects.toThrow(
+          await expect(
+            adapter.createMcpConnection(urlToMcpServerConfig(url)),
+          ).rejects.toThrow(
             "Invalid MCP server URL. Must be HTTP/HTTPS remote server",
           );
         }
@@ -754,9 +757,9 @@ describe("ReactNativeRuntimeAdapter", () => {
         const testUrls = ["not-a-url", "://invalid", "", "http://"];
 
         for (const url of testUrls) {
-          await expect(adapter.createMcpConnection(url)).rejects.toThrow(
-            "Invalid MCP server URL format",
-          );
+          await expect(
+            adapter.createMcpConnection(urlToMcpServerConfig(url)),
+          ).rejects.toThrow("Failed to create MCP connection");
         }
       });
 
@@ -773,9 +776,12 @@ describe("ReactNativeRuntimeAdapter", () => {
         globalThis.fetch = mockFetch;
 
         const customHeaders = { Authorization: "Bearer token123" };
-        await adapter.createMcpConnection("https://example.com/mcp", {
-          headers: customHeaders,
-        });
+        await adapter.createMcpConnection(
+          urlToMcpServerConfig("https://example.com/mcp"),
+          {
+            headers: customHeaders,
+          },
+        );
 
         expect(mockFetch).toHaveBeenCalledWith(
           "https://example.com/mcp",
@@ -801,9 +807,12 @@ describe("ReactNativeRuntimeAdapter", () => {
         const mockFetch = jest.fn().mockResolvedValue(mockResponse);
         globalThis.fetch = mockFetch;
 
-        await adapter.createMcpConnection("https://example.com/mcp", {
-          signal: controller.signal,
-        });
+        await adapter.createMcpConnection(
+          urlToMcpServerConfig("https://example.com/mcp"),
+          {
+            signal: controller.signal,
+          },
+        );
 
         expect(mockFetch).toHaveBeenCalledWith(
           "https://example.com/mcp",
@@ -820,7 +829,9 @@ describe("ReactNativeRuntimeAdapter", () => {
         globalThis.fetch = mockFetch;
 
         await expect(
-          adapter.createMcpConnection("https://example.com/mcp"),
+          adapter.createMcpConnection(
+            urlToMcpServerConfig("https://example.com/mcp"),
+          ),
         ).rejects.toThrow("Failed to create MCP connection");
       });
     });
@@ -840,7 +851,7 @@ describe("ReactNativeRuntimeAdapter", () => {
         const mockFetch = jest.fn().mockResolvedValue(mockResponse);
         globalThis.fetch = mockFetch;
         connection = await adapter.createMcpConnection(
-          "https://example.com/mcp",
+          urlToMcpServerConfig("https://example.com/mcp"),
         );
       });
 

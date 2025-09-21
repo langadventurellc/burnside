@@ -13,6 +13,7 @@ import type { TimerHandle } from "../timerHandle";
 import type { FileOperationOptions } from "../fileOperationOptions";
 import type { McpConnectionOptions } from "../mcpConnectionOptions";
 import type { McpConnection } from "../mcpConnection";
+import type { McpServerConfig } from "../mcpServerConfig";
 import { RuntimeError } from "../runtimeError";
 import { getPlatformCapabilities } from "../getPlatformCapabilities";
 import { ReactNativeMcpConnection } from "./reactNativeMcpConnection";
@@ -390,16 +391,25 @@ export class ReactNativeRuntimeAdapter implements RuntimeAdapter {
 
   // MCP Operations
   async createMcpConnection(
-    serverUrl: string,
+    serverConfig: McpServerConfig,
     options?: McpConnectionOptions,
   ): Promise<McpConnection> {
     try {
+      // React Native only supports HTTP servers (URL-based)
+      // STDIO servers are not supported in React Native environment
+      if (!serverConfig.url) {
+        throw new RuntimeError(
+          "STDIO MCP servers are not supported in React Native environment",
+          "MCP_STDIO_NOT_SUPPORTED",
+        );
+      }
+
       // Validate server URL with remote-only constraints
-      this.validateRemoteOnlyUrl(serverUrl);
+      this.validateRemoteOnlyUrl(serverConfig.url);
 
       // Create and initialize connection
       const connection = new ReactNativeMcpConnection(
-        serverUrl,
+        serverConfig.url,
         this.fetch.bind(this),
         options,
       );
@@ -411,7 +421,7 @@ export class ReactNativeRuntimeAdapter implements RuntimeAdapter {
         `Failed to create MCP connection: ${error instanceof Error ? error.message : String(error)}`,
         "RUNTIME_MCP_CONNECTION_FAILED",
         {
-          serverUrl,
+          serverConfig,
           options,
           originalError: error,
         },

@@ -81,14 +81,14 @@ describe("BridgeClient MCP Integration", () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(MockedMcpClient).toHaveBeenCalledTimes(2);
-      expect(MockedMcpClient).toHaveBeenCalledWith(
-        mockRuntimeAdapter,
-        "http://localhost:3000",
-      );
-      expect(MockedMcpClient).toHaveBeenCalledWith(
-        mockRuntimeAdapter,
-        "http://localhost:3001",
-      );
+      expect(MockedMcpClient).toHaveBeenCalledWith(mockRuntimeAdapter, {
+        name: "test-server",
+        url: "http://localhost:3000",
+      });
+      expect(MockedMcpClient).toHaveBeenCalledWith(mockRuntimeAdapter, {
+        name: "another-server",
+        url: "http://localhost:3001",
+      });
 
       expect(MockedMcpToolRegistry).toHaveBeenCalledTimes(2);
     });
@@ -124,10 +124,10 @@ describe("BridgeClient MCP Integration", () => {
       // Allow async MCP initialization to complete
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      expect(MockedMcpClient).toHaveBeenCalledWith(
-        mockRuntimeAdapter,
-        "http://localhost:9999",
-      );
+      expect(MockedMcpClient).toHaveBeenCalledWith(mockRuntimeAdapter, {
+        name: "failing-server",
+        url: "http://localhost:9999",
+      });
       expect(mockMcpClientInstance.connect).toHaveBeenCalled();
       // Registry should not be called when connection fails
       expect(MockedMcpToolRegistry).not.toHaveBeenCalled();

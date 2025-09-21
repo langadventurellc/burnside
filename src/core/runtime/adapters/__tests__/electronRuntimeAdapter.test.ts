@@ -7,6 +7,7 @@
 
 import { ElectronRuntimeAdapter } from "../electronRuntimeAdapter";
 import { RuntimeError } from "../../runtimeError";
+import { urlToMcpServerConfig } from "../../mcpServerConfigUtils";
 
 // Mock platform detection to return electron-renderer
 jest.mock("../../detectPlatform", () => ({
@@ -387,7 +388,7 @@ describe("ElectronRuntimeAdapter", () => {
         globalThis.fetch = mockFetch;
 
         const connection = await adapter.createMcpConnection(
-          "https://example.com/mcp",
+          urlToMcpServerConfig("https://example.com/mcp"),
         );
 
         expect(connection.isConnected).toBe(true);
@@ -418,7 +419,7 @@ describe("ElectronRuntimeAdapter", () => {
         globalThis.fetch = mockFetch;
 
         const connection = await adapter.createMcpConnection(
-          "http://localhost:3000/mcp",
+          urlToMcpServerConfig("http://localhost:3000/mcp"),
         );
 
         expect(connection.isConnected).toBe(true);
@@ -438,7 +439,9 @@ describe("ElectronRuntimeAdapter", () => {
         const mockFetch = jest.fn().mockResolvedValue(mockInitResponse);
         globalThis.fetch = mockFetch;
 
-        await adapter.createMcpConnection("http://example.com/mcp");
+        await adapter.createMcpConnection(
+          urlToMcpServerConfig("http://example.com/mcp"),
+        );
 
         expect(console.warn).toHaveBeenCalledWith(
           expect.stringContaining(
@@ -449,19 +452,23 @@ describe("ElectronRuntimeAdapter", () => {
 
       it("should throw error for invalid URL format", async () => {
         await expect(
-          adapter.createMcpConnection("invalid-url"),
+          adapter.createMcpConnection(urlToMcpServerConfig("invalid-url")),
         ).rejects.toThrow(RuntimeError);
         await expect(
-          adapter.createMcpConnection("invalid-url"),
+          adapter.createMcpConnection(urlToMcpServerConfig("invalid-url")),
         ).rejects.toThrow("Invalid MCP server URL format");
       });
 
       it("should throw error for invalid protocol", async () => {
         await expect(
-          adapter.createMcpConnection("ftp://example.com/mcp"),
+          adapter.createMcpConnection(
+            urlToMcpServerConfig("ftp://example.com/mcp"),
+          ),
         ).rejects.toThrow(RuntimeError);
         await expect(
-          adapter.createMcpConnection("ftp://example.com/mcp"),
+          adapter.createMcpConnection(
+            urlToMcpServerConfig("ftp://example.com/mcp"),
+          ),
         ).rejects.toThrow("MCP server URL must use HTTP or HTTPS protocol");
       });
 
@@ -471,11 +478,15 @@ describe("ElectronRuntimeAdapter", () => {
 
         for (const port of privilegedPorts) {
           await expect(
-            adapter.createMcpConnection(`http://localhost:${port}/mcp`),
+            adapter.createMcpConnection(
+              urlToMcpServerConfig(`http://localhost:${port}/mcp`),
+            ),
           ).rejects.toThrow(RuntimeError);
 
           try {
-            await adapter.createMcpConnection(`http://localhost:${port}/mcp`);
+            await adapter.createMcpConnection(
+              urlToMcpServerConfig(`http://localhost:${port}/mcp`),
+            );
           } catch (error) {
             const runtimeError = error as RuntimeError;
             expect(runtimeError.message).toContain(
@@ -509,7 +520,7 @@ describe("ElectronRuntimeAdapter", () => {
         globalThis.fetch = mockFetch;
 
         const connection = await adapter.createMcpConnection(
-          "http://localhost:3000/mcp",
+          urlToMcpServerConfig("http://localhost:3000/mcp"),
         );
 
         expect(connection.isConnected).toBe(true);
@@ -522,10 +533,14 @@ describe("ElectronRuntimeAdapter", () => {
         globalThis.fetch = mockFetch;
 
         await expect(
-          adapter.createMcpConnection("https://example.com/mcp"),
+          adapter.createMcpConnection(
+            urlToMcpServerConfig("https://example.com/mcp"),
+          ),
         ).rejects.toThrow(RuntimeError);
         await expect(
-          adapter.createMcpConnection("https://example.com/mcp"),
+          adapter.createMcpConnection(
+            urlToMcpServerConfig("https://example.com/mcp"),
+          ),
         ).rejects.toThrow("Failed to create MCP connection");
       });
 
@@ -539,10 +554,14 @@ describe("ElectronRuntimeAdapter", () => {
         globalThis.fetch = mockFetch;
 
         await expect(
-          adapter.createMcpConnection("https://example.com/mcp"),
+          adapter.createMcpConnection(
+            urlToMcpServerConfig("https://example.com/mcp"),
+          ),
         ).rejects.toThrow(RuntimeError);
         await expect(
-          adapter.createMcpConnection("https://example.com/mcp"),
+          adapter.createMcpConnection(
+            urlToMcpServerConfig("https://example.com/mcp"),
+          ),
         ).rejects.toThrow("Failed to create MCP connection");
       });
 
@@ -558,7 +577,7 @@ describe("ElectronRuntimeAdapter", () => {
         globalThis.fetch = mockFetch;
 
         const connectionPromise = adapter.createMcpConnection(
-          "https://example.com/mcp",
+          urlToMcpServerConfig("https://example.com/mcp"),
           { signal: controller.signal },
         );
 
@@ -588,9 +607,12 @@ describe("ElectronRuntimeAdapter", () => {
           "User-Agent": "TestClient/1.0",
         };
 
-        await adapter.createMcpConnection("https://example.com/mcp", {
-          headers: customHeaders,
-        });
+        await adapter.createMcpConnection(
+          urlToMcpServerConfig("https://example.com/mcp"),
+          {
+            headers: customHeaders,
+          },
+        );
 
         expect(mockFetch).toHaveBeenCalledWith(
           "https://example.com/mcp",
@@ -621,7 +643,7 @@ describe("ElectronRuntimeAdapter", () => {
         globalThis.fetch = mockFetch;
 
         connection = await adapter.createMcpConnection(
-          "https://example.com/mcp",
+          urlToMcpServerConfig("https://example.com/mcp"),
         );
         jest.clearAllMocks();
       });

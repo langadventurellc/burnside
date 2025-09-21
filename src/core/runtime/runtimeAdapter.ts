@@ -27,6 +27,7 @@ import type { TimerHandle } from "./timerHandle";
 import type { FileOperationOptions } from "./fileOperationOptions";
 import type { McpConnectionOptions } from "./mcpConnectionOptions";
 import type { McpConnection } from "./mcpConnection";
+import type { McpServerConfig } from "./mcpServerConfig";
 
 /**
  * Runtime adapter interface defining platform abstraction contracts.
@@ -127,24 +128,32 @@ export interface RuntimeAdapter {
    * discovery and execution. The connection supports request/response patterns
    * and notifications according to the MCP specification.
    *
+   * Supports both HTTP and STDIO transport configurations:
+   * - HTTP servers: Use configuration with 'url' field
+   * - STDIO servers: Use configuration with 'command' field (Node.js/Electron only)
+   *
    * Platform-specific behavior:
-   * - Node.js: Supports both local and remote MCP servers
-   * - Electron: Supports remote MCP servers with process-appropriate transport
-   * - React Native: Remote-only MCP servers using existing SSE infrastructure
+   * - Node.js: Supports both HTTP and STDIO MCP servers
+   * - Electron: Supports both HTTP and STDIO MCP servers
+   * - React Native: HTTP-only MCP servers (STDIO not supported)
    *
    * Connection establishment follows the same cancellation patterns as existing
    * fetch and stream operations via the AbortSignal in options.signal.
    *
-   * @param serverUrl - URL of the MCP server to connect to
+   * @param serverConfig - MCP server configuration object with transport details
    * @param options - Optional connection configuration including AbortSignal
    * @returns Promise resolving to an active MCP connection
    *
    * @throws {RuntimeError} When connection establishment fails
-   * @throws {Error} When serverUrl is invalid or options are malformed
+   * @throws {Error} When serverConfig is invalid or options are malformed
    *
-   * @example Basic connection
+   * @example HTTP server connection
    * ```typescript
-   * const connection = await adapter.createMcpConnection('http://localhost:3000');
+   * const httpConfig = {
+   *   name: 'github-api',
+   *   url: 'https://api.github.com/mcp'
+   * };
+   * const connection = await adapter.createMcpConnection(httpConfig);
    *
    * // Use connection for JSON-RPC communication
    * const tools = await connection.call('tools/list');
@@ -154,6 +163,16 @@ export interface RuntimeAdapter {
    * await connection.close();
    * ```
    *
+   * @example STDIO server connection (Node.js/Electron only)
+   * ```typescript
+   * const stdioConfig = {
+   *   name: 'local-tools',
+   *   command: '/usr/local/bin/mcp-tools',
+   *   args: ['--config', 'dev.json']
+   * };
+   * const connection = await adapter.createMcpConnection(stdioConfig);
+   * ```
+   *
    * @example Connection with cancellation
    * ```typescript
    * const controller = new AbortController();
@@ -161,7 +180,7 @@ export interface RuntimeAdapter {
    *
    * try {
    *   const connection = await adapter.createMcpConnection(
-   *     'http://localhost:3000',
+   *     { name: 'api-server', url: 'http://localhost:3000' },
    *     { signal: controller.signal }
    *   );
    *   // Use connection...
@@ -174,15 +193,15 @@ export interface RuntimeAdapter {
    *
    * @example Platform-aware usage
    * ```typescript
-   * const serverUrl = adapter.platformInfo.platform === 'react-native'
-   *   ? 'https://remote-mcp-server.com'  // Remote only for RN
-   *   : 'http://localhost:3000';         // Local OK for Node/Electron
+   * const serverConfig = adapter.platformInfo.platform === 'react-native'
+   *   ? { name: 'remote-api', url: 'https://remote-mcp-server.com' }  // Remote only for RN
+   *   : { name: 'local-tools', command: '/usr/local/bin/mcp-tools' }; // STDIO OK for Node/Electron
    *
-   * const connection = await adapter.createMcpConnection(serverUrl);
+   * const connection = await adapter.createMcpConnection(serverConfig);
    * ```
    */
   createMcpConnection(
-    serverUrl: string,
+    serverConfig: McpServerConfig,
     options?: McpConnectionOptions,
   ): Promise<McpConnection>;
 

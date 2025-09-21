@@ -19,6 +19,7 @@
 
 import type { RuntimeAdapter } from "../../core/runtime/runtimeAdapter";
 import type { McpConnection } from "../../core/runtime/mcpConnection";
+import type { McpServerConfig } from "../../core/runtime/mcpServerConfig";
 import { logger } from "../../core/logging/simpleLogger";
 import { ExponentialBackoffStrategy } from "../../core/transport/retry/exponentialBackoffStrategy";
 import type { BackoffConfig } from "../../core/transport/retry/backoffConfig";
@@ -74,7 +75,7 @@ enum ConnectionStatus {
  */
 export class McpClient {
   private readonly runtimeAdapter: RuntimeAdapter;
-  private readonly serverUrl: string;
+  private readonly serverConfig: McpServerConfig;
   private readonly options: McpClientOptions & {
     maxRetries: number;
     baseRetryDelay: number;
@@ -94,13 +95,24 @@ export class McpClient {
   private reconnectAttempts = 0;
   private abortController: AbortController | null = null;
 
+  /**
+   * Get server identifier for logging and error reporting
+   */
+  private getServerId(): string {
+    return (
+      this.serverConfig.url ||
+      `command:${this.serverConfig.command}` ||
+      this.serverConfig.name
+    );
+  }
+
   constructor(
     runtimeAdapter: RuntimeAdapter,
-    serverUrl: string,
+    serverConfig: McpServerConfig,
     options: McpClientOptions = {},
   ) {
     this.runtimeAdapter = runtimeAdapter;
-    this.serverUrl = serverUrl;
+    this.serverConfig = serverConfig;
 
     // Apply defaults to options
     this.options = {
@@ -156,7 +168,7 @@ export class McpClient {
     this.abortController = new AbortController();
 
     try {
-      logger.info(`Connecting to MCP server: ${this.serverUrl}`);
+      logger.info(`Connecting to MCP server: ${this.getServerId()}`);
 
       // Create connection through runtime adapter
       const connectionOptions = {
@@ -166,7 +178,7 @@ export class McpClient {
       };
 
       this.connection = await this.runtimeAdapter.createMcpConnection(
-        this.serverUrl,
+        this.serverConfig,
         connectionOptions,
       );
 
@@ -177,7 +189,9 @@ export class McpClient {
       this.reconnectAttempts = 0;
       this.backoffStrategy.reset();
 
-      logger.info(`Successfully connected to MCP server: ${this.serverUrl}`);
+      logger.info(
+        `Successfully connected to MCP server: ${this.getServerId()}`,
+      );
 
       // Start health monitoring if enabled
       if (this.options.healthCheckInterval > 0) {
@@ -189,7 +203,7 @@ export class McpClient {
 
       if (error instanceof Error && error.name === "AbortError") {
         throw McpConnectionError.timeout(
-          this.serverUrl,
+          this.getServerId(),
           this.options.capabilityTimeout,
         );
       }
@@ -198,7 +212,7 @@ export class McpClient {
         error instanceof Error ? error.message : "Unknown connection error";
       throw new McpConnectionError(
         `Failed to connect to MCP server: ${message}`,
-        { serverUrl: this.serverUrl, originalError: error },
+        { serverUrl: this.getServerId(), originalError: error },
       );
     }
   }
@@ -207,12 +221,12 @@ export class McpClient {
    * Disconnect from MCP server and cleanup resources
    */
   async disconnect(): Promise<void> {
-    logger.info(`Disconnecting from MCP server: ${this.serverUrl}`);
+    logger.info(`Disconnecting from MCP server: ${this.getServerId()}`);
 
     this.status = ConnectionStatus.DISCONNECTED;
     await this.cleanup();
 
-    logger.info(`Disconnected from MCP server: ${this.serverUrl}`);
+    logger.info(`Disconnected from MCP server: ${this.getServerId()}`);
   }
 
   /**
@@ -221,12 +235,12 @@ export class McpClient {
   async listTools(): Promise<McpToolDefinition[]> {
     if (!this.isConnected || !this.connection) {
       throw new McpConnectionError("Not connected to MCP server", {
-        serverUrl: this.serverUrl,
+        serverUrl: this.getServerId(),
       });
     }
 
     try {
-      logger.debug(`Listing tools from MCP server: ${this.serverUrl}`);
+      logger.debug(`Listing tools from MCP server: ${this.getServerId()}`);
 
       const response = await this.connection.call<{
         tools: McpToolDefinition[];
@@ -234,13 +248,13 @@ export class McpClient {
 
       if (!response.tools || !Array.isArray(response.tools)) {
         throw McpToolError.discoveryFailed(
-          this.serverUrl,
+          this.getServerId(),
           "Invalid tools list response format",
         );
       }
 
       logger.debug(
-        `Found ${response.tools.length} tools from MCP server: ${this.serverUrl}`,
+        `Found ${response.tools.length} tools from MCP server: ${this.getServerId()}`,
       );
       return response.tools;
     } catch (error) {
@@ -249,7 +263,7 @@ export class McpClient {
       }
 
       const message = error instanceof Error ? error.message : "Unknown error";
-      throw McpToolError.discoveryFailed(this.serverUrl, message);
+      throw McpToolError.discoveryFailed(this.getServerId(), message);
     }
   }
 
@@ -259,13 +273,13 @@ export class McpClient {
   async callTool(toolName: string, params: unknown): Promise<McpToolResult> {
     if (!this.isConnected || !this.connection) {
       throw new McpConnectionError("Not connected to MCP server", {
-        serverUrl: this.serverUrl,
+        serverUrl: this.getServerId(),
       });
     }
 
     try {
       logger.debug(
-        `Calling tool '${toolName}' on MCP server: ${this.serverUrl}`,
+        `Calling tool '${toolName}' on MCP server: ${this.getServerId()}`,
       );
 
       const response = await this.connection.call<McpToolResult>("tools/call", {
@@ -274,14 +288,14 @@ export class McpClient {
       });
 
       logger.debug(
-        `Tool '${toolName}' completed on MCP server: ${this.serverUrl}`,
+        `Tool '${toolName}' completed on MCP server: ${this.getServerId()}`,
       );
       return response;
     } catch (error) {
       if (error instanceof Error) {
         // Check for JSON-RPC method not found
         if ("code" in error && error.code === -32601) {
-          throw McpToolError.notFound(toolName, this.serverUrl);
+          throw McpToolError.notFound(toolName, this.getServerId());
         }
 
         // Check for invalid parameters
@@ -348,13 +362,13 @@ export class McpClient {
     if (!this.connection) {
       throw new McpConnectionError(
         "No connection available for capability negotiation",
-        { serverUrl: this.serverUrl },
+        { serverUrl: this.getServerId() },
       );
     }
 
     try {
       logger.debug(
-        `Starting capability negotiation with MCP server: ${this.serverUrl}`,
+        `Starting capability negotiation with MCP server: ${this.getServerId()}`,
       );
 
       const request = createToolsOnlyRequest("llm-bridge", "1.0.0");
@@ -364,17 +378,17 @@ export class McpClient {
       );
 
       // Validate response and ensure tools-only compliance
-      validateInitializeResponse(this.serverUrl, response);
+      validateInitializeResponse(this.getServerId(), response);
 
       logger.debug(
-        `Capability negotiation successful with MCP server: ${this.serverUrl}`,
+        `Capability negotiation successful with MCP server: ${this.getServerId()}`,
       );
     } catch (error) {
       logger.error(`Capability negotiation failed: ${String(error)}`);
 
       // Use error normalizer to handle capability errors properly
       const normalizedError = this.errorNormalizer.normalize(error, {
-        serverUrl: this.serverUrl,
+        serverUrl: this.getServerId(),
         operation: "capability_negotiation",
       });
 
@@ -382,7 +396,7 @@ export class McpClient {
       if (normalizedError.type === "ProviderError") {
         throw new McpCapabilityError(normalizedError.message, {
           ...normalizedError.context,
-          serverUrl: this.serverUrl,
+          serverUrl: this.getServerId(),
           originalError: error instanceof Error ? error.name : String(error),
         });
       }
@@ -391,7 +405,7 @@ export class McpClient {
       throw new McpCapabilityError(
         `Capability negotiation failed: ${String(error)}`,
         {
-          serverUrl: this.serverUrl,
+          serverUrl: this.getServerId(),
           originalError: error instanceof Error ? error.name : String(error),
         },
       );
@@ -416,7 +430,7 @@ export class McpClient {
    */
   private checkConnectionHealth(): void {
     if (!this.connection || !this.connection.isConnected) {
-      logger.warn(`Connection lost to MCP server: ${this.serverUrl}`);
+      logger.warn(`Connection lost to MCP server: ${this.getServerId()}`);
       void this.handleConnectionLoss();
     }
   }
@@ -434,7 +448,7 @@ export class McpClient {
 
     if (this.reconnectAttempts >= this.options.maxRetries) {
       logger.error(
-        `Max reconnection attempts (${this.options.maxRetries}) reached for MCP server: ${this.serverUrl}`,
+        `Max reconnection attempts (${this.options.maxRetries}) reached for MCP server: ${this.getServerId()}`,
       );
       this.status = ConnectionStatus.FAILED;
       return;
@@ -445,7 +459,7 @@ export class McpClient {
 
     logger.info(
       `Attempting reconnection ${this.reconnectAttempts}/${this.options.maxRetries} ` +
-        `to MCP server ${this.serverUrl} in ${delay}ms`,
+        `to MCP server ${this.getServerId()} in ${delay}ms`,
     );
 
     setTimeout(() => {
@@ -454,7 +468,7 @@ export class McpClient {
           await this.connect();
         } catch (error) {
           logger.error(
-            `Reconnection attempt ${this.reconnectAttempts} failed for MCP server: ${this.serverUrl}`,
+            `Reconnection attempt ${this.reconnectAttempts} failed for MCP server: ${this.getServerId()}`,
             { error },
           );
 

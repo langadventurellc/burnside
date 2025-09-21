@@ -12,6 +12,7 @@ import type { TimerHandle } from "../timerHandle";
 import type { FileOperationOptions } from "../fileOperationOptions";
 import type { McpConnectionOptions } from "../mcpConnectionOptions";
 import type { McpConnection } from "../mcpConnection";
+import type { McpServerConfig } from "../mcpServerConfig";
 import { RuntimeError } from "../runtimeError";
 import { getPlatformCapabilities } from "../getPlatformCapabilities";
 
@@ -369,16 +370,25 @@ export class NodeRuntimeAdapter implements RuntimeAdapter {
 
   // MCP Operations
   async createMcpConnection(
-    serverUrl: string,
+    serverConfig: McpServerConfig,
     options?: McpConnectionOptions,
   ): Promise<McpConnection> {
     try {
+      // For now, only support HTTP servers (URL-based)
+      // STDIO support will be added in future tasks
+      if (!serverConfig.url) {
+        throw new RuntimeError(
+          "STDIO MCP servers not yet implemented in NodeRuntimeAdapter",
+          "MCP_STDIO_NOT_IMPLEMENTED",
+        );
+      }
+
       // Validate the server URL
-      this.validateMcpServerUrl(serverUrl);
+      this.validateMcpServerUrl(serverConfig.url);
 
       // Create connection instance using this adapter's fetch method
       const connection = new NodeMcpConnection(
-        serverUrl,
+        serverConfig.url,
         (input, init) => this.fetch(input, init),
         options,
       );
@@ -392,7 +402,7 @@ export class NodeRuntimeAdapter implements RuntimeAdapter {
         `Failed to create MCP connection: ${error instanceof Error ? error.message : "Unknown error"}`,
         "RUNTIME_MCP_CONNECTION_ERROR",
         {
-          serverUrl,
+          serverConfig,
           options,
           originalError: error,
         },
