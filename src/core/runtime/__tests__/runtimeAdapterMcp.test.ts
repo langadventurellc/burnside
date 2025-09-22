@@ -8,6 +8,7 @@
 import type { RuntimeAdapter } from "../runtimeAdapter";
 import type { McpConnectionOptions } from "../mcpConnectionOptions";
 import type { McpConnection } from "../mcpConnection";
+import { urlToMcpServerConfig } from "../mcpServerConfigUtils";
 import type { PlatformInfo } from "../platformInfo";
 import type { TimerHandle } from "../timerHandle";
 
@@ -82,10 +83,10 @@ describe("RuntimeAdapter MCP Extension", () => {
 
       // Test method signature with URL only
       const connection1 = await mockAdapter.createMcpConnection(
-        "http://localhost:3000",
+        urlToMcpServerConfig("http://localhost:3000"),
       );
       expect(mockAdapter.createMcpConnection).toHaveBeenCalledWith(
-        "http://localhost:3000",
+        urlToMcpServerConfig("http://localhost:3000"),
       );
       expect(connection1).toBe(mockConnection);
 
@@ -95,11 +96,11 @@ describe("RuntimeAdapter MCP Extension", () => {
         timeout: 30000,
       };
       const connection2 = await mockAdapter.createMcpConnection(
-        "http://localhost:3000",
+        urlToMcpServerConfig("http://localhost:3000"),
         options,
       );
       expect(mockAdapter.createMcpConnection).toHaveBeenCalledWith(
-        "http://localhost:3000",
+        urlToMcpServerConfig("http://localhost:3000"),
         options,
       );
       expect(connection2).toBe(mockConnection);
@@ -150,10 +151,10 @@ describe("RuntimeAdapter MCP Extension", () => {
 
       // Use new MCP method
       const connection = await mockAdapter.createMcpConnection(
-        "http://localhost:3000",
+        urlToMcpServerConfig("http://localhost:3000"),
       );
       expect(mockAdapter.createMcpConnection).toHaveBeenCalledWith(
-        "http://localhost:3000",
+        urlToMcpServerConfig("http://localhost:3000"),
       );
       expect(connection).toBe(mockConnection);
 
@@ -169,9 +170,12 @@ describe("RuntimeAdapter MCP Extension", () => {
       };
 
       // MCP connection with cancellation
-      await mockAdapter.createMcpConnection("http://localhost:3000", options);
+      await mockAdapter.createMcpConnection(
+        urlToMcpServerConfig("http://localhost:3000"),
+        options,
+      );
       expect(mockAdapter.createMcpConnection).toHaveBeenCalledWith(
-        "http://localhost:3000",
+        urlToMcpServerConfig("http://localhost:3000"),
         options,
       );
 
@@ -196,8 +200,12 @@ describe("RuntimeAdapter MCP Extension", () => {
         },
       };
 
-      await nodeAdapter.createMcpConnection("http://localhost:3000");
-      await nodeAdapter.createMcpConnection("https://remote-server.com");
+      await nodeAdapter.createMcpConnection(
+        urlToMcpServerConfig("http://localhost:3000"),
+      );
+      await nodeAdapter.createMcpConnection(
+        urlToMcpServerConfig("https://remote-server.com"),
+      );
 
       expect(nodeAdapter.createMcpConnection).toHaveBeenCalledTimes(2);
 
@@ -216,9 +224,11 @@ describe("RuntimeAdapter MCP Extension", () => {
       };
 
       // Interface allows the call, implementation would handle constraint
-      await reactNativeAdapter.createMcpConnection("https://remote-server.com");
+      await reactNativeAdapter.createMcpConnection(
+        urlToMcpServerConfig("https://remote-server.com"),
+      );
       expect(reactNativeAdapter.createMcpConnection).toHaveBeenCalledWith(
-        "https://remote-server.com",
+        urlToMcpServerConfig("https://remote-server.com"),
       );
     });
   });
@@ -239,8 +249,10 @@ describe("RuntimeAdapter MCP Extension", () => {
         fileExists: jest.fn(),
       };
 
-      // TypeScript should enforce string for serverUrl
-      await mockAdapter.createMcpConnection("http://valid-url.com");
+      // TypeScript should enforce McpServerConfig for server configuration
+      await mockAdapter.createMcpConnection(
+        urlToMcpServerConfig("http://valid-url.com"),
+      );
 
       // TypeScript should enforce McpConnectionOptions type for options
       const validOptions: McpConnectionOptions = {
@@ -249,13 +261,13 @@ describe("RuntimeAdapter MCP Extension", () => {
         headers: { Authorization: "Bearer token" },
       };
       await mockAdapter.createMcpConnection(
-        "http://valid-url.com",
+        urlToMcpServerConfig("http://valid-url.com"),
         validOptions,
       );
 
       // Return type should be Promise<McpConnection>
       const connection = await mockAdapter.createMcpConnection(
-        "http://valid-url.com",
+        urlToMcpServerConfig("http://valid-url.com"),
       );
       expect(typeof connection).toBe("object");
     });
@@ -276,24 +288,32 @@ describe("RuntimeAdapter MCP Extension", () => {
       };
 
       // Should work without options
-      await mockAdapter.createMcpConnection("http://example.com");
+      await mockAdapter.createMcpConnection(
+        urlToMcpServerConfig("http://example.com"),
+      );
       expect(mockAdapter.createMcpConnection).toHaveBeenCalledWith(
-        "http://example.com",
+        urlToMcpServerConfig("http://example.com"),
       );
 
       // Should work with empty options
-      await mockAdapter.createMcpConnection("http://example.com", {});
+      await mockAdapter.createMcpConnection(
+        urlToMcpServerConfig("http://example.com"),
+        {},
+      );
       expect(mockAdapter.createMcpConnection).toHaveBeenCalledWith(
-        "http://example.com",
+        urlToMcpServerConfig("http://example.com"),
         {},
       );
 
       // Should work with partial options
-      await mockAdapter.createMcpConnection("http://example.com", {
-        timeout: 1000,
-      });
+      await mockAdapter.createMcpConnection(
+        urlToMcpServerConfig("http://example.com"),
+        {
+          timeout: 1000,
+        },
+      );
       expect(mockAdapter.createMcpConnection).toHaveBeenCalledWith(
-        "http://example.com",
+        urlToMcpServerConfig("http://example.com"),
         { timeout: 1000 },
       );
     });
@@ -319,7 +339,7 @@ describe("RuntimeAdapter MCP Extension", () => {
 
       // Should propagate errors correctly
       await expect(
-        mockAdapter.createMcpConnection("invalid-url"),
+        mockAdapter.createMcpConnection(urlToMcpServerConfig("invalid-url")),
       ).rejects.toThrow("Connection failed");
     });
 
@@ -344,9 +364,12 @@ describe("RuntimeAdapter MCP Extension", () => {
       controller.abort();
 
       await expect(
-        mockAdapter.createMcpConnection("http://example.com", {
-          signal: controller.signal,
-        }),
+        mockAdapter.createMcpConnection(
+          urlToMcpServerConfig("http://example.com"),
+          {
+            signal: controller.signal,
+          },
+        ),
       ).rejects.toThrow("AbortError");
     });
   });

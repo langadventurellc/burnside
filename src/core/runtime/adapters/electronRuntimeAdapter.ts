@@ -12,6 +12,7 @@ import type { TimerHandle } from "../timerHandle";
 import type { FileOperationOptions } from "../fileOperationOptions";
 import type { McpConnectionOptions } from "../mcpConnectionOptions";
 import type { McpConnection } from "../mcpConnection";
+import type { McpServerConfig } from "../mcpServerConfig";
 import { RuntimeError } from "../runtimeError";
 import { getPlatformCapabilities } from "../getPlatformCapabilities";
 
@@ -364,16 +365,25 @@ export class ElectronRuntimeAdapter implements RuntimeAdapter {
 
   // MCP Operations
   async createMcpConnection(
-    serverUrl: string,
+    serverConfig: McpServerConfig,
     options?: McpConnectionOptions,
   ): Promise<McpConnection> {
     try {
+      // For now, only support HTTP servers (URL-based)
+      // STDIO support will be added in future tasks
+      if (!serverConfig.url) {
+        throw new RuntimeError(
+          "STDIO MCP servers not yet implemented in ElectronRuntimeAdapter",
+          "MCP_STDIO_NOT_IMPLEMENTED",
+        );
+      }
+
       // Validate server URL for Electron renderer security
-      this.validateMcpServerUrl(serverUrl);
+      this.validateMcpServerUrl(serverConfig.url);
 
       // Create connection with Electron-specific transport
       const connection = new ElectronMcpConnection(
-        serverUrl,
+        serverConfig.url,
         this.fetch.bind(this),
         options,
       );
@@ -388,7 +398,7 @@ export class ElectronRuntimeAdapter implements RuntimeAdapter {
         "RUNTIME_MCP_CONNECTION_ERROR",
         {
           operation: "createMcpConnection",
-          serverUrl,
+          serverConfig,
           options,
           platform: "electron-renderer",
           originalError: error,

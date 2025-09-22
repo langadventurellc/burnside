@@ -9,6 +9,7 @@ import type { McpTestEnvironment } from "./mcpTestEnvironmentInterface";
 import type { McpTestEnvironmentOptions } from "./mcpTestEnvironmentOptions";
 import { McpClient } from "../../../tools/mcp/mcpClient";
 import type { RuntimeAdapter } from "../../../core/runtime/runtimeAdapter";
+import { urlToMcpServerConfig } from "../../../core/runtime/mcpServerConfigUtils";
 
 /**
  * Create a complete MCP test environment with server and connected client
@@ -52,7 +53,7 @@ export async function createMcpTestEnvironment(
 
   try {
     // Create and connect client
-    const client = new McpClient(adapter, url, {
+    const client = new McpClient(adapter, urlToMcpServerConfig(url), {
       capabilityTimeout: connectionTimeout,
       logLevel: enableLogging ? "debug" : "error",
     });

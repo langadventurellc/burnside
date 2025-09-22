@@ -12,8 +12,10 @@ import type { TimerHandle } from "../timerHandle";
 import type { FileOperationOptions } from "../fileOperationOptions";
 import type { McpConnectionOptions } from "../mcpConnectionOptions";
 import type { McpConnection } from "../mcpConnection";
+import type { McpServerConfig } from "../mcpServerConfig";
 import { RuntimeError } from "../runtimeError";
 import { getPlatformCapabilities } from "../getPlatformCapabilities";
+import { NodeStdioMcpConnection } from "./nodeStdioMcpConnection";
 
 /**
  * JSON-RPC 2.0 request structure for MCP communication.
@@ -369,30 +371,49 @@ export class NodeRuntimeAdapter implements RuntimeAdapter {
 
   // MCP Operations
   async createMcpConnection(
-    serverUrl: string,
+    serverConfig: McpServerConfig,
     options?: McpConnectionOptions,
   ): Promise<McpConnection> {
     try {
-      // Validate the server URL
-      this.validateMcpServerUrl(serverUrl);
+      // Support both HTTP and STDIO servers
+      if (serverConfig.command) {
+        // STDIO server configuration
+        const connection = new NodeStdioMcpConnection(
+          serverConfig.command,
+          serverConfig.args || [],
+          options || {},
+        );
+        await connection.initialize();
+        return connection;
+      } else if (serverConfig.url) {
+        // HTTP server configuration
+        // Validate the server URL
+        this.validateMcpServerUrl(serverConfig.url);
 
-      // Create connection instance using this adapter's fetch method
-      const connection = new NodeMcpConnection(
-        serverUrl,
-        (input, init) => this.fetch(input, init),
-        options,
-      );
+        // Create connection instance using this adapter's fetch method
+        const connection = new NodeMcpConnection(
+          serverConfig.url,
+          (input, init) => this.fetch(input, init),
+          options,
+        );
 
-      // Initialize the connection
-      await connection.initialize(options?.signal);
+        // Initialize the connection
+        await connection.initialize(options?.signal);
 
-      return connection;
+        return connection;
+      } else {
+        throw new RuntimeError(
+          "Server configuration must specify either 'url' or 'command'",
+          "RUNTIME_MCP_INVALID_CONFIG",
+          { serverConfig },
+        );
+      }
     } catch (error) {
       throw new RuntimeError(
         `Failed to create MCP connection: ${error instanceof Error ? error.message : "Unknown error"}`,
         "RUNTIME_MCP_CONNECTION_ERROR",
         {
-          serverUrl,
+          serverConfig,
           options,
           originalError: error,
         },

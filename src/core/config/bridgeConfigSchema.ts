@@ -110,23 +110,43 @@ export const BridgeConfigSchema = z
         /** MCP server configurations */
         mcpServers: z
           .array(
-            z.object({
-              /** MCP server name */
-              name: z
-                .string()
-                .min(1, "MCP server name cannot be empty")
-                .describe("MCP server name"),
-              /** MCP server URL */
-              url: z
-                .string()
-                .url("MCP server URL must be valid")
-                .refine(
-                  (url) =>
-                    url.startsWith("http://") || url.startsWith("https://"),
-                  "MCP server URL must use HTTP or HTTPS protocol",
-                )
-                .describe("MCP server URL"),
-            }),
+            z
+              .object({
+                /** MCP server name */
+                name: z
+                  .string()
+                  .min(1, "MCP server name cannot be empty")
+                  .describe("MCP server name"),
+                /** MCP server URL for HTTP-based servers */
+                url: z
+                  .string()
+                  .url("MCP server URL must be valid")
+                  .refine(
+                    (url) =>
+                      url.startsWith("http://") || url.startsWith("https://"),
+                    "MCP server URL must use HTTP or HTTPS protocol",
+                  )
+                  .describe("MCP server URL for HTTP-based servers")
+                  .optional(),
+                /** MCP server command for STDIO-based servers */
+                command: z
+                  .string()
+                  .min(1, "MCP server command cannot be empty")
+                  .describe("MCP server command for STDIO-based servers")
+                  .optional(),
+                /** MCP server command arguments for STDIO-based servers */
+                args: z
+                  .array(z.string().min(1, "Command arguments cannot be empty"))
+                  .describe(
+                    "MCP server command arguments for STDIO-based servers",
+                  )
+                  .optional(),
+              })
+              .refine((config) => {
+                const hasUrl = config.url !== undefined;
+                const hasCommand = config.command !== undefined;
+                return hasUrl !== hasCommand; // XOR: exactly one must be true
+              }, "MCP server must have either 'url' for HTTP or 'command' for STDIO, but not both"),
           )
           .optional()
           .describe("MCP server configurations")

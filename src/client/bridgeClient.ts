@@ -869,17 +869,26 @@ export class BridgeClient {
    * Connect to an individual MCP server and register its tools
    */
   private connectToMcpServer(
-    serverConfig: { name: string; url: string },
+    serverConfig: {
+      name: string;
+      url?: string;
+      command?: string;
+      args?: string[];
+    },
     toolRouter: ToolRouter,
   ): void {
     void (async () => {
       try {
+        // Log connection attempt with appropriate transport details
+        const transportInfo = serverConfig.url
+          ? `HTTP: ${serverConfig.url}`
+          : `STDIO: ${serverConfig.command}`;
         logger.info(
-          `Connecting to MCP server: ${serverConfig.name} at ${serverConfig.url}`,
+          `Connecting to MCP server: ${serverConfig.name} (${transportInfo})`,
         );
 
         // Create MCP client
-        const mcpClient = new McpClient(this.runtimeAdapter, serverConfig.url);
+        const mcpClient = new McpClient(this.runtimeAdapter, serverConfig);
 
         // Attempt connection
         await mcpClient.connect();
@@ -1043,12 +1052,12 @@ export class BridgeClient {
     logger.info(`Disconnecting ${this.mcpClients.size} MCP clients`);
 
     const disconnectPromises = Array.from(this.mcpClients.entries()).map(
-      async ([serverUrl, client]) => {
+      async ([serverName, client]) => {
         try {
           await client.disconnect();
-          logger.debug(`Successfully disconnected MCP client: ${serverUrl}`);
+          logger.debug(`Successfully disconnected MCP client: ${serverName}`);
         } catch (error) {
-          logger.warn(`Failed to disconnect MCP client: ${serverUrl}`, {
+          logger.warn(`Failed to disconnect MCP client: ${serverName}`, {
             error,
           });
         }
@@ -1083,7 +1092,7 @@ export class BridgeClient {
     );
 
     let totalUnregistered = 0;
-    for (const [serverUrl, registry] of this.mcpToolRegistries.entries()) {
+    for (const [serverName, registry] of this.mcpToolRegistries.entries()) {
       try {
         const toolCountBefore = registry.getRegisteredToolCount();
         registry.unregisterMcpTools(this.toolRouter);
@@ -1092,11 +1101,11 @@ export class BridgeClient {
 
         totalUnregistered += unregisteredCount;
         logger.debug(
-          `Unregistered ${unregisteredCount} tools from MCP server: ${serverUrl}`,
+          `Unregistered ${unregisteredCount} tools from MCP server: ${serverName}`,
         );
       } catch (error) {
         logger.warn(
-          `Failed to unregister tools from MCP server: ${serverUrl}`,
+          `Failed to unregister tools from MCP server: ${serverName}`,
           { error },
         );
       }

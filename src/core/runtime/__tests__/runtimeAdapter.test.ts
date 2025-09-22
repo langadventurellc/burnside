@@ -89,7 +89,7 @@ describe("RuntimeAdapter Interface", () => {
       return Promise.resolve(true);
     },
     createMcpConnection(
-      _serverUrl: string,
+      _serverConfig: import("../mcpServerConfig").McpServerConfig,
       _options?: McpConnectionOptions,
     ): Promise<McpConnection> {
       return Promise.resolve({

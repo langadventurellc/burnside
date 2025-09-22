@@ -1024,14 +1024,298 @@ describe("BridgeConfigSchema", () => {
         // TypeScript compilation test
         const toolsConfig = result.tools;
         if (toolsConfig && toolsConfig.mcpServers) {
-          const mcpServers: Array<{ name: string; url: string }> =
-            toolsConfig.mcpServers;
+          const mcpServers = toolsConfig.mcpServers;
           const firstServer = mcpServers[0];
           const serverName: string = firstServer.name;
-          const serverUrl: string = firstServer.url;
 
-          expect(serverName).toBe("typed-server");
-          expect(serverUrl).toBe("https://example.com/mcp");
+          // This test specifically uses HTTP server, so url should be present
+          if (firstServer.url) {
+            const serverUrl: string = firstServer.url;
+            expect(serverName).toBe("typed-server");
+            expect(serverUrl).toBe("https://example.com/mcp");
+          }
+        }
+      });
+    });
+  });
+
+  describe("STDIO MCP server configurations", () => {
+    describe("valid STDIO MCP server configurations", () => {
+      it("should accept STDIO server with command only", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+            mcpServers: [
+              {
+                name: "stdio-server",
+                command: "/usr/local/bin/mcp-tools",
+              },
+            ],
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools?.mcpServers).toEqual([
+          {
+            name: "stdio-server",
+            command: "/usr/local/bin/mcp-tools",
+          },
+        ]);
+      });
+
+      it("should accept STDIO server with command and args", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+            mcpServers: [
+              {
+                name: "stdio-server",
+                command: "/usr/local/bin/mcp-tools",
+                args: ["--config", "dev.json", "--verbose"],
+              },
+            ],
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools?.mcpServers).toEqual([
+          {
+            name: "stdio-server",
+            command: "/usr/local/bin/mcp-tools",
+            args: ["--config", "dev.json", "--verbose"],
+          },
+        ]);
+      });
+
+      it("should accept multiple STDIO servers", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+            mcpServers: [
+              {
+                name: "stdio-server-1",
+                command: "mcp-tools",
+              },
+              {
+                name: "stdio-server-2",
+                command: "/bin/mcp-local",
+                args: ["--debug"],
+              },
+            ],
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools?.mcpServers).toEqual([
+          {
+            name: "stdio-server-1",
+            command: "mcp-tools",
+          },
+          {
+            name: "stdio-server-2",
+            command: "/bin/mcp-local",
+            args: ["--debug"],
+          },
+        ]);
+      });
+
+      it("should accept mixed HTTP and STDIO servers", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+            mcpServers: [
+              {
+                name: "http-server",
+                url: "https://api.example.com/mcp",
+              },
+              {
+                name: "stdio-server",
+                command: "/usr/local/bin/mcp-tools",
+                args: ["--config", "prod.json"],
+              },
+            ],
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+        expect(result.tools?.mcpServers).toEqual([
+          {
+            name: "http-server",
+            url: "https://api.example.com/mcp",
+          },
+          {
+            name: "stdio-server",
+            command: "/usr/local/bin/mcp-tools",
+            args: ["--config", "prod.json"],
+          },
+        ]);
+      });
+    });
+
+    describe("invalid STDIO MCP server configurations", () => {
+      it("should reject server with both url and command", () => {
+        const config = {
+          providers: { test: {} },
+          tools: {
+            enabled: true,
+            builtinTools: [],
+            mcpServers: [
+              {
+                name: "conflicted-server",
+                url: "https://example.com/mcp",
+                command: "/usr/local/bin/mcp-tools",
+              },
+            ],
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(config)).toThrow(
+          /MCP server must have either 'url' for HTTP or 'command' for STDIO, but not both/,
+        );
+      });
+
+      it("should reject server with neither url nor command", () => {
+        const config = {
+          providers: { test: {} },
+          tools: {
+            enabled: true,
+            builtinTools: [],
+            mcpServers: [
+              {
+                name: "incomplete-server",
+              },
+            ],
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(config)).toThrow(
+          /MCP server must have either 'url' for HTTP or 'command' for STDIO, but not both/,
+        );
+      });
+
+      it("should reject server with empty command", () => {
+        const config = {
+          providers: { test: {} },
+          tools: {
+            enabled: true,
+            builtinTools: [],
+            mcpServers: [
+              {
+                name: "empty-command-server",
+                command: "",
+              },
+            ],
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(config)).toThrow(
+          /MCP server command cannot be empty/,
+        );
+      });
+
+      it("should reject server with empty argument in args array", () => {
+        const config = {
+          providers: { test: {} },
+          tools: {
+            enabled: true,
+            builtinTools: [],
+            mcpServers: [
+              {
+                name: "empty-arg-server",
+                command: "/usr/local/bin/mcp-tools",
+                args: ["--config", "", "--verbose"],
+              },
+            ],
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(config)).toThrow(
+          /Command arguments cannot be empty/,
+        );
+      });
+
+      it("should reject server with non-string values in args array", () => {
+        const config = {
+          providers: { test: {} },
+          tools: {
+            enabled: true,
+            builtinTools: [],
+            mcpServers: [
+              {
+                name: "invalid-arg-server",
+                command: "/usr/local/bin/mcp-tools",
+                args: ["--config", 123 as any, "--verbose"],
+              },
+            ],
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(config)).toThrow();
+      });
+
+      it("should reject server with non-array args field", () => {
+        const config = {
+          providers: { test: {} },
+          tools: {
+            enabled: true,
+            builtinTools: [],
+            mcpServers: [
+              {
+                name: "invalid-args-server",
+                command: "/usr/local/bin/mcp-tools",
+                args: "--config dev.json" as any,
+              },
+            ],
+          },
+        };
+
+        expect(() => BridgeConfigSchema.parse(config)).toThrow();
+      });
+    });
+
+    describe("STDIO MCP server configuration type inference", () => {
+      it("should infer correct types for STDIO server configuration", () => {
+        const config = {
+          providers: { openai: { apiKey: "sk-test" } },
+          tools: {
+            enabled: true,
+            builtinTools: ["echo"],
+            mcpServers: [
+              {
+                name: "typed-stdio-server",
+                command: "/usr/local/bin/mcp-tools",
+                args: ["--config", "test.json"],
+              },
+            ],
+          },
+        };
+
+        const result = BridgeConfigSchema.parse(config);
+
+        // TypeScript compilation test
+        const toolsConfig = result.tools;
+        if (toolsConfig && toolsConfig.mcpServers) {
+          const mcpServers = toolsConfig.mcpServers;
+          const firstServer = mcpServers[0];
+          const serverName: string = firstServer.name;
+
+          // This test specifically uses STDIO server, so command should be present
+          if (firstServer.command) {
+            const serverCommand: string = firstServer.command;
+            const serverArgs: string[] | undefined = firstServer.args;
+
+            expect(serverName).toBe("typed-stdio-server");
+            expect(serverCommand).toBe("/usr/local/bin/mcp-tools");
+            expect(serverArgs).toEqual(["--config", "test.json"]);
+          }
         }
       });
     });
