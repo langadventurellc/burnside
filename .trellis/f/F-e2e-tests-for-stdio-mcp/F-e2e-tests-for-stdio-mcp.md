@@ -1,7 +1,7 @@
 ---
 id: F-e2e-tests-for-stdio-mcp
 title: E2E Tests for STDIO MCP Transport
-status: in-progress
+status: done
 priority: medium
 parent: none
 prerequisites: []
@@ -51,15 +51,25 @@ affectedFiles:
     test for Google provider using STDIO MCP transport, implementing identical
     test structure as HTTP test but with STDIO transport configuration including
     tool discovery validation and tool execution verification
-log: []
+  src/__tests__/e2e/openai/stdioMcpTools.e2e.test.ts: Created comprehensive E2E
+    test for OpenAI provider using STDIO MCP transport, implementing identical
+    test structure as HTTP test but with STDIO transport configuration including
+    tool discovery validation and tool execution verification
+  src/__tests__/e2e/xai/stdioMcpTools.e2e.test.ts:
+    Created comprehensive E2E test
+    for xAI provider using STDIO MCP transport, implementing identical test
+    structure as HTTP test but with STDIO transport configuration including tool
+    discovery validation and tool execution verification
+log:
+  - "Auto-completed: All child tasks are complete"
 schema: v1.0
 childrenIds:
+  - T-create-anthropic-stdio-mcp
   - T-create-google-stdio-mcp-e2e
   - T-create-openai-stdio-mcp-e2e
-  - T-create-xai-stdio-mcp-e2e-test
-  - T-create-anthropic-stdio-mcp
   - T-create-stdio-mock-mcp-server
   - T-create-stdio-telemetry-reader
+  - T-create-xai-stdio-mcp-e2e-test
   - T-update-test-helpers-for-stdio
 created: 2025-09-21T17:03:53.515Z
 updated: 2025-09-21T17:03:53.515Z

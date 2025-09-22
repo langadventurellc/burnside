@@ -1,13 +1,24 @@
 ---
 id: T-create-openai-stdio-mcp-e2e
 title: Create OpenAI STDIO MCP E2E test
-status: open
+status: done
 priority: medium
 parent: F-e2e-tests-for-stdio-mcp
 prerequisites:
   - T-update-test-helpers-for-stdio
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/__tests__/e2e/openai/stdioMcpTools.e2e.test.ts: Created comprehensive E2E
+    test for OpenAI provider using STDIO MCP transport, implementing identical
+    test structure as HTTP test but with STDIO transport configuration including
+    tool discovery validation and tool execution verification
+log:
+  - Successfully implemented comprehensive OpenAI STDIO MCP E2E test that
+    validates subprocess-based MCP server functionality. The test follows the
+    established patterns from existing tests while adapting to use STDIO
+    transport configuration. It includes tool discovery validation, tool
+    execution through OpenAI model, and proper subprocess cleanup. All quality
+    checks pass and the test runs successfully, proving that STDIO MCP transport
+    works identically to HTTP transport for OpenAI provider integration.
 schema: v1.0
 childrenIds: []
 created: 2025-09-21T18:08:17.612Z
