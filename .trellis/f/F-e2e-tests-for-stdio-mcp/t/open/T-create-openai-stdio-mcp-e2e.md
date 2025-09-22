@@ -20,6 +20,9 @@ updated: 2025-09-21T18:08:17.612Z
 
 This task creates a comprehensive end-to-end test for STDIO MCP transport using the OpenAI provider. The test validates that subprocess-based MCP servers work identically to HTTP servers and that LLM providers can discover and execute tools through STDIO transport.
 
+**Running Tests:**
+`npm run test:e2e -- openai/stdio`
+
 **Related Issues:**
 
 - Parent Feature: F-e2e-tests-for-stdio-mcp (E2E Tests for STDIO MCP Transport)

@@ -47,13 +47,17 @@ affectedFiles:
     test for Anthropic provider using STDIO MCP transport, including tool
     discovery validation and tool execution verification with identical
     assertion patterns as HTTP test
+  src/__tests__/e2e/google/stdioMcpTools.e2e.test.ts: Created comprehensive E2E
+    test for Google provider using STDIO MCP transport, implementing identical
+    test structure as HTTP test but with STDIO transport configuration including
+    tool discovery validation and tool execution verification
 log: []
 schema: v1.0
 childrenIds:
-  - T-create-anthropic-stdio-mcp
   - T-create-google-stdio-mcp-e2e
   - T-create-openai-stdio-mcp-e2e
   - T-create-xai-stdio-mcp-e2e-test
+  - T-create-anthropic-stdio-mcp
   - T-create-stdio-mock-mcp-server
   - T-create-stdio-telemetry-reader
   - T-update-test-helpers-for-stdio

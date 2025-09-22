@@ -1,13 +1,49 @@
 ---
 id: T-create-google-stdio-mcp-e2e
 title: Create Google STDIO MCP E2E test
-status: open
+status: done
 priority: medium
 parent: F-e2e-tests-for-stdio-mcp
 prerequisites:
   - T-update-test-helpers-for-stdio
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/__tests__/e2e/google/stdioMcpTools.e2e.test.ts: Created comprehensive E2E
+    test for Google provider using STDIO MCP transport, implementing identical
+    test structure as HTTP test but with STDIO transport configuration including
+    tool discovery validation and tool execution verification
+log:
+  - >-
+    Successfully implemented Google STDIO MCP E2E test following exact structure
+    of existing HTTP test but with STDIO transport configuration. The test
+    validates that subprocess-based MCP servers work identically to HTTP servers
+    using the Google Gemini provider.
+
+
+    Key implementation details:
+
+    - Created test file that mirrors the HTTP test structure exactly
+
+    - Updated server setup to use STDIO transport: setupMcpServer({ transport:
+    "stdio" })
+
+    - Configured validation to check for 'command' field instead of 'url' in MCP
+    server config
+
+    - Implemented identical test cases: MCP Tool Discovery and MCP Tool
+    Execution
+
+    - Used Google provider without .initialize() call (follows correct pattern)
+
+    - Added STDIO-specific test message: "Hello MCP from Google via STDIO"
+
+    - Verified subprocess initialization, tool execution, and cleanup work
+    correctly
+
+
+    All tests pass and quality checks (lint, format, type-check) are clean. The
+    implementation extends E2E test coverage for STDIO MCP transport to the
+    Google provider, proving transport-agnostic behavior across different LLM
+    providers.
 schema: v1.0
 childrenIds: []
 created: 2025-09-21T18:09:05.873Z
@@ -19,6 +55,9 @@ updated: 2025-09-21T18:09:05.873Z
 ## Context
 
 This task creates a comprehensive end-to-end test for STDIO MCP transport using the Google provider. The test validates that subprocess-based MCP servers work identically to HTTP servers and that LLM providers can discover and execute tools through STDIO transport.
+
+**Running Tests:**
+`npm run test:e2e -- google/stdio`
 
 **Related Issues:**
 
