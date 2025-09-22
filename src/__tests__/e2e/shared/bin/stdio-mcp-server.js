@@ -14,12 +14,21 @@
 const readline = require("readline");
 const fs = require("fs");
 const path = require("path");
-const { tmpdir } = require("os");
 const process = require("process");
 
-// Cross-platform telemetry file path
+// Project-relative temp directory
+const currentDir = path.dirname(process.argv[1]);
+const projectRoot = path.resolve(currentDir, "../../../../..");
+const tempDir = path.join(projectRoot, "temp");
+
+// Ensure temp directory exists
+if (!fs.existsSync(tempDir)) {
+  fs.mkdirSync(tempDir, { recursive: true });
+}
+
+// Cross-platform telemetry file path in project temp directory
 const telemetryFile = path.join(
-  tmpdir(),
+  tempDir,
   `stdio-mcp-telemetry-${process.pid}.json`,
 );
 

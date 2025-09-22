@@ -6,10 +6,9 @@
  * tool executions while maintaining compatibility with existing test patterns.
  */
 
-import { spawn, type ChildProcess } from "child_process";
+import { type ChildProcess } from "child_process";
 import { join } from "path";
-import { createStdioTelemetryReader } from "./createStdioTelemetryReader";
-import type { StdioTelemetryReader } from "./stdioTelemetryReader";
+import { StdioTelemetryReader } from "./stdioTelemetryReader";
 
 /**
  * STDIO MCP Server Manager that provides MockMcpServer-compatible interface.
@@ -19,7 +18,7 @@ import type { StdioTelemetryReader } from "./stdioTelemetryReader";
  */
 export class StdioMcpServerManager {
   private childProcess?: ChildProcess;
-  private telemetryReader?: StdioTelemetryReader;
+  private telemetryReader: StdioTelemetryReader | null = null;
   private isRunning = false;
   private serverPath: string;
 
@@ -29,7 +28,11 @@ export class StdioMcpServerManager {
   }
 
   /**
-   * Start the STDIO MCP server subprocess.
+   * Start the STDIO MCP server configuration.
+   *
+   * Note: We don't actually spawn a subprocess here. The MCP client will
+   * spawn its own subprocess based on the command configuration we provide.
+   * We'll track the actual PID later when needed for telemetry.
    *
    * @returns Promise resolving to dummy port/url for compatibility with MockMcpServer
    */
@@ -39,23 +42,14 @@ export class StdioMcpServerManager {
     }
 
     try {
-      // Spawn the STDIO server subprocess
-      this.childProcess = spawn("node", [this.serverPath], {
-        stdio: ["pipe", "pipe", "inherit"],
-      });
-
-      // Wait for process to start successfully
-      await this.waitForProcessReady();
-
-      // Create telemetry reader for this process
-      this.telemetryReader = createStdioTelemetryReader(this.childProcess.pid!);
-
+      // Don't spawn subprocess here - let MCP client do it
+      // We'll create telemetry reader when we know the actual PID
       this.isRunning = true;
 
       // Return dummy values for compatibility - STDIO doesn't use HTTP
       return {
         port: 0,
-        url: `stdio://pid-${this.childProcess.pid}`,
+        url: `stdio://command-node`,
       };
     } catch (error) {
       await this.cleanup();
@@ -83,7 +77,8 @@ export class StdioMcpServerManager {
    * @returns True if the tool was called at least once
    */
   wasToolCalled(toolName: string): boolean {
-    return this.telemetryReader?.wasToolCalled(toolName) ?? false;
+    const reader = this.getTelemetryReader();
+    return reader?.wasToolCalled(toolName) ?? false;
   }
 
   /**
@@ -93,7 +88,8 @@ export class StdioMcpServerManager {
    * @returns Number of times the tool was called
    */
   getToolCallCount(toolName: string): number {
-    return this.telemetryReader?.getToolCallCount(toolName) ?? 0;
+    const reader = this.getTelemetryReader();
+    return reader?.getToolCallCount(toolName) ?? 0;
   }
 
   /**
@@ -105,14 +101,70 @@ export class StdioMcpServerManager {
   getToolCallsFor(
     toolName: string,
   ): Array<{ arguments: unknown; timestamp: Date }> {
-    return this.telemetryReader?.getToolCallsFor(toolName) ?? [];
+    const reader = this.getTelemetryReader();
+    return reader?.getToolCallsFor(toolName) ?? [];
   }
 
   /**
    * Clear tool call history by removing telemetry file.
    */
   clearToolCallHistory(): void {
-    this.telemetryReader?.clearToolCallHistory();
+    const reader = this.getTelemetryReader();
+    reader?.clearToolCallHistory();
+  }
+
+  /**
+   * Get or create a telemetry reader that finds the most recent telemetry file.
+   */
+  private getTelemetryReader(): StdioTelemetryReader | null {
+    if (this.telemetryReader) {
+      return this.telemetryReader;
+    }
+
+    // Find the most recent telemetry file in the temp directory
+    const fs = require("fs");
+    const path = require("path");
+
+    const projectRoot = path.resolve(__dirname, "../../../..");
+    const tempDir = path.join(projectRoot, "temp");
+
+    if (!fs.existsSync(tempDir)) {
+      return null;
+    }
+
+    try {
+      interface TelemetryFile {
+        file: string;
+        path: string;
+        mtime: Date;
+      }
+
+      const files: TelemetryFile[] = fs
+        .readdirSync(tempDir)
+        .filter(
+          (file: string) =>
+            file.startsWith("stdio-mcp-telemetry-") && file.endsWith(".json"),
+        )
+        .map((file: string) => {
+          const filePath = path.join(tempDir, file);
+          const stats = fs.statSync(filePath);
+          return { file, path: filePath, mtime: stats.mtime };
+        })
+        .sort(
+          (a: TelemetryFile, b: TelemetryFile) =>
+            b.mtime.getTime() - a.mtime.getTime(),
+        );
+
+      if (files.length > 0) {
+        // Use the most recent telemetry file
+        this.telemetryReader = new StdioTelemetryReader(files[0].path);
+        return this.telemetryReader;
+      }
+    } catch (error) {
+      console.warn("Error finding telemetry files:", error);
+    }
+
+    return null;
   }
 
   /**
@@ -179,7 +231,7 @@ export class StdioMcpServerManager {
         // Log but don't throw - cleanup should be resilient
         console.warn("Warning: Error cleaning up telemetry:", error);
       }
-      this.telemetryReader = undefined;
+      this.telemetryReader = null;
     }
 
     // Terminate subprocess

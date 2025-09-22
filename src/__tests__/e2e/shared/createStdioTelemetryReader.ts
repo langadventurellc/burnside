@@ -5,15 +5,14 @@
  * generation for E2E testing using the default system temp directory.
  */
 
-import { tmpdir } from "os";
-import { join } from "path";
+import { join, resolve } from "path";
 import { StdioTelemetryReader } from "./stdioTelemetryReader";
 
 /**
- * Creates a StdioTelemetryReader for the default system temp directory.
+ * Creates a StdioTelemetryReader for the project temp directory.
  *
- * Uses the OS temp directory with cross-platform path generation to read
- * telemetry files created by STDIO MCP servers.
+ * Uses the project-relative temp directory with cross-platform path generation
+ * to read telemetry files created by STDIO MCP servers.
  *
  * @param processId - Process ID of the STDIO MCP server
  * @returns StdioTelemetryReader instance
@@ -27,6 +26,12 @@ import { StdioTelemetryReader } from "./stdioTelemetryReader";
 export function createStdioTelemetryReader(
   processId: number,
 ): StdioTelemetryReader {
-  const telemetryFile = join(tmpdir(), `stdio-mcp-telemetry-${processId}.json`);
+  // Project-relative temp directory - match the exact same logic as the server
+  // From current file: src/__tests__/e2e/shared/createStdioTelemetryReader.ts
+  // To project root: ../../../.. (up 4 levels)
+  const projectRoot = resolve(__dirname, "../../../..");
+  const tempDir = join(projectRoot, "temp");
+
+  const telemetryFile = join(tempDir, `stdio-mcp-telemetry-${processId}.json`);
   return new StdioTelemetryReader(telemetryFile);
 }

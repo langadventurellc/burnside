@@ -8,13 +8,17 @@ prerequisites: []
 affectedFiles:
   src/__tests__/e2e/shared/bin/stdio-mcp-server.js: Created standalone Node.js
     executable implementing JSON-RPC 2.0 MCP server over stdin/stdout with
-    cross-platform telemetry tracking, signal handling, and error management
+    cross-platform telemetry tracking, signal handling, and error management;
+    Updated to use project-relative temp directory instead of system temp for
+    cross-platform reliability and permission consistency
   src/__tests__/e2e/shared/stdioTelemetryReader.ts: Created main
     StdioTelemetryReader class with file-based telemetry reading, caching, error
     handling, and MockMcpServer-compatible interface
   src/__tests__/e2e/shared/createStdioTelemetryReader.ts:
     Created factory function
-    for default OS temp directory telemetry reader instantiation
+    for default OS temp directory telemetry reader instantiation; Updated path
+    resolution to use project-relative temp directory matching server script for
+    consistent telemetry file location
   src/__tests__/e2e/shared/createStdioTelemetryReaderWithPath.ts:
     Created factory function for custom base directory telemetry reader
     instantiation
@@ -29,19 +33,30 @@ affectedFiles:
     compatibility
   src/__tests__/e2e/shared/stdioMcpServerManager.ts: Created new class to manage
     STDIO MCP server subprocess lifecycle with MockMcpServer-compatible
-    interface
+    interface; Enhanced with dynamic telemetry file discovery system to
+    automatically find and track the most recent telemetry file, solving PID
+    mismatch issues between test infrastructure and MCP client subprocess
+    creation
   src/__tests__/e2e/shared/setupMcpServer.ts: Added optional transport parameter
     with function overloads for type safety, supporting both HTTP and STDIO
     transports
   src/__tests__/e2e/shared/mcpTestHelpers.test.ts: Updated test assertions to
     match new error messages for enhanced functionality
+  src/__tests__/e2e/anthropic/stdioMcpTools.e2e.test.ts:
+    Created comprehensive E2E
+    test for Anthropic provider using STDIO MCP transport, including tool
+    discovery validation and tool execution verification with identical
+    assertion patterns as HTTP test
 log: []
 schema: v1.0
 childrenIds:
   - T-create-anthropic-stdio-mcp
-  - T-update-test-helpers-for-stdio
+  - T-create-google-stdio-mcp-e2e
+  - T-create-openai-stdio-mcp-e2e
+  - T-create-xai-stdio-mcp-e2e-test
   - T-create-stdio-mock-mcp-server
   - T-create-stdio-telemetry-reader
+  - T-update-test-helpers-for-stdio
 created: 2025-09-21T17:03:53.515Z
 updated: 2025-09-21T17:03:53.515Z
 ---

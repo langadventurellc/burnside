@@ -1,13 +1,37 @@
 ---
 id: T-create-anthropic-stdio-mcp
 title: Create Anthropic STDIO MCP E2E test
-status: open
+status: done
 priority: medium
 parent: F-e2e-tests-for-stdio-mcp
 prerequisites:
   - T-update-test-helpers-for-stdio
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/__tests__/e2e/anthropic/stdioMcpTools.e2e.test.ts:
+    Created comprehensive E2E
+    test for Anthropic provider using STDIO MCP transport, including tool
+    discovery validation and tool execution verification with identical
+    assertion patterns as HTTP test
+  src/__tests__/e2e/shared/bin/stdio-mcp-server.js: Updated to use
+    project-relative temp directory instead of system temp for cross-platform
+    reliability and permission consistency
+  src/__tests__/e2e/shared/createStdioTelemetryReader.ts:
+    Updated path resolution
+    to use project-relative temp directory matching server script for consistent
+    telemetry file location
+  src/__tests__/e2e/shared/stdioMcpServerManager.ts: Enhanced with dynamic
+    telemetry file discovery system to automatically find and track the most
+    recent telemetry file, solving PID mismatch issues between test
+    infrastructure and MCP client subprocess creation
+log:
+  - Successfully implemented Anthropic STDIO MCP E2E test that validates
+    end-to-end STDIO transport functionality. The test creates a
+    subprocess-based MCP server, executes tool calls via Anthropic model, and
+    verifies behavior through file-based telemetry. Key innovation was
+    implementing dynamic telemetry file discovery to handle the architectural
+    pattern where MCP client creates its own subprocess. Both discovery and
+    execution tests pass, confirming STDIO transport works identically to HTTP
+    transport for Anthropic provider.
 schema: v1.0
 childrenIds: []
 created: 2025-09-21T17:16:26.431Z
