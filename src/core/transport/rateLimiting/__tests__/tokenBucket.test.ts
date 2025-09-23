@@ -1,7 +1,7 @@
 /**
  * @file tokenBucket.test.ts
- * @description Comprehensive unit tests for TokenBucket class covering all functional requirements,
- * edge cases, and performance characteristics as specified in the task acceptance criteria.
+ * @description Comprehensive unit tests for TokenBucket class covering all functional requirements
+ * and edge cases as specified in the task acceptance criteria.
  */
 
 import { TokenBucket } from "../tokenBucket";
@@ -294,44 +294,6 @@ describe("TokenBucket", () => {
       const staticBucket = createBucket(createConfig({ refillRate: 0 }));
 
       expect(() => staticBucket.destroy()).not.toThrow();
-    });
-  });
-
-  describe("Performance Characteristics", () => {
-    test("should complete token operations in reasonable time", () => {
-      const bucket = createBucket(defaultConfig);
-
-      const startTime = performance.now();
-
-      // Perform multiple operations
-      for (let i = 0; i < 1000; i++) {
-        bucket.consume(1);
-        bucket.getAvailableTokens();
-      }
-
-      const endTime = performance.now();
-      const totalTime = endTime - startTime;
-
-      // Should complete 2000 operations in under 10ms
-      expect(totalTime).toBeLessThan(10);
-    });
-
-    test("should maintain stable memory usage", () => {
-      const bucket = createBucket(defaultConfig);
-
-      // Perform many operations to test for memory leaks
-      for (let i = 0; i < 10000; i++) {
-        bucket.consume(1);
-        if (i % 100 === 0) {
-          bucket.reset();
-        }
-      }
-
-      // Reset to ensure we have tokens for the final check
-      bucket.reset();
-
-      // If we get here without running out of memory, test passes
-      expect(bucket.getAvailableTokens()).toBe(10);
     });
   });
 

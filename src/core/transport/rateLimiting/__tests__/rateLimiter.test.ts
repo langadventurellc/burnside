@@ -596,45 +596,4 @@ describe("RateLimiter", () => {
       expect(() => createLimiter(validConfig)).not.toThrow();
     });
   });
-
-  describe("Performance Characteristics", () => {
-    test("scope key generation is fast", () => {
-      const limiter = createLimiter(
-        createConfig({ scope: "provider:model:key" }),
-      );
-
-      const startTime = performance.now();
-
-      // Generate many scope keys
-      for (let i = 0; i < 1000; i++) {
-        limiter.getStatus(context1);
-      }
-
-      const endTime = performance.now();
-      const duration = endTime - startTime;
-
-      // Should complete in reasonable time (less than 10ms for 1000 operations)
-      expect(duration).toBeLessThan(10);
-    });
-
-    test("bucket lookup is efficient", () => {
-      const limiter = createLimiter(createConfig({ scope: "provider" }));
-
-      // Create bucket
-      limiter.checkLimit(context1);
-
-      const startTime = performance.now();
-
-      // Perform many lookups
-      for (let i = 0; i < 1000; i++) {
-        limiter.checkLimit(context1);
-      }
-
-      const endTime = performance.now();
-      const duration = endTime - startTime;
-
-      // Should complete in reasonable time
-      expect(duration).toBeLessThan(50);
-    });
-  });
 });

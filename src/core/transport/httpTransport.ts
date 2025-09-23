@@ -46,6 +46,7 @@ import type { RuntimeAdapter } from "../runtime/runtimeAdapter";
 import { InterceptorChain } from "./interceptorChain";
 import { TransportError } from "../errors/transportError";
 import { logger } from "../logging/simpleLogger";
+import { randomUUID } from "node:crypto";
 
 /**
  * HTTP Transport implementation with streaming support.
@@ -408,7 +409,7 @@ export class HttpTransport implements Transport {
       request,
       metadata: {
         timestamp: new Date(),
-        requestId: crypto.randomUUID(),
+        requestId: randomUUID(),
       },
       abortSignal: signal,
     };
