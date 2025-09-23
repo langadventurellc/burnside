@@ -17,6 +17,8 @@
     "access": "public"
   },
   "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
     "test": "jest",
     "test:e2e": "NODE_OPTIONS='--import=dotenv/config' jest --config jest.e2e.config.mjs",
     "test:e2e:openai": "NODE_OPTIONS='--import=dotenv/config' jest --config jest.e2e.config.mjs --testPathPatterns=openai",
