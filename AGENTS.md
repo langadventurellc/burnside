@@ -1,6 +1,6 @@
-# Instructions for working in the LLM Bridge Library
+# Instructions for working in Burnside
 
-A TypeScript library that acts as a unified bridge to multiple LLM provider APIs for use across Desktop (Electron Main/Renderer), Mobile (React Native), and API (Node.js) platforms. The library provides an extensible architecture for integrating various LLM providers and tools while maintaining a consistent interface across all platforms.
+A TypeScript LLM provider adapter that provides a unified interface to multiple LLM providers (OpenAI, Anthropic, Google, XAI) with Model Context Protocol (MCP) support. Designed for Desktop (Electron Main/Renderer), Mobile (React Native), and API (Node.js) platforms. The library provides an extensible architecture for integrating various LLM providers and tools while maintaining a consistent interface across all platforms.
 
 ## Repository Structure
 

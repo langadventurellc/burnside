@@ -1,17 +1,21 @@
 {
-  "name": "llm-bridge",
-  "version": "0.1.0",
-  "description": "A unified bridge to multiple LLM provider APIs.",
+  "name": "@langadventurellc/burnside",
+  "version": "0.0.0-development",
+  "description": "A TypeScript LLM provider adapter with MCP support for Desktop, Mobile, and API platforms.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/langadventurellc/llm-bridge.git"
+    "url": "git+https://github.com/langadventurellc/burnside.git"
   },
   "author": "LangAdventure LLC",
   "engines": {
     "node": ">=18.0.0"
   },
   "license": "GPL-3.0-only",
-  "homepage": "https://github.com/langadventurellc/llm-bridge#readme",
+  "homepage": "https://github.com/langadventurellc/burnside#readme",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
   "scripts": {
     "test": "jest",
     "test:e2e": "NODE_OPTIONS='--import=dotenv/config' jest --config jest.e2e.config.mjs",
