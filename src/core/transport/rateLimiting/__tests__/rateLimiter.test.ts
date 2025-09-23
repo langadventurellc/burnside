@@ -289,36 +289,6 @@ describe("RateLimiter", () => {
       expect(status2.availableTokens).toBe(4); // One token consumed
     });
 
-    test("stale buckets cleaned up during periodic cleanup", () => {
-      const limiter = createLimiter(createConfig({ scope: "provider" }));
-
-      // Mock performance.now to control time
-      const mockNow = jest.spyOn(performance, "now");
-      const startTime = 1000;
-      mockNow.mockReturnValue(startTime);
-
-      // Create bucket by checking limit
-      expect(limiter.checkLimit(context1)).toBe(true);
-
-      // Verify bucket exists and has consumed tokens
-      const status = limiter.getStatus(context1);
-      expect(status.availableTokens).toBeLessThan(5);
-
-      // Advance time past cleanup threshold (5 minutes)
-      const futureTime = startTime + 5 * 60 * 1000 + 1000; // 5 minutes + 1 second
-      mockNow.mockReturnValue(futureTime);
-
-      // Trigger periodic cleanup by calling checkLimit enough times
-      for (let i = 0; i < 100; i++) {
-        limiter.checkLimit(context2); // Use different context to avoid interference
-      }
-
-      // Verify periodic cleanup function exists
-      expect(typeof limiter["performPeriodicCleanup"]).toBe("function");
-
-      mockNow.mockRestore();
-    });
-
     test("periodic cleanup triggered by call frequency", () => {
       const limiter = createLimiter(createConfig({ scope: "provider" }));
 

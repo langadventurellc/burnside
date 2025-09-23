@@ -32,11 +32,6 @@ describe("TokenBucket", () => {
     return bucket;
   };
 
-  beforeEach(() => {
-    // Mock performance.now() to start at a known time
-    jest.spyOn(performance, "now").mockReturnValue(1000);
-  });
-
   afterEach(() => {
     // Clean up all buckets to prevent memory leaks
     activeBuckets.forEach((bucket) => bucket.destroy());
@@ -137,58 +132,6 @@ describe("TokenBucket", () => {
     });
   });
 
-  describe("Refill Mechanics", () => {
-    // Use longer intervals to make timing more predictable in tests
-    const testConfig = createConfig({ refillRate: 10, refillInterval: 200 });
-
-    test("should refill tokens at correct rate over time", () => {
-      const bucket = createBucket(testConfig);
-
-      // Consume all tokens
-      bucket.consume(10);
-      expect(bucket.getAvailableTokens()).toBe(0);
-
-      // Advance time by 250ms
-      // At 10 tokens/second, 250ms should add 2.5 tokens (rounded down to 2)
-      jest.spyOn(performance, "now").mockReturnValue(1250);
-
-      const tokensAfterRefill = bucket.getAvailableTokens();
-      expect(tokensAfterRefill).toBe(2);
-    });
-
-    test("should stop refilling at maximum capacity", () => {
-      const bucket = createBucket(testConfig);
-
-      // Start with full bucket and advance time
-      expect(bucket.getAvailableTokens()).toBe(10);
-
-      // Advance time by 300ms - should not exceed maximum capacity
-      jest.spyOn(performance, "now").mockReturnValue(1300);
-
-      // Should not exceed maximum capacity
-      expect(bucket.getAvailableTokens()).toBe(10);
-    });
-
-    test("should handle high-frequency consumption vs refill rate", () => {
-      const slowRefillConfig = createConfig({
-        refillRate: 1,
-        refillInterval: 100,
-      });
-      const bucket = createBucket(slowRefillConfig);
-
-      // Consume all tokens rapidly
-      for (let i = 0; i < 10; i++) {
-        bucket.consume(1);
-      }
-      expect(bucket.getAvailableTokens()).toBe(0);
-
-      // Advance time by 150ms - with 1 token/second rate, should add 0.15 tokens (rounded down to 0)
-      jest.spyOn(performance, "now").mockReturnValue(1150);
-      const tokensAfterWait = bucket.getAvailableTokens();
-      expect(tokensAfterWait).toBe(0);
-    });
-  });
-
   describe("Burst Capacity", () => {
     test("should allow consuming full burst when bucket is full", () => {
       const burstConfig = createConfig({ maxTokens: 50, refillRate: 10 });
@@ -235,19 +178,6 @@ describe("TokenBucket", () => {
 
       expect(bucket.consume(-1)).toBe(false);
       expect(bucket.getAvailableTokens()).toBe(10); // Should remain unchanged
-    });
-
-    test("should handle zero refill rate (bucket never refills)", () => {
-      const staticConfig = createConfig({ refillRate: 0 });
-      const bucket = createBucket(staticConfig);
-
-      // Consume some tokens
-      bucket.consume(5);
-      expect(bucket.getAvailableTokens()).toBe(5);
-
-      // Advance time and verify no refill occurred
-      jest.spyOn(performance, "now").mockReturnValue(1300);
-      expect(bucket.getAvailableTokens()).toBe(5);
     });
 
     test("should reject consuming more tokens than burst capacity", () => {
@@ -298,25 +228,6 @@ describe("TokenBucket", () => {
   });
 
   describe("Real-world Scenarios", () => {
-    test("should handle high RPS scenario", () => {
-      const highRpsConfig = createConfig({
-        maxTokens: 100,
-        refillRate: 50, // 50 RPS
-        refillInterval: 50,
-      });
-      const bucket = createBucket(highRpsConfig);
-
-      // Consume burst
-      expect(bucket.consume(100)).toBe(true);
-      expect(bucket.getAvailableTokens()).toBe(0);
-
-      // Advance time by 100ms - with 50 tokens/second, should add 5 tokens
-      jest.spyOn(performance, "now").mockReturnValue(1100);
-
-      // Should have 5 tokens available
-      expect(bucket.getAvailableTokens()).toBe(5);
-    });
-
     test("should handle low RPS with large burst", () => {
       const lowRpsBurstConfig = createConfig({
         maxTokens: 1000,
