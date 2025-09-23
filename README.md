@@ -1,10 +1,10 @@
 # Burnside
 
-A TypeScript LLM provider adapter that provides a unified interface to multiple LLM providers (OpenAI, Anthropic, Google, XAI) with Model Context Protocol (MCP) support. Designed for Desktop (Electron Main/Renderer), Mobile (React Native), and API (Node.js) platforms.
+A TypeScript LLM provider adapter that provides a unified interface to multiple LLM providers (OpenAI, Anthropic, Google, xAI) with Model Context Protocol (MCP) support. Designed for Desktop (Electron Main/Renderer), Mobile (React Native), and API (Node.js) platforms.
 
 ## Key Features
 
-- **Unified LLM Interface**: Single API for multiple providers (OpenAI, Anthropic, Google, XAI)
+- **Unified LLM Interface**: Single API for multiple providers (OpenAI, Anthropic, Google, xAI)
 - **MCP Integration**: Full Model Context Protocol support with both HTTP and STDIO transports
 - **Cross-Platform**: Works across Node.js, Electron (Main/Renderer), and React Native
 - **Streaming Support**: Real-time response streaming from all providers

@@ -96,8 +96,6 @@
  *   console.log("Valid message:", result.data);
  * }
  * ```
- *
- * @since 0.1.0 (Phase 1)
  */
 
 // ============================================================================
@@ -110,8 +108,6 @@
  * This is the recommended entry point for most applications. The function validates
  * the provided configuration, applies defaults, and returns a fully configured client
  * ready for chat and streaming operations.
- *
- * @since 0.1.0 (Phase 1)
  */
 export { createClient } from "./createClient";
 
@@ -120,8 +116,6 @@ export { createClient } from "./createClient";
  *
  * While `createClient` is the recommended factory function, BridgeClient can be
  * instantiated directly for advanced scenarios requiring custom initialization.
- *
- * @since 0.1.0 (Phase 1)
  */
 export { BridgeClient } from "./client";
 
@@ -132,8 +126,6 @@ export { BridgeClient } from "./client";
 /**
  * Core message and content types with Zod validation schemas.
  * These provide the foundation for all message handling with runtime type safety.
- *
- * @since 0.1.0 (Phase 1)
  */
 // Message types
 export type { Message, ValidatedMessage } from "./core/messages";
@@ -148,8 +140,6 @@ export { ContentPartSchema, validateContentPart } from "./core/messages";
 /**
  * Tool definition types and validation schemas.
  * These provide type-safe tool registration and execution contracts.
- *
- * @since 0.1.0 (Phase 1)
  */
 export type {
   ToolDefinition,
@@ -161,8 +151,6 @@ export { ToolDefinitionSchema } from "./core/tools";
 /**
  * Configuration types and validation schemas.
  * These provide runtime validation for all client and provider configurations.
- *
- * @since 0.1.0 (Phase 1)
  */
 export type { BridgeConfig, ProviderConfig, ModelConfig } from "./core/config";
 export { BridgeConfigSchema, type ValidatedBridgeConfig } from "./core/config";
@@ -174,8 +162,6 @@ export { BridgeConfigSchema, type ValidatedBridgeConfig } from "./core/config";
 /**
  * Request and response types for chat and streaming operations.
  * These define the public API surface for LLM interactions.
- *
- * @since 0.1.0 (Phase 1)
  */
 export type { ChatRequest, StreamRequest, StreamDelta } from "./client";
 export type { BridgeClientConfig } from "./client";
@@ -187,8 +173,6 @@ export type { BridgeClientConfig } from "./client";
 /**
  * Provider registry interfaces and implementations.
  * These enable dynamic provider plugin registration and management.
- *
- * @since 0.1.0 (Phase 1)
  */
 export type {
   ProviderRegistry,
@@ -203,8 +187,6 @@ export { InMemoryProviderRegistry } from "./core/providers";
 /**
  * Model registry interfaces and implementations.
  * These enable dynamic model registration and capability-based querying.
- *
- * @since 0.1.0 (Phase 1)
  */
 export type { ModelRegistry, ModelId, ModelQuery } from "./core/models";
 export {
@@ -216,7 +198,5 @@ export {
 /**
  * Error types and utilities for comprehensive error handling.
  * All library errors extend BridgeError for consistent error handling patterns.
- *
- * @since 0.1.0 (Phase 1)
  */
 export { BridgeError } from "./core/errors/bridgeError";
