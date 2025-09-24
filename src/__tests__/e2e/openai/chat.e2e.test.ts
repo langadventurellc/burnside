@@ -47,7 +47,7 @@ describe("OpenAI Chat Completion E2E", () => {
         const messages = createTestMessages("Say hello.");
 
         const response = await withTimeout(
-          client.chat({ messages, model: modelId }),
+          client.chat({ messages, model: modelId, providerConfig: "default" }),
           15000,
         );
 
@@ -73,7 +73,7 @@ describe("OpenAI Chat Completion E2E", () => {
       ]);
 
       const response = await withTimeout(
-        client.chat({ messages, model: testModel }),
+        client.chat({ messages, model: testModel, providerConfig: "default" }),
         30000,
       );
 
@@ -89,7 +89,11 @@ describe("OpenAI Chat Completion E2E", () => {
       const firstMessages = createTestMessages("Say hello.");
 
       const firstResponse = await withTimeout(
-        client.chat({ messages: firstMessages, model: testModel }),
+        client.chat({
+          messages: firstMessages,
+          model: testModel,
+          providerConfig: "default",
+        }),
         30000,
       );
 
@@ -99,7 +103,11 @@ describe("OpenAI Chat Completion E2E", () => {
       const secondMessages = createTestMessages("What color is the sky?");
 
       const secondResponse = await withTimeout(
-        client.chat({ messages: secondMessages, model: testModel }),
+        client.chat({
+          messages: secondMessages,
+          model: testModel,
+          providerConfig: "default",
+        }),
         30000,
       );
 
@@ -116,7 +124,7 @@ describe("OpenAI Chat Completion E2E", () => {
       const messages = createTestMessages("Say hello.");
 
       const response = await withTimeout(
-        client.chat({ messages, model: testModel }),
+        client.chat({ messages, model: testModel, providerConfig: "default" }),
         30000,
       );
 
@@ -146,7 +154,7 @@ describe("OpenAI Chat Completion E2E", () => {
       const messages = createTestMessages("Say hello..");
 
       const response = await withTimeout(
-        client.chat({ messages, model: testModel }),
+        client.chat({ messages, model: testModel, providerConfig: "default" }),
         30000,
       );
 
@@ -160,7 +168,7 @@ describe("OpenAI Chat Completion E2E", () => {
       const messages = createTestMessages("Say hello.");
 
       const response = await withTimeout(
-        client.chat({ messages, model: testModel }),
+        client.chat({ messages, model: testModel, providerConfig: "default" }),
         30000,
       );
 
@@ -179,7 +187,7 @@ describe("OpenAI Chat Completion E2E", () => {
 
       // Use default model from getTestModel()
       const response = await withTimeout(
-        client.chat({ messages, model: testModel }),
+        client.chat({ messages, model: testModel, providerConfig: "default" }),
         30000,
       );
 
@@ -198,7 +206,7 @@ describe("OpenAI Chat Completion E2E", () => {
       const messages = createTestMessages("Say hello.");
 
       const response = await withTimeout(
-        client.chat({ messages, model: testModel }),
+        client.chat({ messages, model: testModel, providerConfig: "default" }),
         30000,
       );
 
@@ -220,7 +228,14 @@ describe("OpenAI Chat Completion E2E", () => {
       const messages = createTestMessages("Say hello.");
 
       await expect(
-        withTimeout(invalidClient.chat({ messages, model: testModel }), 30000),
+        withTimeout(
+          invalidClient.chat({
+            messages,
+            model: testModel,
+            providerConfig: "default",
+          }),
+          30000,
+        ),
       ).rejects.toThrow();
     });
 
@@ -228,14 +243,28 @@ describe("OpenAI Chat Completion E2E", () => {
       const messages = createTestMessages("Test invalid model.");
 
       await expect(
-        withTimeout(client.chat({ messages, model: "invalid:model" }), 30000),
+        withTimeout(
+          client.chat({
+            messages,
+            model: "invalid:model",
+            providerConfig: "default",
+          }),
+          30000,
+        ),
       ).rejects.toThrow();
     });
 
     test("should handle malformed requests", async () => {
       // Empty messages array should be handled gracefully
       await expect(
-        withTimeout(client.chat({ messages: [], model: testModel }), 30000),
+        withTimeout(
+          client.chat({
+            messages: [],
+            model: testModel,
+            providerConfig: "default",
+          }),
+          30000,
+        ),
       ).rejects.toThrow();
     });
 
@@ -245,7 +274,11 @@ describe("OpenAI Chat Completion E2E", () => {
       // Test with very short timeout to trigger timeout error
       await expect(
         withTimeout(
-          client.chat({ messages, model: testModel }),
+          client.chat({
+            messages,
+            model: testModel,
+            providerConfig: "default",
+          }),
           1, // 1ms timeout should fail
         ),
       ).rejects.toThrow("Operation timed out after 1ms");

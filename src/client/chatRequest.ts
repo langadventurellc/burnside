@@ -65,8 +65,8 @@ export interface ChatRequest {
   tools?: ToolDefinition[];
   /** Additional provider-specific options */
   options?: Record<string, unknown>;
-  /** Provider configuration name to use for this request (required when multiple configs exist for a provider) */
-  providerConfig?: string;
+  /** Provider configuration name to use for this request */
+  providerConfig: string;
   /**
    * External cancellation signal for aborting running agent conversations
    *

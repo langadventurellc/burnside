@@ -120,6 +120,7 @@ describe("BridgeClient Tool Integration", () => {
             inputSchema: { type: "object" },
           } as any,
         ],
+        providerConfig: "default",
       };
 
       // The invalid tool definition should cause validation to fail
@@ -145,6 +146,7 @@ describe("BridgeClient Tool Integration", () => {
             inputSchema: { type: "object" },
           },
         ],
+        providerConfig: "default",
       };
 
       await expect(disabledClient.chat(request)).rejects.toThrow(

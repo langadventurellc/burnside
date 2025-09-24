@@ -39,6 +39,7 @@ describe("xAI Rate Limiting E2E", () => {
           messages: request.messages,
           model: testModel,
           maxTokens: request.maxTokens,
+          providerConfig: "default",
         });
         requestTimes.push(requestStart);
       }
@@ -74,6 +75,7 @@ describe("xAI Rate Limiting E2E", () => {
           messages: request.messages,
           model: testModel,
           maxTokens: request.maxTokens,
+          providerConfig: "default",
         });
       }
 
@@ -112,6 +114,7 @@ describe("xAI Rate Limiting E2E", () => {
             messages: request.messages,
             model: testModel,
             maxTokens: request.maxTokens,
+            providerConfig: "default",
           }),
         );
 
@@ -120,6 +123,7 @@ describe("xAI Rate Limiting E2E", () => {
             messages: request.messages,
             model: testModel,
             maxTokens: request.maxTokens,
+            providerConfig: "default",
           }),
         );
       }
@@ -152,6 +156,7 @@ describe("xAI Rate Limiting E2E", () => {
           messages: request.messages,
           model: testModel,
           maxTokens: request.maxTokens,
+          providerConfig: "default",
         });
         requestTimes.push(requestStart);
       }

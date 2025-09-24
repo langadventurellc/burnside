@@ -42,6 +42,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Hello, world!" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -87,6 +88,7 @@ describe("translateChatRequest", () => {
           topP: 0.9,
           frequencyPenalty: 0.1,
         },
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfigWithOptions);
@@ -140,6 +142,7 @@ describe("translateChatRequest", () => {
             ],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -175,6 +178,7 @@ describe("translateChatRequest", () => {
             ],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -202,6 +206,7 @@ describe("translateChatRequest", () => {
       const request: ChatRequest = {
         model: "gpt-4",
         messages,
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -232,6 +237,7 @@ describe("translateChatRequest", () => {
             ],
           },
         ],
+        providerConfig: "default",
       };
 
       expect(() => translateChatRequest(request, mockConfig)).toThrow(
@@ -256,6 +262,7 @@ describe("translateChatRequest", () => {
             ],
           },
         ],
+        providerConfig: "default",
       };
 
       expect(() => translateChatRequest(request, mockConfig)).toThrow(
@@ -270,6 +277,7 @@ describe("translateChatRequest", () => {
       const request = {
         model: "", // Invalid: empty model
         messages: [],
+        providerConfig: "default",
       } as ChatRequest;
 
       expect(() => translateChatRequest(request, mockConfig)).toThrow(
@@ -292,6 +300,7 @@ describe("translateChatRequest", () => {
             ],
           },
         ],
+        providerConfig: "default",
       };
 
       expect(() => translateChatRequest(request, mockConfig)).toThrow(
@@ -324,6 +333,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Test" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, config);
@@ -344,6 +354,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Test" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, config);
@@ -366,6 +377,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Test" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, config);
@@ -385,6 +397,7 @@ describe("translateChatRequest", () => {
               content: [{ type: "text", text: "Test" }],
             },
           ],
+          providerConfig: "default",
         },
         mockConfigWithOptions,
       );
@@ -415,6 +428,7 @@ describe("translateChatRequest", () => {
           presencePenalty: 0.3,
           maxTokens: 500,
         },
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -436,6 +450,7 @@ describe("translateChatRequest", () => {
           },
         ],
         maxTokens: 2000,
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -454,6 +469,7 @@ describe("translateChatRequest", () => {
           },
         ],
         stream: false,
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);

@@ -5,6 +5,7 @@ describe("shouldExecuteMultiTurn", () => {
   const basicRequest: ChatRequest = {
     messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
     model: "gpt-4",
+    providerConfig: "default",
   };
 
   const toolDefinition = {

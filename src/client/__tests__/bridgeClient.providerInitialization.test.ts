@@ -318,7 +318,7 @@ describe("BridgeClient - Provider Initialization with Configuration Names", () =
           { role: "user", content: [{ type: "text", text: "Hello!" }] },
         ],
         model: "openai:gpt-4",
-        // No providerConfig specified - should use single available config
+        providerConfig: "default",
       };
 
       await client.chat(request);

@@ -41,6 +41,7 @@ export const requestBasicText: ChatRequest = {
       content: [{ type: "text", text: "Hello, how are you?" }],
     },
   ],
+  providerConfig: "default",
 } as const;
 
 /**
@@ -98,6 +99,7 @@ export const requestConversation: ChatRequest = {
       ],
     },
   ],
+  providerConfig: "default",
 } as const;
 
 /**
@@ -112,6 +114,7 @@ export const requestWithStreaming: ChatRequest & { stream: boolean } = {
     },
   ],
   stream: true,
+  providerConfig: "default",
 } as const;
 
 /**
@@ -149,6 +152,7 @@ export const requestWithParameters: ChatRequest = {
   ],
   temperature: 0.8,
   maxTokens: 150,
+  providerConfig: "default",
 } as const;
 
 /**
@@ -188,6 +192,7 @@ export const requestWithCustomConfig: ChatRequest = {
       ],
     },
   ],
+  providerConfig: "default",
 } as const;
 
 /**
@@ -229,6 +234,7 @@ export const requestEmptyContent: ChatRequest = {
       content: [{ type: "text", text: "" }],
     },
   ],
+  providerConfig: "default",
 } as const;
 
 /**
@@ -245,6 +251,7 @@ export const requestMultipleContentParts: ChatRequest = {
       ],
     },
   ],
+  providerConfig: "default",
 } as const;
 
 /**
@@ -273,6 +280,7 @@ export const requestMaximalParameters: ChatRequest & {
   topP: 0.9,
   frequencyPenalty: 0.1,
   presencePenalty: 0.1,
+  providerConfig: "default",
 } as const;
 
 /**

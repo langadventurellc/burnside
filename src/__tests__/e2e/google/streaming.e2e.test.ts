@@ -117,7 +117,8 @@ describe("Google Streaming E2E", () => {
           messages,
           model: id,
           maxTokens: 100,
-          temperature: 0.1, // Low temperature for more predictable responses
+          temperature: 0.1,
+          providerConfig: "default",
         });
 
         const stream = await withTimeout(streamPromise, 15000);
@@ -148,6 +149,7 @@ describe("Google Streaming E2E", () => {
         messages,
         model: testModel,
         maxTokens: 100,
+        providerConfig: "default",
       });
 
       const stream = await withTimeout(streamPromise, 15000);
@@ -184,6 +186,7 @@ describe("Google Streaming E2E", () => {
         messages,
         model: testModel,
         maxTokens: 100,
+        providerConfig: "default",
       });
 
       const stream = await withTimeout(streamPromise, 15000);
@@ -232,6 +235,7 @@ describe("Google Streaming E2E", () => {
         messages,
         model: testModel,
         maxTokens: 100,
+        providerConfig: "default",
       });
 
       const stream = await withTimeout(streamPromise, 15000);
@@ -274,6 +278,7 @@ describe("Google Streaming E2E", () => {
         messages,
         model: testModel,
         maxTokens: 100,
+        providerConfig: "default",
       });
 
       const stream = await withTimeout(streamPromise, 15000);
@@ -301,6 +306,7 @@ describe("Google Streaming E2E", () => {
         messages,
         model: testModel,
         maxTokens: 100,
+        providerConfig: "default",
       });
 
       const stream = await withTimeout(streamPromise, 15000);
@@ -334,6 +340,7 @@ describe("Google Streaming E2E", () => {
         messages,
         model: testModel,
         maxTokens: 100,
+        providerConfig: "default",
       });
 
       const stream = await withTimeout(streamPromise, 15000);
@@ -367,6 +374,7 @@ describe("Google Streaming E2E", () => {
         messages,
         model: testModel,
         maxTokens: 100,
+        providerConfig: "default",
       });
 
       const stream = await withTimeout(streamPromise, 15000);
@@ -390,6 +398,7 @@ describe("Google Streaming E2E", () => {
         messages,
         model: testModel,
         maxTokens: 100,
+        providerConfig: "default",
       });
 
       const stream = await withTimeout(streamPromise, 15000);
@@ -422,6 +431,7 @@ describe("Google Streaming E2E", () => {
         messages,
         model: testModel,
         maxTokens: 100,
+        providerConfig: "default",
       });
 
       const stream = await withTimeout(streamPromise, 15000);
@@ -456,6 +466,7 @@ describe("Google Streaming E2E", () => {
         messages,
         model: invalidModel,
         maxTokens: 100,
+        providerConfig: "default",
       });
 
       await expect(withTimeout(streamPromise, 30000)).rejects.toThrow();
@@ -468,6 +479,7 @@ describe("Google Streaming E2E", () => {
         messages,
         model: testModel,
         maxTokens: 100,
+        providerConfig: "default",
       });
 
       // Use extremely short timeout to simulate network timeout
@@ -483,6 +495,7 @@ describe("Google Streaming E2E", () => {
         messages: emptyMessages,
         model: testModel,
         maxTokens: 100,
+        providerConfig: "default",
       });
 
       await expect(withTimeout(streamPromise, 30000)).rejects.toThrow();

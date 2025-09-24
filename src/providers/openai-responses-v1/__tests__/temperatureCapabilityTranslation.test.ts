@@ -30,6 +30,7 @@ describe("Temperature Capability Translation", () => {
           },
         ],
         temperature: 0.7,
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -50,6 +51,7 @@ describe("Temperature Capability Translation", () => {
           },
         ],
         temperature: 0.5,
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -69,6 +71,7 @@ describe("Temperature Capability Translation", () => {
           },
         ],
         temperature: 0.9,
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -86,7 +89,7 @@ describe("Temperature Capability Translation", () => {
             content: [{ type: "text", text: "Hello" }],
           },
         ],
-        // No temperature field
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -107,6 +110,7 @@ describe("Temperature Capability Translation", () => {
         ],
         temperature: 0.7, // Would be excluded for GPT-5 when capabilities are available
         maxTokens: 1000,
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -133,6 +137,7 @@ describe("Temperature Capability Translation", () => {
           },
         ],
         temperature: 0.8,
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -164,6 +169,7 @@ describe("Temperature Capability Translation", () => {
         ],
         temperature: 0.3,
         stream: true,
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -188,6 +194,7 @@ describe("Temperature Capability Translation", () => {
           topP: 0.9,
           frequencyPenalty: 0.1,
         },
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -208,7 +215,8 @@ describe("Temperature Capability Translation", () => {
             content: [{ type: "text", text: "Hello" }],
           },
         ],
-        temperature: 0, // Valid value that should be included
+        temperature: 0,
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -235,6 +243,7 @@ describe("Temperature Capability Translation", () => {
           },
         ],
         temperature: 0.2,
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -267,6 +276,7 @@ describe("Temperature Capability Translation", () => {
           },
         ],
         temperature: 0.7,
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -286,6 +296,7 @@ describe("Temperature Capability Translation", () => {
           },
         ],
         temperature: 0.5,
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);

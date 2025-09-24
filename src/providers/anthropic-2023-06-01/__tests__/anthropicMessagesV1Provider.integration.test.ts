@@ -105,6 +105,7 @@ describe("AnthropicMessagesV1Provider Integration", () => {
           },
         ],
         model: "claude-3-5-sonnet-20241022",
+        providerConfig: "default",
       };
 
       const result = provider.translateRequest(request);
@@ -131,6 +132,7 @@ describe("AnthropicMessagesV1Provider Integration", () => {
       const request = {
         messages: [],
         model: "claude-3-5-sonnet-20241022",
+        providerConfig: "default",
       };
 
       expect(() => provider.translateRequest(request)).toThrow(BridgeError);

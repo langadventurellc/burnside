@@ -105,6 +105,7 @@ describe("Anthropic Tool Execution E2E", () => {
             messages,
             model: modelId,
             maxTokens: 100,
+            providerConfig: "default",
           }),
           25000,
         );
@@ -133,6 +134,7 @@ describe("Anthropic Tool Execution E2E", () => {
           messages,
           model: testModel,
           maxTokens: 100,
+          providerConfig: "default",
         }),
         25000,
       );
@@ -198,6 +200,7 @@ describe("Anthropic Tool Execution E2E", () => {
           messages,
           model: testModel,
           maxTokens: 100,
+          providerConfig: "default",
         }),
         25000,
       );
@@ -220,6 +223,7 @@ describe("Anthropic Tool Execution E2E", () => {
           messages,
           model: testModel,
           maxTokens: 100,
+          providerConfig: "default",
         }),
         25000,
       );
@@ -251,6 +255,7 @@ describe("Anthropic Tool Execution E2E", () => {
           messages,
           model: testModel,
           maxTokens: 100,
+          providerConfig: "default",
         }),
         25000,
       );

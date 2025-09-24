@@ -15,11 +15,9 @@ describe("BridgeClient - Provider Configuration Validation", () => {
       };
 
       const client = new BridgeClient(config);
-      const validate = (client as any).validateProviderConfigRequirement.bind(
-        client,
-      );
+      const validate = (client as any).validateProviderConfig.bind(client);
 
-      expect(() => validate("anthropic")).not.toThrow();
+      expect(() => validate("anthropic", "default")).not.toThrow();
     });
 
     it("should pass validation when single configuration exists and providerConfig is provided", () => {
@@ -32,14 +30,12 @@ describe("BridgeClient - Provider Configuration Validation", () => {
       };
 
       const client = new BridgeClient(config);
-      const validate = (client as any).validateProviderConfigRequirement.bind(
-        client,
-      );
+      const validate = (client as any).validateProviderConfig.bind(client);
 
       expect(() => validate("anthropic", "default")).not.toThrow();
     });
 
-    it("should throw PROVIDER_CONFIG_REQUIRED error when multiple configurations exist and providerConfig is omitted", () => {
+    it("should throw PROVIDER_CONFIG_MISSING error when no configurations exist for provider", () => {
       const config: BridgeConfig = {
         providers: {
           openai: {
@@ -50,25 +46,22 @@ describe("BridgeClient - Provider Configuration Validation", () => {
       };
 
       const client = new BridgeClient(config);
-      const validate = (client as any).validateProviderConfigRequirement.bind(
-        client,
-      );
+      const validate = (client as any).validateProviderConfig.bind(client);
 
-      expect(() => validate("openai")).toThrow(BridgeError);
-      expect(() => validate("openai")).toThrow(
-        /Provider configuration name required/,
+      expect(() => validate("nonexistent", "default")).toThrow(BridgeError);
+      expect(() => validate("nonexistent", "default")).toThrow(
+        /No configurations found for provider/,
       );
 
       try {
-        validate("openai");
+        validate("nonexistent", "default");
       } catch (error) {
         const bridgeError = error as BridgeError;
-        expect(bridgeError.code).toBe("PROVIDER_CONFIG_REQUIRED");
+        expect(bridgeError.code).toBe("PROVIDER_CONFIG_MISSING");
         expect(bridgeError.context).toEqual({
-          providerId: "openai",
-          availableConfigs: ["prod", "dev"],
+          providerId: "nonexistent",
+          availableProviders: ["openai"],
         });
-        expect(bridgeError.message).toContain("prod, dev");
       }
     });
 
@@ -83,9 +76,7 @@ describe("BridgeClient - Provider Configuration Validation", () => {
       };
 
       const client = new BridgeClient(config);
-      const validate = (client as any).validateProviderConfigRequirement.bind(
-        client,
-      );
+      const validate = (client as any).validateProviderConfig.bind(client);
 
       expect(() => validate("openai", "prod")).not.toThrow();
       expect(() => validate("openai", "dev")).not.toThrow();
@@ -102,9 +93,7 @@ describe("BridgeClient - Provider Configuration Validation", () => {
       };
 
       const client = new BridgeClient(config);
-      const validate = (client as any).validateProviderConfigRequirement.bind(
-        client,
-      );
+      const validate = (client as any).validateProviderConfig.bind(client);
 
       expect(() => validate("openai", "invalid")).toThrow(BridgeError);
       expect(() => validate("openai", "invalid")).toThrow(
@@ -135,9 +124,7 @@ describe("BridgeClient - Provider Configuration Validation", () => {
       };
 
       const client = new BridgeClient(config);
-      const validate = (client as any).validateProviderConfigRequirement.bind(
-        client,
-      );
+      const validate = (client as any).validateProviderConfig.bind(client);
 
       expect(() => validate("anthropic", "wrong")).toThrow(BridgeError);
       expect(() => validate("anthropic", "wrong")).toThrow(

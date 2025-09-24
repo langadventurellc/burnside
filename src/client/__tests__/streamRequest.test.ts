@@ -18,6 +18,7 @@ describe("StreamRequest", () => {
         model: "gpt-4",
         temperature: 0.7,
         maxTokens: 1000,
+        providerConfig: "default",
       };
 
       // Should have all ChatRequest properties
@@ -32,6 +33,7 @@ describe("StreamRequest", () => {
         messages: validMessages,
         model: "gpt-4",
         stream: true,
+        providerConfig: "default",
       };
 
       expect(request.stream).toBe(true);
@@ -47,6 +49,7 @@ describe("StreamRequest", () => {
         messages: validMessages,
         model: "gpt-4",
         streamOptions,
+        providerConfig: "default",
       };
 
       expect(request.streamOptions).toEqual(streamOptions);
@@ -59,6 +62,7 @@ describe("StreamRequest", () => {
         streamOptions: {
           includeUsage: false,
         },
+        providerConfig: "default",
       };
 
       expect(request.streamOptions?.includeUsage).toBe(false);
@@ -103,6 +107,7 @@ describe("StreamRequest", () => {
         messages: validMessages,
         model: "gpt-4",
         stream: true,
+        providerConfig: "default",
       };
 
       // Should be assignable to ChatRequest
@@ -173,6 +178,7 @@ describe("StreamRequest", () => {
           includeUsage: true,
           bufferSize: 1024,
         },
+        providerConfig: "default",
       };
 
       // TypeScript should infer correct types
@@ -188,6 +194,7 @@ describe("StreamRequest", () => {
       const request: StreamRequest = {
         messages: validMessages,
         model: "gpt-4",
+        providerConfig: "default",
       };
 
       expect(request.streamOptions).toBeUndefined();
@@ -200,6 +207,7 @@ describe("StreamRequest", () => {
         messages: validMessages,
         model: "gpt-4",
         stream: true,
+        providerConfig: "default",
       };
 
       // Should work without type errors
@@ -221,6 +229,7 @@ describe("StreamRequest", () => {
         model: "gpt-4",
         stream: true,
         multiTurn: multiTurnConfig,
+        providerConfig: "default",
       };
 
       expect(request.multiTurn).toEqual(multiTurnConfig);
@@ -240,6 +249,7 @@ describe("StreamRequest", () => {
           enableStreaming: true,
           toolExecutionStrategy: "sequential",
         },
+        providerConfig: "default",
       };
 
       expect(request.stream).toBe(true);
@@ -257,6 +267,7 @@ describe("StreamRequest", () => {
           maxIterations: 2,
           enableStreaming: false, // Disable streaming interruption handling
         },
+        providerConfig: "default",
       };
 
       expect(request.stream).toBe(true);
@@ -273,6 +284,7 @@ describe("StreamRequest", () => {
           toolExecutionStrategy: "parallel",
           maxConcurrentTools: 2,
         },
+        providerConfig: "default",
       };
 
       // Should still be assignable to ChatRequest
@@ -306,6 +318,7 @@ describe("StreamRequest", () => {
           enableStreaming: true,
           toolExecutionStrategy: "sequential",
         },
+        providerConfig: "default",
       };
 
       expect(multiTurnStreamRequest.multiTurn?.maxIterations).toBe(5);
@@ -328,6 +341,7 @@ describe("StreamRequest", () => {
           maxToolCalls: 10,
           continueOnToolError: true,
         },
+        providerConfig: "default",
       };
 
       expect(request.multiTurn?.maxIterations).toBe(8);
@@ -347,6 +361,7 @@ describe("StreamRequest", () => {
           enableStreaming: true,
           toolExecutionStrategy: "parallel",
         },
+        providerConfig: "default",
       };
 
       // TypeScript should infer correct types
@@ -370,6 +385,7 @@ describe("StreamRequest", () => {
         model: "gpt-4",
         stream: true,
         streamOptions: { includeUsage: true },
+        providerConfig: "default",
       };
 
       expect(request.multiTurn).toBeUndefined();

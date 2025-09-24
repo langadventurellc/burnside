@@ -159,6 +159,7 @@ describe("Anthropic MCP Tool Basic Validation E2E", () => {
           model: testModel,
           messages,
           maxTokens: 100,
+          providerConfig: "default",
         }),
         25000, // 25 second timeout matching existing Anthropic patterns
       );

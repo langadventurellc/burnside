@@ -300,6 +300,7 @@ describe("AnthropicMessagesV1Provider", () => {
           },
         ],
         model: "claude-3-5-sonnet-20241022",
+        providerConfig: "default",
       };
 
       expect(() => provider.translateRequest(request)).toThrow(BridgeError);
@@ -320,6 +321,7 @@ describe("AnthropicMessagesV1Provider", () => {
           },
         ],
         model: "claude-3-5-sonnet-20241022",
+        providerConfig: "default",
       };
 
       const result = provider.translateRequest(request);
@@ -352,6 +354,7 @@ describe("AnthropicMessagesV1Provider", () => {
         ],
         model: "claude-3-5-sonnet-20241022",
         stream: true,
+        providerConfig: "default",
       };
 
       const result = provider.translateRequest(request);
@@ -377,6 +380,7 @@ describe("AnthropicMessagesV1Provider", () => {
           },
         ],
         model: "claude-3-5-sonnet-20241022",
+        providerConfig: "default",
       };
 
       const capabilities = { temperature: true };
@@ -705,6 +709,7 @@ describe("AnthropicMessagesV1Provider", () => {
         provider.translateRequest({
           messages: [],
           model: "claude-3-5-sonnet-20241022",
+          providerConfig: "default",
         }),
       ).toThrow("Provider not initialized");
 
@@ -716,6 +721,7 @@ describe("AnthropicMessagesV1Provider", () => {
       const result = provider.translateRequest({
         messages: [],
         model: "claude-3-5-sonnet-20241022",
+        providerConfig: "default",
       });
       expect(result).toBeDefined();
       expect(mockTranslateChatRequest).toHaveBeenCalled();

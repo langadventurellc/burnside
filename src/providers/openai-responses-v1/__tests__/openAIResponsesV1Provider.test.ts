@@ -135,6 +135,7 @@ describe("OpenAIResponsesV1Provider", () => {
           },
         ],
         model: "gpt-4o-2024-08-06",
+        providerConfig: "default",
       };
 
       expect(() => uninitializedProvider.translateRequest(request)).toThrow(
@@ -169,6 +170,7 @@ describe("OpenAIResponsesV1Provider", () => {
           },
         ],
         model: "gpt-4o-2024-08-06",
+        providerConfig: "default",
       };
 
       const result = provider.translateRequest(request);

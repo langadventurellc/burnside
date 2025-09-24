@@ -155,6 +155,7 @@ describe("xAI STDIO MCP Tool E2E", () => {
           model: testModel,
           messages,
           maxTokens: 1000,
+          providerConfig: "default",
         }),
         25000, // 25 second timeout matching existing patterns
       );

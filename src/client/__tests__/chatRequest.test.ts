@@ -15,6 +15,7 @@ describe("ChatRequest", () => {
       const request: ChatRequest = {
         messages: validMessages,
         model: "gpt-4",
+        providerConfig: "default",
       };
 
       expect(request.messages).toEqual(validMessages);
@@ -26,6 +27,7 @@ describe("ChatRequest", () => {
         messages: validMessages,
         model: "gpt-4",
         temperature: 0.7,
+        providerConfig: "default",
       };
 
       expect(request.temperature).toBe(0.7);
@@ -36,6 +38,7 @@ describe("ChatRequest", () => {
         messages: validMessages,
         model: "gpt-4",
         maxTokens: 1000,
+        providerConfig: "default",
       };
 
       expect(request.maxTokens).toBe(1000);
@@ -47,6 +50,7 @@ describe("ChatRequest", () => {
         messages: validMessages,
         model: "gpt-4",
         options,
+        providerConfig: "default",
       };
 
       expect(request.options).toEqual(options);
@@ -103,6 +107,7 @@ describe("ChatRequest", () => {
       const request: ChatRequest = {
         messages: multipleMessages,
         model: "gpt-5-nano-2025-08-07",
+        providerConfig: "default",
       };
 
       expect(request.messages).toHaveLength(2);
@@ -117,6 +122,7 @@ describe("ChatRequest", () => {
       const validRequest: ChatRequest = {
         messages: validMessages,
         model: "gpt-4",
+        providerConfig: "default",
       };
 
       expect(validRequest).toBeDefined();
@@ -127,6 +133,7 @@ describe("ChatRequest", () => {
         messages: validMessages,
         model: "gpt-4",
         temperature: 0.8,
+        providerConfig: "default",
       };
 
       // TypeScript should infer the correct types
@@ -153,32 +160,6 @@ describe("ChatRequest", () => {
       expect(providerConfig).toBe("prod");
       expect(model).toBe("openai:gpt-4");
     });
-
-    it("should compile with providerConfig in various scenarios", () => {
-      // Should compile with providerConfig present
-      const withProviderConfig: ChatRequest = {
-        messages: validMessages,
-        model: "anthropic:claude-3-haiku",
-        providerConfig: "backup",
-      };
-
-      // Should compile without providerConfig (optional)
-      const withoutProviderConfig: ChatRequest = {
-        messages: validMessages,
-        model: "gpt-4",
-      };
-
-      // Should compile with providerConfig as undefined
-      const withUndefinedConfig: ChatRequest = {
-        messages: validMessages,
-        model: "gpt-4",
-        providerConfig: undefined,
-      };
-
-      expect(withProviderConfig.providerConfig).toBe("backup");
-      expect(withoutProviderConfig.providerConfig).toBeUndefined();
-      expect(withUndefinedConfig.providerConfig).toBeUndefined();
-    });
   });
 
   describe("multi-turn configuration", () => {
@@ -192,6 +173,7 @@ describe("ChatRequest", () => {
         messages: validMessages,
         model: "gpt-4",
         multiTurn: multiTurnConfig,
+        providerConfig: "default",
       };
 
       expect(request.multiTurn).toEqual(multiTurnConfig);
@@ -206,6 +188,7 @@ describe("ChatRequest", () => {
         multiTurn: {
           maxIterations: 3,
         },
+        providerConfig: "default",
       };
 
       expect(request.multiTurn?.maxIterations).toBe(3);
@@ -224,6 +207,7 @@ describe("ChatRequest", () => {
           maxConcurrentTools: 2,
           timeoutMs: 120000,
         },
+        providerConfig: "default",
       };
 
       expect(request.multiTurn?.maxIterations).toBe(10);
@@ -239,6 +223,7 @@ describe("ChatRequest", () => {
         messages: validMessages,
         model: "gpt-4",
         multiTurn: {},
+        providerConfig: "default",
       };
 
       expect(request.multiTurn).toEqual({});
@@ -250,6 +235,7 @@ describe("ChatRequest", () => {
         model: "gpt-4",
         temperature: 0.7,
         maxTokens: 1000,
+        providerConfig: "default",
       };
 
       expect(request.multiTurn).toBeUndefined();
@@ -273,6 +259,7 @@ describe("ChatRequest", () => {
           toolExecutionStrategy: "sequential",
           enableStreaming: true,
         },
+        providerConfig: "default",
       };
 
       expect(basicConfig.multiTurn?.maxIterations).toBe(5);
@@ -287,6 +274,7 @@ describe("ChatRequest", () => {
           maxIterations: 5,
           enableStreaming: true,
         },
+        providerConfig: "default",
       };
 
       // TypeScript should infer correct types

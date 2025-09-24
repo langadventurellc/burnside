@@ -98,18 +98,18 @@ describe("BridgeClient - Nested Configuration Validation", () => {
         client,
       );
 
-      const config = getProviderConfig("anthropic");
+      const config = getProviderConfig("anthropic", "main");
       expect(config).toEqual({ apiKey: "sk-ant-key" });
     });
 
-    it("should throw error for multiple configs without providerConfig parameter", () => {
+    it("should throw error for invalid config name", () => {
       const getProviderConfig = (client as any).getProviderConfigOrThrow.bind(
         client,
       );
 
-      expect(() => getProviderConfig("openai")).toThrow(BridgeError);
-      expect(() => getProviderConfig("openai")).toThrow(
-        /Provider configuration name required/,
+      expect(() => getProviderConfig("openai", "invalid")).toThrow(BridgeError);
+      expect(() => getProviderConfig("openai", "invalid")).toThrow(
+        /Configuration 'openai.invalid' not found/,
       );
     });
 
@@ -130,9 +130,11 @@ describe("BridgeClient - Nested Configuration Validation", () => {
         client,
       );
 
-      expect(() => getProviderConfig("nonexistent")).toThrow(BridgeError);
-      expect(() => getProviderConfig("nonexistent")).toThrow(
-        /No configurations found/,
+      expect(() => getProviderConfig("nonexistent", "default")).toThrow(
+        BridgeError,
+      );
+      expect(() => getProviderConfig("nonexistent", "default")).toThrow(
+        /Configuration 'nonexistent.default' not found/,
       );
     });
 

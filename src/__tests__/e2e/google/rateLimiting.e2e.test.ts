@@ -39,6 +39,7 @@ describe("Google Rate Limiting E2E", () => {
           messages: request.messages,
           model: testModel,
           maxTokens: request.maxTokens,
+          providerConfig: "default",
         });
         requestTimes.push(requestStart);
       }
@@ -75,6 +76,7 @@ describe("Google Rate Limiting E2E", () => {
           messages: request.messages,
           model: testModel,
           maxTokens: request.maxTokens,
+          providerConfig: "default",
         });
       }
 
@@ -112,6 +114,7 @@ describe("Google Rate Limiting E2E", () => {
             messages: request.messages,
             model: testModel,
             maxTokens: request.maxTokens,
+            providerConfig: "default",
           });
           requestTimes.push(requestStart);
         }
@@ -149,6 +152,7 @@ describe("Google Rate Limiting E2E", () => {
           messages: request.messages,
           model: testModel,
           maxTokens: request.maxTokens,
+          providerConfig: "default",
         });
         requestTimes.push(requestStart);
       }

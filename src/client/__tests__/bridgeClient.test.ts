@@ -432,6 +432,7 @@ describe("BridgeClient", () => {
       const result = await client.chat({
         model: "openai:test-model",
         messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        providerConfig: "default",
       });
 
       // Assert
@@ -444,7 +445,9 @@ describe("BridgeClient", () => {
       expect(fakePlugin.translateRequest).toHaveBeenCalledWith({
         model: "test-model",
         messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        providerConfig: "default",
         stream: false,
+        tools: undefined,
       });
 
       expect(fakeTransport.fetch).toHaveBeenCalledWith(
@@ -467,6 +470,7 @@ describe("BridgeClient", () => {
       await client.chat({
         model: "openai:test-model",
         messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        providerConfig: "default",
       });
 
       await client.chat({
@@ -474,6 +478,7 @@ describe("BridgeClient", () => {
         messages: [
           { role: "user", content: [{ type: "text", text: "hello" }] },
         ],
+        providerConfig: "default",
       });
 
       // Assert - initialize called only once
@@ -494,6 +499,7 @@ describe("BridgeClient", () => {
         client.chat({
           model: "openai:test-model",
           messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+          providerConfig: "default",
         }),
       ).rejects.toThrow(TransportError);
 
@@ -520,6 +526,7 @@ describe("BridgeClient", () => {
         client.chat({
           model: "openai:test-model",
           messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+          providerConfig: "default",
         }),
       ).rejects.toThrow(AuthError);
 
@@ -537,6 +544,7 @@ describe("BridgeClient", () => {
         client.chat({
           model: "openai:unknown-model",
           messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+          providerConfig: "default",
         }),
       ).rejects.toThrow(BridgeError);
 
@@ -640,6 +648,7 @@ describe("BridgeClient", () => {
       const stream = await client.stream({
         model: "openai:test-model",
         messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        providerConfig: "default",
       });
 
       // Consume the stream
@@ -666,6 +675,7 @@ describe("BridgeClient", () => {
         {
           model: "test-model",
           messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+          providerConfig: "default",
           stream: true,
         },
         { temperature: undefined },
@@ -703,6 +713,7 @@ describe("BridgeClient", () => {
         client.stream({
           model: "openai:test-model",
           messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+          providerConfig: "default",
         }),
       ).rejects.toThrow(TransportError);
 
@@ -733,6 +744,7 @@ describe("BridgeClient", () => {
         client.stream({
           model: "openai:test-model",
           messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+          providerConfig: "default",
         }),
       ).rejects.toThrow(AuthError);
 
@@ -754,6 +766,7 @@ describe("BridgeClient", () => {
         client.stream({
           model: "openai:unknown-model",
           messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+          providerConfig: "default",
         }),
       ).rejects.toThrow(BridgeError);
 
@@ -902,6 +915,7 @@ describe("BridgeClient", () => {
       await client.chat({
         model: "openai:gpt-4",
         messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        providerConfig: "default",
       });
 
       // Assert
@@ -924,6 +938,7 @@ describe("BridgeClient", () => {
       await client.chat({
         model: "anthropic:claude-sonnet",
         messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        providerConfig: "default",
       });
 
       // Assert
@@ -952,6 +967,7 @@ describe("BridgeClient", () => {
         client.chat({
           model: "unknown:model",
           messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+          providerConfig: "default",
         }),
       ).rejects.toThrow(BridgeError);
     });
@@ -977,6 +993,7 @@ describe("BridgeClient", () => {
         client.chat({
           model: "no-plugin:model",
           messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+          providerConfig: "default",
         }),
       ).rejects.toThrow(BridgeError);
     });
@@ -1069,6 +1086,7 @@ describe("BridgeClient", () => {
             { role: "user", content: [{ type: "text", text: "test" }] },
           ],
           signal: controller.signal,
+          providerConfig: "default",
         });
 
         // Assert
@@ -1104,6 +1122,7 @@ describe("BridgeClient", () => {
               { role: "user", content: [{ type: "text", text: "test" }] },
             ],
             signal: controller.signal,
+            providerConfig: "default",
           }),
         ).rejects.toThrow("Agent execution cancelled");
 
@@ -1138,6 +1157,7 @@ describe("BridgeClient", () => {
               { role: "user", content: [{ type: "text", text: "test" }] },
             ],
             signal: controller.signal,
+            providerConfig: "default",
           }),
         ).rejects.toThrow("Agent execution cancelled");
       });
@@ -1173,7 +1193,7 @@ describe("BridgeClient", () => {
           messages: [
             { role: "user", content: [{ type: "text", text: "test" }] },
           ],
-          // No signal provided
+          providerConfig: "default",
         });
 
         // Assert
@@ -1209,6 +1229,7 @@ describe("BridgeClient", () => {
               { role: "user", content: [{ type: "text", text: "test" }] },
             ],
             signal: controller.signal,
+            providerConfig: "default",
           }),
         ).rejects.toThrow("Agent execution cancelled");
       });
@@ -1247,7 +1268,7 @@ describe("BridgeClient", () => {
           messages: [
             { role: "user", content: [{ type: "text", text: "test" }] },
           ],
-          // No signal provided
+          providerConfig: "default",
         });
 
         // Assert

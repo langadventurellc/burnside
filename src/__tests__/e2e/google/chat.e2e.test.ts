@@ -47,7 +47,12 @@ describe("Google Gemini Chat Completion E2E", () => {
         const messages = createTestMessages("Say hello.");
 
         const response = await withTimeout(
-          client.chat({ messages, model: modelId, maxTokens: 1000 }),
+          client.chat({
+            messages,
+            model: modelId,
+            maxTokens: 1000,
+            providerConfig: "default",
+          }),
           15000,
         );
 
@@ -73,7 +78,12 @@ describe("Google Gemini Chat Completion E2E", () => {
       ]);
 
       const response = await withTimeout(
-        client.chat({ messages, model: testModel, maxTokens: 100 }),
+        client.chat({
+          messages,
+          model: testModel,
+          maxTokens: 100,
+          providerConfig: "default",
+        }),
         30000,
       );
 
@@ -93,6 +103,7 @@ describe("Google Gemini Chat Completion E2E", () => {
           messages: firstMessages,
           model: testModel,
           maxTokens: 100,
+          providerConfig: "default",
         }),
         30000,
       );
@@ -107,6 +118,7 @@ describe("Google Gemini Chat Completion E2E", () => {
           messages: secondMessages,
           model: testModel,
           maxTokens: 100,
+          providerConfig: "default",
         }),
         30000,
       );
@@ -124,7 +136,12 @@ describe("Google Gemini Chat Completion E2E", () => {
       const messages = createTestMessages("Say hello.");
 
       const response = await withTimeout(
-        client.chat({ messages, model: testModel, maxTokens: 100 }),
+        client.chat({
+          messages,
+          model: testModel,
+          maxTokens: 100,
+          providerConfig: "default",
+        }),
         30000,
       );
 
@@ -154,7 +171,12 @@ describe("Google Gemini Chat Completion E2E", () => {
       const messages = createTestMessages("Say hello..");
 
       const response = await withTimeout(
-        client.chat({ messages, model: testModel, maxTokens: 100 }),
+        client.chat({
+          messages,
+          model: testModel,
+          maxTokens: 100,
+          providerConfig: "default",
+        }),
         30000,
       );
 
@@ -168,7 +190,12 @@ describe("Google Gemini Chat Completion E2E", () => {
       const messages = createTestMessages("Say hello.");
 
       const response = await withTimeout(
-        client.chat({ messages, model: testModel, maxTokens: 100 }),
+        client.chat({
+          messages,
+          model: testModel,
+          maxTokens: 100,
+          providerConfig: "default",
+        }),
         30000,
       );
 
@@ -187,7 +214,12 @@ describe("Google Gemini Chat Completion E2E", () => {
 
       // Use default model from getGoogleTestModel()
       const response = await withTimeout(
-        client.chat({ messages, model: testModel, maxTokens: 100 }),
+        client.chat({
+          messages,
+          model: testModel,
+          maxTokens: 100,
+          providerConfig: "default",
+        }),
         30000,
       );
 
@@ -206,7 +238,12 @@ describe("Google Gemini Chat Completion E2E", () => {
       const messages = createTestMessages("Say hello.");
 
       const response = await withTimeout(
-        client.chat({ messages, model: testModel, maxTokens: 100 }),
+        client.chat({
+          messages,
+          model: testModel,
+          maxTokens: 100,
+          providerConfig: "default",
+        }),
         30000,
       );
 
@@ -229,7 +266,12 @@ describe("Google Gemini Chat Completion E2E", () => {
 
       await expect(
         withTimeout(
-          invalidClient.chat({ messages, model: testModel, maxTokens: 100 }),
+          invalidClient.chat({
+            messages,
+            model: testModel,
+            maxTokens: 100,
+            providerConfig: "default",
+          }),
           30000,
         ),
       ).rejects.toThrow();
@@ -239,7 +281,14 @@ describe("Google Gemini Chat Completion E2E", () => {
       const messages = createTestMessages("Test invalid model.");
 
       await expect(
-        withTimeout(client.chat({ messages, model: "invalid:model" }), 30000),
+        withTimeout(
+          client.chat({
+            messages,
+            model: "invalid:model",
+            providerConfig: "default",
+          }),
+          30000,
+        ),
       ).rejects.toThrow();
     });
 
@@ -247,7 +296,12 @@ describe("Google Gemini Chat Completion E2E", () => {
       // Empty messages array should be handled gracefully
       await expect(
         withTimeout(
-          client.chat({ messages: [], model: testModel, maxTokens: 100 }),
+          client.chat({
+            messages: [],
+            model: testModel,
+            maxTokens: 100,
+            providerConfig: "default",
+          }),
           30000,
         ),
       ).rejects.toThrow();
@@ -259,7 +313,12 @@ describe("Google Gemini Chat Completion E2E", () => {
       // Test with very short timeout to trigger timeout error
       await expect(
         withTimeout(
-          client.chat({ messages, model: testModel, maxTokens: 100 }),
+          client.chat({
+            messages,
+            model: testModel,
+            maxTokens: 100,
+            providerConfig: "default",
+          }),
           1, // 1ms timeout should fail
         ),
       ).rejects.toThrow("Operation timed out after 1ms");

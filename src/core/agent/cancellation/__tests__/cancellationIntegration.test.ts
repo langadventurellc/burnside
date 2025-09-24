@@ -190,6 +190,7 @@ describe("Cancellation Integration Tests", () => {
           { role: "user", content: [{ type: "text", text: "Hello, world!" }] },
         ],
         signal: controller.signal,
+        providerConfig: "default",
       };
 
       // The request will fail due to missing model, but we're testing that
@@ -209,6 +210,7 @@ describe("Cancellation Integration Tests", () => {
           },
         ],
         signal: controller.signal,
+        providerConfig: "default",
       };
 
       // The request will fail due to missing model, but we're testing that
@@ -245,6 +247,7 @@ describe("Cancellation Integration Tests", () => {
           maxIterations: 3,
           enableStreaming: false,
         },
+        providerConfig: "default",
       };
 
       // Test that tools and multi-turn configuration work with cancellation

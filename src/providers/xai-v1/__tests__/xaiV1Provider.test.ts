@@ -181,6 +181,7 @@ describe("XAIV1Provider", () => {
         },
       ],
       model: "grok-3-mini",
+      providerConfig: "default",
     };
 
     const mockConfig = {
