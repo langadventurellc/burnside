@@ -21,15 +21,29 @@ affectedFiles:
     assertions
   src/__tests__/e2e/shared/createMcpTestConfig.ts: Fixed malformed configuration
     structure to properly use the new nested provider format
+  src/client/chatRequest.ts: Added optional providerConfig parameter to
+    ChatRequest interface and updated JSDoc documentation with comprehensive
+    examples showing usage with named provider configurations
+  src/client/streamRequest.ts: Updated JSDoc examples to include providerConfig
+    usage in streaming scenarios, demonstrating inheritance from ChatRequest
+    interface
+  src/client/__tests__/chatRequest.test.ts:
+    Added comprehensive test coverage for
+    providerConfig parameter including interface structure tests, TypeScript
+    compilation tests, and type safety validation
+  src/client/__tests__/streamRequest.test.ts:
+    Added inheritance verification tests
+    for providerConfig parameter to ensure proper type compatibility between
+    StreamRequest and ChatRequest interfaces
 log: []
 schema: v1.0
 childrenIds:
   - T-add-providerconfig-parameter
   - T-add-request-validation-for
-  - T-update-bridgeconfig-interface
   - T-update-configuration
   - T-update-model-seeding-to-work
   - T-update-provider-resolution-to
+  - T-update-bridgeconfig-interface
 created: 2025-09-24T19:08:11.414Z
 updated: 2025-09-24T19:08:11.414Z
 ---

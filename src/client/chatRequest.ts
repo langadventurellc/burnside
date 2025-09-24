@@ -24,12 +24,22 @@ import type { AgentExecutionOptions } from "../core/agent/agentExecutionOptions"
  *   ]
  * };
  *
- * // Multi-turn conversation request
+ * // Using named provider configuration
+ * const namedConfigRequest: ChatRequest = {
+ *   messages: [
+ *     { role: "user", content: [{ type: "text", text: "Hello!" }] }
+ *   ],
+ *   model: "openai:gpt-4",
+ *   providerConfig: "prod" // Uses the "prod" OpenAI configuration
+ * };
+ *
+ * // Multi-turn conversation request with provider config
  * const multiTurnRequest: ChatRequest = {
  *   messages: [
  *     { role: "user", content: [{ type: "text", text: "Help me with a task" }] }
  *   ],
- *   model: "gpt-4",
+ *   model: "anthropic:claude-3-sonnet",
+ *   providerConfig: "main", // Uses the "main" Anthropic configuration
  *   tools: [
  *     { name: "search", description: "Search for information", inputSchema: { type: "object" } }
  *   ],
@@ -55,6 +65,8 @@ export interface ChatRequest {
   tools?: ToolDefinition[];
   /** Additional provider-specific options */
   options?: Record<string, unknown>;
+  /** Provider configuration name to use for this request (required when multiple configs exist for a provider) */
+  providerConfig?: string;
   /**
    * External cancellation signal for aborting running agent conversations
    *

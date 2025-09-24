@@ -52,6 +52,30 @@ describe("ChatRequest", () => {
       expect(request.options).toEqual(options);
     });
 
+    it("should accept optional providerConfig parameter", () => {
+      const request: ChatRequest = {
+        messages: validMessages,
+        model: "openai:gpt-4",
+        providerConfig: "prod",
+      };
+
+      expect(request.providerConfig).toBe("prod");
+    });
+
+    it("should accept providerConfig with other optional parameters", () => {
+      const request: ChatRequest = {
+        messages: validMessages,
+        model: "anthropic:claude-3-sonnet",
+        providerConfig: "dev",
+        temperature: 0.8,
+        maxTokens: 1500,
+      };
+
+      expect(request.providerConfig).toBe("dev");
+      expect(request.temperature).toBe(0.8);
+      expect(request.maxTokens).toBe(1500);
+    });
+
     it("should accept all optional parameters together", () => {
       const request: ChatRequest = {
         messages: validMessages,
@@ -59,11 +83,13 @@ describe("ChatRequest", () => {
         temperature: 0.5,
         maxTokens: 2000,
         options: { stream: false },
+        providerConfig: "main",
       };
 
       expect(request.temperature).toBe(0.5);
       expect(request.maxTokens).toBe(2000);
       expect(request.options?.stream).toBe(false);
+      expect(request.providerConfig).toBe("main");
     });
   });
 
@@ -111,6 +137,47 @@ describe("ChatRequest", () => {
       expect(messages).toEqual(validMessages);
       expect(model).toBe("gpt-4");
       expect(temperature).toBe(0.8);
+    });
+
+    it("should allow proper type inference with providerConfig", () => {
+      const request: ChatRequest = {
+        messages: validMessages,
+        model: "openai:gpt-4",
+        providerConfig: "prod",
+      };
+
+      // TypeScript should infer the correct types
+      const providerConfig: string | undefined = request.providerConfig;
+      const model: string = request.model;
+
+      expect(providerConfig).toBe("prod");
+      expect(model).toBe("openai:gpt-4");
+    });
+
+    it("should compile with providerConfig in various scenarios", () => {
+      // Should compile with providerConfig present
+      const withProviderConfig: ChatRequest = {
+        messages: validMessages,
+        model: "anthropic:claude-3-haiku",
+        providerConfig: "backup",
+      };
+
+      // Should compile without providerConfig (optional)
+      const withoutProviderConfig: ChatRequest = {
+        messages: validMessages,
+        model: "gpt-4",
+      };
+
+      // Should compile with providerConfig as undefined
+      const withUndefinedConfig: ChatRequest = {
+        messages: validMessages,
+        model: "gpt-4",
+        providerConfig: undefined,
+      };
+
+      expect(withProviderConfig.providerConfig).toBe("backup");
+      expect(withoutProviderConfig.providerConfig).toBeUndefined();
+      expect(withUndefinedConfig.providerConfig).toBeUndefined();
     });
   });
 

@@ -65,6 +65,18 @@ describe("StreamRequest", () => {
       expect(request.streamOptions?.bufferSize).toBeUndefined();
     });
 
+    it("should accept providerConfig from ChatRequest inheritance", () => {
+      const request: StreamRequest = {
+        messages: validMessages,
+        model: "openai:gpt-4",
+        providerConfig: "prod",
+        stream: true,
+      };
+
+      expect(request.providerConfig).toBe("prod");
+      expect(request.stream).toBe(true);
+    });
+
     it("should accept all streaming parameters together", () => {
       const request: StreamRequest = {
         messages: validMessages,
@@ -75,11 +87,13 @@ describe("StreamRequest", () => {
           includeUsage: true,
           bufferSize: 2048,
         },
+        providerConfig: "main",
       };
 
       expect(request.stream).toBe(true);
       expect(request.streamOptions?.includeUsage).toBe(true);
       expect(request.streamOptions?.bufferSize).toBe(2048);
+      expect(request.providerConfig).toBe("main");
     });
   });
 
@@ -97,6 +111,35 @@ describe("StreamRequest", () => {
       expect(chatRequest.model).toBe("gpt-4");
     });
 
+    it("should inherit providerConfig from ChatRequest", () => {
+      const request: StreamRequest = {
+        messages: validMessages,
+        model: "anthropic:claude-3-sonnet",
+        providerConfig: "backup",
+      };
+
+      // Should inherit providerConfig from ChatRequest
+      expect(request.providerConfig).toBe("backup");
+
+      // Should maintain type compatibility
+      const chatRequest: ChatRequest = request;
+      expect(chatRequest.providerConfig).toBe("backup");
+    });
+
+    it("should maintain type compatibility with providerConfig", () => {
+      const streamRequest: StreamRequest = {
+        messages: validMessages,
+        model: "openai:gpt-4",
+        providerConfig: "dev",
+        stream: true,
+      };
+
+      // Should be assignable to ChatRequest with providerConfig
+      const chatRequest: ChatRequest = streamRequest;
+      expect(chatRequest.providerConfig).toBe("dev");
+      expect(chatRequest.model).toBe("openai:gpt-4");
+    });
+
     it("should inherit all ChatRequest optional properties", () => {
       const request: StreamRequest = {
         messages: validMessages,
@@ -104,6 +147,7 @@ describe("StreamRequest", () => {
         temperature: 0.9,
         maxTokens: 500,
         options: { customOption: "value" },
+        providerConfig: "test",
         stream: true,
         streamOptions: { includeUsage: true },
       };
@@ -112,6 +156,7 @@ describe("StreamRequest", () => {
       expect(request.temperature).toBe(0.9);
       expect(request.maxTokens).toBe(500);
       expect(request.options?.customOption).toBe("value");
+      expect(request.providerConfig).toBe("test");
 
       // Plus StreamRequest-specific properties
       expect(request.stream).toBe(true);
