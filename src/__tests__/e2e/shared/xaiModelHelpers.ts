@@ -9,7 +9,6 @@ export function createTestClient(
   const testConfig = loadXaiTestConfig();
 
   const config: BridgeConfig = {
-    defaultProvider: "xai",
     providers: {
       xai: {
         default: { apiKey: testConfig.xaiApiKey },

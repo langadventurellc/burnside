@@ -9,7 +9,6 @@ export function createAnthropicTestClient(
   const testConfig = loadAnthropicTestConfig();
 
   const config: BridgeConfig = {
-    defaultProvider: "anthropic",
     providers: {
       anthropic: {
         default: { apiKey: testConfig.anthropicApiKey },

@@ -57,7 +57,6 @@ describe("xAI MCP Tool Basic Validation E2E", () => {
     // Create client with xAI and MCP configuration using helper
     const testConfig = loadXaiTestConfig();
     client = createMcpTestClient({
-      defaultProvider: "xai",
       providers: {
         xai: {
           default: { apiKey: testConfig.xaiApiKey },

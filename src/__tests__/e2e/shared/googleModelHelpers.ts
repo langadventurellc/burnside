@@ -9,7 +9,6 @@ export function createGoogleTestClient(
   const testConfig = loadGoogleTestConfig();
 
   const config: BridgeConfig = {
-    defaultProvider: "google",
     providers: {
       google: {
         default: { apiKey: testConfig.googleApiKey },

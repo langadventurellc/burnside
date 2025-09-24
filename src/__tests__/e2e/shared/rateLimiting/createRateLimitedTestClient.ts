@@ -40,7 +40,6 @@ export function createRateLimitedTestClient(
     case "openai": {
       const testConfig = loadOpenAITestConfig();
       baseConfig = {
-        defaultProvider: "openai",
         providers: {
           openai: {
             default: { apiKey: testConfig.openaiApiKey },
@@ -59,7 +58,6 @@ export function createRateLimitedTestClient(
     case "anthropic": {
       const testConfig = loadAnthropicTestConfig();
       baseConfig = {
-        defaultProvider: "anthropic",
         providers: {
           anthropic: {
             default: { apiKey: testConfig.anthropicApiKey },
@@ -78,7 +76,6 @@ export function createRateLimitedTestClient(
     case "google": {
       const testConfig = loadGoogleTestConfig();
       baseConfig = {
-        defaultProvider: "google",
         providers: {
           google: {
             default: { apiKey: testConfig.googleApiKey },
@@ -97,7 +94,6 @@ export function createRateLimitedTestClient(
     case "xai": {
       const testConfig = loadXaiTestConfig();
       baseConfig = {
-        defaultProvider: "xai",
         providers: {
           xai: {
             default: { apiKey: testConfig.xaiApiKey },

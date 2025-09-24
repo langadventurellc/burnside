@@ -5,7 +5,6 @@ describe("BridgeClientConfig", () => {
     it("should accept valid configuration with all required fields", () => {
       const config: BridgeClientConfig = {
         timeout: 30000,
-        defaultProvider: "openai.default",
         providers: new Map([
           ["openai.default", { apiKey: "sk-test" }],
           ["anthropic.default", { apiKey: "sk-ant-test" }],
@@ -33,7 +32,6 @@ describe("BridgeClientConfig", () => {
 
       const config: BridgeClientConfig = {
         timeout: 60000,
-        defaultProvider: "openai.default",
         providers: providersMap,
         options: { retries: 3 },
         registryOptions: {
@@ -55,7 +53,6 @@ describe("BridgeClientConfig", () => {
     it("should accept empty providers Map", () => {
       const config: BridgeClientConfig = {
         timeout: 15000,
-        defaultProvider: "test.default",
         providers: new Map(),
         options: {},
         registryOptions: {
@@ -77,7 +74,6 @@ describe("BridgeClientConfig", () => {
 
       const config: BridgeClientConfig = {
         timeout: 45000,
-        defaultProvider: "custom.default",
         providers: new Map([
           ["custom.default", { endpoint: "http://localhost:8080" }],
         ]),
@@ -102,7 +98,6 @@ describe("BridgeClientConfig", () => {
 
       const config: BridgeClientConfig = {
         timeout: 30000,
-        defaultProvider: "test.default",
         providers: new Map([["test.default", { apiKey: "test-key" }]]),
         options: {
           logging: loggingConfig,
@@ -125,7 +120,6 @@ describe("BridgeClientConfig", () => {
       levels.forEach((level) => {
         const config: BridgeClientConfig = {
           timeout: 30000,
-          defaultProvider: "test.default",
           providers: new Map([["test.default", { apiKey: "test-key" }]]),
           options: {
             logging: { level },
@@ -146,7 +140,6 @@ describe("BridgeClientConfig", () => {
     it("should maintain Map functionality", () => {
       const config: BridgeClientConfig = {
         timeout: 20000,
-        defaultProvider: "provider1.default",
         providers: new Map(),
         options: {},
         registryOptions: {
@@ -188,7 +181,6 @@ describe("BridgeClientConfig", () => {
 
       const config: BridgeClientConfig = {
         timeout: 30000,
-        defaultProvider: "openai.default",
         providers: new Map<string, Record<string, unknown>>([
           ["openai.default", openaiConfig],
           ["anthropic.default", anthropicConfig],
@@ -210,14 +202,8 @@ describe("BridgeClientConfig", () => {
 
   describe("TypeScript compilation", () => {
     it("should enforce all required fields", () => {
-      // These should cause TypeScript compilation errors if uncommented:
-      // const invalid1: BridgeClientConfig = { defaultModel: "test", timeout: 1000, providers: new Map(), options: {}, validated: true }; // missing defaultProvider
-      // const invalid2: BridgeClientConfig = { defaultProvider: "test", timeout: 1000, providers: new Map(), options: {}, validated: true }; // missing defaultModel
-      // const invalid3: BridgeClientConfig = { defaultProvider: "test", defaultModel: "test", providers: new Map(), options: {}, validated: true }; // missing timeout
-
       const valid: BridgeClientConfig = {
         timeout: 30000,
-        defaultProvider: "test.default",
         providers: new Map(),
         options: {},
         registryOptions: {
@@ -233,7 +219,6 @@ describe("BridgeClientConfig", () => {
     it("should allow proper type inference", () => {
       const config: BridgeClientConfig = {
         timeout: 30000,
-        defaultProvider: "openai.default",
         providers: new Map([["openai.default", { apiKey: "test" }]]),
         options: { debug: true },
         registryOptions: {
@@ -258,7 +243,6 @@ describe("BridgeClientConfig", () => {
     it("should maintain type safety for provider configurations", () => {
       const config: BridgeClientConfig = {
         timeout: 30000,
-        defaultProvider: "test.default",
         providers: new Map(),
         options: {},
         registryOptions: {

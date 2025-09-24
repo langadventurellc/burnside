@@ -155,13 +155,11 @@ describe("Library Exports", () => {
 
       expect(() => {
         const config = {
-          defaultProvider: "openai" as const,
           providers: {
             openai: {
               default: { apiKey: "test-key" },
             },
           },
-          defaultModel: "gpt-4",
           timeout: 30000,
         };
         createClient(config);
@@ -192,7 +190,6 @@ describe("Library Exports", () => {
 
         // Use registry in client configuration
         const _client = createClient({
-          defaultProvider: "openai" as const,
           providers: {
             openai: {
               default: { apiKey: "test-key" },
@@ -285,7 +282,6 @@ describe("Library Exports", () => {
 
       // Type inference should work
       const config = {
-        defaultProvider: "openai" as const,
         providers: {
           openai: {
             default: { apiKey: "test" },

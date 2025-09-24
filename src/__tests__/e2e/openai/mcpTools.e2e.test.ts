@@ -57,7 +57,6 @@ describe("OpenAI MCP Tool Basic Validation E2E", () => {
     // Create client with OpenAI and MCP configuration using helper
     const testConfig = loadTestConfig();
     client = createMcpTestClient({
-      defaultProvider: "openai",
       providers: {
         openai: {
           default: { apiKey: testConfig.openaiApiKey },

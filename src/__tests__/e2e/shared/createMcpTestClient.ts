@@ -11,7 +11,6 @@
  * @example
  * ```typescript
  * const client = createMcpTestClient({
- *   defaultProvider: "anthropic",
  *   providers: {
           anthropic: {
             default: { apiKey: "test-key" },

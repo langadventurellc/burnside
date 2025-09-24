@@ -58,7 +58,6 @@ describe("Anthropic STDIO MCP Tool E2E", () => {
       // Create client with Anthropic and MCP configuration using helper
       const testConfig = loadAnthropicTestConfig();
       client = createMcpTestClient({
-        defaultProvider: "anthropic",
         providers: {
           anthropic: {
             default: { apiKey: testConfig.anthropicApiKey },

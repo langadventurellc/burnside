@@ -12,7 +12,6 @@
  *
  * // Basic client setup
  * const client = new BridgeClient({
- *   defaultProvider: "openai",
  *   providers: {
           openai: {
             default: { apiKey: "sk-..." },

@@ -1,4 +1,3 @@
-/* eslint-disable statement-count/class-statement-count-error */
 /* eslint-disable statement-count/class-statement-count-warn */
 /* eslint-disable statement-count/function-statement-count-warn */
 /* eslint-disable max-lines */
@@ -55,13 +54,11 @@ import { McpToolRegistry } from "../tools/mcp/mcpToolRegistry";
  * @example
  * ```typescript
  * const config: BridgeConfig = {
- *   defaultProvider: "openai",
  *   providers: {
  *     openai: {
  *       default: { apiKey: "sk-..." }
  *     }
  *   },
- *   defaultModel: "gpt-4"
  * };
  *
  * const client = new BridgeClient(config);
@@ -1295,7 +1292,7 @@ export class BridgeClient {
    */
   private validateAndTransformConfig(config: BridgeConfig): BridgeClientConfig {
     // Validate required configuration
-    if (!config.defaultProvider && !config.providers) {
+    if (!config.providers) {
       throw new BridgeError(
         "Configuration must specify providers",
         "INVALID_CONFIG",
@@ -1354,69 +1351,6 @@ export class BridgeClient {
       }
     }
 
-    // Set sensible defaults and validate
-    let defaultProvider = config.defaultProvider;
-
-    // If no default provider specified, try to determine one
-    if (!defaultProvider && providersMap.size > 0) {
-      // Use the first available flattened provider key
-      defaultProvider = flattenedProviderKeys[0] || "";
-    }
-
-    if (!defaultProvider) {
-      throw new BridgeError(
-        "Unable to determine default provider from configuration",
-        "INVALID_CONFIG",
-        { config },
-      );
-    }
-
-    // Validate that defaultProvider exists in providers map
-    if (config.defaultProvider) {
-      // Handle both old format ("openai") and new format ("openai.prod")
-      let resolvedDefaultProvider: string | undefined;
-
-      if (providersMap.has(config.defaultProvider)) {
-        // Direct match with flattened key (new format: "openai.prod")
-        resolvedDefaultProvider = config.defaultProvider;
-      } else {
-        // Try to find configurations that match the provider type (old format: "openai")
-        const matchingConfigs = flattenedProviderKeys.filter((key) =>
-          key.startsWith(`${config.defaultProvider}.`),
-        );
-
-        if (matchingConfigs.length === 1) {
-          // Exactly one configuration for this provider type
-          resolvedDefaultProvider = matchingConfigs[0];
-        } else if (matchingConfigs.length > 1) {
-          throw new BridgeError(
-            `Default provider '${config.defaultProvider}' matches multiple configurations. ` +
-              `Please specify the full configuration name (e.g., '${matchingConfigs[0]}')`,
-            "AMBIGUOUS_DEFAULT_PROVIDER",
-            {
-              defaultProvider: config.defaultProvider,
-              availableConfigurations: matchingConfigs,
-              allAvailableProviders: flattenedProviderKeys,
-            },
-          );
-        }
-      }
-
-      if (!resolvedDefaultProvider) {
-        throw new BridgeError(
-          `Default provider '${config.defaultProvider}' not found in providers configuration`,
-          "INVALID_CONFIG",
-          {
-            defaultProvider: config.defaultProvider,
-            availableProviders: flattenedProviderKeys,
-          },
-        );
-      }
-
-      // Update defaultProvider to the resolved flattened key
-      defaultProvider = resolvedDefaultProvider;
-    }
-
     const timeout = config.timeout || 30000;
 
     if (timeout < 1000 || timeout > 300000) {
@@ -1429,7 +1363,6 @@ export class BridgeClient {
 
     return {
       timeout,
-      defaultProvider,
       providers: providersMap,
       tools: config.tools,
       toolSystemInitialized: false,

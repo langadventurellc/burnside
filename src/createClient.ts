@@ -27,12 +27,10 @@ import type { BridgeConfig } from "./core/config";
  *
  * // Complete configuration with all options
  * const client = createClient({
- *   defaultProvider: "openai",
  *   providers: {
  *     openai: { apiKey: "sk-..." },
  *     anthropic: { apiKey: "sk-ant-..." }
  *   },
- *   defaultModel: "gpt-4",
  *   timeout: 30000,
  *   options: { retries: 3 },
  *   registryOptions: {

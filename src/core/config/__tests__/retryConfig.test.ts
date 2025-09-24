@@ -374,7 +374,6 @@ describe("Retry Configuration", () => {
     it("should work with configs that don't have retryPolicy", () => {
       const config = {
         providers: { test: {} },
-        defaultProvider: "test",
       };
 
       const result = BridgeConfigSchema.parse(config);
@@ -384,7 +383,6 @@ describe("Retry Configuration", () => {
     it("should work with existing complex configurations", () => {
       const config = {
         providers: { test: {} },
-        defaultProvider: "test",
         timeout: 30000,
         tools: {
           enabled: true,
@@ -405,7 +403,6 @@ describe("Retry Configuration", () => {
     it("should work when retryPolicy is combined with other configurations", () => {
       const config = {
         providers: { test: {} },
-        defaultProvider: "test",
         retryPolicy: {
           attempts: 3,
         },

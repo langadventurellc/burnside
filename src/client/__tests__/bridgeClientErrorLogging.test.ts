@@ -35,7 +35,6 @@ describe("BridgeClient Error Logging", () => {
           },
         },
       },
-      defaultProvider: "openai",
     };
 
     const _client = new BridgeClient(config);

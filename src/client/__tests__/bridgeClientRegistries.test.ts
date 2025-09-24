@@ -8,13 +8,11 @@ import { ProviderError } from "../../core/errors/providerError";
 
 describe("BridgeClient Registry Integration", () => {
   const validConfig: BridgeConfig = {
-    defaultProvider: "openai",
     providers: {
       openai: {
         default: { apiKey: "sk-test" },
       },
     },
-    defaultModel: "gpt-4",
     timeout: 30000,
   };
 

@@ -61,7 +61,6 @@ export function createMcpTestConfig(
   }
 
   return {
-    defaultProvider: "openai",
     providers: {
       openai: {
         default: {

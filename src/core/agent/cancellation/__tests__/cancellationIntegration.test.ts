@@ -31,7 +31,6 @@ describe("Cancellation Integration Tests", () => {
           },
         },
       },
-      defaultModel: "mock-provider:test-model",
       tools: {
         enabled: true,
         builtinTools: ["echo"],

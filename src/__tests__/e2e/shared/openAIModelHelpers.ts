@@ -9,7 +9,6 @@ export function createTestClient(
   const testConfig = loadTestConfig();
 
   const config: BridgeConfig = {
-    defaultProvider: "openai",
     providers: {
       openai: {
         default: { apiKey: testConfig.openaiApiKey },

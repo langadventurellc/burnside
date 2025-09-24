@@ -15,18 +15,8 @@ describe("BridgeConfigSchema", () => {
       expect(result).toEqual(config);
     });
 
-    it("should accept minimal valid config with defaultProvider only", () => {
-      const config = {
-        defaultProvider: "openai",
-      };
-
-      const result = BridgeConfigSchema.parse(config);
-      expect(result).toEqual(config);
-    });
-
     it("should accept complete valid configuration", () => {
       const config = {
-        defaultProvider: "openai",
         providers: {
           openai: {
             default: { apiKey: "sk-test", temperature: 0.7 },
@@ -35,7 +25,6 @@ describe("BridgeConfigSchema", () => {
             default: { apiKey: "sk-ant-test" },
           },
         },
-        defaultModel: "gpt-4",
         timeout: 30000,
         options: { retries: 3 },
       };
@@ -81,27 +70,6 @@ describe("BridgeConfigSchema", () => {
   });
 
   describe("invalid configurations", () => {
-    it("should reject empty configuration", () => {
-      const config = {};
-
-      expect(() => BridgeConfigSchema.parse(config)).toThrow();
-    });
-
-    it("should reject configuration with empty defaultProvider", () => {
-      const config = {
-        defaultProvider: "",
-        providers: {
-          openai: {
-            default: { apiKey: "sk-test" },
-          },
-        },
-      };
-
-      expect(() => BridgeConfigSchema.parse(config)).toThrow(
-        /Default provider cannot be empty/,
-      );
-    });
-
     it("should reject configuration with empty provider names", () => {
       const config = {
         providers: {
@@ -111,21 +79,6 @@ describe("BridgeConfigSchema", () => {
 
       expect(() => BridgeConfigSchema.parse(config)).toThrow(
         /Provider type cannot be empty/,
-      );
-    });
-
-    it("should reject configuration with empty defaultModel", () => {
-      const config = {
-        providers: {
-          openai: {
-            default: { apiKey: "sk-test" },
-          },
-        },
-        defaultModel: "",
-      };
-
-      expect(() => BridgeConfigSchema.parse(config)).toThrow(
-        /Default model cannot be empty/,
       );
     });
 
@@ -157,21 +110,6 @@ describe("BridgeConfigSchema", () => {
       expect(() => BridgeConfigSchema.parse(config)).toThrow();
     });
 
-    it("should reject defaultProvider not found in providers", () => {
-      const config = {
-        defaultProvider: "missing",
-        providers: {
-          openai: {
-            default: { apiKey: "sk-test" },
-          },
-        },
-      };
-
-      expect(() => BridgeConfigSchema.parse(config)).toThrow(
-        /Default provider 'missing' not found in providers configuration/,
-      );
-    });
-
     it("should reject invalid provider configuration values", () => {
       const config = {
         providers: {
@@ -185,7 +123,6 @@ describe("BridgeConfigSchema", () => {
     it("should reject null or undefined values for required structure", () => {
       const invalidConfigs = [
         { providers: null },
-        { defaultProvider: null },
         { timeout: null },
         { options: null },
       ];
@@ -197,51 +134,8 @@ describe("BridgeConfigSchema", () => {
   });
 
   describe("complex validation scenarios", () => {
-    it("should allow defaultProvider without providers when providers is not specified", () => {
-      const config = {
-        defaultProvider: "openai",
-        defaultModel: "gpt-4",
-        timeout: 30000,
-      };
-
-      expect(() => BridgeConfigSchema.parse(config)).not.toThrow();
-    });
-
-    it("should allow providers without defaultProvider", () => {
-      const config = {
-        providers: {
-          openai: {
-            default: { apiKey: "sk-test" },
-          },
-          anthropic: {
-            default: { apiKey: "sk-ant-test" },
-          },
-        },
-        defaultModel: "gpt-4",
-      };
-
-      expect(() => BridgeConfigSchema.parse(config)).not.toThrow();
-    });
-
-    it("should validate multiple providers with matching defaultProvider", () => {
-      const config = {
-        defaultProvider: "anthropic",
-        providers: {
-          openai: {
-            default: { apiKey: "sk-test" },
-          },
-          anthropic: {
-            default: { apiKey: "sk-ant-test" },
-          },
-        },
-      };
-
-      expect(() => BridgeConfigSchema.parse(config)).not.toThrow();
-    });
-
     it("should handle complex nested provider configurations", () => {
       const config = {
-        defaultProvider: "openai",
         providers: {
           openai: {
             default: {
@@ -263,13 +157,11 @@ describe("BridgeConfigSchema", () => {
   describe("type inference", () => {
     it("should infer correct types from schema", () => {
       const config = {
-        defaultProvider: "openai",
         providers: {
           openai: {
             default: { apiKey: "sk-test" },
           },
         },
-        defaultModel: "gpt-4",
         timeout: 30000,
         options: { retries: 3 },
       };
@@ -277,17 +169,13 @@ describe("BridgeConfigSchema", () => {
       const result = BridgeConfigSchema.parse(config);
 
       // TypeScript compilation test
-      const provider: string | undefined = result.defaultProvider;
       const providers:
         | Record<string, Record<string, Record<string, unknown>>>
         | undefined = result.providers;
-      const model: string | undefined = result.defaultModel;
       const timeout: number | undefined = result.timeout;
       const options: Record<string, unknown> | undefined = result.options;
 
-      expect(provider).toBe("openai");
       expect(providers).toBeDefined();
-      expect(model).toBe("gpt-4");
       expect(timeout).toBe(30000);
       expect(options).toEqual({ retries: 3 });
     });
@@ -548,7 +436,6 @@ describe("BridgeConfigSchema", () => {
     describe("tools configuration integration", () => {
       it("should accept complete BridgeConfig with tools section", () => {
         const config = {
-          defaultProvider: "openai",
           providers: {
             openai: {
               default: { apiKey: "sk-test" },
@@ -557,7 +444,6 @@ describe("BridgeConfigSchema", () => {
               default: { apiKey: "sk-ant-test" },
             },
           },
-          defaultModel: "gpt-4",
           timeout: 30000,
           tools: {
             enabled: true,
@@ -573,19 +459,16 @@ describe("BridgeConfigSchema", () => {
 
       it("should accept existing configurations without tools section (backward compatibility)", () => {
         const config = {
-          defaultProvider: "openai",
           providers: {
             openai: {
               default: { apiKey: "sk-test" },
             },
           },
-          defaultModel: "gpt-4",
           timeout: 30000,
         };
 
         const result = BridgeConfigSchema.parse(config);
         expect(result.tools).toBeUndefined();
-        expect(result.defaultProvider).toBe("openai");
       });
 
       it("should handle tools configuration with optional fields omitted", () => {
@@ -651,7 +534,6 @@ describe("BridgeConfigSchema", () => {
   describe("rate limiting configuration integration", () => {
     it("should accept configuration with rate limiting enabled", () => {
       const config = {
-        defaultProvider: "openai",
         providers: {
           openai: {
             default: { apiKey: "sk-test" },
@@ -699,28 +581,8 @@ describe("BridgeConfigSchema", () => {
       expect(result.rateLimitPolicy?.burst).toBe(10); // Auto-calculated
     });
 
-    it("should maintain existing validation with rate limiting present", () => {
-      const config = {
-        defaultProvider: "missing", // Invalid - not in providers
-        providers: {
-          openai: {
-            default: { apiKey: "sk-test" },
-          },
-        },
-        rateLimitPolicy: {
-          enabled: true,
-          maxRps: 10,
-        },
-      };
-
-      expect(() => BridgeConfigSchema.parse(config)).toThrow(
-        /Default provider 'missing' not found in providers configuration/,
-      );
-    });
-
     it("should handle rate limiting with complex provider configuration", () => {
       const config = {
-        defaultProvider: "openai",
         providers: {
           openai: {
             default: {
@@ -736,7 +598,6 @@ describe("BridgeConfigSchema", () => {
             },
           },
         },
-        defaultModel: "gpt-4",
         timeout: 30000,
         rateLimitPolicy: {
           enabled: true,
@@ -747,7 +608,6 @@ describe("BridgeConfigSchema", () => {
       };
 
       const result = BridgeConfigSchema.parse(config);
-      expect(result.defaultProvider).toBe("openai");
       expect(result.rateLimitPolicy?.scope).toBe("global");
       expect(result.rateLimitPolicy?.burst).toBe(150);
     });
@@ -1046,7 +906,6 @@ describe("BridgeConfigSchema", () => {
     describe("MCP server configuration integration", () => {
       it("should accept complete configuration with MCP servers and other tools config", () => {
         const config = {
-          defaultProvider: "openai",
           providers: {
             openai: {
               default: { apiKey: "sk-test" },
@@ -1646,7 +1505,6 @@ describe("BridgeConfigSchema", () => {
   describe("retry policy configuration integration", () => {
     it("should accept configuration with retry policy enabled", () => {
       const config = {
-        defaultProvider: "openai",
         providers: {
           openai: {
             default: { apiKey: "sk-test" },
@@ -1705,27 +1563,8 @@ describe("BridgeConfigSchema", () => {
       expect(result.retryPolicy?.maxDelayMs).toBe(30000);
     });
 
-    it("should maintain existing validation with retry policy present", () => {
-      const config = {
-        defaultProvider: "missing", // Invalid - not in providers
-        providers: {
-          openai: {
-            default: { apiKey: "sk-test" },
-          },
-        },
-        retryPolicy: {
-          attempts: 3,
-        },
-      };
-
-      expect(() => BridgeConfigSchema.parse(config)).toThrow(
-        /Default provider 'missing' not found in providers configuration/,
-      );
-    });
-
     it("should handle retry policy with complex configuration", () => {
       const config = {
-        defaultProvider: "openai",
         providers: {
           openai: {
             default: {
@@ -1739,7 +1578,6 @@ describe("BridgeConfigSchema", () => {
             },
           },
         },
-        defaultModel: "gpt-4",
         timeout: 30000,
         rateLimitPolicy: {
           enabled: true,
@@ -1756,7 +1594,6 @@ describe("BridgeConfigSchema", () => {
       };
 
       const result = BridgeConfigSchema.parse(config);
-      expect(result.defaultProvider).toBe("openai");
       expect(result.retryPolicy?.attempts).toBe(5);
       expect(result.retryPolicy?.jitter).toBe(false);
       expect(result.retryPolicy?.retryableStatusCodes).toEqual([429, 500, 503]);

@@ -19,7 +19,6 @@
  *
  * // Create client with provider configuration
  * const client = createClient({
- *   defaultProvider: "openai",
  *   providers: {
           openai: {
             default: { apikey: {
@@ -27,7 +26,6 @@
           } },
           },
         },
- *   defaultModel: "gpt-4",
  *   timeout: 30000
  * });
  *
@@ -70,7 +68,6 @@
  *
  * // Use registry in client configuration
  * const client = createClient({
- *   defaultProvider: "openai",
  *   providers: {
           openai: {
             default: { apikey: {

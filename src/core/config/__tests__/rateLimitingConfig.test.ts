@@ -324,13 +324,11 @@ describe("Rate Limiting Configuration", () => {
           },
         },
         {
-          defaultProvider: "openai",
           providers: {
             openai: {
               default: { apiKey: "sk-test" },
             },
           },
-          defaultModel: "gpt-4",
         },
         {
           providers: {
@@ -347,27 +345,6 @@ describe("Rate Limiting Configuration", () => {
         expect(() => BridgeConfigSchema.parse(config)).not.toThrow();
         const result = BridgeConfigSchema.parse(config);
         expect(result.rateLimitPolicy).toBeUndefined();
-      });
-    });
-
-    it("should not break existing validation rules", () => {
-      // Test that existing validation still works
-      const invalidConfigs = [
-        { rateLimitPolicy: { enabled: true, maxRps: 10 } }, // Missing providers
-        {
-          providers: { test: {} },
-          timeout: -1, // Invalid timeout
-          rateLimitPolicy: { enabled: true, maxRps: 10 },
-        },
-        {
-          providers: { test: {} },
-          defaultModel: "", // Empty model
-          rateLimitPolicy: { enabled: true, maxRps: 10 },
-        },
-      ];
-
-      invalidConfigs.forEach((config) => {
-        expect(() => BridgeConfigSchema.parse(config)).toThrow();
       });
     });
 

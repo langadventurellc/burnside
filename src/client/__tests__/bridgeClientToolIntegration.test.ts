@@ -16,7 +16,6 @@ describe("BridgeClient Tool Integration", () => {
 
   beforeEach(() => {
     config = {
-      defaultProvider: "openai",
       providers: {
         openai: {
           default: { apiKey: "test-key" },

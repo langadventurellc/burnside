@@ -57,7 +57,6 @@ describe("Google MCP Tool Basic Validation E2E", () => {
     // Create client with Google and MCP configuration using helper
     const testConfig = loadGoogleTestConfig();
     client = createMcpTestClient({
-      defaultProvider: "google",
       providers: {
         google: {
           default: { apiKey: testConfig.googleApiKey },
