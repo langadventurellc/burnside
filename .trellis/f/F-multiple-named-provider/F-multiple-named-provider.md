@@ -15,10 +15,14 @@ affectedFiles:
   src/client/bridgeClient.ts: Implemented temporary handling for the new nested
     provider structure, automatically using single configurations and providing
     clear error messages when multiple configurations exist until providerConfig
-    parameter support is added
+    parameter support is added; Updated validateAndTransformConfig method to
+    handle 3-level nested provider structure, transform to flattened keys,
+    support both old/new default provider formats, and updated
+    getProviderConfigOrThrow for providerConfig parameter support
   src/__tests__/createClient.test.ts: Updated all test configurations to use the
     new 3-level nested structure and corrected expected error paths and test
-    assertions
+    assertions; Updated all provider resolution tests to use flattened keys
+    (openai.default, anthropic.default) instead of direct provider names
   src/__tests__/e2e/shared/createMcpTestConfig.ts: Fixed malformed configuration
     structure to properly use the new nested provider format
   src/client/chatRequest.ts: Added optional providerConfig parameter to
@@ -35,14 +39,25 @@ affectedFiles:
     Added inheritance verification tests
     for providerConfig parameter to ensure proper type compatibility between
     StreamRequest and ChatRequest interfaces
+  src/client/bridgeClientConfig.ts: Added defaultProvider field to
+    BridgeClientConfig interface for tracking resolved default provider with
+    flattened key format
+  src/client/__tests__/bridgeClient.nestedConfig.test.ts: Created comprehensive
+    test suite with 18 test cases covering nested configuration validation,
+    provider resolution, error handling, and backward compatibility scenarios
+  src/client/__tests__/bridgeClientConfig.test.ts: Updated existing tests to use
+    flattened provider keys (openai.default) and added defaultProvider field to
+    all BridgeClientConfig test instances
+  src/client/__tests__/bridgeClient.test.ts: Updated provider key expectations
+    from openai to openai.default to match new flattened key format
 log: []
 schema: v1.0
 childrenIds:
-  - T-add-providerconfig-parameter
   - T-add-request-validation-for
   - T-update-configuration
   - T-update-model-seeding-to-work
   - T-update-provider-resolution-to
+  - T-add-providerconfig-parameter
   - T-update-bridgeconfig-interface
 created: 2025-09-24T19:08:11.414Z
 updated: 2025-09-24T19:08:11.414Z

@@ -203,7 +203,7 @@ describe("createClient", () => {
 
       const client = createClient(config);
       const clientConfig = client.getConfig();
-      const openaiProvider = clientConfig.providers.get("openai");
+      const openaiProvider = clientConfig.providers.get("openai.default");
 
       expect(openaiProvider).toBeDefined();
       expect(openaiProvider?.apiKey).toBe("sk-env-test");
@@ -231,7 +231,9 @@ describe("createClient", () => {
 
       const client = createClient(config);
       const clientConfig = client.getConfig();
-      const openaiProvider = clientConfig.providers.get("openai") as any;
+      const openaiProvider = clientConfig.providers.get(
+        "openai.default",
+      ) as any;
 
       expect(openaiProvider.config.nested).toBe("nested-test");
       expect(openaiProvider.config.deep.value).toBe("nested-test");
@@ -252,7 +254,7 @@ describe("createClient", () => {
 
       const client = createClient(config);
       const clientConfig = client.getConfig();
-      const openaiProvider = clientConfig.providers.get("openai");
+      const openaiProvider = clientConfig.providers.get("openai.default");
 
       expect(openaiProvider?.apiKey).toBe("sk-test-key");
     });
@@ -290,7 +292,7 @@ describe("createClient", () => {
 
       const client = createClient(config);
       const clientConfig = client.getConfig();
-      const openaiProvider = clientConfig.providers.get("openai");
+      const openaiProvider = clientConfig.providers.get("openai.default");
 
       expect(openaiProvider?.apiKey).toBe("sk-literal-key");
       expect(openaiProvider?.baseUrl).toBe("https://api.openai.com/v1");
@@ -350,7 +352,7 @@ describe("createClient", () => {
 
       // Test that provider configuration was correctly transformed
       const providers = client.getConfig().providers;
-      expect(providers.get("openai")).toMatchObject({
+      expect(providers.get("openai.default")).toMatchObject({
         apiKey: "sk-test",
         temperature: 0.7,
       });
@@ -392,7 +394,9 @@ describe("createClient", () => {
 
       const client = createClient(config);
       const clientConfig = client.getConfig();
-      const openaiProvider = clientConfig.providers.get("openai") as any;
+      const openaiProvider = clientConfig.providers.get(
+        "openai.default",
+      ) as any;
 
       expect(openaiProvider.config.nested.deep.value).toBe("complex");
     });
@@ -413,8 +417,8 @@ describe("createClient", () => {
       const clientConfig = client.getConfig();
 
       expect(clientConfig.providers.size).toBe(2);
-      expect(clientConfig.providers.has("openai")).toBe(true);
-      expect(clientConfig.providers.has("anthropic")).toBe(true);
+      expect(clientConfig.providers.has("openai.default")).toBe(true);
+      expect(clientConfig.providers.has("anthropic.default")).toBe(true);
     });
   });
 });

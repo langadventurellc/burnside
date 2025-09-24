@@ -5,9 +5,10 @@ describe("BridgeClientConfig", () => {
     it("should accept valid configuration with all required fields", () => {
       const config: BridgeClientConfig = {
         timeout: 30000,
+        defaultProvider: "openai.default",
         providers: new Map([
-          ["openai", { apiKey: "sk-test" }],
-          ["anthropic", { apiKey: "sk-ant-test" }],
+          ["openai.default", { apiKey: "sk-test" }],
+          ["anthropic.default", { apiKey: "sk-ant-test" }],
         ]),
         options: {},
         registryOptions: {
@@ -32,6 +33,7 @@ describe("BridgeClientConfig", () => {
 
       const config: BridgeClientConfig = {
         timeout: 60000,
+        defaultProvider: "openai.default",
         providers: providersMap,
         options: { retries: 3 },
         registryOptions: {
@@ -53,6 +55,7 @@ describe("BridgeClientConfig", () => {
     it("should accept empty providers Map", () => {
       const config: BridgeClientConfig = {
         timeout: 15000,
+        defaultProvider: "test.default",
         providers: new Map(),
         options: {},
         registryOptions: {
@@ -74,7 +77,10 @@ describe("BridgeClientConfig", () => {
 
       const config: BridgeClientConfig = {
         timeout: 45000,
-        providers: new Map([["custom", { endpoint: "http://localhost:8080" }]]),
+        defaultProvider: "custom.default",
+        providers: new Map([
+          ["custom.default", { endpoint: "http://localhost:8080" }],
+        ]),
         options,
         registryOptions: {
           providers: {},
@@ -96,7 +102,8 @@ describe("BridgeClientConfig", () => {
 
       const config: BridgeClientConfig = {
         timeout: 30000,
-        providers: new Map([["test", { apiKey: "test-key" }]]),
+        defaultProvider: "test.default",
+        providers: new Map([["test.default", { apiKey: "test-key" }]]),
         options: {
           logging: loggingConfig,
         },
@@ -118,7 +125,8 @@ describe("BridgeClientConfig", () => {
       levels.forEach((level) => {
         const config: BridgeClientConfig = {
           timeout: 30000,
-          providers: new Map([["test", { apiKey: "test-key" }]]),
+          defaultProvider: "test.default",
+          providers: new Map([["test.default", { apiKey: "test-key" }]]),
           options: {
             logging: { level },
           },
@@ -138,6 +146,7 @@ describe("BridgeClientConfig", () => {
     it("should maintain Map functionality", () => {
       const config: BridgeClientConfig = {
         timeout: 20000,
+        defaultProvider: "provider1.default",
         providers: new Map(),
         options: {},
         registryOptions: {
@@ -179,9 +188,10 @@ describe("BridgeClientConfig", () => {
 
       const config: BridgeClientConfig = {
         timeout: 30000,
+        defaultProvider: "openai.default",
         providers: new Map<string, Record<string, unknown>>([
-          ["openai", openaiConfig],
-          ["anthropic", anthropicConfig],
+          ["openai.default", openaiConfig],
+          ["anthropic.default", anthropicConfig],
         ]),
         options: {},
         registryOptions: {
@@ -191,8 +201,10 @@ describe("BridgeClientConfig", () => {
         validated: true,
       };
 
-      expect(config.providers.get("openai")).toEqual(openaiConfig);
-      expect(config.providers.get("anthropic")).toEqual(anthropicConfig);
+      expect(config.providers.get("openai.default")).toEqual(openaiConfig);
+      expect(config.providers.get("anthropic.default")).toEqual(
+        anthropicConfig,
+      );
     });
   });
 
@@ -205,6 +217,7 @@ describe("BridgeClientConfig", () => {
 
       const valid: BridgeClientConfig = {
         timeout: 30000,
+        defaultProvider: "test.default",
         providers: new Map(),
         options: {},
         registryOptions: {
@@ -220,7 +233,8 @@ describe("BridgeClientConfig", () => {
     it("should allow proper type inference", () => {
       const config: BridgeClientConfig = {
         timeout: 30000,
-        providers: new Map([["openai", { apiKey: "test" }]]),
+        defaultProvider: "openai.default",
+        providers: new Map([["openai.default", { apiKey: "test" }]]),
         options: { debug: true },
         registryOptions: {
           providers: {},
@@ -244,6 +258,7 @@ describe("BridgeClientConfig", () => {
     it("should maintain type safety for provider configurations", () => {
       const config: BridgeClientConfig = {
         timeout: 30000,
+        defaultProvider: "test.default",
         providers: new Map(),
         options: {},
         registryOptions: {

@@ -33,6 +33,8 @@ import type { RetryConfig } from "../core/transport/retry/retryConfig";
 export interface BridgeClientConfig {
   /** Request timeout in milliseconds */
   timeout: number;
+  /** Default provider key (flattened format: providerType.configName) */
+  defaultProvider: string;
   /** Validated provider configurations */
   providers: Map<string, Record<string, unknown>>;
   /** Tool system configuration */

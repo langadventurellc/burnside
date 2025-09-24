@@ -203,8 +203,10 @@ describe("BridgeClient", () => {
       const config = client.getConfig();
 
       expect(config.providers).toBeInstanceOf(Map);
-      expect(config.providers.has("openai")).toBe(true);
-      expect(config.providers.get("openai")).toEqual({ apiKey: "sk-test" });
+      expect(config.providers.has("openai.default")).toBe(true);
+      expect(config.providers.get("openai.default")).toEqual({
+        apiKey: "sk-test",
+      });
     });
 
     it("should set default timeout when not provided", () => {
