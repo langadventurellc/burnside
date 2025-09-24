@@ -18,7 +18,11 @@ affectedFiles:
     parameter support is added; Updated validateAndTransformConfig method to
     handle 3-level nested provider structure, transform to flattened keys,
     support both old/new default provider formats, and updated
-    getProviderConfigOrThrow for providerConfig parameter support
+    getProviderConfigOrThrow for providerConfig parameter support; Updated
+    initializeProviderIfNeeded method to accept optional configName parameter
+    and include it in provider tracking key format
+    (providerId:version:configName). Updated both chat and stream methods to
+    pass request.providerConfig to provider initialization.
   src/__tests__/createClient.test.ts: Updated all test configurations to use the
     new 3-level nested structure and corrected expected error paths and test
     assertions; Updated all provider resolution tests to use flattened keys
@@ -50,15 +54,21 @@ affectedFiles:
     all BridgeClientConfig test instances
   src/client/__tests__/bridgeClient.test.ts: Updated provider key expectations
     from openai to openai.default to match new flattened key format
+  src/client/__tests__/bridgeClient.providerInitialization.test.ts:
+    Added comprehensive unit tests covering provider initialization tracking
+    with configuration names, ensuring proper isolation between multiple
+    configs, verifying no reinitialize on subsequent requests, testing stream
+    method integration, and maintaining backward compatibility for single
+    configurations.
 log: []
 schema: v1.0
 childrenIds:
   - T-add-request-validation-for
-  - T-update-configuration
   - T-update-model-seeding-to-work
   - T-update-provider-resolution-to
   - T-add-providerconfig-parameter
   - T-update-bridgeconfig-interface
+  - T-update-configuration
 created: 2025-09-24T19:08:11.414Z
 updated: 2025-09-24T19:08:11.414Z
 ---

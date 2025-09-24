@@ -1,14 +1,33 @@
 ---
 id: T-update-provider-resolution-to
 title: Update provider resolution to support configuration names
-status: open
+status: done
 priority: high
 parent: F-multiple-named-provider
 prerequisites:
   - T-add-providerconfig-parameter
   - T-update-configuration
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/client/bridgeClient.ts:
+    Updated initializeProviderIfNeeded method to accept
+    optional configName parameter and include it in provider tracking key format
+    (providerId:version:configName). Updated both chat and stream methods to
+    pass request.providerConfig to provider initialization.
+  src/client/__tests__/bridgeClient.providerInitialization.test.ts:
+    Added comprehensive unit tests covering provider initialization tracking
+    with configuration names, ensuring proper isolation between multiple
+    configs, verifying no reinitialize on subsequent requests, testing stream
+    method integration, and maintaining backward compatibility for single
+    configurations.
+log:
+  - Updated provider resolution system to support configuration names with
+    proper provider initialization tracking. The main implementation involved
+    updating the initializeProviderIfNeeded method to include configuration
+    names in the provider tracking key, ensuring proper isolation between
+    multiple configurations of the same provider. Both chat and stream methods
+    now correctly pass the providerConfig parameter to provider initialization.
+    Added comprehensive unit tests to verify provider initialization isolation,
+    configuration tracking, and backward compatibility.
 schema: v1.0
 childrenIds: []
 created: 2025-09-24T19:23:22.276Z

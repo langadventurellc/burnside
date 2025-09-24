@@ -296,12 +296,16 @@ export class BridgeClient {
 
   /**
    * Initialize provider if not already initialized
+   * Now includes configuration name in tracking to support multiple configs per provider
    */
   private async initializeProviderIfNeeded(
     plugin: ProviderPlugin,
     providerConfig: Record<string, unknown>,
+    configName?: string,
   ): Promise<void> {
-    const key = `${plugin.id}:${plugin.version}`;
+    const key = configName
+      ? `${plugin.id}:${plugin.version}:${configName}`
+      : `${plugin.id}:${plugin.version}`;
     if (!this.initializedProviders.has(key)) {
       await plugin.initialize?.(providerConfig);
       this.initializedProviders.add(key);
@@ -404,7 +408,11 @@ export class BridgeClient {
       id,
       request.providerConfig,
     );
-    await this.initializeProviderIfNeeded(plugin, providerConfig);
+    await this.initializeProviderIfNeeded(
+      plugin,
+      providerConfig,
+      request.providerConfig,
+    );
 
     // Translate request with auto-included tools
     const httpReq = plugin.translateRequest({
@@ -556,7 +564,11 @@ export class BridgeClient {
       id,
       request.providerConfig,
     );
-    await this.initializeProviderIfNeeded(plugin, providerConfig);
+    await this.initializeProviderIfNeeded(
+      plugin,
+      providerConfig,
+      request.providerConfig,
+    );
 
     // Get model info to check capabilities
     const modelInfo = this.modelRegistry.get(modelId);
