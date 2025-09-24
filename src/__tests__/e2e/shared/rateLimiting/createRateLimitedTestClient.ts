@@ -42,7 +42,9 @@ export function createRateLimitedTestClient(
       baseConfig = {
         defaultProvider: "openai",
         providers: {
-          openai: { apiKey: testConfig.openaiApiKey },
+          openai: {
+            default: { apiKey: testConfig.openaiApiKey },
+          },
         },
         options: {
           logging: {
@@ -59,7 +61,9 @@ export function createRateLimitedTestClient(
       baseConfig = {
         defaultProvider: "anthropic",
         providers: {
-          anthropic: { apiKey: testConfig.anthropicApiKey },
+          anthropic: {
+            default: { apiKey: testConfig.anthropicApiKey },
+          },
         },
         options: {
           logging: {
@@ -76,7 +80,9 @@ export function createRateLimitedTestClient(
       baseConfig = {
         defaultProvider: "google",
         providers: {
-          google: { apiKey: testConfig.googleApiKey },
+          google: {
+            default: { apiKey: testConfig.googleApiKey },
+          },
         },
         options: {
           logging: {
@@ -93,7 +99,9 @@ export function createRateLimitedTestClient(
       baseConfig = {
         defaultProvider: "xai",
         providers: {
-          xai: { apiKey: testConfig.xaiApiKey },
+          xai: {
+            default: { apiKey: testConfig.xaiApiKey },
+          },
         },
         options: {
           logging: {

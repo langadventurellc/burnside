@@ -87,7 +87,10 @@ function processEnvironmentVariables(config: BridgeConfig): BridgeConfig {
   const processed = { ...config };
 
   if (processed.providers) {
-    const processedProviders: Record<string, Record<string, unknown>> = {};
+    const processedProviders: Record<
+      string,
+      Record<string, Record<string, unknown>>
+    > = {};
 
     for (const [providerName, providerConfig] of Object.entries(
       processed.providers,
@@ -95,7 +98,7 @@ function processEnvironmentVariables(config: BridgeConfig): BridgeConfig {
       processedProviders[providerName] = processObjectValues(
         providerConfig,
         `providers.${providerName}`,
-      );
+      ) as Record<string, Record<string, unknown>>;
     }
 
     processed.providers = processedProviders;

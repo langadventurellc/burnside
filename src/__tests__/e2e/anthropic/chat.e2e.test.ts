@@ -219,7 +219,9 @@ describe("Anthropic Chat Completion E2E", () => {
       // Create client with invalid API key
       const invalidClient = createAnthropicTestClient({
         providers: {
-          anthropic: { apiKey: "invalid-key" },
+          anthropic: {
+            default: { apiKey: "invalid-key" },
+          },
         },
       });
 

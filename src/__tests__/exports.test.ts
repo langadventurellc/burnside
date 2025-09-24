@@ -157,7 +157,9 @@ describe("Library Exports", () => {
         const config = {
           defaultProvider: "openai" as const,
           providers: {
-            openai: { apiKey: "test-key" },
+            openai: {
+              default: { apiKey: "test-key" },
+            },
           },
           defaultModel: "gpt-4",
           timeout: 30000,
@@ -191,7 +193,11 @@ describe("Library Exports", () => {
         // Use registry in client configuration
         const _client = createClient({
           defaultProvider: "openai" as const,
-          providers: { openai: { apiKey: "test-key" } },
+          providers: {
+            openai: {
+              default: { apiKey: "test-key" },
+            },
+          },
           registryOptions: {
             models: { registry: modelRegistry },
           },
@@ -280,7 +286,11 @@ describe("Library Exports", () => {
       // Type inference should work
       const config = {
         defaultProvider: "openai" as const,
-        providers: { openai: { apiKey: "test" } },
+        providers: {
+          openai: {
+            default: { apiKey: "test" },
+          },
+        },
       };
 
       const client = createClient(config);

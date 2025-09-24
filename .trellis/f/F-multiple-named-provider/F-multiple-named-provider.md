@@ -1,14 +1,35 @@
 ---
 id: F-multiple-named-provider
 title: Multiple Named Provider Configurations
-status: open
+status: in-progress
 priority: medium
 parent: none
 prerequisites: []
-affectedFiles: {}
+affectedFiles:
+  src/core/config/bridgeConfig.ts: Updated TypeScript interface to use 3-level
+    nested provider structure (provider type → configuration name → config
+    object) and updated JSDoc examples to demonstrate the new format
+  src/core/config/bridgeConfigSchema.ts: Updated Zod schema to validate the new
+    3-level nested structure with proper validation rules and updated JSDoc
+    examples and error messages
+  src/client/bridgeClient.ts: Implemented temporary handling for the new nested
+    provider structure, automatically using single configurations and providing
+    clear error messages when multiple configurations exist until providerConfig
+    parameter support is added
+  src/__tests__/createClient.test.ts: Updated all test configurations to use the
+    new 3-level nested structure and corrected expected error paths and test
+    assertions
+  src/__tests__/e2e/shared/createMcpTestConfig.ts: Fixed malformed configuration
+    structure to properly use the new nested provider format
 log: []
 schema: v1.0
-childrenIds: []
+childrenIds:
+  - T-add-providerconfig-parameter
+  - T-add-request-validation-for
+  - T-update-bridgeconfig-interface
+  - T-update-configuration
+  - T-update-model-seeding-to-work
+  - T-update-provider-resolution-to
 created: 2025-09-24T19:08:11.414Z
 updated: 2025-09-24T19:08:11.414Z
 ---

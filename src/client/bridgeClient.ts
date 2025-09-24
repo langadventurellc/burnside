@@ -56,7 +56,9 @@ import { McpToolRegistry } from "../tools/mcp/mcpToolRegistry";
  * const config: BridgeConfig = {
  *   defaultProvider: "openai",
  *   providers: {
- *     openai: { apiKey: "sk-..." }
+ *     openai: {
+ *       default: { apiKey: "sk-..." }
+ *     }
  *   },
  *   defaultModel: "gpt-4"
  * };
@@ -1158,10 +1160,36 @@ export class BridgeClient {
     }
 
     // Transform providers object to Map for internal use
+    // TEMPORARY: Handle new 3-level nested structure until providerConfig parameter is implemented
     const providersMap = new Map<string, Record<string, unknown>>();
     if (config.providers) {
-      for (const [name, providerConfig] of Object.entries(config.providers)) {
-        providersMap.set(name, providerConfig);
+      for (const [providerType, namedConfigs] of Object.entries(
+        config.providers,
+      )) {
+        // Get configuration names for this provider type
+        const configNames = Object.keys(namedConfigs);
+
+        if (configNames.length === 0) {
+          throw new BridgeError(
+            `Provider '${providerType}' has no configurations defined`,
+            "INVALID_CONFIG",
+            { providerType, availableConfigs: configNames },
+          );
+        }
+
+        if (configNames.length > 1) {
+          throw new BridgeError(
+            `Provider '${providerType}' has multiple configurations but providerConfig parameter support is not yet implemented. ` +
+              `This will be supported in upcoming tasks. Available configurations: ${configNames.join(", ")}`,
+            "MULTIPLE_PROVIDER_CONFIGS_NOT_SUPPORTED",
+            { providerType, availableConfigs: configNames },
+          );
+        }
+
+        // TEMPORARY: Use the single configuration for this provider
+        const singleConfigName = configNames[0];
+        const singleConfig = namedConfigs[singleConfigName];
+        providersMap.set(providerType, singleConfig);
       }
     }
 

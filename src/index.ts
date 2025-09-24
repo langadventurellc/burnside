@@ -21,8 +21,12 @@
  * const client = createClient({
  *   defaultProvider: "openai",
  *   providers: {
- *     openai: { apiKey: process.env.OPENAI_API_KEY }
- *   },
+          openai: {
+            default: { apikey: {
+            default: { apiKey: process.env.OPENAI_API_KEY },
+          } },
+          },
+        },
  *   defaultModel: "gpt-4",
  *   timeout: 30000
  * });
@@ -67,7 +71,13 @@
  * // Use registry in client configuration
  * const client = createClient({
  *   defaultProvider: "openai",
- *   providers: { openai: { apiKey: process.env.OPENAI_API_KEY } },
+ *   providers: {
+          openai: {
+            default: { apikey: {
+            default: { apiKey: process.env.OPENAI_API_KEY },
+          } },
+          },
+        },
  *   registryOptions: {
  *     models: { registry: modelRegistry }
  *   }

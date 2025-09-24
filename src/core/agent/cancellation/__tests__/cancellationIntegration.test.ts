@@ -25,8 +25,10 @@ describe("Cancellation Integration Tests", () => {
     client = createClient({
       providers: {
         "mock-provider": {
-          apiKey: "test-key",
-          baseUrl: "https://test.example.com",
+          default: {
+            apiKey: "test-key",
+            baseUrl: "https://test.example.com",
+          },
         },
       },
       defaultModel: "mock-provider:test-model",

@@ -219,7 +219,9 @@ describe("Google Gemini Chat Completion E2E", () => {
       // Create client with invalid API key
       const invalidClient = createGoogleTestClient({
         providers: {
-          google: { apiKey: "invalid-key" },
+          google: {
+            default: { apiKey: "invalid-key" },
+          },
         },
       });
 

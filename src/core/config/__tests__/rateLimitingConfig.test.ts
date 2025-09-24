@@ -317,15 +317,27 @@ describe("Rate Limiting Configuration", () => {
     it("should validate existing configs without rateLimitPolicy", () => {
       const existingConfigs = [
         {
-          providers: { openai: { apiKey: "sk-test" } },
+          providers: {
+            openai: {
+              default: { apiKey: "sk-test" },
+            },
+          },
         },
         {
           defaultProvider: "openai",
-          providers: { openai: { apiKey: "sk-test" } },
+          providers: {
+            openai: {
+              default: { apiKey: "sk-test" },
+            },
+          },
           defaultModel: "gpt-4",
         },
         {
-          providers: { openai: { apiKey: "sk-test" } },
+          providers: {
+            openai: {
+              default: { apiKey: "sk-test" },
+            },
+          },
           timeout: 30000,
           tools: { enabled: true, builtinTools: ["echo"] },
         },

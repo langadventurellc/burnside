@@ -60,7 +60,9 @@ describe("xAI STDIO MCP Tool E2E", () => {
       client = createMcpTestClient({
         defaultProvider: "xai",
         providers: {
-          xai: { apiKey: testConfig.xaiApiKey },
+          xai: {
+            default: { apiKey: testConfig.xaiApiKey },
+          },
         },
         modelSeed: "builtin",
         options: {

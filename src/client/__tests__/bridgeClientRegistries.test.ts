@@ -10,7 +10,9 @@ describe("BridgeClient Registry Integration", () => {
   const validConfig: BridgeConfig = {
     defaultProvider: "openai",
     providers: {
-      openai: { apiKey: "sk-test" },
+      openai: {
+        default: { apiKey: "sk-test" },
+      },
     },
     defaultModel: "gpt-4",
     timeout: 30000,

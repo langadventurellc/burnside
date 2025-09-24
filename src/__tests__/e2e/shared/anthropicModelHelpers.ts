@@ -11,7 +11,9 @@ export function createAnthropicTestClient(
   const config: BridgeConfig = {
     defaultProvider: "anthropic",
     providers: {
-      anthropic: { apiKey: testConfig.anthropicApiKey },
+      anthropic: {
+        default: { apiKey: testConfig.anthropicApiKey },
+      },
     },
     modelSeed: "builtin", // Explicitly use builtin seed to populate registry
     tools: {

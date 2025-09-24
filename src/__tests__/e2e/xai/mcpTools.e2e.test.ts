@@ -59,7 +59,9 @@ describe("xAI MCP Tool Basic Validation E2E", () => {
     client = createMcpTestClient({
       defaultProvider: "xai",
       providers: {
-        xai: { apiKey: testConfig.xaiApiKey },
+        xai: {
+          default: { apiKey: testConfig.xaiApiKey },
+        },
       },
       modelSeed: "builtin",
       options: {

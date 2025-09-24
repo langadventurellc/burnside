@@ -11,7 +11,9 @@ export function createTestClient(
   const config: BridgeConfig = {
     defaultProvider: "xai",
     providers: {
-      xai: { apiKey: testConfig.xaiApiKey },
+      xai: {
+        default: { apiKey: testConfig.xaiApiKey },
+      },
     },
     modelSeed: "builtin", // Use builtin seed to populate registry with Grok models
     tools: {

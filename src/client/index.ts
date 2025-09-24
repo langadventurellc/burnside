@@ -13,7 +13,11 @@
  * // Basic client setup
  * const client = new BridgeClient({
  *   defaultProvider: "openai",
- *   providers: { openai: { apiKey: "sk-..." } }
+ *   providers: {
+          openai: {
+            default: { apiKey: "sk-..." },
+          },
+        }
  * });
  *
  * // Multi-turn conversation with configurable options

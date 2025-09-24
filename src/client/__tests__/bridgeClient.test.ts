@@ -16,7 +16,9 @@ import { logger } from "../../core/logging";
 describe("BridgeClient", () => {
   const validConfig: BridgeConfig = {
     providers: {
-      openai: { apiKey: "sk-test" },
+      openai: {
+        default: { apiKey: "sk-test" },
+      },
     },
     timeout: 30000,
   };
@@ -29,7 +31,9 @@ describe("BridgeClient", () => {
     it("should create instance with minimal configuration", () => {
       const minimalConfig: BridgeConfig = {
         providers: {
-          test: { apiKey: "test-key" },
+          test: {
+            default: { apiKey: "test-key" },
+          },
         },
       };
 
@@ -206,7 +210,9 @@ describe("BridgeClient", () => {
     it("should set default timeout when not provided", () => {
       const configWithoutTimeout: BridgeConfig = {
         providers: {
-          openai: { apiKey: "test" },
+          openai: {
+            default: { apiKey: "test" },
+          },
         },
       };
 
@@ -222,13 +228,17 @@ describe("BridgeClient", () => {
       const complexConfig: BridgeConfig = {
         providers: {
           openai: {
-            apiKey: "sk-openai-test",
-            baseURL: "https://api.openai.com",
-            organization: "org-test",
+            default: {
+              apiKey: "sk-openai-test",
+              baseURL: "https://api.openai.com",
+              organization: "org-test",
+            },
           },
           anthropic: {
-            apiKey: "sk-ant-test",
-            baseURL: "https://api.anthropic.com",
+            default: {
+              apiKey: "sk-ant-test",
+              baseURL: "https://api.anthropic.com",
+            },
           },
         },
         timeout: 45000,
@@ -250,7 +260,9 @@ describe("BridgeClient", () => {
     it("should handle empty options gracefully", () => {
       const configWithoutOptions: BridgeConfig = {
         providers: {
-          test: { apiKey: "test" },
+          test: {
+            default: { apiKey: "test" },
+          },
         },
       };
 
@@ -759,8 +771,12 @@ describe("BridgeClient", () => {
 
     const testConfig: BridgeConfig = {
       providers: {
-        openai: { apiKey: "sk-test" },
-        anthropic: { apiKey: "sk-ant-test" },
+        openai: {
+          default: { apiKey: "sk-test" },
+        },
+        anthropic: {
+          default: { apiKey: "sk-ant-test" },
+        },
       },
       timeout: 30000,
     };

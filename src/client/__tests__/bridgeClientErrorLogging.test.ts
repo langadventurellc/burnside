@@ -30,7 +30,9 @@ describe("BridgeClient Error Logging", () => {
     const config: BridgeConfig = {
       providers: {
         openai: {
-          apiKey: "test-key",
+          default: {
+            apiKey: "test-key",
+          },
         },
       },
       defaultProvider: "openai",

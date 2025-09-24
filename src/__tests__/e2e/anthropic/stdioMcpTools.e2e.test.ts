@@ -60,7 +60,9 @@ describe("Anthropic STDIO MCP Tool E2E", () => {
       client = createMcpTestClient({
         defaultProvider: "anthropic",
         providers: {
-          anthropic: { apiKey: testConfig.anthropicApiKey },
+          anthropic: {
+            default: { apiKey: testConfig.anthropicApiKey },
+          },
         },
         modelSeed: "builtin",
         options: {

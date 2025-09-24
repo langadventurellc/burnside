@@ -24,7 +24,9 @@ describe("MCP Test Helpers", () => {
         defaultProvider: "openai",
         providers: {
           openai: {
-            apiKey: expect.any(String),
+            default: {
+              apiKey: expect.any(String),
+            },
           },
         },
         tools: {
@@ -292,7 +294,9 @@ describe("MCP Test Helpers", () => {
       const customConfig = {
         defaultProvider: "anthropic" as const,
         providers: {
-          anthropic: { apiKey: "custom-key" },
+          anthropic: {
+            default: { apiKey: "custom-key" },
+          },
         },
       };
 

@@ -60,7 +60,9 @@ describe("OpenAI STDIO MCP Tool E2E", () => {
       client = createMcpTestClient({
         defaultProvider: "openai",
         providers: {
-          openai: { apiKey: testConfig.openaiApiKey },
+          openai: {
+            default: { apiKey: testConfig.openaiApiKey },
+          },
         },
         modelSeed: "builtin",
         options: {

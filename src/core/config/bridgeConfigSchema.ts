@@ -14,7 +14,13 @@ import { z } from "zod";
  * const config = {
  *   defaultProvider: "openai",
  *   providers: {
- *     openai: { apiKey: "sk-..." }
+ *     openai: {
+ *       prod: { apiKey: "sk-prod...", timeout: 30000 },
+ *       dev: { apiKey: "sk-dev...", timeout: 10000 }
+ *     },
+ *     anthropic: {
+ *       main: { apiKey: "sk-ant-...", maxTokens: 4096 }
+ *     }
  *   },
  *   rateLimitPolicy: {
  *     enabled: true,
@@ -40,11 +46,18 @@ export const BridgeConfigSchema = z
       .min(1, "Default provider cannot be empty")
       .optional(),
 
-    /** Configuration for each provider */
+    /** Configuration for each provider with named configurations
+     * - First level: provider type (e.g., "openai", "anthropic")
+     * - Second level: configuration name (e.g., "prod", "dev")
+     * - Third level: actual configuration object
+     */
     providers: z
       .record(
-        z.string().min(1, "Provider name cannot be empty"),
-        z.record(z.string(), z.unknown()),
+        z.string().min(1, "Provider type cannot be empty"),
+        z.record(
+          z.string().min(1, "Configuration name cannot be empty"),
+          z.record(z.string(), z.unknown()),
+        ),
       )
       .optional(),
 

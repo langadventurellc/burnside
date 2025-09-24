@@ -5,9 +5,7 @@ describe("BridgeConfigSchema", () => {
     it("should accept minimal valid config with providers only", () => {
       const config = {
         providers: {
-          openai: {
-            default: { apiKey: "sk-test" },
-          },
+          openai: { apiKey: "sk-test" },
         },
       };
 
@@ -28,12 +26,8 @@ describe("BridgeConfigSchema", () => {
       const config = {
         defaultProvider: "openai",
         providers: {
-          openai: {
-            default: { apiKey: "sk-test", temperature: 0.7 },
-          },
-          anthropic: {
-            default: { apiKey: "sk-ant-test" },
-          },
+          openai: { apiKey: "sk-test", temperature: 0.7 },
+          anthropic: { apiKey: "sk-ant-test" },
         },
         defaultModel: "gpt-4",
         timeout: 30000,
@@ -60,17 +54,13 @@ describe("BridgeConfigSchema", () => {
       const config = {
         providers: {
           openai: {
-            default: {
-              apiKey: "sk-test",
-              baseUrl: "https://api.openai.com/v1",
-              maxRetries: 3,
-            },
+            apiKey: "sk-test",
+            baseUrl: "https://api.openai.com/v1",
+            maxRetries: 3,
           },
           anthropic: {
-            default: {
-              apiKey: "sk-ant-test",
-              version: "2023-06-01",
-            },
+            apiKey: "sk-ant-test",
+            version: "2023-06-01",
           },
         },
       };
@@ -90,11 +80,7 @@ describe("BridgeConfigSchema", () => {
     it("should reject configuration with empty defaultProvider", () => {
       const config = {
         defaultProvider: "",
-        providers: {
-          openai: {
-            default: { apiKey: "sk-test" },
-          },
-        },
+        providers: { openai: { apiKey: "sk-test" } },
       };
 
       expect(() => BridgeConfigSchema.parse(config)).toThrow(
@@ -110,17 +96,13 @@ describe("BridgeConfigSchema", () => {
       };
 
       expect(() => BridgeConfigSchema.parse(config)).toThrow(
-        /Provider type cannot be empty/,
+        /Provider name cannot be empty/,
       );
     });
 
     it("should reject configuration with empty defaultModel", () => {
       const config = {
-        providers: {
-          openai: {
-            default: { apiKey: "sk-test" },
-          },
-        },
+        providers: { openai: { apiKey: "sk-test" } },
         defaultModel: "",
       };
 
@@ -161,9 +143,7 @@ describe("BridgeConfigSchema", () => {
       const config = {
         defaultProvider: "missing",
         providers: {
-          openai: {
-            default: { apiKey: "sk-test" },
-          },
+          openai: { apiKey: "sk-test" },
         },
       };
 
@@ -210,12 +190,8 @@ describe("BridgeConfigSchema", () => {
     it("should allow providers without defaultProvider", () => {
       const config = {
         providers: {
-          openai: {
-            default: { apiKey: "sk-test" },
-          },
-          anthropic: {
-            default: { apiKey: "sk-ant-test" },
-          },
+          openai: { apiKey: "sk-test" },
+          anthropic: { apiKey: "sk-ant-test" },
         },
         defaultModel: "gpt-4",
       };
@@ -227,12 +203,8 @@ describe("BridgeConfigSchema", () => {
       const config = {
         defaultProvider: "anthropic",
         providers: {
-          openai: {
-            default: { apiKey: "sk-test" },
-          },
-          anthropic: {
-            default: { apiKey: "sk-ant-test" },
-          },
+          openai: { apiKey: "sk-test" },
+          anthropic: { apiKey: "sk-ant-test" },
         },
       };
 
@@ -244,13 +216,11 @@ describe("BridgeConfigSchema", () => {
         defaultProvider: "openai",
         providers: {
           openai: {
-            default: {
-              apiKey: "sk-test",
-              config: {
-                temperature: 0.7,
-                maxTokens: 1000,
-                nested: { deep: true },
-              },
+            apiKey: "sk-test",
+            config: {
+              temperature: 0.7,
+              maxTokens: 1000,
+              nested: { deep: true },
             },
           },
         },
@@ -265,9 +235,7 @@ describe("BridgeConfigSchema", () => {
       const config = {
         defaultProvider: "openai",
         providers: {
-          openai: {
-            default: { apiKey: "sk-test" },
-          },
+          openai: { apiKey: "sk-test" },
         },
         defaultModel: "gpt-4",
         timeout: 30000,
@@ -278,9 +246,8 @@ describe("BridgeConfigSchema", () => {
 
       // TypeScript compilation test
       const provider: string | undefined = result.defaultProvider;
-      const providers:
-        | Record<string, Record<string, Record<string, unknown>>>
-        | undefined = result.providers;
+      const providers: Record<string, Record<string, Record<string, unknown>>> | undefined =
+        result.providers;
       const model: string | undefined = result.defaultModel;
       const timeout: number | undefined = result.timeout;
       const options: Record<string, unknown> | undefined = result.options;
@@ -297,11 +264,7 @@ describe("BridgeConfigSchema", () => {
     describe("valid tools configurations", () => {
       it("should accept minimal tools configuration with enabled=false", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: false,
             builtinTools: [],
@@ -317,11 +280,7 @@ describe("BridgeConfigSchema", () => {
 
       it("should accept tools configuration with enabled=true and builtinTools", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -337,11 +296,7 @@ describe("BridgeConfigSchema", () => {
 
       it("should accept complete tools configuration with all fields", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -361,11 +316,7 @@ describe("BridgeConfigSchema", () => {
 
       it("should accept tools configuration with multiple builtin tools", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo", "calculator", "weather"],
@@ -438,11 +389,7 @@ describe("BridgeConfigSchema", () => {
     describe("invalid tools configurations", () => {
       it("should reject tools configuration with non-boolean enabled", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: "true" as any,
             builtinTools: [],
@@ -454,11 +401,7 @@ describe("BridgeConfigSchema", () => {
 
       it("should reject tools configuration with non-array builtinTools", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: "echo" as any,
@@ -470,11 +413,7 @@ describe("BridgeConfigSchema", () => {
 
       it("should reject tools configuration with empty builtin tool names", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo", "", "calculator"],
@@ -550,12 +489,8 @@ describe("BridgeConfigSchema", () => {
         const config = {
           defaultProvider: "openai",
           providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-            anthropic: {
-              default: { apiKey: "sk-ant-test" },
-            },
+            openai: { apiKey: "sk-test" },
+            anthropic: { apiKey: "sk-ant-test" },
           },
           defaultModel: "gpt-4",
           timeout: 30000,
@@ -575,9 +510,7 @@ describe("BridgeConfigSchema", () => {
         const config = {
           defaultProvider: "openai",
           providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
+            openai: { apiKey: "sk-test" },
           },
           defaultModel: "gpt-4",
           timeout: 30000,
@@ -590,11 +523,7 @@ describe("BridgeConfigSchema", () => {
 
       it("should handle tools configuration with optional fields omitted", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: false,
             builtinTools: ["echo"],
@@ -615,11 +544,7 @@ describe("BridgeConfigSchema", () => {
     describe("tools configuration type inference", () => {
       it("should infer correct types for tools configuration", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -653,9 +578,7 @@ describe("BridgeConfigSchema", () => {
       const config = {
         defaultProvider: "openai",
         providers: {
-          openai: {
-            default: { apiKey: "sk-test" },
-          },
+          openai: { apiKey: "sk-test" },
         },
         rateLimitPolicy: {
           enabled: true,
@@ -677,9 +600,7 @@ describe("BridgeConfigSchema", () => {
     it("should accept configuration with tools and rate limiting", () => {
       const config = {
         providers: {
-          openai: {
-            default: { apiKey: "sk-test" },
-          },
+          openai: { apiKey: "sk-test" },
         },
         tools: {
           enabled: true,
@@ -703,9 +624,7 @@ describe("BridgeConfigSchema", () => {
       const config = {
         defaultProvider: "missing", // Invalid - not in providers
         providers: {
-          openai: {
-            default: { apiKey: "sk-test" },
-          },
+          openai: { apiKey: "sk-test" },
         },
         rateLimitPolicy: {
           enabled: true,
@@ -723,17 +642,13 @@ describe("BridgeConfigSchema", () => {
         defaultProvider: "openai",
         providers: {
           openai: {
-            default: {
-              apiKey: "sk-test",
-              baseUrl: "https://api.openai.com/v1",
-              maxRetries: 3,
-            },
+            apiKey: "sk-test",
+            baseUrl: "https://api.openai.com/v1",
+            maxRetries: 3,
           },
           anthropic: {
-            default: {
-              apiKey: "sk-ant-test",
-              version: "2023-06-01",
-            },
+            apiKey: "sk-ant-test",
+            version: "2023-06-01",
           },
         },
         defaultModel: "gpt-4",
@@ -757,11 +672,7 @@ describe("BridgeConfigSchema", () => {
     describe("valid MCP server configurations", () => {
       it("should accept tools configuration without mcpServers (backward compatibility)", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -774,11 +685,7 @@ describe("BridgeConfigSchema", () => {
 
       it("should accept tools configuration with empty mcpServers array", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -792,11 +699,7 @@ describe("BridgeConfigSchema", () => {
 
       it("should accept single valid MCP server configuration", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -820,11 +723,7 @@ describe("BridgeConfigSchema", () => {
 
       it("should accept multiple valid MCP server configurations", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -1048,9 +947,7 @@ describe("BridgeConfigSchema", () => {
         const config = {
           defaultProvider: "openai",
           providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
+            openai: { apiKey: "sk-test" },
           },
           tools: {
             enabled: true,
@@ -1079,11 +976,7 @@ describe("BridgeConfigSchema", () => {
 
       it("should accept MCP servers with rate limiting and retry policies", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: [],
@@ -1113,11 +1006,7 @@ describe("BridgeConfigSchema", () => {
     describe("MCP server configuration type inference", () => {
       it("should infer correct types for MCP server configuration", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -1154,11 +1043,7 @@ describe("BridgeConfigSchema", () => {
     describe("valid STDIO MCP server configurations", () => {
       it("should accept STDIO server with command only", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -1182,11 +1067,7 @@ describe("BridgeConfigSchema", () => {
 
       it("should accept STDIO server with command and args", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -1212,11 +1093,7 @@ describe("BridgeConfigSchema", () => {
 
       it("should accept multiple STDIO servers", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -1250,11 +1127,7 @@ describe("BridgeConfigSchema", () => {
 
       it("should accept mixed HTTP and STDIO servers", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -1411,11 +1284,7 @@ describe("BridgeConfigSchema", () => {
     describe("STDIO MCP server configuration type inference", () => {
       it("should infer correct types for STDIO server configuration", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -1456,11 +1325,7 @@ describe("BridgeConfigSchema", () => {
     describe("valid mcpToolFailureStrategy configurations", () => {
       it("should accept 'immediate_unregister' strategy", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -1476,11 +1341,7 @@ describe("BridgeConfigSchema", () => {
 
       it("should accept 'mark_unavailable' strategy", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -1494,11 +1355,7 @@ describe("BridgeConfigSchema", () => {
 
       it("should accept undefined as a valid value", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -1512,11 +1369,7 @@ describe("BridgeConfigSchema", () => {
 
       it("should leave field undefined when not specified", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -1529,11 +1382,7 @@ describe("BridgeConfigSchema", () => {
 
       it("should work with complete tools configuration including MCP servers", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -1559,11 +1408,7 @@ describe("BridgeConfigSchema", () => {
     describe("invalid mcpToolFailureStrategy configurations", () => {
       it("should reject invalid strategy value", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -1578,11 +1423,7 @@ describe("BridgeConfigSchema", () => {
 
       it("should reject empty string strategy", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -1597,11 +1438,7 @@ describe("BridgeConfigSchema", () => {
 
       it("should reject numeric strategy value", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -1618,11 +1455,7 @@ describe("BridgeConfigSchema", () => {
     describe("mcpToolFailureStrategy type inference", () => {
       it("should infer correct types for failure strategy", () => {
         const config = {
-          providers: {
-            openai: {
-              default: { apiKey: "sk-test" },
-            },
-          },
+          providers: { openai: { apiKey: "sk-test" } },
           tools: {
             enabled: true,
             builtinTools: ["echo"],
@@ -1648,9 +1481,7 @@ describe("BridgeConfigSchema", () => {
       const config = {
         defaultProvider: "openai",
         providers: {
-          openai: {
-            default: { apiKey: "sk-test" },
-          },
+          openai: { apiKey: "sk-test" },
         },
         retryPolicy: {
           attempts: 3,
@@ -1676,9 +1507,7 @@ describe("BridgeConfigSchema", () => {
     it("should accept configuration with tools, rate limiting, and retry policy", () => {
       const config = {
         providers: {
-          openai: {
-            default: { apiKey: "sk-test" },
-          },
+          openai: { apiKey: "sk-test" },
         },
         tools: {
           enabled: true,
@@ -1709,9 +1538,7 @@ describe("BridgeConfigSchema", () => {
       const config = {
         defaultProvider: "missing", // Invalid - not in providers
         providers: {
-          openai: {
-            default: { apiKey: "sk-test" },
-          },
+          openai: { apiKey: "sk-test" },
         },
         retryPolicy: {
           attempts: 3,
@@ -1728,15 +1555,11 @@ describe("BridgeConfigSchema", () => {
         defaultProvider: "openai",
         providers: {
           openai: {
-            default: {
-              apiKey: "sk-test",
-              baseUrl: "https://api.openai.com/v1",
-            },
+            apiKey: "sk-test",
+            baseUrl: "https://api.openai.com/v1",
           },
           anthropic: {
-            default: {
-              apiKey: "sk-ant-test",
-            },
+            apiKey: "sk-ant-test",
           },
         },
         defaultModel: "gpt-4",

@@ -11,7 +11,9 @@ export function createGoogleTestClient(
   const config: BridgeConfig = {
     defaultProvider: "google",
     providers: {
-      google: { apiKey: testConfig.googleApiKey },
+      google: {
+        default: { apiKey: testConfig.googleApiKey },
+      },
     },
     modelSeed: "builtin", // Explicitly use builtin seed to populate registry
     tools: {

@@ -211,7 +211,9 @@ describe("OpenAI Chat Completion E2E", () => {
       // Create client with invalid API key
       const invalidClient = createTestClient({
         providers: {
-          openai: { apiKey: "invalid-key" },
+          openai: {
+            default: { apiKey: "invalid-key" },
+          },
         },
       });
 

@@ -209,7 +209,9 @@ describe("xAI Chat Completion E2E", () => {
       // Create client with invalid API key
       const invalidClient = createTestClient({
         providers: {
-          xai: { apiKey: "invalid-key" },
+          xai: {
+            default: { apiKey: "invalid-key" },
+          },
         },
       });
 

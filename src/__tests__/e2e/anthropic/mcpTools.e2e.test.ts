@@ -60,7 +60,9 @@ describe("Anthropic MCP Tool Basic Validation E2E", () => {
       client = createMcpTestClient({
         defaultProvider: "anthropic",
         providers: {
-          anthropic: { apiKey: testConfig.anthropicApiKey },
+          anthropic: {
+            default: { apiKey: testConfig.anthropicApiKey },
+          },
         },
         modelSeed: "builtin",
         options: {

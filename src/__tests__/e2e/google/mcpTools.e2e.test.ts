@@ -59,7 +59,9 @@ describe("Google MCP Tool Basic Validation E2E", () => {
     client = createMcpTestClient({
       defaultProvider: "google",
       providers: {
-        google: { apiKey: testConfig.googleApiKey },
+        google: {
+          default: { apiKey: testConfig.googleApiKey },
+        },
       },
       modelSeed: "builtin",
       options: {
