@@ -2,7 +2,6 @@
   "name": "@langadventurellc/burnside",
   "version": "0.0.0-development",
   "description": "A TypeScript LLM provider adapter with MCP support for Desktop, Mobile, and API platforms.",
-  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/langadventurellc/burnside.git"
@@ -13,12 +12,14 @@
   },
   "license": "GPL-3.0-only",
   "homepage": "https://github.com/langadventurellc/burnside#readme",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
     }
   },
   "files": [
@@ -29,7 +30,9 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "npm run clean && npm run build:esm && npm run build:cjs",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
     "clean": "rm -rf dist",
     "test": "jest",
     "test:e2e": "NODE_OPTIONS='--import=dotenv/config' jest --config jest.e2e.config.mjs",
