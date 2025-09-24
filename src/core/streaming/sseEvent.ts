@@ -40,5 +40,5 @@ export const sseEventSchema = z.object({
   data: z.string().optional(),
   event: z.string().optional(),
   id: z.string().optional(),
-  retry: z.number().int().min(0).optional(),
+  retry: z.int().min(0).optional(),
 });

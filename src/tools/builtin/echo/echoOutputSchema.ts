@@ -16,8 +16,7 @@ export const EchoOutputSchema = z.object({
     .record(z.string(), z.unknown())
     .describe("Echoed input parameters identical to provided input"),
   metadata: z.object({
-    timestamp: z
-      .string()
+    timestamp: z.iso
       .datetime()
       .describe("ISO 8601 timestamp of tool execution"),
     contextId: z

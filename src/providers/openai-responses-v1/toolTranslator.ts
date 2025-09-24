@@ -19,6 +19,7 @@
 import { z } from "zod";
 import { ValidationError } from "../../core/errors/validationError";
 import { OpenAIToolSchema, type OpenAITool } from "./openAIToolSchema";
+import isZodSchema from "../../core/validation/isZodSchema";
 
 // Type definition compatible with the actual ToolDefinition from core
 interface ToolDefinition {
@@ -131,205 +132,37 @@ export function translateToolDefinitionToOpenAI(
  * @throws ValidationError for unsupported Zod schema types
  */
 function extractJSONSchemaFromZod(schema: z.ZodTypeAny | object): JSONSchema {
-  // If it's already a JSON Schema object, return it
   if (!isZodSchema(schema)) {
     return schema as JSONSchema;
   }
 
-  const zodSchema = schema;
-
   try {
-    return convertZodToJSONSchema(zodSchema);
+    return convertZodToJSONSchema(schema);
   } catch (error) {
     throw new ValidationError(
-      `Failed to convert Zod schema to JSON Schema: ${error instanceof Error ? error.message : "Unknown error"}`,
-      { zodSchema: zodSchema.constructor.name, originalError: error },
+      `Failed to convert Zod schema to JSON Schema: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
+      { zodSchema: schema.constructor.name, originalError: error },
     );
   }
 }
 
 /**
- * Check if a schema is a Zod schema instance
- */
-function isZodSchema(schema: unknown): schema is z.ZodTypeAny {
-  return schema instanceof z.ZodType;
-}
-
-/**
  * Convert Zod schema to JSON Schema format
- *
- * @param zodSchema - The Zod schema to convert
- * @returns JSON Schema object
- * @throws Error for unsupported Zod schema types
  */
 function convertZodToJSONSchema(zodSchema: z.ZodTypeAny): JSONSchema {
-  return (
-    convertZodObject(zodSchema) ||
-    convertZodString(zodSchema) ||
-    convertZodNumber(zodSchema) ||
-    convertZodBoolean(zodSchema) ||
-    convertZodEnum(zodSchema) ||
-    convertZodArray(zodSchema) ||
-    convertZodOptional(zodSchema) ||
-    convertZodDefault(zodSchema) ||
-    throwUnsupportedError(zodSchema)
-  );
-}
+  const jsonSchema = z.toJSONSchema(zodSchema);
 
-/**
- * Convert ZodObject to JSON Schema
- */
-function convertZodObject(zodSchema: z.ZodTypeAny): JSONSchema | null {
-  if (!(zodSchema instanceof z.ZodObject)) {
-    return null;
+  if (
+    !jsonSchema ||
+    typeof jsonSchema !== "object" ||
+    Array.isArray(jsonSchema)
+  ) {
+    throw new Error(
+      `Unsupported JSON Schema output for ${zodSchema.constructor.name}`,
+    );
   }
 
-  const shape = zodSchema._def.shape() as Record<string, z.ZodTypeAny>;
-  const properties: Record<string, JSONSchema> = {};
-  const required: string[] = [];
-
-  for (const [key, zodValue] of Object.entries(shape)) {
-    properties[key] = convertZodToJSONSchema(zodValue);
-
-    // Check if field is required (not optional)
-    if (
-      !(zodValue instanceof z.ZodOptional) &&
-      !(zodValue instanceof z.ZodDefault)
-    ) {
-      required.push(key);
-    }
-  }
-
-  const result: JSONSchema = {
-    type: "object",
-    properties,
-    additionalProperties: false,
-  };
-
-  if (required.length > 0) {
-    result.required = required;
-  }
-
-  return result;
-}
-
-/**
- * Convert ZodString to JSON Schema
- */
-function convertZodString(zodSchema: z.ZodTypeAny): JSONSchema | null {
-  if (!(zodSchema instanceof z.ZodString)) {
-    return null;
-  }
-
-  const jsonSchema: JSONSchema = { type: "string" };
-
-  // Extract description from error messages if available
-  const def = zodSchema._def;
-  if (def.checks) {
-    for (const check of def.checks) {
-      if (check.message) {
-        jsonSchema.description = check.message;
-        break;
-      }
-    }
-  }
-
-  return jsonSchema;
-}
-
-/**
- * Convert ZodNumber to JSON Schema
- */
-function convertZodNumber(zodSchema: z.ZodTypeAny): JSONSchema | null {
-  if (!(zodSchema instanceof z.ZodNumber)) {
-    return null;
-  }
-
-  const jsonSchema: JSONSchema = { type: "number" };
-
-  // Extract min/max constraints
-  const def = zodSchema._def;
-  if (def.checks) {
-    for (const check of def.checks) {
-      if (check.kind === "min") {
-        jsonSchema.minimum = check.value;
-      } else if (check.kind === "max") {
-        jsonSchema.maximum = check.value;
-      }
-    }
-  }
-
-  return jsonSchema;
-}
-
-/**
- * Convert ZodBoolean to JSON Schema
- */
-function convertZodBoolean(zodSchema: z.ZodTypeAny): JSONSchema | null {
-  if (!(zodSchema instanceof z.ZodBoolean)) {
-    return null;
-  }
-
-  return { type: "boolean" };
-}
-
-/**
- * Convert ZodEnum to JSON Schema
- */
-function convertZodEnum(zodSchema: z.ZodTypeAny): JSONSchema | null {
-  if (!(zodSchema instanceof z.ZodEnum)) {
-    return null;
-  }
-
-  return {
-    type: "string",
-    enum: zodSchema._def.values as string[],
-  };
-}
-
-/**
- * Convert ZodArray to JSON Schema
- */
-function convertZodArray(zodSchema: z.ZodTypeAny): JSONSchema | null {
-  if (!(zodSchema instanceof z.ZodArray)) {
-    return null;
-  }
-
-  return {
-    type: "array",
-    items: convertZodToJSONSchema(zodSchema._def.type as z.ZodTypeAny),
-  };
-}
-
-/**
- * Convert ZodOptional to JSON Schema
- */
-function convertZodOptional(zodSchema: z.ZodTypeAny): JSONSchema | null {
-  if (!(zodSchema instanceof z.ZodOptional)) {
-    return null;
-  }
-
-  return convertZodToJSONSchema(zodSchema._def.innerType as z.ZodTypeAny);
-}
-
-/**
- * Convert ZodDefault to JSON Schema
- */
-function convertZodDefault(zodSchema: z.ZodTypeAny): JSONSchema | null {
-  if (!(zodSchema instanceof z.ZodDefault)) {
-    return null;
-  }
-
-  const jsonSchema = convertZodToJSONSchema(
-    zodSchema._def.innerType as z.ZodTypeAny,
-  );
-  jsonSchema.default = zodSchema._def.defaultValue();
-  return jsonSchema;
-}
-
-/**
- * Throw error for unsupported schema types
- */
-function throwUnsupportedError(zodSchema: z.ZodTypeAny): never {
-  throw new Error(`Unsupported Zod schema type: ${zodSchema.constructor.name}`);
+  return jsonSchema as JSONSchema;
 }

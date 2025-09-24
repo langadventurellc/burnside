@@ -153,7 +153,7 @@ export function parseAnthropicResponse(
       provider: "anthropic",
       status: response.status,
       statusText: response.statusText,
-      validationErrors: validationResult.error.errors,
+      validationErrors: validationResult.error.issues,
       responseType: typeof parsed,
     });
 
@@ -166,7 +166,7 @@ export function parseAnthropicResponse(
     throw new ValidationError("Invalid Anthropic response structure", {
       status: response.status,
       statusText: response.statusText,
-      validationErrors: validationResult.error.errors,
+      validationErrors: validationResult.error.issues,
       responseData: typeof parsed === "object" ? parsed : { raw: parsed },
     });
   }

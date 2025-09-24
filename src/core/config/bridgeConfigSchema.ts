@@ -53,7 +53,6 @@ export const BridgeConfigSchema = z
 
     /** Request timeout in milliseconds */
     timeout: z
-      .number()
       .int("Timeout must be an integer")
       .min(1000, "Timeout must be at least 1000ms")
       .max(300000, "Timeout must not exceed 300000ms")
@@ -93,7 +92,6 @@ export const BridgeConfigSchema = z
           .describe("List of enabled built-in tools"),
         /** Tool execution timeout in milliseconds */
         executionTimeoutMs: z
-          .number()
           .int("Execution timeout must be an integer")
           .min(1000, "Execution timeout must be at least 1000ms")
           .max(300000, "Execution timeout must not exceed 300000ms")
@@ -101,7 +99,6 @@ export const BridgeConfigSchema = z
           .describe("Tool execution timeout in milliseconds"),
         /** Maximum concurrent tool executions (future use) */
         maxConcurrentTools: z
-          .number()
           .int("Max concurrent tools must be an integer")
           .min(1, "Max concurrent tools must be at least 1")
           .max(10, "Max concurrent tools must not exceed 10")
@@ -119,7 +116,6 @@ export const BridgeConfigSchema = z
                   .describe("MCP server name"),
                 /** MCP server URL for HTTP-based servers */
                 url: z
-                  .string()
                   .url("MCP server URL must be valid")
                   .refine(
                     (url) =>
@@ -171,7 +167,7 @@ export const BridgeConfigSchema = z
         /** Enable/disable rate limiting */
         enabled: z
           .boolean()
-          .default(false)
+          .prefault(false)
           .describe("Enable rate limiting functionality"),
 
         /** Maximum requests per second */
@@ -193,7 +189,7 @@ export const BridgeConfigSchema = z
         /** Rate limiting scope */
         scope: z
           .enum(["global", "provider", "provider:model", "provider:model:key"])
-          .default("provider:model:key")
+          .prefault("provider:model:key")
           .describe("Rate limiting scope granularity"),
       })
       .optional()
@@ -207,7 +203,7 @@ export const BridgeConfigSchema = z
           return true;
         },
         {
-          message: "maxRps is required when rate limiting is enabled",
+          error: "maxRps is required when rate limiting is enabled",
         },
       )
       .transform((policy) => {
@@ -226,17 +222,16 @@ export const BridgeConfigSchema = z
       .object({
         /** Number of retry attempts */
         attempts: z
-          .number()
           .int("Attempts must be an integer")
           .min(0, "Attempts cannot be negative")
           .max(10, "Attempts cannot exceed 10")
-          .default(2)
+          .prefault(2)
           .describe("Number of retry attempts"),
 
         /** Backoff strategy */
         backoff: z
           .enum(["exponential", "linear"])
-          .default("exponential")
+          .prefault("exponential")
           .describe("Backoff strategy type"),
 
         /** Base delay in milliseconds */
@@ -244,7 +239,7 @@ export const BridgeConfigSchema = z
           .number()
           .positive("Base delay must be positive")
           .max(60000, "Base delay cannot exceed 60 seconds")
-          .default(1000)
+          .prefault(1000)
           .describe("Base delay in milliseconds"),
 
         /** Maximum delay in milliseconds */
@@ -252,19 +247,19 @@ export const BridgeConfigSchema = z
           .number()
           .positive("Max delay must be positive")
           .max(300000, "Max delay cannot exceed 5 minutes")
-          .default(30000)
+          .prefault(30000)
           .describe("Maximum delay in milliseconds"),
 
         /** Enable jitter */
         jitter: z
           .boolean()
-          .default(true)
+          .prefault(true)
           .describe("Enable jitter to prevent thundering herd"),
 
         /** Retryable status codes */
         retryableStatusCodes: z
-          .array(z.number().int().min(100).max(599))
-          .default([429, 500, 502, 503, 504])
+          .array(z.int().min(100).max(599))
+          .prefault([429, 500, 502, 503, 504])
           .describe("HTTP status codes that trigger retries"),
       })
       .optional()
@@ -278,7 +273,7 @@ export const BridgeConfigSchema = z
           return true;
         },
         {
-          message: "baseDelayMs must be less than or equal to maxDelayMs",
+          error: "baseDelayMs must be less than or equal to maxDelayMs",
         },
       ),
   })
@@ -286,7 +281,7 @@ export const BridgeConfigSchema = z
     // At least one of defaultProvider or providers must be specified
     if (!config.defaultProvider && !config.providers) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Configuration must specify providers",
         path: ["defaultProvider"],
       });
@@ -300,7 +295,7 @@ export const BridgeConfigSchema = z
       !config.providers[config.defaultProvider]
     ) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: `Default provider '${config.defaultProvider}' not found in providers configuration`,
         path: ["defaultProvider"],
       });

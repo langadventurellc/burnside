@@ -18,51 +18,43 @@
 import { z } from "zod";
 import { commonSchemas } from "../validation/commonSchemas";
 
-const TextContentSchema = z
-  .object({
-    type: z.literal("text"),
-    text: z
-      .string()
-      .min(1, "Text content cannot be empty")
-      .refine(
-        (text) => text.trim().length > 0,
-        "Text content cannot be only whitespace",
-      ),
-  })
-  .strict();
+const TextContentSchema = z.strictObject({
+  type: z.literal("text"),
+  text: z
+    .string()
+    .min(1, "Text content cannot be empty")
+    .refine(
+      (text) => text.trim().length > 0,
+      "Text content cannot be only whitespace",
+    ),
+});
 
-const ImageContentSchema = z
-  .object({
-    type: z.literal("image"),
-    data: commonSchemas.base64,
-    mimeType: commonSchemas.imageMimeType,
-    alt: z.string().optional(),
-  })
-  .strict();
+const ImageContentSchema = z.strictObject({
+  type: z.literal("image"),
+  data: commonSchemas.base64,
+  mimeType: commonSchemas.imageMimeType,
+  alt: z.string().optional(),
+});
 
-const DocumentContentSchema = z
-  .object({
-    type: z.literal("document"),
-    data: commonSchemas.base64,
-    mimeType: commonSchemas.documentMimeType,
-    name: commonSchemas.filename.optional(),
-  })
-  .strict();
+const DocumentContentSchema = z.strictObject({
+  type: z.literal("document"),
+  data: commonSchemas.base64,
+  mimeType: commonSchemas.documentMimeType,
+  name: commonSchemas.filename.optional(),
+});
 
-const CodeContentSchema = z
-  .object({
-    type: z.literal("code"),
-    text: z
-      .string()
-      .min(1, "Code content cannot be empty")
-      .refine(
-        (text) => text.trim().length > 0,
-        "Code content cannot be only whitespace",
-      ),
-    language: commonSchemas.languageIdentifier.optional(),
-    filename: commonSchemas.filename.optional(),
-  })
-  .strict();
+const CodeContentSchema = z.strictObject({
+  type: z.literal("code"),
+  text: z
+    .string()
+    .min(1, "Code content cannot be empty")
+    .refine(
+      (text) => text.trim().length > 0,
+      "Code content cannot be only whitespace",
+    ),
+  language: commonSchemas.languageIdentifier.optional(),
+  filename: commonSchemas.filename.optional(),
+});
 
 /**
  * Discriminated union schema for all ContentPart types.

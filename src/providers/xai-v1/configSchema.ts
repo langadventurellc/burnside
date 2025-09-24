@@ -21,23 +21,24 @@ import { z } from "zod";
 export const XAIV1ConfigSchema = z.object({
   /** API key validation with xAI-specific format enforcement */
   apiKey: z
-    .string({ required_error: "API key is required" })
+    .string({
+      error: (issue) =>
+        issue.input === undefined ? "API key is required" : undefined,
+    })
     .min(1, "API key is required")
     .startsWith("xai-", "API key must start with 'xai-'"),
 
   /** Base URL validation with HTTPS enforcement */
   baseUrl: z
-    .string()
     .url("Invalid base URL format")
     .refine(
       (url) => url.startsWith("https://"),
       "Base URL must use HTTPS protocol",
     )
-    .default("https://api.x.ai/v1"),
+    .prefault("https://api.x.ai/v1"),
 
   /** Timeout validation with reasonable limits */
   timeout: z
-    .number()
     .int("Timeout must be an integer")
     .positive("Timeout must be positive")
     .max(300000, "Timeout cannot exceed 300000ms")
@@ -54,11 +55,10 @@ export const XAIV1ConfigSchema = z.object({
 
   /** Retry count validation within safe bounds */
   maxRetries: z
-    .number()
     .int("Max retries must be an integer")
     .min(0, "Max retries cannot be negative")
     .max(5, "Max retries cannot exceed 5")
-    .default(3),
+    .prefault(3),
 });
 
 /**

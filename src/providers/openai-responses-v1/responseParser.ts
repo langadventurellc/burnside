@@ -163,7 +163,7 @@ export function parseOpenAIResponse(
       provider: "openai",
       status: response.status,
       statusText: response.statusText,
-      validationErrors: validationResult.error.errors,
+      validationErrors: validationResult.error.issues,
       responseType: typeof responseData,
     });
 
@@ -176,7 +176,7 @@ export function parseOpenAIResponse(
     throw new ValidationError("Invalid OpenAI response structure", {
       status: response.status,
       statusText: response.statusText,
-      validationErrors: validationResult.error.errors,
+      validationErrors: validationResult.error.issues,
       responseData:
         typeof responseData === "object" ? responseData : { raw: responseData },
     });

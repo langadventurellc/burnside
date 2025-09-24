@@ -376,7 +376,7 @@ describe("ToolDefinitionSchema", () => {
         description: "Get detailed weather forecast for any location",
         inputSchema: z.object({
           location: z.string().min(1, "Location is required"),
-          units: z.enum(["celsius", "fahrenheit"]).default("celsius"),
+          units: z.enum(["celsius", "fahrenheit"]).prefault("celsius"),
           includeHourly: z.boolean().optional(),
         }),
         outputSchema: z.object({

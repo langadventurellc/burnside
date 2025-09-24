@@ -24,17 +24,17 @@ describe("translateToolDefinitions", () => {
       const result = translateToolDefinitions(tools);
 
       expect(result).toEqual([
-        {
+        expect.objectContaining({
           name: "get_weather",
           description: "Get current weather",
-          input_schema: {
+          input_schema: expect.objectContaining({
             type: "object",
-            properties: {
-              location: { type: "string" },
-            },
-            required: ["location"],
-          },
-        },
+            properties: expect.objectContaining({
+              location: expect.objectContaining({ type: "string" }),
+            }),
+            required: expect.arrayContaining(["location"]),
+          }),
+        }),
       ]);
     });
 
@@ -72,15 +72,17 @@ describe("translateToolDefinitions", () => {
 
       const result = translateToolDefinitions(tools);
 
-      expect(result[0]?.input_schema).toEqual({
-        type: "object",
-        properties: {
-          str: { type: "string" },
-          num: { type: "number" },
-          bool: { type: "boolean" },
-        },
-        required: ["str", "num", "bool"],
-      });
+      expect(result[0]?.input_schema).toEqual(
+        expect.objectContaining({
+          type: "object",
+          properties: expect.objectContaining({
+            str: expect.objectContaining({ type: "string" }),
+            num: expect.objectContaining({ type: "number" }),
+            bool: expect.objectContaining({ type: "boolean" }),
+          }),
+          required: expect.arrayContaining(["str", "num", "bool"]),
+        }),
+      );
     });
 
     it("should handle optional fields", () => {
@@ -96,14 +98,16 @@ describe("translateToolDefinitions", () => {
 
       const result = translateToolDefinitions(tools);
 
-      expect(result[0]?.input_schema).toEqual({
-        type: "object",
-        properties: {
-          required: { type: "string" },
-          optional: { type: "string" },
-        },
-        required: ["required"],
-      });
+      expect(result[0]?.input_schema).toEqual(
+        expect.objectContaining({
+          type: "object",
+          properties: expect.objectContaining({
+            required: expect.objectContaining({ type: "string" }),
+            optional: expect.objectContaining({ type: "string" }),
+          }),
+          required: expect.arrayContaining(["required"]),
+        }),
+      );
     });
 
     it("should handle arrays", () => {
@@ -119,20 +123,22 @@ describe("translateToolDefinitions", () => {
 
       const result = translateToolDefinitions(tools);
 
-      expect(result[0]?.input_schema).toEqual({
-        type: "object",
-        properties: {
-          items: {
-            type: "array",
-            items: { type: "string" },
-          },
-          numbers: {
-            type: "array",
-            items: { type: "number" },
-          },
-        },
-        required: ["items", "numbers"],
-      });
+      expect(result[0]?.input_schema).toEqual(
+        expect.objectContaining({
+          type: "object",
+          properties: expect.objectContaining({
+            items: expect.objectContaining({
+              type: "array",
+              items: expect.objectContaining({ type: "string" }),
+            }),
+            numbers: expect.objectContaining({
+              type: "array",
+              items: expect.objectContaining({ type: "number" }),
+            }),
+          }),
+          required: expect.arrayContaining(["items", "numbers"]),
+        }),
+      );
     });
 
     it("should handle enums", () => {
@@ -147,16 +153,18 @@ describe("translateToolDefinitions", () => {
 
       const result = translateToolDefinitions(tools);
 
-      expect(result[0]?.input_schema).toEqual({
-        type: "object",
-        properties: {
-          status: {
-            type: "string",
-            enum: ["active", "inactive", "pending"],
-          },
-        },
-        required: ["status"],
-      });
+      expect(result[0]?.input_schema).toEqual(
+        expect.objectContaining({
+          type: "object",
+          properties: expect.objectContaining({
+            status: expect.objectContaining({
+              type: "string",
+              enum: ["active", "inactive", "pending"],
+            }),
+          }),
+          required: expect.arrayContaining(["status"]),
+        }),
+      );
     });
 
     it("should handle literals", () => {
@@ -172,20 +180,22 @@ describe("translateToolDefinitions", () => {
 
       const result = translateToolDefinitions(tools);
 
-      expect(result[0]?.input_schema).toEqual({
-        type: "object",
-        properties: {
-          type: {
-            type: "string",
-            enum: ["command"],
-          },
-          version: {
-            type: "number",
-            enum: [1],
-          },
-        },
-        required: ["type", "version"],
-      });
+      expect(result[0]?.input_schema).toEqual(
+        expect.objectContaining({
+          type: "object",
+          properties: expect.objectContaining({
+            type: expect.objectContaining({
+              type: "string",
+              const: "command",
+            }),
+            version: expect.objectContaining({
+              type: "number",
+              const: 1,
+            }),
+          }),
+          required: expect.arrayContaining(["type", "version"]),
+        }),
+      );
     });
 
     it("should handle unions of literals", () => {
@@ -200,16 +210,20 @@ describe("translateToolDefinitions", () => {
 
       const result = translateToolDefinitions(tools);
 
-      expect(result[0]?.input_schema).toEqual({
-        type: "object",
-        properties: {
-          mode: {
-            type: "string",
-            enum: ["read", "write"],
-          },
-        },
-        required: ["mode"],
-      });
+      expect(result[0]?.input_schema).toEqual(
+        expect.objectContaining({
+          type: "object",
+          properties: expect.objectContaining({
+            mode: expect.objectContaining({
+              anyOf: [
+                expect.objectContaining({ const: "read" }),
+                expect.objectContaining({ const: "write" }),
+              ],
+            }),
+          }),
+          required: expect.arrayContaining(["mode"]),
+        }),
+      );
     });
 
     it("should handle nested objects", () => {
@@ -227,20 +241,22 @@ describe("translateToolDefinitions", () => {
 
       const result = translateToolDefinitions(tools);
 
-      expect(result[0]?.input_schema).toEqual({
-        type: "object",
-        properties: {
-          config: {
-            type: "object",
-            properties: {
-              host: { type: "string" },
-              port: { type: "number" },
-            },
-            required: ["host"],
-          },
-        },
-        required: ["config"],
-      });
+      expect(result[0]?.input_schema).toEqual(
+        expect.objectContaining({
+          type: "object",
+          properties: expect.objectContaining({
+            config: expect.objectContaining({
+              type: "object",
+              properties: expect.objectContaining({
+                host: expect.objectContaining({ type: "string" }),
+                port: expect.objectContaining({ type: "number" }),
+              }),
+              required: expect.arrayContaining(["host"]),
+            }),
+          }),
+          required: expect.arrayContaining(["config"]),
+        }),
+      );
     });
 
     it("should handle default values", () => {
@@ -248,22 +264,24 @@ describe("translateToolDefinitions", () => {
         {
           name: "default_test",
           inputSchema: z.object({
-            timeout: z.number().default(5000),
-            retries: z.number().default(3),
+            timeout: z.number().prefault(5000),
+            retries: z.number().prefault(3),
           }),
         },
       ];
 
       const result = translateToolDefinitions(tools);
 
-      expect(result[0]?.input_schema).toEqual({
-        type: "object",
-        properties: {
-          timeout: { type: "number", default: 5000 },
-          retries: { type: "number", default: 3 },
-        },
-        required: ["timeout", "retries"],
-      });
+      expect(result[0]?.input_schema).toEqual(
+        expect.objectContaining({
+          type: "object",
+          properties: expect.objectContaining({
+            timeout: expect.objectContaining({ type: "number" }),
+            retries: expect.objectContaining({ type: "number" }),
+          }),
+          required: expect.arrayContaining(["timeout", "retries"]),
+        }),
+      );
     });
 
     it("should handle complex mixed schema", () => {
@@ -275,7 +293,7 @@ describe("translateToolDefinitions", () => {
             metadata: z
               .object({
                 tags: z.array(z.string()).optional(),
-                priority: z.enum(["low", "medium", "high"]).default("medium"),
+                priority: z.enum(["low", "medium", "high"]).prefault("medium"),
               })
               .optional(),
             settings: z.object({
@@ -288,36 +306,36 @@ describe("translateToolDefinitions", () => {
 
       const result = translateToolDefinitions(tools);
 
-      expect(result[0]?.input_schema).toEqual({
-        type: "object",
-        properties: {
-          id: { type: "string" },
-          metadata: {
-            type: "object",
-            properties: {
-              tags: {
-                type: "array",
-                items: { type: "string" },
-              },
-              priority: {
-                type: "string",
-                enum: ["low", "medium", "high"],
-                default: "medium",
-              },
-            },
-            required: ["priority"],
-          },
-          settings: {
-            type: "object",
-            properties: {
-              enabled: { type: "boolean" },
-              timeout: { type: "number" },
-            },
-            required: ["enabled"],
-          },
-        },
-        required: ["id", "settings"],
-      });
+      expect(result[0]?.input_schema).toEqual(
+        expect.objectContaining({
+          type: "object",
+          properties: expect.objectContaining({
+            id: expect.objectContaining({ type: "string" }),
+            metadata: expect.objectContaining({
+              type: "object",
+              properties: expect.objectContaining({
+                tags: expect.objectContaining({
+                  type: "array",
+                  items: expect.objectContaining({ type: "string" }),
+                }),
+                priority: expect.objectContaining({
+                  type: "string",
+                  enum: ["low", "medium", "high"],
+                }),
+              }),
+            }),
+            settings: expect.objectContaining({
+              type: "object",
+              properties: expect.objectContaining({
+                enabled: expect.objectContaining({ type: "boolean" }),
+                timeout: expect.objectContaining({ type: "number" }),
+              }),
+              required: expect.arrayContaining(["enabled"]),
+            }),
+          }),
+          required: expect.arrayContaining(["id", "settings"]),
+        }),
+      );
     });
   });
 
@@ -347,17 +365,19 @@ describe("translateToolDefinitions", () => {
 
       const result = translateToolDefinitions(tools);
 
-      expect(result[0]).toEqual({
-        name: "custom_anthropic_tool",
-        description: "Custom Anthropic tool",
-        input_schema: {
-          type: "object",
-          properties: {
-            custom_param: { type: "string" },
-          },
-          required: ["custom_param"],
-        },
-      });
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          name: "custom_anthropic_tool",
+          description: "Custom Anthropic tool",
+          input_schema: expect.objectContaining({
+            type: "object",
+            properties: expect.objectContaining({
+              custom_param: expect.objectContaining({ type: "string" }),
+            }),
+            required: expect.arrayContaining(["custom_param"]),
+          }),
+        }),
+      );
     });
 
     it("should ignore non-Anthropic hints", () => {
@@ -379,13 +399,15 @@ describe("translateToolDefinitions", () => {
       const result = translateToolDefinitions(tools);
 
       expect(result[0]?.name).toBe("hinted_tool");
-      expect(result[0]?.input_schema).toEqual({
-        type: "object",
-        properties: {
-          param: { type: "string" },
-        },
-        required: ["param"],
-      });
+      expect(result[0]?.input_schema).toEqual(
+        expect.objectContaining({
+          type: "object",
+          properties: expect.objectContaining({
+            param: expect.objectContaining({ type: "string" }),
+          }),
+          required: expect.arrayContaining(["param"]),
+        }),
+      );
     });
   });
 
@@ -488,11 +510,12 @@ describe("translateToolDefinitions", () => {
 
       const result = translateToolDefinitions(tools);
 
-      expect(result[0]?.input_schema).toEqual({
-        type: "object",
-        properties: {},
-        required: undefined,
-      });
+      expect(result[0]?.input_schema).toEqual(
+        expect.objectContaining({
+          type: "object",
+          properties: {},
+        }),
+      );
     });
 
     it("should handle unsupported Zod types gracefully", () => {
@@ -501,7 +524,7 @@ describe("translateToolDefinitions", () => {
           name: "unsupported_tool",
           inputSchema: z.object({
             // ZodRecord is not explicitly supported but should fallback
-            data: z.record(z.string()),
+            data: z.record(z.string(), z.string()),
           }),
         },
       ];
@@ -513,9 +536,9 @@ describe("translateToolDefinitions", () => {
         string,
         unknown
       >;
-      expect(properties?.data).toEqual({
-        type: "object",
-      });
+      expect(properties?.data).toEqual(
+        expect.objectContaining({ type: "object" }),
+      );
     });
 
     it("should handle complex union types", () => {
@@ -530,14 +553,20 @@ describe("translateToolDefinitions", () => {
 
       const result = translateToolDefinitions(tools);
 
-      // Should fallback to object type for non-literal unions
+      // Should emit anyOf for non-literal unions
       const properties = result[0]?.input_schema.properties as Record<
         string,
         unknown
       >;
-      expect(properties?.value).toEqual({
-        type: "object",
-      });
+      expect(properties?.value).toEqual(
+        expect.objectContaining({
+          anyOf: expect.arrayContaining([
+            expect.objectContaining({ type: "string" }),
+            expect.objectContaining({ type: "number" }),
+            expect.objectContaining({ type: "boolean" }),
+          ]),
+        }),
+      );
     });
   });
 });

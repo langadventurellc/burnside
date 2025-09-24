@@ -22,7 +22,7 @@ const AnthropicToolUseBlock = z.object({
   type: z.literal("tool_use"),
   id: z.string(),
   name: z.string(),
-  input: z.record(z.unknown()),
+  input: z.record(z.string(), z.unknown()),
 });
 
 /**
@@ -37,8 +37,8 @@ const AnthropicContentBlock = z.union([
  * Anthropic usage statistics schema
  */
 const AnthropicUsage = z.object({
-  input_tokens: z.number().int().nonnegative(),
-  output_tokens: z.number().int().nonnegative(),
+  input_tokens: z.int().nonnegative(),
+  output_tokens: z.int().nonnegative(),
 });
 
 /**
@@ -113,14 +113,16 @@ const AnthropicStreamingDelta = z.object({
   delta: z
     .object({
       text: z.string().optional(),
-      input: z.union([z.string(), z.record(z.unknown())]).optional(),
+      input: z
+        .union([z.string(), z.record(z.string(), z.unknown())])
+        .optional(),
       stop_reason: z.string().nullable().optional(),
       stop_sequence: z.string().nullable().optional(),
     })
     .optional(),
 
   /** Index for content block events */
-  index: z.number().int().nonnegative().optional(),
+  index: z.int().nonnegative().optional(),
 });
 
 /**

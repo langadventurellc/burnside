@@ -42,12 +42,12 @@ export const complexWeatherToolDefinition: ToolDefinition = {
   inputSchema: z.object({
     location: z.string().min(1, "Location is required"),
     units: z.enum(["celsius", "fahrenheit"]).optional(),
-    days: z.number().int().min(1).max(7).default(3),
+    days: z.int().min(1).max(7).prefault(3),
     includeHourly: z.boolean().optional(),
     alerts: z
       .object({
-        severe: z.boolean().default(true),
-        precipitation: z.boolean().default(false),
+        severe: z.boolean().prefault(true),
+        precipitation: z.boolean().prefault(false),
       })
       .optional(),
   }),
@@ -108,7 +108,7 @@ export const expectedOpenAIEchoTool: OpenAITool = {
     properties: {
       data: {
         type: "string",
-        description: "Data is required",
+        minLength: 1,
       },
     },
     required: ["data"],
@@ -128,17 +128,16 @@ export const expectedOpenAIWeatherTool: OpenAITool = {
     properties: {
       location: {
         type: "string",
-        description: "Location is required",
+        minLength: 1,
       },
       units: {
         type: "string",
         enum: ["celsius", "fahrenheit"],
       },
       days: {
-        type: "number",
+        type: "integer",
         minimum: 1,
         maximum: 7,
-        default: 3,
       },
       includeHourly: {
         type: "boolean",
@@ -148,17 +147,16 @@ export const expectedOpenAIWeatherTool: OpenAITool = {
         properties: {
           severe: {
             type: "boolean",
-            default: true,
           },
           precipitation: {
             type: "boolean",
-            default: false,
           },
         },
+        required: ["severe", "precipitation"],
         additionalProperties: false,
       },
     },
-    required: ["location"],
+    required: ["location", "days"],
     additionalProperties: false,
   },
 };

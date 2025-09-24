@@ -13,6 +13,7 @@ import { createHttpRequest } from "../../core/providers/createHttpRequest";
 import { ValidationError } from "../../core/errors/validationError";
 import type { AnthropicMessagesConfigType } from "./configSchema";
 import { z } from "zod";
+import isOptional from "../../core/validation/isOptional";
 
 /**
  * Convert unified ContentPart to Anthropic message content format
@@ -108,23 +109,23 @@ function zodToJsonSchema(zodSchema: z.ZodType): Record<string, unknown> {
     for (const [key, value] of Object.entries(shape)) {
       if (value instanceof z.ZodString) {
         properties[key] = { type: "string" };
-        if (!value.isOptional()) {
+        if (!isOptional(value, zodSchema)) {
           required.push(key);
         }
       } else if (value instanceof z.ZodNumber) {
         properties[key] = { type: "number" };
-        if (!value.isOptional()) {
+        if (!isOptional(value, zodSchema)) {
           required.push(key);
         }
       } else if (value instanceof z.ZodBoolean) {
         properties[key] = { type: "boolean" };
-        if (!value.isOptional()) {
+        if (!isOptional(value, zodSchema)) {
           required.push(key);
         }
       } else {
         // Fallback for other types
         properties[key] = { type: "string" };
-        if (!value.isOptional()) {
+        if (!isOptional(value, zodSchema)) {
           required.push(key);
         }
       }

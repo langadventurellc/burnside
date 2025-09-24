@@ -49,7 +49,7 @@ const parametersSchema = z
  * All fields are optional but must meet format requirements when present.
  */
 const metadataSchema = z
-  .object({
+  .strictObject({
     /**
      * Provider identifier validation.
      * Must be a non-empty string with reasonable length limits.
@@ -80,7 +80,6 @@ const metadataSchema = z
       .max(255, "Context ID cannot exceed 255 characters")
       .optional(),
   })
-  .strict()
   .optional();
 
 /**
@@ -91,7 +90,7 @@ const metadataSchema = z
  * before execution.
  */
 export const ToolCallSchema = z
-  .object({
+  .strictObject({
     /**
      * Unique tool call identifier.
      * Required for correlating calls with results.
@@ -116,7 +115,6 @@ export const ToolCallSchema = z
      */
     metadata: metadataSchema,
   })
-  .strict()
   .refine((toolCall) => {
     // Additional validation for parameter structure
     if (toolCall.parameters && typeof toolCall.parameters !== "object") {

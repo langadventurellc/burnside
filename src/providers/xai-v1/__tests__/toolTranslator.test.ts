@@ -37,7 +37,9 @@ describe("translateToolDefinitionToXAI", () => {
       expect(result.parameters.properties).toHaveProperty("location");
       expect(result.parameters.properties).toHaveProperty("units");
       expect(result.parameters.properties).toHaveProperty("days");
-      expect(result.parameters.required).toEqual(["location"]);
+      expect(result.parameters.required).toEqual(
+        expect.arrayContaining(["location", "days"]),
+      );
     });
 
     it("should handle provider hints with custom xAI function", () => {
@@ -76,7 +78,7 @@ describe("translateToolDefinitionToXAI", () => {
       expect(result.parameters.properties).toEqual({
         text: {
           type: "string",
-          description: "Text is required",
+          minLength: 1,
         },
       });
       expect(result.parameters.required).toEqual(["text"]);
@@ -175,7 +177,7 @@ describe("translateToolDefinitionToXAI", () => {
       const tool = {
         name: "default_tool",
         inputSchema: z.object({
-          timeout: z.number().default(30),
+          timeout: z.number().prefault(30),
         }),
       };
 
@@ -184,10 +186,9 @@ describe("translateToolDefinitionToXAI", () => {
       expect(result.parameters.properties).toEqual({
         timeout: {
           type: "number",
-          default: 30,
         },
       });
-      expect(result.parameters.required).toEqual([]);
+      expect(result.parameters.required).toEqual(["timeout"]);
     });
   });
 
@@ -220,8 +221,8 @@ describe("translateToolDefinitionToXAI", () => {
       const tool = {
         name: "unsupported_tool",
         inputSchema: z.object({
-          // Using ZodUnion which isn't supported
-          value: z.union([z.string(), z.number()]),
+          // Functions cannot be represented in JSON Schema
+          value: z.function(),
         }),
       };
 

@@ -15,7 +15,7 @@ import type { ValidationOptions } from "./validationOptions";
  * @returns Formatted error message string
  */
 export function formatValidationError(
-  issues: z.ZodIssue[],
+  issues: z.core.$ZodIssue[],
   options: ValidationOptions = {},
 ): string {
   const { includePath = true, errorPrefix = "Validation failed" } = options;

@@ -36,9 +36,7 @@ import type { ProviderHttpResponse } from "./providerHttpResponse";
 const RedactionRuleSchema = z.object({
   /** Type of redaction to apply */
   type: z.enum(["header", "body", "field"], {
-    errorMap: () => ({
-      message: "Rule type must be 'header', 'body', or 'field'",
-    }),
+    error: () => "Rule type must be 'header', 'body', or 'field'",
   }),
   /** Optional regex pattern for matching content to redact */
   pattern: z.instanceof(RegExp).optional(),
@@ -69,8 +67,8 @@ const RedactionConfigSchema = z
       return fieldRules.every((rule) => rule.field);
     },
     {
-      message: "Field-type rules must specify a field name",
       path: ["rules"],
+      error: "Field-type rules must specify a field name",
     },
   )
   .refine(
@@ -83,8 +81,8 @@ const RedactionConfigSchema = z
       return patternRules.every((rule) => rule.pattern);
     },
     {
-      message: "Pattern-based rules must specify a regex pattern",
       path: ["rules"],
+      error: "Pattern-based rules must specify a regex pattern",
     },
   );
 

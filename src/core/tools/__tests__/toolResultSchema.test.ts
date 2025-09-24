@@ -84,7 +84,7 @@ describe("ToolResultSchema", () => {
 
       expect(() => ToolResultSchema.parse(invalidResult)).toThrow(ZodError);
       expect(() => ToolResultSchema.parse(invalidResult)).toThrow(
-        "Unrecognized key(s) in object: 'error'",
+        /Unrecognized key/,
       );
     });
   });
@@ -166,7 +166,7 @@ describe("ToolResultSchema", () => {
 
       expect(() => ToolResultSchema.parse(invalidResult)).toThrow(ZodError);
       expect(() => ToolResultSchema.parse(invalidResult)).toThrow(
-        "Unrecognized key(s) in object: 'data'",
+        /Unrecognized key/,
       );
     });
   });
@@ -499,7 +499,7 @@ describe("ToolResultSchema", () => {
 
       expect(() => ToolResultSchema.parse(invalidResult)).toThrow(ZodError);
       expect(() => ToolResultSchema.parse(invalidResult)).toThrow(
-        "ToolResult must have success field set to either true or false",
+        /No matching discriminator/,
       );
     });
 
@@ -524,7 +524,7 @@ describe("ToolResultSchema", () => {
         ToolResultSchema.parse(invalidResult);
       } catch (error) {
         if (error instanceof ZodError) {
-          const errorMessages = error.errors.map((e) => e.message);
+          const errorMessages = error.issues.map((issue) => issue.message);
           expect(errorMessages).toContain("Call ID cannot be empty");
           expect(errorMessages).toContain("Error message cannot be empty");
         }

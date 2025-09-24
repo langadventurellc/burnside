@@ -13,22 +13,22 @@ export const commonSchemas = {
   /**
    * Email validation schema with comprehensive pattern matching.
    */
-  email: z.string().email("Invalid email format"),
+  email: z.email("Invalid email format"),
 
   /**
    * URL validation schema supporting http and https protocols.
    */
-  url: z.string().url("Invalid URL format"),
+  url: z.url("Invalid URL format"),
 
   /**
    * ISO 8601 timestamp validation schema.
    */
-  timestamp: z.string().datetime("Invalid ISO 8601 timestamp format"),
+  timestamp: z.iso.datetime("Invalid ISO 8601 timestamp format"),
 
   /**
    * Unix timestamp validation schema (seconds since epoch).
    */
-  unixTimestamp: z.number().int().min(0, "Unix timestamp must be non-negative"),
+  unixTimestamp: z.int().min(0, "Unix timestamp must be non-negative"),
 
   /**
    * Base64 data validation schema for encoded content.
@@ -47,10 +47,8 @@ export const commonSchemas = {
   imageMimeType: z.enum(
     ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"],
     {
-      errorMap: () => ({
-        message:
-          "Must be a supported image MIME type (jpeg, png, gif, webp, svg+xml)",
-      }),
+      error: () =>
+        "Must be a supported image MIME type (jpeg, png, gif, webp, svg+xml)",
     },
   ),
 
@@ -70,7 +68,7 @@ export const commonSchemas = {
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ],
     {
-      errorMap: () => ({ message: "Must be a supported document MIME type" }),
+      error: () => "Must be a supported document MIME type",
     },
   ),
 

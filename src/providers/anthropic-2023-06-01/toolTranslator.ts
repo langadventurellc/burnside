@@ -16,6 +16,7 @@
 import { z } from "zod";
 import type { ToolDefinition } from "../../core/tools/toolDefinition";
 import { ValidationError } from "../../core/errors/validationError";
+import isZodSchema from "../../core/validation/isZodSchema";
 
 /**
  * Anthropic tool definition type
@@ -85,189 +86,37 @@ export function translateToolDefinitions(
  * @throws ValidationError for unsupported Zod schema types
  */
 function zodToJsonSchema(schema: z.ZodTypeAny | object): JSONSchema {
-  // If it's already a JSON Schema object, return it
   if (!isZodSchema(schema)) {
     return schema as JSONSchema;
   }
 
-  const zodSchema = schema;
-
   try {
-    return convertZodToJSONSchema(zodSchema);
+    return convertZodToJSONSchema(schema);
   } catch (error) {
     throw new ValidationError(
-      `Failed to convert Zod schema to JSON Schema: ${error instanceof Error ? error.message : "Unknown error"}`,
-      { zodSchema: zodSchema.constructor.name, originalError: error },
+      `Failed to convert Zod schema to JSON Schema: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
+      { zodSchema: schema.constructor.name, originalError: error },
     );
   }
 }
 
 /**
- * Check if a schema is a Zod schema type
- */
-function isZodSchema(schema: z.ZodTypeAny | object): schema is z.ZodTypeAny {
-  return schema != null && typeof schema === "object" && "_def" in schema;
-}
-
-/**
- * Convert Zod schema to JSON Schema recursively
+ * Convert Zod schema to JSON Schema
  */
 function convertZodToJSONSchema(schema: z.ZodTypeAny): JSONSchema {
-  return (
-    handleWrappedSchemas(schema) ??
-    handleObjectSchema(schema) ??
-    handlePrimitiveSchemas(schema) ??
-    handleComplexSchemas(schema) ?? { type: "object" }
-  );
-}
+  const jsonSchema = z.toJSONSchema(schema);
 
-/**
- * Handle wrapped Zod schema types (Optional, Nullable, Default)
- */
-function handleWrappedSchemas(schema: z.ZodTypeAny): JSONSchema | null {
-  if (schema instanceof z.ZodOptional) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const unwrapped = schema.unwrap();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return convertZodToJSONSchema(unwrapped);
-  }
-
-  if (schema instanceof z.ZodNullable) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const unwrapped = schema.unwrap();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return convertZodToJSONSchema(unwrapped);
-  }
-
-  if (schema instanceof z.ZodDefault) {
-    try {
-      const def = (schema as unknown as Record<string, unknown>)._def as Record<
-        string,
-        unknown
-      >;
-      const innerType = def.innerType as z.ZodTypeAny;
-      const defaultValueFn = def.defaultValue as () => unknown;
-      const innerSchema = convertZodToJSONSchema(innerType);
-      return {
-        ...innerSchema,
-        default: defaultValueFn(),
-      };
-    } catch {
-      // Fallback if default handling fails
-      return { type: "object" };
-    }
-  }
-
-  return null;
-}
-
-/**
- * Handle Zod object schemas
- */
-function handleObjectSchema(schema: z.ZodTypeAny): JSONSchema | null {
-  if (!(schema instanceof z.ZodObject)) {
-    return null;
-  }
-
-  const shape = (schema as unknown as { shape: Record<string, z.ZodTypeAny> })
-    .shape;
-  const properties: Record<string, JSONSchema> = {};
-  const required: string[] = [];
-
-  for (const [key, fieldSchema] of Object.entries(shape)) {
-    const isOptional = fieldSchema instanceof z.ZodOptional;
-    properties[key] = convertZodToJSONSchema(fieldSchema);
-
-    if (!isOptional) {
-      required.push(key);
-    }
-  }
-
-  return {
-    type: "object",
-    properties,
-    required: required.length > 0 ? required : undefined,
-  };
-}
-
-/**
- * Handle primitive Zod schema types
- */
-function handlePrimitiveSchemas(schema: z.ZodTypeAny): JSONSchema | null {
-  if (schema instanceof z.ZodString) {
-    return { type: "string" };
-  }
-
-  if (schema instanceof z.ZodNumber) {
-    return { type: "number" };
-  }
-
-  if (schema instanceof z.ZodBoolean) {
-    return { type: "boolean" };
-  }
-
-  return null;
-}
-
-/**
- * Handle complex Zod schema types (Enum, Literal, Array, Union)
- */
-function handleComplexSchemas(schema: z.ZodTypeAny): JSONSchema | null {
-  if (schema instanceof z.ZodEnum) {
-    const options = (schema as unknown as { options: string[] }).options;
-    return {
-      type: "string",
-      enum: options,
-    };
-  }
-
-  if (schema instanceof z.ZodLiteral) {
-    const value = (schema as unknown as { value: unknown }).value;
-    return {
-      type: typeof value as string,
-      enum: [value],
-    };
-  }
-
-  if (schema instanceof z.ZodArray) {
-    const element = (schema as unknown as { element: z.ZodTypeAny }).element;
-    return {
-      type: "array",
-      items: convertZodToJSONSchema(element),
-    };
-  }
-
-  if (schema instanceof z.ZodUnion) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return handleUnionSchema(schema);
-  }
-
-  return null;
-}
-
-/**
- * Handle Zod union schemas
- */
-function handleUnionSchema(
-  schema: z.ZodUnion<[z.ZodTypeAny, ...z.ZodTypeAny[]]>,
-): JSONSchema {
-  const options = (schema as unknown as { options: z.ZodTypeAny[] }).options;
-  const allLiterals = options.every((option) => option instanceof z.ZodLiteral);
-
-  if (allLiterals) {
-    const values = options.map(
-      (option) => (option as unknown as { value: unknown }).value,
+  if (
+    !jsonSchema ||
+    typeof jsonSchema !== "object" ||
+    Array.isArray(jsonSchema)
+  ) {
+    throw new Error(
+      `Unsupported JSON Schema output for ${schema.constructor.name}`,
     );
-    const firstType = typeof values[0];
-    const allSameType = values.every((value) => typeof value === firstType);
-
-    if (allSameType) {
-      return {
-        type: firstType,
-        enum: values,
-      };
-    }
   }
 
-  return { type: "object" };
+  return jsonSchema as JSONSchema;
 }

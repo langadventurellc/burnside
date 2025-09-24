@@ -75,7 +75,7 @@ const ReasoningConfigSchema = z
 const SearchParametersSchema = z
   .object({
     from_date: z.string().optional(),
-    max_search_results: z.number().int().positive().optional(),
+    max_search_results: z.int().positive().optional(),
     mode: z.string().optional(),
     return_citations: z.boolean().optional(),
     sources: z.array(z.string()).optional(),
@@ -97,7 +97,7 @@ const TextFormatSchema = z.union([
     type: z.literal("json_schema"),
     description: z.string().optional(),
     name: z.string().optional(),
-    schema: z.record(z.unknown()).optional(),
+    schema: z.record(z.string(), z.unknown()).optional(),
     strict: z.boolean().optional(),
   }),
 ]);
@@ -137,7 +137,7 @@ const ToolSchema = z.object({
   type: z.literal("function"),
   name: z.string(),
   description: z.string().optional(),
-  parameters: z.record(z.unknown()).optional(),
+  parameters: z.record(z.string(), z.unknown()).optional(),
 });
 
 /**
@@ -162,7 +162,7 @@ export const XAIV1RequestSchema = z.object({
   temperature: z.number().min(0).max(2).optional(),
 
   /** Maximum tokens to generate */
-  max_output_tokens: z.number().int().positive().max(8192).optional(),
+  max_output_tokens: z.int().positive().max(8192).optional(),
 
   /** Top-p nucleus sampling parameter */
   top_p: z.number().min(0).max(1).optional(),
@@ -189,10 +189,10 @@ export const XAIV1RequestSchema = z.object({
   logprobs: z.boolean().optional(),
 
   /** Top log probabilities count */
-  top_logprobs: z.number().int().min(0).max(20).optional(),
+  top_logprobs: z.int().min(0).max(20).optional(),
 
   /** Metadata for the request */
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 
   /** Previous response ID for continuation */
   previous_response_id: z.string().optional(),
@@ -213,7 +213,7 @@ export const XAIV1RequestSchema = z.object({
   text: TextConfigSchema,
 
   /** Truncation configuration */
-  truncation: z.record(z.unknown()).optional(),
+  truncation: z.record(z.string(), z.unknown()).optional(),
 
   /** User identifier for abuse monitoring */
   user: z.string().optional(),

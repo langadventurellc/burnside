@@ -12,7 +12,7 @@ describe("safeValidate", () => {
   const objectSchema = z.object({
     name: z.string(),
     age: z.number().positive(),
-    email: z.string().email(),
+    email: z.email(),
   });
 
   describe("successful validation", () => {
@@ -51,7 +51,7 @@ describe("safeValidate", () => {
       if (!result.success) {
         expect(result.error.message).toContain("Validation failed");
         expect(result.error.issues).toHaveLength(1);
-        expect(result.error.issues[0].code).toBe(z.ZodIssueCode.invalid_type);
+        expect(result.error.issues[0].code).toBe("invalid_type");
       }
     });
 

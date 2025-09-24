@@ -414,7 +414,7 @@ describe("ToolCallSchema", () => {
         ToolCallSchema.parse(invalidToolCall);
       } catch (error) {
         if (error instanceof ZodError) {
-          const errorMessages = error.errors.map((e) => e.message);
+          const errorMessages = error.issues.map((issue) => issue.message);
           expect(errorMessages).toContain("Tool call ID cannot be empty");
           expect(errorMessages).toContain(
             "Tool name must contain only alphanumeric characters, underscores, and hyphens",

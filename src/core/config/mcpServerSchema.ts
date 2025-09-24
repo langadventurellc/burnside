@@ -12,7 +12,6 @@ export const McpServerSchema = z.union([
   z.object({
     name: z.string().min(1, "MCP server name cannot be empty"),
     url: z
-      .string()
       .url("MCP server URL must be valid")
       .refine(
         (url) => url.startsWith("http://") || url.startsWith("https://"),
@@ -24,7 +23,6 @@ export const McpServerSchema = z.union([
     transport: z.literal("http"),
     name: z.string().min(1, "MCP server name cannot be empty"),
     url: z
-      .string()
       .url("MCP server URL must be valid")
       .refine(
         (url) => url.startsWith("http://") || url.startsWith("https://"),

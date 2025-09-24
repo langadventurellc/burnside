@@ -65,7 +65,7 @@ export const OpenAIResponsesV1RequestSchema = z.object({
   temperature: z.number().min(0).max(2).optional(),
 
   /** Maximum tokens to generate */
-  max_output_tokens: z.number().int().positive().optional(),
+  max_output_tokens: z.int().positive().optional(),
 
   /** Top-p nucleus sampling parameter */
   top_p: z.number().min(0).max(1).optional(),
@@ -80,7 +80,7 @@ export const OpenAIResponsesV1RequestSchema = z.object({
   stop: z.union([z.string(), z.array(z.string())]).optional(),
 
   /** Seed for deterministic generation */
-  seed: z.number().int().optional(),
+  seed: z.int().optional(),
 
   /** User identifier for abuse monitoring */
   user: z.string().optional(),

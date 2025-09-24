@@ -5,6 +5,7 @@ import type { ProviderInfo } from "./providerInfo";
 import type { ProviderKey } from "./providerKey";
 import { validateOrThrow } from "../validation/validateOrThrow";
 import { ValidationError } from "../errors/validationError";
+import { functionSchema } from "../validation/functionSchema";
 
 /**
  * Zod schema for validating ProviderPlugin during registration
@@ -13,12 +14,12 @@ const providerPluginSchema = z.object({
   id: z.string().min(1, "Provider ID is required"),
   name: z.string().min(1, "Provider name is required"),
   version: z.string().min(1, "Provider version is required"),
-  initialize: z.function().optional(),
-  supportsModel: z.function().optional(),
-  metadata: z.record(z.unknown()).optional(),
-  translateRequest: z.function(),
-  parseResponse: z.function().returns(z.union([z.promise(z.any()), z.any()])),
-  normalizeError: z.function(),
+  initialize: functionSchema("initialize must be a function").optional(),
+  supportsModel: functionSchema("supportsModel must be a function").optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+  translateRequest: functionSchema("translateRequest must be a function"),
+  parseResponse: functionSchema("parseResponse must be a function"),
+  normalizeError: functionSchema("normalizeError must be a function"),
   capabilities: z
     .object({
       streaming: z.boolean(),

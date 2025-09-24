@@ -20,41 +20,41 @@ import { z } from "zod";
 export const AnthropicMessagesConfigSchema = z.object({
   /** API key validation with format enforcement */
   apiKey: z
-    .string({ required_error: "API key is required" })
+    .string({
+      error: (issue) =>
+        issue.input === undefined ? "API key is required" : undefined,
+    })
     .min(1, "API key is required")
     .startsWith("sk-ant-", "Invalid Anthropic API key format"),
 
   /** Base URL validation with HTTPS enforcement */
   baseUrl: z
-    .string()
     .url("Invalid base URL format")
     .refine(
       (url) => url.startsWith("https://"),
       "Base URL must use HTTPS protocol",
     )
-    .default("https://api.anthropic.com"),
+    .prefault("https://api.anthropic.com"),
 
   /** API version validation with date format requirement */
   version: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Version must be in YYYY-MM-DD format")
-    .default("2023-06-01"),
+    .prefault("2023-06-01"),
 
   /** Timeout validation with reasonable limits */
   timeout: z
-    .number()
     .int("Timeout must be an integer")
     .positive("Timeout must be positive")
     .max(300000, "Timeout cannot exceed 300000ms")
-    .default(30000),
+    .prefault(30000),
 
   /** Retry count validation within safe bounds */
   maxRetries: z
-    .number()
     .int("Max retries must be an integer")
     .min(0, "Max retries cannot be negative")
     .max(5, "Max retries cannot exceed 5")
-    .default(3),
+    .prefault(3),
 });
 
 /**
