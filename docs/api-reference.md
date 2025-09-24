@@ -90,6 +90,40 @@ const response = await client.chat({
 });
 ```
 
+#### Response Shape
+
+Burnside normalizes provider results to the shared `Message` interface. A typical
+assistant response looks like:
+
+```json
+{
+  "id": "resp_02HFG1A3CEXAMPLE",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "Hello! How can I help you today?"
+    }
+  ],
+  "timestamp": "2025-02-20T18:19:00.123Z",
+  "metadata": {
+    "provider": "openai",
+    "id": "resp_02HFG1A3CEXAMPLE",
+    "created_at": "2025-02-20T18:18:59.997Z",
+    "status": "completed",
+    "finishReason": null
+  }
+}
+```
+
+Key details:
+
+- `content` accumulates multimodal parts (`text`, `image`, `document`, `code`).
+- `metadata.provider` reflects the originating provider (`openai`, `anthropic`, `google`, `xai`).
+- Providers add additional keys such as `stopReason` (Anthropic), `modelVersion`/`safetyRatings` (Google Gemini), or raw request identifiers.
+- When a provider returns native tool calls, the message includes `toolCalls` or `metadata.tool_calls`; use `extractToolCallsFromMessage` to work with them safely.
+- Multi-turn executions still resolve to a final assistant `Message` using the same structure.
+
 ### stream(request)
 
 Execute a streaming chat completion.
@@ -121,6 +155,50 @@ for await (const delta of await client.stream({
   process.stdout.write(delta.delta.content?.[0]?.text || "");
 }
 ```
+
+#### Stream Output
+
+Streaming responses yield incremental `StreamDelta` objects. The first deltas
+carry partial content:
+
+```json
+{
+  "id": "resp_stream_02HFG1A3C",
+  "delta": {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Hello"
+      }
+    ]
+  },
+  "finished": false,
+  "metadata": {
+    "eventType": "response.output_text.delta"
+  }
+}
+```
+
+The terminal chunk is flagged with `finished: true` and includes usage when the
+provider shares it:
+
+```json
+{
+  "id": "resp_stream_02HFG1A3C",
+  "delta": {},
+  "finished": true,
+  "usage": {
+    "promptTokens": 812,
+    "completionTokens": 146,
+    "totalTokens": 958
+  }
+}
+```
+
+Tool-aware streams may surface tool call plans in `metadata.tool_calls`; the
+wrapper will pause the stream, execute registered tools, and resume with the
+same `StreamDelta` shape.
 
 ### registerTool(definition, handler)
 
@@ -225,10 +303,15 @@ interface Message {
   id?: string;
   role: "user" | "assistant" | "system";
   content: ContentPart[];
+  sources?: SourceRef[];
   timestamp?: string;
   metadata?: Record<string, unknown>;
 }
 ```
+
+Messages produced by providers may add a transient `toolCalls` array or raw
+`metadata.tool_calls` payloads. Use the helper `extractToolCallsFromMessage` to
+obtain normalized `ToolCall` entries when working with tool execution.
 
 ### ContentPart
 
@@ -263,6 +346,17 @@ interface CodeContentPart {
   text: string;
   language?: string;
   filename?: string;
+}
+```
+
+### SourceRef
+
+```typescript
+interface SourceRef {
+  id: string;
+  url?: string;
+  title?: string;
+  metadata?: Record<string, unknown>;
 }
 ```
 
@@ -346,6 +440,21 @@ interface ToolDefinition {
   description: string;
   parameters: JSONSchema; // JSON Schema for parameters
   metadata?: Record<string, unknown>;
+}
+```
+
+### ToolCall
+
+```typescript
+interface ToolCall {
+  id: string;
+  name: string;
+  parameters: Record<string, unknown>;
+  metadata?: {
+    providerId?: string;
+    timestamp?: string;
+    contextId?: string;
+  };
 }
 ```
 

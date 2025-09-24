@@ -51,6 +51,33 @@ async function basicChat() {
 basicChat().catch(console.error);
 ```
 
+#### Sample Output
+
+Running the example and logging the entire response (`console.log(JSON.stringify(response, null, 2))`) produces a normalized `Message`:
+
+```json
+{
+  "id": "resp_02HFG1A3CEXAMPLE",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "Quantum computing uses qubits to perform operations that would take classical computers much longer."
+    }
+  ],
+  "timestamp": "2025-02-20T18:19:00.123Z",
+  "metadata": {
+    "provider": "openai",
+    "id": "resp_02HFG1A3CEXAMPLE",
+    "created_at": "2025-02-20T18:18:59.997Z",
+    "status": "completed",
+    "finishReason": null
+  }
+}
+```
+
+Provider-specific keys (for example Anthropic's `stopReason` or Gemini's `modelVersion` and `safetyRatings`) appear in `metadata` when available, while the overall shape stays constant.
+
 ### Multi-Provider Setup
 
 ```typescript
@@ -147,6 +174,46 @@ async function streamingChat() {
 
 streamingChat().catch(console.error);
 ```
+
+#### Stream Delta Snapshot
+
+Inspecting the yielded deltas highlights the incremental structure:
+
+```json
+{
+  "id": "resp_stream_02HFG1A3C",
+  "delta": {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Once upon a time a curious robot"
+      }
+    ]
+  },
+  "finished": false,
+  "metadata": {
+    "eventType": "response.output_text.delta"
+  }
+}
+```
+
+When the provider signals completion, Burnside emits a final chunk:
+
+```json
+{
+  "id": "resp_stream_02HFG1A3C",
+  "delta": {},
+  "finished": true,
+  "usage": {
+    "promptTokens": 645,
+    "completionTokens": 128,
+    "totalTokens": 773
+  }
+}
+```
+
+Any tool calls detected during streaming are surfaced via `metadata.tool_calls` and handled automatically when the tool system is enabled.
 
 ### Streaming with Progress Tracking
 
@@ -410,6 +477,42 @@ async function mathChat() {
 
 mathChat().catch(console.error);
 ```
+
+#### Tool Call Payload
+
+When a provider decides to execute a tool, the first assistant response is a tool-call message:
+
+```json
+{
+  "id": "resp_tool_02HFG1A3C",
+  "role": "assistant",
+  "content": [],
+  "toolCalls": [
+    {
+      "id": "call_calculator_01",
+      "name": "calculator",
+      "parameters": {
+        "expression": "(15 + 27) * 3 - 10"
+      }
+    }
+  ],
+  "metadata": {
+    "provider": "openai",
+    "tool_calls": [
+      {
+        "id": "call_calculator_01",
+        "type": "function",
+        "function": {
+          "name": "calculator",
+          "arguments": "{\"expression\":\"(15 + 27) * 3 - 10\"}"
+        }
+      }
+    ]
+  }
+}
+```
+
+Use `extractToolCallsFromMessage(response)` to work with the normalized `toolCalls` array regardless of which provider produced the message.
 
 ### Web API Tool
 
