@@ -19,7 +19,7 @@ const GeminiResponseTextPartSchema = z.object({
  */
 const GeminiFunctionCallSchema = z.object({
   name: z.string(),
-  args: z.record(z.unknown()),
+  args: z.record(z.string(), z.unknown()),
 });
 
 /**
@@ -118,9 +118,9 @@ const GeminiCandidateSchema = z.object({
  * Gemini usage metadata schema
  */
 const GeminiUsageMetadataSchema = z.object({
-  promptTokenCount: z.number().int().nonnegative().optional(),
-  candidatesTokenCount: z.number().int().nonnegative().optional(),
-  totalTokenCount: z.number().int().nonnegative().optional(),
+  promptTokenCount: z.int().nonnegative().optional(),
+  candidatesTokenCount: z.int().nonnegative().optional(),
+  totalTokenCount: z.int().nonnegative().optional(),
 });
 
 /**

@@ -34,41 +34,34 @@ const uuidSchema = z
  * Role validation schema with strict enum checking.
  */
 const roleSchema = z.enum(["system", "user", "assistant", "tool"], {
-  errorMap: () => ({
-    message: "Role must be one of: system, user, assistant, tool",
-  }),
+  error: () => "Role must be one of: system, user, assistant, tool",
 }) satisfies z.ZodSchema<Role>;
 
 /**
  * SourceRef validation schema for message source references.
  */
-const sourceRefSchema = z
-  .object({
-    id: z.string().min(1, "Source reference ID cannot be empty"),
-    url: commonSchemas.url.optional(),
-    title: z.string().optional(),
-    metadata: z.record(z.string(), z.unknown()).optional(),
-  })
-  .strict();
+const sourceRefSchema = z.strictObject({
+  id: z.string().min(1, "Source reference ID cannot be empty"),
+  url: commonSchemas.url.optional(),
+  title: z.string().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
 
 /**
  * Comprehensive Zod schema for Message interface validation.
  * Validates all required and optional fields with proper type constraints.
  */
-export const MessageSchema = z
-  .object({
-    id: uuidSchema.optional(),
-    role: roleSchema,
-    content: z
-      .array(ContentPartSchema)
-      .min(1, "Message content cannot be empty")
-      .refine(
-        (content) =>
-          content.every((part) => part !== null && part !== undefined),
-        "All content parts must be valid",
-      ),
-    timestamp: commonSchemas.timestamp.optional(),
-    sources: z.array(sourceRefSchema).optional(),
-    metadata: z.record(z.string(), z.unknown()).optional(),
-  })
-  .strict();
+export const MessageSchema = z.strictObject({
+  id: uuidSchema.optional(),
+  role: roleSchema,
+  content: z
+    .array(ContentPartSchema)
+    .min(1, "Message content cannot be empty")
+    .refine(
+      (content) => content.every((part) => part !== null && part !== undefined),
+      "All content parts must be valid",
+    ),
+  timestamp: commonSchemas.timestamp.optional(),
+  sources: z.array(sourceRefSchema).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});

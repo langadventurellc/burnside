@@ -19,11 +19,11 @@ const modelInfoSchema = z.object({
     documents: z.boolean(),
     maxTokens: z.number().positive().optional(),
     supportedContentTypes: z.array(z.string()),
-    metadata: z.record(z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
   }),
   version: z.string().optional(),
   description: z.string().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 /**

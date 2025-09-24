@@ -46,7 +46,7 @@ export function loadDefaultModels(filePath: string): ModelInfo[] {
       throw new ValidationError(
         `Invalid defaultLlmModelson structure in ${filePath}`,
         {
-          zodErrors: error.errors,
+          zodErrors: error.issues,
           receivedData: jsonData,
         },
       );

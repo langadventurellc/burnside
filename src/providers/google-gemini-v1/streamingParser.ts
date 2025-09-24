@@ -162,7 +162,7 @@ function parseAndValidateChunk(
     if (parseError instanceof z.ZodError) {
       throw new ValidationError(
         `Invalid Gemini streaming chunk format: ${parseError.message}`,
-        { chunk: data, validationErrors: parseError.errors },
+        { chunk: data, validationErrors: parseError.issues },
       );
     }
 

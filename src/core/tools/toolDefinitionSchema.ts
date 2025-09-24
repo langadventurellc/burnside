@@ -36,12 +36,11 @@ import { commonSchemas } from "../validation/index";
  * Supports basic JSON Schema structure for parameter definitions.
  */
 const jsonSchemaSchema = z
-  .object({
+  .looseObject({
     type: z.string().min(1, "JSON Schema type is required"),
     properties: z.record(z.string(), z.unknown()).optional(),
     required: z.array(z.string()).optional(),
-  })
-  .passthrough() // Allow additional JSON Schema properties
+  }) // Allow additional JSON Schema properties
   .refine(
     (schema) =>
       ["object", "string", "number", "boolean", "array"].includes(schema.type),
@@ -53,7 +52,9 @@ const jsonSchemaSchema = z
  * Prioritizes Zod schemas as first-class values while maintaining backward compatibility.
  */
 const inputSchemaSchema = z.union([
-  z.instanceof(z.ZodType, { message: "Must be a valid Zod schema instance" }),
+  z.instanceof(z.ZodType, {
+    error: "Must be a valid Zod schema instance",
+  }),
   jsonSchemaSchema,
 ]);
 
@@ -62,7 +63,9 @@ const inputSchemaSchema = z.union([
  */
 const outputSchemaSchema = z
   .union([
-    z.instanceof(z.ZodType, { message: "Must be a valid Zod schema instance" }),
+    z.instanceof(z.ZodType, {
+      error: "Must be a valid Zod schema instance",
+    }),
     jsonSchemaSchema,
   ])
   .optional();
@@ -92,7 +95,7 @@ const metadataSchema = z.record(z.string(), z.unknown()).optional();
  * and security considerations.
  */
 export const ToolDefinitionSchema = z
-  .object({
+  .strictObject({
     name: commonSchemas.toolName,
     description: commonSchemas.toolDescription,
     inputSchema: inputSchemaSchema,
@@ -100,7 +103,6 @@ export const ToolDefinitionSchema = z
     hints: hintsSchema,
     metadata: metadataSchema,
   })
-  .strict()
   .refine(
     (tool) => tool.name.length > 0,
     "Tool name cannot be empty after trimming",

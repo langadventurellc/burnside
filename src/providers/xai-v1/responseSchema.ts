@@ -130,7 +130,7 @@ const TextFormatResponseSchema = z.union([
     type: z.literal("json_schema"),
     description: z.string().optional(),
     name: z.string().optional(),
-    schema: z.record(z.unknown()).optional(),
+    schema: z.record(z.string(), z.unknown()).optional(),
     strict: z.boolean().optional(),
   }),
 ]);
@@ -216,7 +216,7 @@ export const XAIV1ResponseSchema = z.object({
   max_output_tokens: z.number().nullable(),
 
   /** Metadata associated with the response */
-  metadata: z.record(z.unknown()).nullable(),
+  metadata: z.record(z.string(), z.unknown()).nullable(),
 
   /** Parallel tool calls flag */
   parallel_tool_calls: z.boolean().optional(),

@@ -89,7 +89,7 @@ export function mapJsonToModelInfo(
   } catch (error) {
     if (error instanceof z.ZodError) {
       throw new ValidationError("Invalid defaultLlmModelson structure", {
-        zodErrors: error.errors,
+        zodErrors: error.issues,
         receivedData: jsonData,
       });
     }

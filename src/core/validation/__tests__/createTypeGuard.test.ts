@@ -48,7 +48,7 @@ describe("createTypeGuard", () => {
       const userSchema = z.object({
         name: z.string(),
         age: z.number(),
-        email: z.string().email(),
+        email: z.email(),
       });
 
       const isUser = createTypeGuard(userSchema);

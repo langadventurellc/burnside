@@ -51,11 +51,10 @@ describe("ValidationResult", () => {
 
   describe("error result", () => {
     it("should have correct structure for error case", () => {
-      const issues: z.ZodIssue[] = [
+      const issues: z.core.$ZodIssue[] = [
         {
-          code: z.ZodIssueCode.invalid_type,
+          code: "invalid_type",
           expected: "string",
-          received: "number",
           path: ["name"],
           message: "Expected string, received number",
         },
@@ -73,27 +72,26 @@ describe("ValidationResult", () => {
       if (!result.success) {
         expect(result.error.message).toContain("Validation failed");
         expect(result.error.issues).toHaveLength(1);
-        expect(result.error.issues[0].code).toBe(z.ZodIssueCode.invalid_type);
+        expect(result.error.issues[0].code).toBe("invalid_type");
       }
     });
 
     it("should handle multiple validation issues", () => {
-      const issues: z.ZodIssue[] = [
+      const issues: z.core.$ZodIssue[] = [
         {
-          code: z.ZodIssueCode.invalid_type,
+          code: "invalid_type",
           expected: "string",
-          received: "number",
           path: ["name"],
           message: "Expected string, received number",
         },
         {
-          code: z.ZodIssueCode.too_small,
+          code: "too_small",
           minimum: 1,
-          type: "string",
           inclusive: true,
           exact: false,
           path: ["email"],
           message: "String must contain at least 1 character(s)",
+          origin: "",
         },
       ];
 

@@ -20,6 +20,6 @@ export type ValidationResult<T> =
       success: false;
       error: {
         message: string;
-        issues: z.ZodIssue[];
+        issues: z.core.$ZodIssue[];
       };
     };

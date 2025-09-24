@@ -13,7 +13,7 @@ describe("validateOrThrow", () => {
   const objectSchema = z.object({
     name: z.string(),
     age: z.number().positive(),
-    email: z.string().email(),
+    email: z.email(),
   });
 
   describe("successful validation", () => {

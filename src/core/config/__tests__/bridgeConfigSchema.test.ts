@@ -1417,7 +1417,7 @@ describe("BridgeConfigSchema", () => {
         };
 
         expect(() => BridgeConfigSchema.parse(config)).toThrow(
-          /Invalid enum value/,
+          /Invalid option: expected one of/,
         );
       });
 
@@ -1432,7 +1432,7 @@ describe("BridgeConfigSchema", () => {
         };
 
         expect(() => BridgeConfigSchema.parse(config)).toThrow(
-          /Invalid enum value/,
+          /Invalid option: expected one of/,
         );
       });
 
@@ -1447,7 +1447,7 @@ describe("BridgeConfigSchema", () => {
         };
 
         expect(() => BridgeConfigSchema.parse(config)).toThrow(
-          /Expected.*immediate_unregister.*mark_unavailable/,
+          /Invalid option: expected one of/,
         );
       });
     });

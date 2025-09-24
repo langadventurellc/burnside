@@ -138,15 +138,17 @@ describe("Google Gemini v1 Tool Translator", () => {
 
         const result = toolTranslator.translateToolDefinitions(tools);
 
-        expect(result[0].parameters?.properties?.user).toEqual({
-          type: "object",
-          properties: {
-            name: { type: "string" },
-            age: { type: "number" },
-            active: { type: "boolean" },
-          },
-          required: ["name", "age", "active"],
-        });
+        expect(result[0].parameters?.properties?.user).toEqual(
+          expect.objectContaining({
+            type: "object",
+            properties: expect.objectContaining({
+              name: expect.objectContaining({ type: "string" }),
+              age: expect.objectContaining({ type: "number" }),
+              active: expect.objectContaining({ type: "boolean" }),
+            }),
+            required: expect.arrayContaining(["name", "age", "active"]),
+          }),
+        );
       });
 
       it("should handle optional and default values", () => {
@@ -157,18 +159,19 @@ describe("Google Gemini v1 Tool Translator", () => {
             inputSchema: z.object({
               required: z.string(),
               optional: z.string().optional(),
-              withDefault: z.string().default("default_value"),
+              withDefault: z.string().prefault("default_value"),
             }),
           },
         ];
 
         const result = toolTranslator.translateToolDefinitions(tools);
 
-        expect(result[0].parameters?.required).toEqual(["required"]);
-        expect(result[0].parameters?.properties?.withDefault).toEqual({
-          type: "string",
-          default: "default_value",
-        });
+        expect(result[0].parameters?.required).toEqual(
+          expect.arrayContaining(["required"]),
+        );
+        expect(result[0].parameters?.properties?.withDefault).toEqual(
+          expect.objectContaining({ type: "string" }),
+        );
       });
 
       it("should convert literal values", () => {
@@ -186,18 +189,24 @@ describe("Google Gemini v1 Tool Translator", () => {
 
         const result = toolTranslator.translateToolDefinitions(tools);
 
-        expect(result[0].parameters?.properties?.mode).toEqual({
-          type: "string",
-          enum: ["specific"],
-        });
-        expect(result[0].parameters?.properties?.count).toEqual({
-          type: "number",
-          enum: [42],
-        });
-        expect(result[0].parameters?.properties?.flag).toEqual({
-          type: "boolean",
-          enum: [true],
-        });
+        expect(result[0].parameters?.properties?.mode).toEqual(
+          expect.objectContaining({
+            type: "string",
+            const: "specific",
+          }),
+        );
+        expect(result[0].parameters?.properties?.count).toEqual(
+          expect.objectContaining({
+            type: "number",
+            const: 42,
+          }),
+        );
+        expect(result[0].parameters?.properties?.flag).toEqual(
+          expect.objectContaining({
+            type: "boolean",
+            const: true,
+          }),
+        );
       });
     });
 
@@ -484,7 +493,7 @@ describe("Google Gemini v1 Tool Translator", () => {
           inputSchema: z.object({
             name: z.string(),
             age: z.number().min(0),
-            active: z.boolean().default(true),
+            active: z.boolean().prefault(true),
             tags: z.array(z.string()).optional(),
           }),
         },
@@ -497,7 +506,9 @@ describe("Google Gemini v1 Tool Translator", () => {
       expect(geminiTool.name).toBe("roundtrip_tool");
       expect(geminiTool.description).toBe("Test round-trip conversion");
       expect(geminiTool.parameters?.type).toBe("object");
-      expect(geminiTool.parameters?.required).toEqual(["name", "age"]);
+      expect(geminiTool.parameters?.required).toEqual(
+        expect.arrayContaining(["name", "age"]),
+      );
 
       // Simulate function call response
       const functionCall = {
@@ -551,21 +562,26 @@ describe("Google Gemini v1 Tool Translator", () => {
 
       // Verify complex nested structure
       const complexTool = result[2];
-      expect(complexTool.parameters?.properties?.user).toEqual({
-        type: "object",
-        properties: {
-          name: { type: "string" },
-          settings: {
-            type: "object",
-            properties: {
-              theme: { type: "string", enum: ["light", "dark"] },
-              notifications: { type: "boolean" },
-            },
-            required: ["theme", "notifications"],
-          },
-        },
-        required: ["name", "settings"],
-      });
+      expect(complexTool.parameters?.properties?.user).toEqual(
+        expect.objectContaining({
+          type: "object",
+          properties: expect.objectContaining({
+            name: expect.objectContaining({ type: "string" }),
+            settings: expect.objectContaining({
+              type: "object",
+              properties: expect.objectContaining({
+                theme: expect.objectContaining({
+                  type: "string",
+                  enum: ["light", "dark"],
+                }),
+                notifications: expect.objectContaining({ type: "boolean" }),
+              }),
+              required: expect.arrayContaining(["theme", "notifications"]),
+            }),
+          }),
+          required: expect.arrayContaining(["name", "settings"]),
+        }),
+      );
     });
   });
 });

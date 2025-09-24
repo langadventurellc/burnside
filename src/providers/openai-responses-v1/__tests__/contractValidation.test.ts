@@ -355,7 +355,7 @@ describe("Contract Validation", () => {
         const result = OpenAIResponsesV1ResponseSchema.safeParse(response);
         if (!result.success) {
           console.error("Schema validation failed for:", response);
-          console.error("Errors:", result.error.errors);
+          console.error("Errors:", result.error.issues);
         }
         expect(result.success).toBe(true);
       }

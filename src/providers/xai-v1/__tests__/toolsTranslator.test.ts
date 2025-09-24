@@ -65,7 +65,7 @@ describe("translateToolsForXAI", () => {
         name: "invalid_tool",
         inputSchema: z.object({
           // Using unsupported schema type
-          value: z.union([z.string(), z.number()]),
+          value: z.function(),
         }),
       } as any;
 
@@ -91,7 +91,9 @@ describe("translateToolsForXAI", () => {
             {
               index: 1,
               name: "invalid_tool",
-              error: expect.stringContaining("Failed to convert Zod schema"),
+              error: expect.stringContaining(
+                "Failed to convert Zod schema to JSON Schema",
+              ),
             },
           ],
         });
@@ -102,14 +104,14 @@ describe("translateToolsForXAI", () => {
       const invalidTool1 = {
         name: "invalid_tool_1",
         inputSchema: z.object({
-          value: z.union([z.string(), z.number()]),
+          value: z.function(),
         }),
       };
 
       const invalidTool2 = {
         name: "invalid_tool_2",
         inputSchema: z.object({
-          value: z.union([z.boolean(), z.array(z.string())]),
+          value: z.string().transform(() => 42),
         }),
       };
 
@@ -127,12 +129,16 @@ describe("translateToolsForXAI", () => {
             {
               index: 0,
               name: "invalid_tool_1",
-              error: expect.stringContaining("Failed to convert Zod schema"),
+              error: expect.stringContaining(
+                "Failed to convert Zod schema to JSON Schema",
+              ),
             },
             {
               index: 1,
               name: "invalid_tool_2",
-              error: expect.stringContaining("Failed to convert Zod schema"),
+              error: expect.stringContaining(
+                "Failed to convert Zod schema to JSON Schema",
+              ),
             },
           ],
         });
@@ -167,7 +173,7 @@ describe("translateToolsForXAI", () => {
           description: `Tool number ${index}`,
           inputSchema: z.object({
             value: z.string(),
-            index: z.number().default(index),
+            index: z.number().prefault(index),
           }),
         }));
 

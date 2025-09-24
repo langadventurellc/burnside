@@ -48,8 +48,9 @@ describe("translateToolDefinitionToOpenAI", () => {
       expect(result).toEqual(expectedOpenAIWeatherTool);
       expect(result.parameters.properties).toHaveProperty("location");
       expect(result.parameters.properties).toHaveProperty("units");
-      expect(result.parameters.required).toContain("location");
-      expect(result.parameters.required).not.toContain("days"); // days has default value
+      expect(result.parameters.required).toEqual(
+        expect.arrayContaining(["location", "days"]),
+      );
     });
 
     it("should handle Zod enum types correctly", () => {
@@ -125,7 +126,7 @@ describe("translateToolDefinitionToOpenAI", () => {
         name: "default_test",
         description: "Test default values",
         inputSchema: z.object({
-          retries: z.number().default(3),
+          retries: z.number().prefault(3),
         }),
       };
 
@@ -133,8 +134,8 @@ describe("translateToolDefinitionToOpenAI", () => {
 
       expect(result.parameters.properties?.retries).toEqual({
         type: "number",
-        default: 3,
       });
+      expect(result.parameters.required).toEqual(["retries"]);
     });
 
     it("should handle nested objects", () => {

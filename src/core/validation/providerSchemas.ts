@@ -8,13 +8,14 @@
  */
 
 import { z } from "zod";
+import { functionSchema } from "./functionSchema";
 
 /**
  * Base provider configuration schema with common fields
  */
 const BaseProviderConfigSchema = z.object({
   /** Base URL for the provider API */
-  baseUrl: z.string().url().optional(),
+  baseUrl: z.url().optional(),
 
   /** API key for authentication */
   apiKey: z.string().min(1).optional(),
@@ -23,22 +24,22 @@ const BaseProviderConfigSchema = z.object({
   headers: z.record(z.string(), z.string()).optional(),
 
   /** Request timeout in milliseconds */
-  timeout: z.number().int().positive().max(60000).optional(),
+  timeout: z.int().positive().max(60000).optional(),
 
   /** Rate limiting configuration */
   rateLimiting: z
     .object({
-      requestsPerMinute: z.number().int().positive().optional(),
-      tokensPerMinute: z.number().int().positive().optional(),
+      requestsPerMinute: z.int().positive().optional(),
+      tokensPerMinute: z.int().positive().optional(),
     })
     .optional(),
 
   /** Retry configuration */
   retry: z
     .object({
-      maxAttempts: z.number().int().min(1).max(5).default(3),
-      backoffMs: z.number().int().positive().default(1000),
-      jitterMs: z.number().int().positive().default(100),
+      maxAttempts: z.int().min(1).max(5).prefault(3),
+      backoffMs: z.int().positive().prefault(1000),
+      jitterMs: z.int().positive().prefault(100),
     })
     .optional(),
 });
@@ -47,7 +48,7 @@ const BaseProviderConfigSchema = z.object({
  * OpenAI-specific provider configuration
  */
 const OpenAIProviderConfigSchema = BaseProviderConfigSchema.extend({
-  baseUrl: z.string().url().default("https://api.openai.com/v1"),
+  baseUrl: z.url().prefault("https://api.openai.com/v1"),
   apiKey: z.string().min(1), // Required for OpenAI
   organization: z.string().optional(),
   project: z.string().optional(),
@@ -57,19 +58,16 @@ const OpenAIProviderConfigSchema = BaseProviderConfigSchema.extend({
  * Anthropic-specific provider configuration
  */
 const AnthropicProviderConfigSchema = BaseProviderConfigSchema.extend({
-  baseUrl: z.string().url().default("https://api.anthropic.com"),
+  baseUrl: z.url().prefault("https://api.anthropic.com"),
   apiKey: z.string().min(1), // Required for Anthropic
-  version: z.string().default("2023-06-01"),
+  version: z.string().prefault("2023-06-01"),
 });
 
 /**
  * Google-specific provider configuration
  */
 const GoogleProviderConfigSchema = BaseProviderConfigSchema.extend({
-  baseUrl: z
-    .string()
-    .url()
-    .default("https://generativelanguage.googleapis.com/v1beta"),
+  baseUrl: z.url().prefault("https://generativelanguage.googleapis.com/v1beta"),
   apiKey: z.string().min(1), // Required for Google
   region: z.string().optional(),
 });
@@ -78,7 +76,7 @@ const GoogleProviderConfigSchema = BaseProviderConfigSchema.extend({
  * xAI-specific provider configuration
  */
 const XAIProviderConfigSchema = BaseProviderConfigSchema.extend({
-  baseUrl: z.string().url().default("https://api.x.ai/v1"),
+  baseUrl: z.url().prefault("https://api.x.ai/v1"),
   apiKey: z.string().min(1), // Required for xAI
 });
 
@@ -104,9 +102,15 @@ const ProviderRegistrationSchema = z.object({
     id: z.string(),
     name: z.string(),
     version: z.string(),
-    translateRequest: z.function(),
-    parseResponse: z.function().returns(z.union([z.promise(z.any()), z.any()])),
-    normalizeError: z.function(),
+    translateRequest: functionSchema(
+      "Provider plugin translateRequest must be a function",
+    ),
+    parseResponse: functionSchema(
+      "Provider plugin parseResponse must be a function",
+    ),
+    normalizeError: functionSchema(
+      "Provider plugin normalizeError must be a function",
+    ),
   }),
 });
 

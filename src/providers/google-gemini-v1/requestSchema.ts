@@ -48,7 +48,7 @@ const GeminiContentSchema = z.object({
 const GeminiFunctionDeclarationSchema = z.object({
   name: z.string().min(1, "Function name is required"),
   description: z.string().optional(),
-  parameters: z.record(z.unknown()).optional(), // JSON Schema object
+  parameters: z.record(z.string(), z.unknown()).optional(), // JSON Schema object
 });
 
 /**

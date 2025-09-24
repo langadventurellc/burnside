@@ -141,7 +141,7 @@ function validateAndParseResponse(
       provider: "xai",
       status: response.status,
       statusText: response.statusText,
-      validationErrors: validationResult.error.errors,
+      validationErrors: validationResult.error.issues,
       responseType: typeof responseData,
     });
 
@@ -154,7 +154,7 @@ function validateAndParseResponse(
     throw new ValidationError("Invalid xAI response structure", {
       status: response.status,
       statusText: response.statusText,
-      validationErrors: validationResult.error.errors,
+      validationErrors: validationResult.error.issues,
       responseData:
         typeof responseData === "object" ? responseData : { raw: responseData },
     });

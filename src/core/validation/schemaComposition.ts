@@ -17,7 +17,7 @@ export const schemaComposition = {
     schemaA: z.ZodObject<A>,
     schemaB: z.ZodObject<B>,
   ) => {
-    return schemaA.merge(schemaB);
+    return schemaA.extend(schemaB);
   },
 
   /**

@@ -49,7 +49,7 @@ const AnthropicMessage = z.object({
 const AnthropicTool = z.object({
   name: z.string(),
   description: z.string().optional(),
-  input_schema: z.record(z.unknown()), // JSON Schema object
+  input_schema: z.record(z.string(), z.unknown()), // JSON Schema object
 });
 
 /**
@@ -63,7 +63,7 @@ export const AnthropicMessagesRequestSchema = z.object({
   model: z.string().min(1),
 
   /** Maximum number of tokens to generate */
-  max_tokens: z.number().int().positive(),
+  max_tokens: z.int().positive(),
 
   /** Array of messages in the conversation */
   messages: z
