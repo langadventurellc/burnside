@@ -2,6 +2,7 @@
   "name": "@langadventurellc/burnside",
   "version": "0.0.0-development",
   "description": "A TypeScript LLM provider adapter with MCP support for Desktop, Mobile, and API platforms.",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/langadventurellc/burnside.git"
