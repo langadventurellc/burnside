@@ -40,9 +40,10 @@ import { OpenAIResponsesV1Provider } from "@langadventurellc/burnside/providers"
 
 const client = createClient({
   providers: {
-    openai: { apiKey: "${OPENAI_API_KEY}" },
+    openai: {
+      default: { apiKey: "${OPENAI_API_KEY}" },
+    },
   },
-  defaultProvider: "openai",
   modelSeed: "builtin",
 });
 
@@ -73,6 +74,7 @@ async chat(request: ChatRequest): Promise<Message>
 
 - `request.messages` - Array of conversation messages
 - `request.model` - Model to use (format: `provider:model-id`)
+- `request.providerConfig` - **Required:** Provider configuration name to use
 - `request.tools?` - Whether to enable tool execution
 - `request.multiTurn?` - Multi-turn conversation configuration
 - `request.temperature?` - Sampling temperature (if supported by model)
@@ -87,6 +89,7 @@ async chat(request: ChatRequest): Promise<Message>
 const response = await client.chat({
   messages: [{ role: "user", content: [{ type: "text", text: "Hello!" }] }],
   model: "openai:gpt-4o-2024-08-06",
+  providerConfig: "default",
 });
 ```
 
@@ -136,6 +139,7 @@ async stream(request: StreamRequest): Promise<AsyncIterable<StreamDelta>>
 
 - `request.messages` - Array of conversation messages
 - `request.model` - Model to use (format: `provider:model-id`)
+- `request.providerConfig` - **Required:** Provider configuration name to use
 - `request.tools?` - Whether to enable tool execution
 - `request.multiTurn?` - Multi-turn conversation configuration
 - `request.temperature?` - Sampling temperature (if supported by model)
@@ -151,6 +155,7 @@ for await (const delta of await client.stream({
     { role: "user", content: [{ type: "text", text: "Tell me a story" }] },
   ],
   model: "anthropic:claude-3-5-haiku-latest",
+  providerConfig: "default",
 })) {
   process.stdout.write(delta.delta.content?.[0]?.text || "");
 }
@@ -366,6 +371,7 @@ interface SourceRef {
 interface ChatRequest {
   messages: Message[];
   model: string; // Format: "provider:model-id"
+  providerConfig: string; // Required: provider configuration name
   tools?: ToolDefinition[]; // Array of tool definitions, not boolean
   multiTurn?: Partial<AgentExecutionOptions>;
   temperature?: number;
@@ -381,6 +387,7 @@ interface ChatRequest {
 interface StreamRequest {
   messages: Message[];
   model: string; // Format: "provider:model-id"
+  providerConfig: string; // Required: provider configuration name
   tools?: ToolDefinition[]; // Array of tool definitions, not boolean
   multiTurn?: Partial<AgentExecutionOptions>;
   temperature?: number;
@@ -473,8 +480,7 @@ type ToolHandler = (
 
 ```typescript
 interface BridgeConfig {
-  providers?: Record<string, ProviderConfig>;
-  defaultProvider?: string;
+  providers?: Record<string, Record<string, ProviderConfig>>; // Nested: provider -> config name -> config
   defaultModel?: string;
   timeout?: number;
   options?: Record<string, unknown>;
