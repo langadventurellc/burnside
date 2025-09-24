@@ -191,7 +191,7 @@ describe("BridgeClient - Nested Configuration Validation", () => {
 
       expect(() => getProviderConfig("openai")).toThrow(BridgeError);
       expect(() => getProviderConfig("openai")).toThrow(
-        /Multiple configurations found/,
+        /Provider configuration name required/,
       );
     });
 

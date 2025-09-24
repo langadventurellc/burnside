@@ -266,13 +266,11 @@ export class BridgeClient {
       } else {
         // Multiple configurations exist, must specify providerConfig
         throw new BridgeError(
-          `Multiple configurations found for provider '${providerId}'. ` +
-            `Please specify providerConfig parameter to select one of: ${matchingKeys.map((k) => k.split(".")[1]).join(", ")}`,
-          "MULTIPLE_PROVIDER_CONFIGS",
+          `Provider configuration name required. Provider '${providerId}' has multiple configurations: ${matchingKeys.map((k) => k.split(".")[1]).join(", ")}`,
+          "PROVIDER_CONFIG_REQUIRED",
           {
             providerId,
-            availableConfigurations: matchingKeys.map((k) => k.split(".")[1]),
-            allConfigurations: matchingKeys,
+            availableConfigs: matchingKeys.map((k) => k.split(".")[1]),
           },
         );
       }
@@ -292,6 +290,55 @@ export class BridgeClient {
       );
     }
     return config;
+  }
+
+  /**
+   * Validate that providerConfig is provided when multiple configurations exist
+   * and that the specified configuration is valid
+   */
+  private validateProviderConfigRequirement(
+    providerId: string,
+    providerConfigName?: string,
+  ): void {
+    // Get all configurations for this provider type
+    const providerConfigs = this.getConfigurationsForProvider(providerId);
+
+    if (providerConfigs.length > 1 && !providerConfigName) {
+      throw new BridgeError(
+        `Provider configuration name required. Provider '${providerId}' has multiple configurations: ${providerConfigs.join(", ")}`,
+        "PROVIDER_CONFIG_REQUIRED",
+        { providerId, availableConfigs: providerConfigs },
+      );
+    }
+
+    if (providerConfigName && !providerConfigs.includes(providerConfigName)) {
+      throw new BridgeError(
+        `Invalid provider configuration '${providerConfigName}' for provider '${providerId}'. Available configurations: ${providerConfigs.join(", ")}`,
+        "INVALID_PROVIDER_CONFIG",
+        {
+          providerId,
+          requestedConfig: providerConfigName,
+          availableConfigs: providerConfigs,
+        },
+      );
+    }
+  }
+
+  /**
+   * Get all configuration names for a specific provider type
+   */
+  private getConfigurationsForProvider(providerId: string): string[] {
+    const configurations: string[] = [];
+    for (const key of this.config.providers.keys()) {
+      if (key.startsWith(`${providerId}.`)) {
+        const configName = key.split(".")[1];
+        configurations.push(configName);
+      } else if (key === providerId) {
+        // Handle legacy single configuration format if needed
+        configurations.push("default");
+      }
+    }
+    return configurations;
   }
 
   /**
@@ -392,8 +439,10 @@ export class BridgeClient {
     const modelId = this.qualifyModelId(request.model);
     this.ensureModelRegistered(modelId);
 
-    // Resolve provider
+    // Resolve provider and validate configuration requirement
     const { id, version } = this.getProviderKeyFromModel(modelId);
+    this.validateProviderConfigRequirement(id, request.providerConfig);
+
     const plugin = this.providerRegistry.get(id, version);
     if (!plugin) {
       throw new BridgeError(
@@ -548,8 +597,10 @@ export class BridgeClient {
     const modelId = this.qualifyModelId(request.model);
     this.ensureModelRegistered(modelId);
 
-    // Resolve provider
+    // Resolve provider and validate configuration requirement
     const { id, version } = this.getProviderKeyFromModel(modelId);
+    this.validateProviderConfigRequirement(id, request.providerConfig);
+
     const plugin = this.providerRegistry.get(id, version);
     if (!plugin) {
       throw new BridgeError(

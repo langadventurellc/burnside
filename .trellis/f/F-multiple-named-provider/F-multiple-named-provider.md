@@ -22,7 +22,12 @@ affectedFiles:
     initializeProviderIfNeeded method to accept optional configName parameter
     and include it in provider tracking key format
     (providerId:version:configName). Updated both chat and stream methods to
-    pass request.providerConfig to provider initialization.
+    pass request.providerConfig to provider initialization.; Added
+    validateProviderConfigRequirement() and getConfigurationsForProvider()
+    private methods. Updated error code in getProviderConfigOrThrow from
+    MULTIPLE_PROVIDER_CONFIGS to PROVIDER_CONFIG_REQUIRED. Added validation
+    calls in both chat() and stream() methods after ensureModelRegistered()
+    call.
   src/__tests__/createClient.test.ts: Updated all test configurations to use the
     new 3-level nested structure and corrected expected error paths and test
     assertions; Updated all provider resolution tests to use flattened keys
@@ -48,7 +53,9 @@ affectedFiles:
     flattened key format
   src/client/__tests__/bridgeClient.nestedConfig.test.ts: Created comprehensive
     test suite with 18 test cases covering nested configuration validation,
-    provider resolution, error handling, and backward compatibility scenarios
+    provider resolution, error handling, and backward compatibility scenarios;
+    Updated test expectation to match new PROVIDER_CONFIG_REQUIRED error message
+    instead of old Multiple configurations found message.
   src/client/__tests__/bridgeClientConfig.test.ts: Updated existing tests to use
     flattened provider keys (openai.default) and added defaultProvider field to
     all BridgeClientConfig test instances
@@ -60,15 +67,20 @@ affectedFiles:
     configs, verifying no reinitialize on subsequent requests, testing stream
     method integration, and maintaining backward compatibility for single
     configurations.
+  src/client/__tests__/bridgeClient.validation.test.ts:
+    Created comprehensive test
+    suite with 10 unit tests covering validateProviderConfigRequirement and
+    getConfigurationsForProvider methods, testing single/multiple
+    configurations, invalid configs, error messages, and edge cases.
 log: []
 schema: v1.0
 childrenIds:
   - T-add-request-validation-for
   - T-update-model-seeding-to-work
-  - T-update-provider-resolution-to
   - T-add-providerconfig-parameter
   - T-update-bridgeconfig-interface
   - T-update-configuration
+  - T-update-provider-resolution-to
 created: 2025-09-24T19:08:11.414Z
 updated: 2025-09-24T19:08:11.414Z
 ---

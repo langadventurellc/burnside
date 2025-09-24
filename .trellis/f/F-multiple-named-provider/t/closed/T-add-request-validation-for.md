@@ -1,13 +1,37 @@
 ---
 id: T-add-request-validation-for
 title: Add request validation for providerConfig parameter
-status: open
+status: done
 priority: medium
 parent: F-multiple-named-provider
 prerequisites:
   - T-update-provider-resolution-to
-affectedFiles: {}
-log: []
+affectedFiles:
+  src/client/bridgeClient.ts: Added validateProviderConfigRequirement() and
+    getConfigurationsForProvider() private methods. Updated error code in
+    getProviderConfigOrThrow from MULTIPLE_PROVIDER_CONFIGS to
+    PROVIDER_CONFIG_REQUIRED. Added validation calls in both chat() and stream()
+    methods after ensureModelRegistered() call.
+  src/client/__tests__/bridgeClient.nestedConfig.test.ts:
+    Updated test expectation
+    to match new PROVIDER_CONFIG_REQUIRED error message instead of old Multiple
+    configurations found message.
+  src/client/__tests__/bridgeClient.validation.test.ts:
+    Created comprehensive test
+    suite with 10 unit tests covering validateProviderConfigRequirement and
+    getConfigurationsForProvider methods, testing single/multiple
+    configurations, invalid configs, error messages, and edge cases.
+log:
+  - "Successfully implemented comprehensive request validation for the
+    providerConfig parameter. Added two new private methods to BridgeClient:
+    validateProviderConfigRequirement() for early validation and
+    getConfigurationsForProvider() for configuration discovery. Updated both
+    chat() and stream() methods to validate providerConfig early in the request
+    cycle. Updated error codes from MULTIPLE_PROVIDER_CONFIGS to
+    PROVIDER_CONFIG_REQUIRED for consistency. Added comprehensive unit test
+    coverage with 10 test cases covering all validation scenarios including
+    multiple configs, invalid configs, and edge cases. All 145 existing tests
+    continue to pass, ensuring no regressions."
 schema: v1.0
 childrenIds: []
 created: 2025-09-24T19:24:25.983Z
