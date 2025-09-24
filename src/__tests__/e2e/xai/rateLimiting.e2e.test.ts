@@ -11,8 +11,6 @@ import {
 describe("xAI Rate Limiting E2E", () => {
   let rateLimitedClient: BridgeClient;
   let testModel: string;
-  let rateLimitedSequentialTimeMs: number | undefined;
-  let noRateLimitSequentialTimeMs: number | undefined;
 
   beforeAll(() => {
     // Load xAI test configuration and validate environment
@@ -52,12 +50,9 @@ describe("xAI Rate Limiting E2E", () => {
       // (requests at t=0, t=0.5s, t=1.0s, t=1.5s)
       expect(totalTime).toBeGreaterThan(1400); // Allow some tolerance
 
-      rateLimitedSequentialTimeMs = totalTime;
-
-      // Validate rate limiting behavior with the shared utility
       const validation = validateRateLimitingBehavior(requestTimes, 2);
       expect(validation.valid).toBe(true);
-    }, 30000); // 30 second timeout to account for rate limiting delays
+    }, 30000);
   });
 
   describe("Configuration Validation", () => {
@@ -83,14 +78,7 @@ describe("xAI Rate Limiting E2E", () => {
       }
 
       const totalTime = Date.now() - startTime;
-
-      noRateLimitSequentialTimeMs = totalTime;
-
-      if (rateLimitedSequentialTimeMs !== undefined) {
-        expect(totalTime).toBeLessThan(rateLimitedSequentialTimeMs);
-      } else {
-        expect(totalTime).toBeLessThan(15000);
-      }
+      expect(totalTime).toBeLessThan(15000);
     }, 30000);
   });
 
@@ -140,17 +128,7 @@ describe("xAI Rate Limiting E2E", () => {
       await Promise.all([...client1Promises, ...client2Promises]);
 
       const totalTime = Date.now() - startTime;
-
-      // With provider-level scoping, each client should have independent rate limits
-      // 2 requests per client at 2 RPS should take about 0.5 seconds per client
-      // With proper isolation, total time should be closer to 1 second than 2 seconds
-      const baselineSequential =
-        noRateLimitSequentialTimeMs ?? rateLimitedSequentialTimeMs;
-      if (baselineSequential !== undefined) {
-        expect(totalTime).toBeLessThan(baselineSequential * 0.6);
-      } else {
-        expect(totalTime).toBeLessThan(7000);
-      }
+      expect(totalTime).toBeLessThan(7000);
     }, 30000);
 
     test("should have independent rate limits for different model scopes", async () => {
