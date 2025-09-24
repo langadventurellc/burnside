@@ -12,6 +12,11 @@
   },
   "license": "GPL-3.0-only",
   "homepage": "https://github.com/langadventurellc/burnside#readme",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public"
