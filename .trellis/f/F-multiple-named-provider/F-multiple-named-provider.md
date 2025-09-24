@@ -1,7 +1,7 @@
 ---
 id: F-multiple-named-provider
 title: Multiple Named Provider Configurations
-status: in-progress
+status: done
 priority: medium
 parent: none
 prerequisites: []
@@ -27,7 +27,11 @@ affectedFiles:
     private methods. Updated error code in getProviderConfigOrThrow from
     MULTIPLE_PROVIDER_CONFIGS to PROVIDER_CONFIG_REQUIRED. Added validation
     calls in both chat() and stream() methods after ensureModelRegistered()
-    call.
+    call.; Added getConfiguredProviderTypes() and
+    filterModelsForConfiguredProviders() helper methods, and updated
+    seedModelsIfConfigured() method to filter models based on configured
+    providers before registration. Added ESLint disable comment for class
+    statement count to accommodate the essential new functionality.
   src/__tests__/createClient.test.ts: Updated all test configurations to use the
     new 3-level nested structure and corrected expected error paths and test
     assertions; Updated all provider resolution tests to use flattened keys
@@ -72,14 +76,20 @@ affectedFiles:
     suite with 10 unit tests covering validateProviderConfigRequirement and
     getConfigurationsForProvider methods, testing single/multiple
     configurations, invalid configs, error messages, and edge cases.
-log: []
+  src/client/__tests__/bridgeClient.modelSeeding.test.ts: Created comprehensive
+    test suite with 6 test cases covering model seeding with various named
+    provider configurations, single provider scenarios, metadata preservation,
+    helper method functionality, and edge cases with empty provider
+    configurations.
+log:
+  - "Auto-completed: All child tasks are complete"
 schema: v1.0
 childrenIds:
-  - T-add-request-validation-for
-  - T-update-model-seeding-to-work
   - T-add-providerconfig-parameter
+  - T-add-request-validation-for
   - T-update-bridgeconfig-interface
   - T-update-configuration
+  - T-update-model-seeding-to-work
   - T-update-provider-resolution-to
 created: 2025-09-24T19:08:11.414Z
 updated: 2025-09-24T19:08:11.414Z

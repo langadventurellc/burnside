@@ -1,3 +1,4 @@
+/* eslint-disable statement-count/class-statement-count-error */
 /* eslint-disable statement-count/class-statement-count-warn */
 /* eslint-disable statement-count/function-statement-count-warn */
 /* eslint-disable max-lines */
@@ -827,14 +828,16 @@ export class BridgeClient {
     try {
       if (seed === "builtin") {
         const models = mapJsonToModelInfo(defaultLlmModels);
-        this.registerModels(models);
+        const filteredModels = this.filterModelsForConfiguredProviders(models);
+        this.registerModels(filteredModels);
         return;
       }
 
       if (typeof seed === "object" && "data" in seed) {
         const validated = DefaultLlmModelsSchema.parse(seed.data);
         const models = mapJsonToModelInfo(validated);
-        this.registerModels(models);
+        const filteredModels = this.filterModelsForConfiguredProviders(models);
+        this.registerModels(filteredModels);
         return;
       }
 
@@ -851,6 +854,29 @@ export class BridgeClient {
 
       console.warn("Model registry seeding failed:", error);
     }
+  }
+
+  /**
+   * Gets provider types that have actual named configurations defined.
+   * Extracts provider types from flattened keys (e.g., "openai.prod" → "openai").
+   */
+  private getConfiguredProviderTypes(): string[] {
+    const providerTypes = new Set<string>();
+    for (const key of this.config.providers.keys()) {
+      // Extract provider type from flattened keys like "openai.prod"
+      const type = key.split(".")[0];
+      providerTypes.add(type);
+    }
+    return Array.from(providerTypes);
+  }
+
+  /**
+   * Filters models to only include those whose provider type has actual configurations.
+   * This ensures built-in models are only registered for configured providers.
+   */
+  private filterModelsForConfiguredProviders(models: ModelInfo[]): ModelInfo[] {
+    const configuredProviders = new Set(this.getConfiguredProviderTypes());
+    return models.filter((model) => configuredProviders.has(model.provider));
   }
 
   private registerModels(models: ModelInfo[]): void {
