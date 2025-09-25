@@ -54,11 +54,11 @@ import { McpToolRegistry } from "../tools/mcp/mcpToolRegistry";
  * @example
  * ```typescript
  * const config: BridgeConfig = {
- *   defaultProvider: "openai",
  *   providers: {
- *     openai: { apiKey: "sk-..." }
+ *     openai: {
+ *       default: { apiKey: "sk-..." }
+ *     }
  *   },
- *   defaultModel: "gpt-4"
  * };
  *
  * const client = new BridgeClient(config);
@@ -197,30 +197,26 @@ export class BridgeClient {
   }
 
   /**
-   * Get provider key from model configuration
+   * Get provider key from provider ID
    */
-  private getProviderKeyFromModel(modelId: string): {
+  private getProviderKeyFromProviderId(providerId: string): {
     id: string;
     version: string;
   } {
-    const model = this.modelRegistry.get(modelId);
-    if (!model?.metadata?.providerPlugin) {
-      throw new BridgeError(
-        "Provider plugin mapping not found",
-        "PROVIDER_PLUGIN_UNMAPPED",
-        { modelId, providerPlugin: model?.metadata?.providerPlugin },
-      );
-    }
+    // Define canonical mapping from provider ID to provider registry keys
+    const mapping: Record<string, { id: string; version: string }> = {
+      openai: { id: "openai", version: "responses-v1" },
+      anthropic: { id: "anthropic", version: "2023-06-01" },
+      google: { id: "google", version: "gemini-v1" },
+      xai: { id: "xai", version: "v1" },
+    };
 
-    const providerKey = this.getProviderKeyFromPluginString(
-      model.metadata.providerPlugin as string,
-    );
+    const providerKey = mapping[providerId];
     if (!providerKey) {
-      throw new BridgeError(
-        "Provider plugin mapping not found",
-        "PROVIDER_PLUGIN_UNMAPPED",
-        { modelId, providerPlugin: model.metadata.providerPlugin },
-      );
+      throw new BridgeError("Provider not supported", "UNSUPPORTED_PROVIDER", {
+        providerId,
+        supportedProviders: Object.keys(mapping),
+      });
     }
 
     return providerKey;
@@ -228,29 +224,103 @@ export class BridgeClient {
 
   /**
    * Get provider config or throw if missing
+   * Uses the required providerConfig parameter to get the specific configuration
    */
   private getProviderConfigOrThrow(
     providerId: string,
+    providerConfig: string,
   ): Record<string, unknown> {
-    const config = this.config.providers.get(providerId);
+    // Build the flattened key: providerId.providerConfig
+    const resolvedKey = `${providerId}.${providerConfig}`;
+
+    const config = this.config.providers.get(resolvedKey);
     if (!config) {
       throw new BridgeError(
-        "Provider configuration not found",
+        `Configuration '${resolvedKey}' not found`,
         "PROVIDER_CONFIG_MISSING",
-        { providerId },
+        {
+          providerId,
+          providerConfig,
+          resolvedKey,
+          availableConfigurations: Array.from(this.config.providers.keys()),
+        },
       );
     }
     return config;
   }
 
   /**
+   * Validate that the specified provider configuration is valid
+   */
+  private validateProviderConfig(
+    providerId: string,
+    providerConfigName: string,
+  ): void {
+    // Get all configurations for this provider type
+    const providerConfigs = this.getConfigurationsForProvider(providerId);
+
+    if (providerConfigs.length === 0) {
+      throw new BridgeError(
+        `No configurations found for provider '${providerId}'`,
+        "PROVIDER_CONFIG_MISSING",
+        {
+          providerId,
+          availableProviders: Array.from(
+            new Set(
+              Array.from(this.config.providers.keys()).map(
+                (key) => key.split(".")[0],
+              ),
+            ),
+          ),
+        },
+      );
+    }
+
+    if (!providerConfigs.includes(providerConfigName)) {
+      throw new BridgeError(
+        `Invalid provider configuration '${providerConfigName}' for provider '${providerId}'. Available configurations: ${providerConfigs.join(", ")}`,
+        "INVALID_PROVIDER_CONFIG",
+        {
+          providerId,
+          requestedConfig: providerConfigName,
+          availableConfigs: providerConfigs,
+        },
+      );
+    }
+  }
+
+  /**
+   * Get all configuration names for a specific provider type
+   */
+  private getConfigurationsForProvider(providerId: string): string[] {
+    const configurations: string[] = [];
+    for (const key of this.config.providers.keys()) {
+      if (key.startsWith(`${providerId}.`)) {
+        const configName = key.split(".")[1];
+        configurations.push(configName);
+      } else if (key === providerId) {
+        throw new BridgeError(
+          `Provider configuration name is required for provider '${providerId}'`,
+          "PROVIDER_CONFIG_NAME_REQUIRED",
+          { providerId },
+        );
+      }
+    }
+    return configurations;
+  }
+
+  /**
    * Initialize provider if not already initialized
+   * Now includes configuration name in tracking to support multiple configs per provider
    */
   private async initializeProviderIfNeeded(
     plugin: ProviderPlugin,
     providerConfig: Record<string, unknown>,
+    configName?: string,
   ): Promise<void> {
-    const key = `${plugin.id}:${plugin.version}`;
+    const key = configName
+      ? `${plugin.id}:${plugin.version}:${configName}`
+      : `${plugin.id}:${plugin.version}`;
     if (!this.initializedProviders.has(key)) {
       await plugin.initialize?.(providerConfig);
       this.initializedProviders.add(key);
@@ -337,8 +407,13 @@ export class BridgeClient {
     const modelId = this.qualifyModelId(request.model);
     this.ensureModelRegistered(modelId);
 
-    // Resolve provider
-    const { id, version } = this.getProviderKeyFromModel(modelId);
+    // Extract provider info from qualified model ID
+    const providerId = modelId.split(":")[0];
+    const { id, version } = this.getProviderKeyFromProviderId(providerId);
+
+    // Validate that the provider configuration is valid
+    this.validateProviderConfig(id, request.providerConfig);
+
     const plugin = this.providerRegistry.get(id, version);
     if (!plugin) {
       throw new BridgeError(
@@ -349,8 +424,15 @@ export class BridgeClient {
     }
 
     // Initialize provider once with config
-    const providerConfig = this.getProviderConfigOrThrow(id);
-    await this.initializeProviderIfNeeded(plugin, providerConfig);
+    const providerConfig = this.getProviderConfigOrThrow(
+      id,
+      request.providerConfig,
+    );
+    await this.initializeProviderIfNeeded(
+      plugin,
+      providerConfig,
+      request.providerConfig,
+    );
 
     // Translate request with auto-included tools
     const httpReq = plugin.translateRequest({
@@ -486,8 +568,13 @@ export class BridgeClient {
     const modelId = this.qualifyModelId(request.model);
     this.ensureModelRegistered(modelId);
 
-    // Resolve provider
-    const { id, version } = this.getProviderKeyFromModel(modelId);
+    // Extract provider info from qualified model ID
+    const providerId = modelId.split(":")[0];
+    const { id, version } = this.getProviderKeyFromProviderId(providerId);
+
+    // Validate that the provider configuration is valid
+    this.validateProviderConfig(id, request.providerConfig);
+
     const plugin = this.providerRegistry.get(id, version);
     if (!plugin) {
       throw new BridgeError(
@@ -498,8 +585,15 @@ export class BridgeClient {
     }
 
     // Initialize provider once with config
-    const providerConfig = this.getProviderConfigOrThrow(id);
-    await this.initializeProviderIfNeeded(plugin, providerConfig);
+    const providerConfig = this.getProviderConfigOrThrow(
+      id,
+      request.providerConfig,
+    );
+    await this.initializeProviderIfNeeded(
+      plugin,
+      providerConfig,
+      request.providerConfig,
+    );
 
     // Get model info to check capabilities
     const modelInfo = this.modelRegistry.get(modelId);
@@ -707,14 +801,16 @@ export class BridgeClient {
     try {
       if (seed === "builtin") {
         const models = mapJsonToModelInfo(defaultLlmModels);
-        this.registerModels(models);
+        const filteredModels = this.filterModelsForConfiguredProviders(models);
+        this.registerModels(filteredModels);
         return;
       }
 
       if (typeof seed === "object" && "data" in seed) {
         const validated = DefaultLlmModelsSchema.parse(seed.data);
         const models = mapJsonToModelInfo(validated);
-        this.registerModels(models);
+        const filteredModels = this.filterModelsForConfiguredProviders(models);
+        this.registerModels(filteredModels);
         return;
       }
 
@@ -731,6 +827,29 @@ export class BridgeClient {
 
       console.warn("Model registry seeding failed:", error);
     }
+  }
+
+  /**
+   * Gets provider types that have actual named configurations defined.
+   * Extracts provider types from flattened keys (e.g., "openai.prod" → "openai").
+   */
+  private getConfiguredProviderTypes(): string[] {
+    const providerTypes = new Set<string>();
+    for (const key of this.config.providers.keys()) {
+      // Extract provider type from flattened keys like "openai.prod"
+      const type = key.split(".")[0];
+      providerTypes.add(type);
+    }
+    return Array.from(providerTypes);
+  }
+
+  /**
+   * Filters models to only include those whose provider type has actual configurations.
+   * This ensures built-in models are only registered for configured providers.
+   */
+  private filterModelsForConfiguredProviders(models: ModelInfo[]): ModelInfo[] {
+    const configuredProviders = new Set(this.getConfiguredProviderTypes());
+    return models.filter((model) => configuredProviders.has(model.provider));
   }
 
   private registerModels(models: ModelInfo[]): void {
@@ -1149,7 +1268,7 @@ export class BridgeClient {
    */
   private validateAndTransformConfig(config: BridgeConfig): BridgeClientConfig {
     // Validate required configuration
-    if (!config.defaultProvider && !config.providers) {
+    if (!config.providers) {
       throw new BridgeError(
         "Configuration must specify providers",
         "INVALID_CONFIG",
@@ -1158,36 +1277,54 @@ export class BridgeClient {
     }
 
     // Transform providers object to Map for internal use
+    // Handle 3-level nested structure: provider type → configuration name → config object
     const providersMap = new Map<string, Record<string, unknown>>();
+    const flattenedProviderKeys: string[] = [];
+
     if (config.providers) {
-      for (const [name, providerConfig] of Object.entries(config.providers)) {
-        providersMap.set(name, providerConfig);
+      for (const [providerType, namedConfigs] of Object.entries(
+        config.providers,
+      )) {
+        // Validate that namedConfigs is an object
+        if (!namedConfigs || typeof namedConfigs !== "object") {
+          throw new BridgeError(
+            `Provider '${providerType}' configuration must be an object with named configurations`,
+            "INVALID_CONFIG",
+            { providerType, providedValue: namedConfigs },
+          );
+        }
+
+        // Get configuration names for this provider type
+        const configNames = Object.keys(namedConfigs);
+
+        if (configNames.length === 0) {
+          throw new BridgeError(
+            `Provider '${providerType}' has no configurations defined. ` +
+              `Expected format: { ${providerType}: { configName: { ...config } } }`,
+            "INVALID_CONFIG",
+            { providerType, availableConfigs: configNames },
+          );
+        }
+
+        // Process each named configuration for this provider
+        for (const [configName, providerConfig] of Object.entries(
+          namedConfigs,
+        )) {
+          // Validate that providerConfig is an object
+          if (!providerConfig || typeof providerConfig !== "object") {
+            throw new BridgeError(
+              `Configuration '${configName}' for provider '${providerType}' must be an object`,
+              "INVALID_CONFIG",
+              { providerType, configName, providedValue: providerConfig },
+            );
+          }
+
+          // Create flattened key for internal tracking
+          const flattenedKey = `${providerType}.${configName}`;
+          flattenedProviderKeys.push(flattenedKey);
+          providersMap.set(flattenedKey, providerConfig);
+        }
       }
-    }
-
-    // Set sensible defaults and validate
-    const defaultProvider =
-      config.defaultProvider ||
-      (providersMap.size > 0 ? providersMap.keys().next().value : "");
-
-    if (!defaultProvider) {
-      throw new BridgeError(
-        "Unable to determine default provider from configuration",
-        "INVALID_CONFIG",
-        { config },
-      );
-    }
-
-    // Validate that defaultProvider exists in providers map
-    if (config.defaultProvider && !providersMap.has(config.defaultProvider)) {
-      throw new BridgeError(
-        `Default provider '${config.defaultProvider}' not found in providers configuration`,
-        "INVALID_CONFIG",
-        {
-          defaultProvider: config.defaultProvider,
-          availableProviders: Array.from(providersMap.keys()),
-        },
-      );
     }
 
     const timeout = config.timeout || 30000;

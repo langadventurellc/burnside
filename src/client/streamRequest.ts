@@ -33,6 +33,17 @@ import type { ChatRequest } from "./chatRequest";
  *   ]
  * };
  *
+ * // Streaming request with named provider configuration
+ * const namedConfigStream: StreamRequest = {
+ *   messages: [
+ *     { role: "user", content: [{ type: "text", text: "Start streaming..." }] }
+ *   ],
+ *   model: "openai:gpt-4",
+ *   providerConfig: "dev", // Uses the "dev" OpenAI configuration
+ *   stream: true,
+ *   streamOptions: { includeUsage: true }
+ * };
+ *
  * // Streaming request with external cancellation
  * const controller = new AbortController();
  * const cancellableRequest: StreamRequest = {
@@ -47,12 +58,13 @@ import type { ChatRequest } from "./chatRequest";
  * // Cancel the stream after 10 seconds
  * setTimeout(() => controller.abort("User cancelled"), 10000);
  *
- * // Multi-turn streaming with interruption handling
+ * // Multi-turn streaming with interruption handling and provider config
  * const multiTurnStreamRequest: StreamRequest = {
  *   messages: [
  *     { role: "user", content: [{ type: "text", text: "Help me research a topic" }] }
  *   ],
- *   model: "gpt-4",
+ *   model: "anthropic:claude-3-sonnet",
+ *   providerConfig: "backup", // Uses the "backup" Anthropic configuration
  *   stream: true,
  *   streamOptions: { includeUsage: true, bufferSize: 1024 },
  *   tools: [

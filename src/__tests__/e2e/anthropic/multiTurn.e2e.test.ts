@@ -55,6 +55,7 @@ describe("Anthropic Multi-Turn Conversation E2E", () => {
           tools: [toolDef], // Required for multi-turn execution
           multiTurn: { maxIterations: 3 },
           maxTokens: 100,
+          providerConfig: "default",
         }),
         45000, // Longer timeout for multi-turn
       );
@@ -83,6 +84,7 @@ describe("Anthropic Multi-Turn Conversation E2E", () => {
           tools: [toolDef], // Required for multi-turn execution
           multiTurn: { maxIterations: 2 },
           maxTokens: 100,
+          providerConfig: "default",
         }),
         45000,
       );
@@ -113,6 +115,7 @@ describe("Anthropic Multi-Turn Conversation E2E", () => {
           tools: [toolDef],
           multiTurn: { maxIterations: 3 },
           maxTokens: 100,
+          providerConfig: "default",
         }),
         45000,
       );
@@ -145,6 +148,7 @@ describe("Anthropic Multi-Turn Conversation E2E", () => {
           tools: [toolDef],
           multiTurn: { maxIterations: 5 }, // Higher limit to allow natural completion
           maxTokens: 100,
+          providerConfig: "default",
         }),
         45000,
       );

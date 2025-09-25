@@ -102,6 +102,7 @@ describe("xAI Tool Execution E2E", () => {
           testClient.chat({
             messages,
             model: modelId,
+            providerConfig: "default",
           }),
           25000,
         );
@@ -129,6 +130,7 @@ describe("xAI Tool Execution E2E", () => {
         client.chat({
           messages,
           model: testModel,
+          providerConfig: "default",
         }),
         25000,
       );
@@ -193,6 +195,7 @@ describe("xAI Tool Execution E2E", () => {
         testClient.chat({
           messages,
           model: testModel,
+          providerConfig: "default",
         }),
         25000,
       );
@@ -214,6 +217,7 @@ describe("xAI Tool Execution E2E", () => {
         noToolsClient.chat({
           messages,
           model: testModel,
+          providerConfig: "default",
         }),
         25000,
       );
@@ -244,6 +248,7 @@ describe("xAI Tool Execution E2E", () => {
         testClient.chat({
           messages,
           model: testModel,
+          providerConfig: "default",
         }),
         25000,
       );

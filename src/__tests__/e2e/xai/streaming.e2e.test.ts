@@ -106,7 +106,8 @@ describe("xAI Streaming E2E", () => {
         const streamPromise = client.stream({
           model: modelId,
           messages,
-          temperature: 0.1, // Low temperature for more predictable responses
+          temperature: 0.1,
+          providerConfig: "default",
         });
 
         const stream = await withTimeout(streamPromise, 15000);
@@ -143,6 +144,7 @@ describe("xAI Streaming E2E", () => {
           model: testModel,
           messages,
           temperature: 0.1,
+          providerConfig: "default",
         }),
         15000,
       );
@@ -166,7 +168,8 @@ describe("xAI Streaming E2E", () => {
         client.stream({
           model: testModel,
           messages,
-          temperature: 0, // Deterministic for exact text
+          temperature: 0,
+          providerConfig: "default",
         }),
         15000,
       );
@@ -200,6 +203,7 @@ describe("xAI Streaming E2E", () => {
           model: testModel,
           messages,
           temperature: 0,
+          providerConfig: "default",
         }),
         15000,
       );
@@ -224,6 +228,7 @@ describe("xAI Streaming E2E", () => {
         client.stream({
           model: testModel,
           messages,
+          providerConfig: "default",
         }),
         15000,
       );
@@ -255,6 +260,7 @@ describe("xAI Streaming E2E", () => {
       const streamPromise = client.stream({
         model: testModel,
         messages,
+        providerConfig: "default",
       });
 
       const stream = await withTimeout(streamPromise, 15000);
@@ -286,6 +292,7 @@ describe("xAI Streaming E2E", () => {
         client.stream({
           model: testModel,
           messages,
+          providerConfig: "default",
         }),
         15000,
       );
@@ -330,6 +337,7 @@ describe("xAI Streaming E2E", () => {
         client.stream({
           model: testModel,
           messages,
+          providerConfig: "default",
         }),
         15000,
       );
@@ -358,6 +366,7 @@ describe("xAI Streaming E2E", () => {
           client.stream({
             model: "xai:invalid-model-that-does-not-exist",
             messages,
+            providerConfig: "default",
           }),
           10000,
         ),
@@ -373,6 +382,7 @@ describe("xAI Streaming E2E", () => {
           client.stream({
             model: testModel,
             messages,
+            providerConfig: "default",
           }),
           1, // 1ms timeout - should fail
         ),
@@ -385,6 +395,7 @@ describe("xAI Streaming E2E", () => {
           client.stream({
             model: testModel,
             messages: [],
+            providerConfig: "default",
           }),
           10000,
         ),

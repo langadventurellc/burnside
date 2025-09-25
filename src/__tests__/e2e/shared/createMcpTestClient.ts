@@ -11,10 +11,11 @@
  * @example
  * ```typescript
  * const client = createMcpTestClient({
- *   defaultProvider: "anthropic",
  *   providers: {
- *     anthropic: { apiKey: "test-key" }
- *   }
+          anthropic: {
+            default: { apiKey: "test-key" },
+          },
+        }
  * });
  * ```
  */

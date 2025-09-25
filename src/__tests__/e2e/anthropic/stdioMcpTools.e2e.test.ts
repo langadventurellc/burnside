@@ -58,9 +58,10 @@ describe("Anthropic STDIO MCP Tool E2E", () => {
       // Create client with Anthropic and MCP configuration using helper
       const testConfig = loadAnthropicTestConfig();
       client = createMcpTestClient({
-        defaultProvider: "anthropic",
         providers: {
-          anthropic: { apiKey: testConfig.anthropicApiKey },
+          anthropic: {
+            default: { apiKey: testConfig.anthropicApiKey },
+          },
         },
         modelSeed: "builtin",
         options: {
@@ -159,6 +160,7 @@ describe("Anthropic STDIO MCP Tool E2E", () => {
           model: testModel,
           messages,
           maxTokens: 100,
+          providerConfig: "default",
         }),
         25000, // 25 second timeout matching existing Anthropic patterns
       );

@@ -101,6 +101,7 @@ describe("OpenAI Responses v1 Provider Integration", () => {
             content: [{ type: "text", text: "Hello, how are you?" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const mockResponse = createMockResponse(
@@ -421,6 +422,7 @@ describe("OpenAI Responses v1 Provider Integration", () => {
             content: [{ type: "text", text: "Hello!" }],
           },
         ],
+        providerConfig: "default",
       };
 
       // 1. Translate request
@@ -452,6 +454,7 @@ describe("OpenAI Responses v1 Provider Integration", () => {
           },
         ],
         stream: true,
+        providerConfig: "default",
       };
 
       // 1. Translate request

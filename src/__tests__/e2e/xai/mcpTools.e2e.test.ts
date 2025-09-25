@@ -57,9 +57,10 @@ describe("xAI MCP Tool Basic Validation E2E", () => {
     // Create client with xAI and MCP configuration using helper
     const testConfig = loadXaiTestConfig();
     client = createMcpTestClient({
-      defaultProvider: "xai",
       providers: {
-        xai: { apiKey: testConfig.xaiApiKey },
+        xai: {
+          default: { apiKey: testConfig.xaiApiKey },
+        },
       },
       modelSeed: "builtin",
       options: {
@@ -148,6 +149,7 @@ describe("xAI MCP Tool Basic Validation E2E", () => {
           model: testModel,
           messages,
           maxTokens: 1000,
+          providerConfig: "default",
         }),
         25000, // 25 second timeout matching existing patterns
       );

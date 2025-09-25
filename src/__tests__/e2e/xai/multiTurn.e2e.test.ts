@@ -53,6 +53,7 @@ describe("xAI Multi-Turn Conversation E2E", () => {
           tools: [toolDef], // Required for multi-turn execution
           multiTurn: { maxIterations: 3 },
           maxTokens: 100,
+          providerConfig: "default",
         }),
         45000, // Longer timeout for multi-turn
       );
@@ -81,6 +82,7 @@ describe("xAI Multi-Turn Conversation E2E", () => {
           tools: [toolDef], // Required for multi-turn execution
           multiTurn: { maxIterations: 2 },
           maxTokens: 100,
+          providerConfig: "default",
         }),
         45000,
       );

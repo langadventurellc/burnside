@@ -39,6 +39,7 @@ describe("OpenAI Rate Limiting E2E", () => {
           messages: request.messages,
           model: testModel,
           maxTokens: 16,
+          providerConfig: "default",
         });
         requestTimes.push(requestStart);
 
@@ -78,6 +79,7 @@ describe("OpenAI Rate Limiting E2E", () => {
           messages: request.messages,
           model: testModel,
           maxTokens: 16,
+          providerConfig: "default",
         }),
       );
 
@@ -127,6 +129,7 @@ describe("OpenAI Rate Limiting E2E", () => {
           messages: request.messages,
           model: testModel,
           maxTokens: 16,
+          providerConfig: "default",
         });
         requestTimes.push(requestStart);
         responses.push(response);
@@ -168,6 +171,7 @@ describe("OpenAI Rate Limiting E2E", () => {
           messages: request.messages,
           model: testModel, // Same model for all requests
           maxTokens: 16,
+          providerConfig: "default",
         });
         requestTimes.push(requestStart);
 

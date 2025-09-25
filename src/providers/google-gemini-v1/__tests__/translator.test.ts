@@ -56,6 +56,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Hello, world!" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -95,6 +96,7 @@ describe("translateChatRequest", () => {
           topP: 0.9,
           stopSequences: ["END", "STOP"],
         },
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -129,6 +131,7 @@ describe("translateChatRequest", () => {
             ],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -166,6 +169,7 @@ describe("translateChatRequest", () => {
             ],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -204,6 +208,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "How are you?" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -237,6 +242,7 @@ describe("translateChatRequest", () => {
             ],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -268,6 +274,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Hello" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -298,6 +305,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Hello" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -328,6 +336,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "I'm ready to help!" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -365,6 +374,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "What do you see?" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -398,6 +408,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Test" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -417,6 +428,7 @@ describe("translateChatRequest", () => {
           },
         ],
         stream: true,
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -435,6 +447,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Test" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, customBaseUrlConfig);
@@ -458,6 +471,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Test" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, configWithSlash);
@@ -478,6 +492,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Test" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -497,6 +512,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Test" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, customBaseUrlConfig);
@@ -520,6 +536,7 @@ describe("translateChatRequest", () => {
         ],
         temperature: 0.5,
         maxTokens: 500,
+        providerConfig: "default",
       };
 
       // Should not throw - validates successfully
@@ -537,6 +554,7 @@ describe("translateChatRequest", () => {
         ],
         temperature: 1.5,
         maxTokens: 2000,
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -557,6 +575,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Test" }],
           },
         ],
+        providerConfig: "default",
       };
 
       // Test with thinking capability enabled
@@ -591,6 +610,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Test" }],
           },
         ],
+        providerConfig: "default",
       };
 
       // Test with thinking capability disabled
@@ -623,6 +643,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Test" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -638,6 +659,7 @@ describe("translateChatRequest", () => {
       const request: ChatRequest = {
         model: "gemini-2.0-flash",
         messages: [],
+        providerConfig: "default",
       };
 
       expect(() => translateChatRequest(request, mockConfig)).toThrow(
@@ -673,6 +695,7 @@ describe("translateChatRequest", () => {
             ],
           },
         ],
+        providerConfig: "default",
       };
 
       expect(() => translateChatRequest(request, mockConfig)).toThrow(
@@ -692,6 +715,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Test" }],
           },
         ],
+        providerConfig: "default",
       };
 
       expect(() => translateChatRequest(request, mockConfig)).toThrow(
@@ -728,6 +752,7 @@ describe("translateChatRequest", () => {
             content: [],
           },
         ],
+        providerConfig: "default",
       };
 
       // Should fail schema validation due to empty parts array
@@ -744,6 +769,7 @@ describe("translateChatRequest", () => {
           },
         ],
         temperature: 0,
+        providerConfig: "default",
       };
 
       const requestMax: ChatRequest = {
@@ -755,6 +781,7 @@ describe("translateChatRequest", () => {
           },
         ],
         temperature: 2,
+        providerConfig: "default",
       };
 
       expect(() => translateChatRequest(requestMin, mockConfig)).not.toThrow();
@@ -771,6 +798,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: longText }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);

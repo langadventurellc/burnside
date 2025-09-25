@@ -145,6 +145,7 @@ describe("GoogleGeminiV1Provider", () => {
       ],
       model: "gemini-2.5-flash",
       stream: false,
+      providerConfig: "default",
     };
 
     const mockConfig = {
@@ -597,6 +598,7 @@ describe("GoogleGeminiV1Provider", () => {
         ],
         model: "gemini-2.5-flash",
         stream: false,
+        providerConfig: "default",
       };
 
       const mockHttpRequest: ProviderHttpRequest = {

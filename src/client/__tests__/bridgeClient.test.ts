@@ -16,7 +16,9 @@ import { logger } from "../../core/logging";
 describe("BridgeClient", () => {
   const validConfig: BridgeConfig = {
     providers: {
-      openai: { apiKey: "sk-test" },
+      openai: {
+        default: { apiKey: "sk-test" },
+      },
     },
     timeout: 30000,
   };
@@ -29,7 +31,9 @@ describe("BridgeClient", () => {
     it("should create instance with minimal configuration", () => {
       const minimalConfig: BridgeConfig = {
         providers: {
-          test: { apiKey: "test-key" },
+          test: {
+            default: { apiKey: "test-key" },
+          },
         },
       };
 
@@ -199,14 +203,18 @@ describe("BridgeClient", () => {
       const config = client.getConfig();
 
       expect(config.providers).toBeInstanceOf(Map);
-      expect(config.providers.has("openai")).toBe(true);
-      expect(config.providers.get("openai")).toEqual({ apiKey: "sk-test" });
+      expect(config.providers.has("openai.default")).toBe(true);
+      expect(config.providers.get("openai.default")).toEqual({
+        apiKey: "sk-test",
+      });
     });
 
     it("should set default timeout when not provided", () => {
       const configWithoutTimeout: BridgeConfig = {
         providers: {
-          openai: { apiKey: "test" },
+          openai: {
+            default: { apiKey: "test" },
+          },
         },
       };
 
@@ -222,13 +230,17 @@ describe("BridgeClient", () => {
       const complexConfig: BridgeConfig = {
         providers: {
           openai: {
-            apiKey: "sk-openai-test",
-            baseURL: "https://api.openai.com",
-            organization: "org-test",
+            default: {
+              apiKey: "sk-openai-test",
+              baseURL: "https://api.openai.com",
+              organization: "org-test",
+            },
           },
           anthropic: {
-            apiKey: "sk-ant-test",
-            baseURL: "https://api.anthropic.com",
+            default: {
+              apiKey: "sk-ant-test",
+              baseURL: "https://api.anthropic.com",
+            },
           },
         },
         timeout: 45000,
@@ -250,7 +262,9 @@ describe("BridgeClient", () => {
     it("should handle empty options gracefully", () => {
       const configWithoutOptions: BridgeConfig = {
         providers: {
-          test: { apiKey: "test" },
+          test: {
+            default: { apiKey: "test" },
+          },
         },
       };
 
@@ -418,6 +432,7 @@ describe("BridgeClient", () => {
       const result = await client.chat({
         model: "openai:test-model",
         messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        providerConfig: "default",
       });
 
       // Assert
@@ -430,7 +445,9 @@ describe("BridgeClient", () => {
       expect(fakePlugin.translateRequest).toHaveBeenCalledWith({
         model: "test-model",
         messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        providerConfig: "default",
         stream: false,
+        tools: undefined,
       });
 
       expect(fakeTransport.fetch).toHaveBeenCalledWith(
@@ -453,6 +470,7 @@ describe("BridgeClient", () => {
       await client.chat({
         model: "openai:test-model",
         messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        providerConfig: "default",
       });
 
       await client.chat({
@@ -460,6 +478,7 @@ describe("BridgeClient", () => {
         messages: [
           { role: "user", content: [{ type: "text", text: "hello" }] },
         ],
+        providerConfig: "default",
       });
 
       // Assert - initialize called only once
@@ -480,6 +499,7 @@ describe("BridgeClient", () => {
         client.chat({
           model: "openai:test-model",
           messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+          providerConfig: "default",
         }),
       ).rejects.toThrow(TransportError);
 
@@ -506,6 +526,7 @@ describe("BridgeClient", () => {
         client.chat({
           model: "openai:test-model",
           messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+          providerConfig: "default",
         }),
       ).rejects.toThrow(AuthError);
 
@@ -523,6 +544,7 @@ describe("BridgeClient", () => {
         client.chat({
           model: "openai:unknown-model",
           messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+          providerConfig: "default",
         }),
       ).rejects.toThrow(BridgeError);
 
@@ -626,6 +648,7 @@ describe("BridgeClient", () => {
       const stream = await client.stream({
         model: "openai:test-model",
         messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        providerConfig: "default",
       });
 
       // Consume the stream
@@ -652,6 +675,7 @@ describe("BridgeClient", () => {
         {
           model: "test-model",
           messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+          providerConfig: "default",
           stream: true,
         },
         { temperature: undefined },
@@ -689,6 +713,7 @@ describe("BridgeClient", () => {
         client.stream({
           model: "openai:test-model",
           messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+          providerConfig: "default",
         }),
       ).rejects.toThrow(TransportError);
 
@@ -719,6 +744,7 @@ describe("BridgeClient", () => {
         client.stream({
           model: "openai:test-model",
           messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+          providerConfig: "default",
         }),
       ).rejects.toThrow(AuthError);
 
@@ -740,6 +766,7 @@ describe("BridgeClient", () => {
         client.stream({
           model: "openai:unknown-model",
           messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+          providerConfig: "default",
         }),
       ).rejects.toThrow(BridgeError);
 
@@ -759,8 +786,12 @@ describe("BridgeClient", () => {
 
     const testConfig: BridgeConfig = {
       providers: {
-        openai: { apiKey: "sk-test" },
-        anthropic: { apiKey: "sk-ant-test" },
+        openai: {
+          default: { apiKey: "sk-test" },
+        },
+        anthropic: {
+          default: { apiKey: "sk-ant-test" },
+        },
       },
       timeout: 30000,
     };
@@ -884,6 +915,7 @@ describe("BridgeClient", () => {
       await client.chat({
         model: "openai:gpt-4",
         messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        providerConfig: "default",
       });
 
       // Assert
@@ -906,6 +938,7 @@ describe("BridgeClient", () => {
       await client.chat({
         model: "anthropic:claude-sonnet",
         messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        providerConfig: "default",
       });
 
       // Assert
@@ -934,6 +967,7 @@ describe("BridgeClient", () => {
         client.chat({
           model: "unknown:model",
           messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+          providerConfig: "default",
         }),
       ).rejects.toThrow(BridgeError);
     });
@@ -959,6 +993,7 @@ describe("BridgeClient", () => {
         client.chat({
           model: "no-plugin:model",
           messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+          providerConfig: "default",
         }),
       ).rejects.toThrow(BridgeError);
     });
@@ -1051,6 +1086,7 @@ describe("BridgeClient", () => {
             { role: "user", content: [{ type: "text", text: "test" }] },
           ],
           signal: controller.signal,
+          providerConfig: "default",
         });
 
         // Assert
@@ -1086,6 +1122,7 @@ describe("BridgeClient", () => {
               { role: "user", content: [{ type: "text", text: "test" }] },
             ],
             signal: controller.signal,
+            providerConfig: "default",
           }),
         ).rejects.toThrow("Agent execution cancelled");
 
@@ -1120,6 +1157,7 @@ describe("BridgeClient", () => {
               { role: "user", content: [{ type: "text", text: "test" }] },
             ],
             signal: controller.signal,
+            providerConfig: "default",
           }),
         ).rejects.toThrow("Agent execution cancelled");
       });
@@ -1155,7 +1193,7 @@ describe("BridgeClient", () => {
           messages: [
             { role: "user", content: [{ type: "text", text: "test" }] },
           ],
-          // No signal provided
+          providerConfig: "default",
         });
 
         // Assert
@@ -1191,6 +1229,7 @@ describe("BridgeClient", () => {
               { role: "user", content: [{ type: "text", text: "test" }] },
             ],
             signal: controller.signal,
+            providerConfig: "default",
           }),
         ).rejects.toThrow("Agent execution cancelled");
       });
@@ -1229,7 +1268,7 @@ describe("BridgeClient", () => {
           messages: [
             { role: "user", content: [{ type: "text", text: "test" }] },
           ],
-          // No signal provided
+          providerConfig: "default",
         });
 
         // Assert

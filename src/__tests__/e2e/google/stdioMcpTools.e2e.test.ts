@@ -58,9 +58,10 @@ describe("Google STDIO MCP Tool E2E", () => {
       // Create client with Google and MCP configuration using helper
       const testConfig = loadGoogleTestConfig();
       client = createMcpTestClient({
-        defaultProvider: "google",
         providers: {
-          google: { apiKey: testConfig.googleApiKey },
+          google: {
+            default: { apiKey: testConfig.googleApiKey },
+          },
         },
         modelSeed: "builtin",
         options: {
@@ -154,6 +155,7 @@ describe("Google STDIO MCP Tool E2E", () => {
           model: testModel,
           messages,
           maxTokens: 100,
+          providerConfig: "default",
         }),
         25000, // 25 second timeout matching existing patterns
       );

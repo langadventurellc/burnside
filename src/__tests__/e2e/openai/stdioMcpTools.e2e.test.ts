@@ -58,9 +58,10 @@ describe("OpenAI STDIO MCP Tool E2E", () => {
       // Create client with OpenAI and MCP configuration using helper
       const testConfig = loadTestConfig();
       client = createMcpTestClient({
-        defaultProvider: "openai",
         providers: {
-          openai: { apiKey: testConfig.openaiApiKey },
+          openai: {
+            default: { apiKey: testConfig.openaiApiKey },
+          },
         },
         modelSeed: "builtin",
         options: {
@@ -154,6 +155,7 @@ describe("OpenAI STDIO MCP Tool E2E", () => {
           model: testModel,
           messages,
           maxTokens: 100,
+          providerConfig: "default",
         }),
         25000, // 25 second timeout matching existing patterns
       );

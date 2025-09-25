@@ -105,6 +105,7 @@ describe("Google Gemini Tool Execution E2E", () => {
             messages,
             model: modelId,
             maxTokens: 1000,
+            providerConfig: "default",
           }),
           25000,
         );
@@ -133,6 +134,7 @@ describe("Google Gemini Tool Execution E2E", () => {
           messages,
           model: testModel,
           maxTokens: 100,
+          providerConfig: "default",
         }),
         25000,
       );
@@ -202,6 +204,7 @@ describe("Google Gemini Tool Execution E2E", () => {
           messages,
           model: testModel,
           maxTokens: 100,
+          providerConfig: "default",
         }),
         25000,
       );
@@ -226,6 +229,7 @@ describe("Google Gemini Tool Execution E2E", () => {
           messages,
           model: testModel,
           maxTokens: 100,
+          providerConfig: "default",
         }),
         25000,
       );
@@ -247,6 +251,7 @@ describe("Google Gemini Tool Execution E2E", () => {
           messages,
           model: testModel,
           maxTokens: 100,
+          providerConfig: "default",
         }),
         25000,
       );
@@ -279,6 +284,7 @@ describe("Google Gemini Tool Execution E2E", () => {
           messages,
           model: testModel,
           maxTokens: 200,
+          providerConfig: "default",
         }),
         25000,
       );

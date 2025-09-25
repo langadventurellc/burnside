@@ -43,6 +43,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Hello, world!" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -84,6 +85,7 @@ describe("translateChatRequest", () => {
           topP: 0.9,
           stopSequences: ["STOP", "END"],
         },
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -122,6 +124,7 @@ describe("translateChatRequest", () => {
             ],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -154,6 +157,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Hello!" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -181,6 +185,7 @@ describe("translateChatRequest", () => {
             ],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -209,6 +214,7 @@ describe("translateChatRequest", () => {
             inputSchema: { type: "object", properties: {} },
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -238,6 +244,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Hello, world!" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -262,6 +269,7 @@ describe("translateChatRequest", () => {
             ],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -295,6 +303,7 @@ describe("translateChatRequest", () => {
             ],
           },
         ],
+        providerConfig: "default",
       };
 
       expect(() => translateChatRequest(request, mockConfig)).toThrow(
@@ -320,6 +329,7 @@ describe("translateChatRequest", () => {
             ],
           },
         ],
+        providerConfig: "default",
       };
 
       expect(() => translateChatRequest(request, mockConfig)).toThrow(
@@ -343,6 +353,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Hello" }],
           },
         ],
+        providerConfig: "default",
       };
 
       expect(() => translateChatRequest(request, mockConfig)).toThrow(
@@ -364,6 +375,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Hello" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(streamingRequest, mockConfig);
@@ -380,6 +392,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Hello" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result2 = translateChatRequest(nonStreamingRequest, mockConfig);
@@ -401,6 +414,7 @@ describe("translateChatRequest", () => {
           topP: 0.95,
           stopSequences: ["STOP"],
         },
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -423,6 +437,7 @@ describe("translateChatRequest", () => {
         options: {
           stopSequences: [],
         },
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -438,6 +453,7 @@ describe("translateChatRequest", () => {
         model: "claude-3-sonnet-20240229",
         maxTokens: 1000,
         messages: [],
+        providerConfig: "default",
       };
 
       expect(() => translateChatRequest(request, mockConfig)).toThrow(
@@ -457,6 +473,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Hello" }],
           },
         ],
+        providerConfig: "default",
       };
 
       expect(() => translateChatRequest(request, mockConfig)).toThrow(
@@ -477,6 +494,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "You are helpful" }],
           },
         ],
+        providerConfig: "default",
       };
 
       expect(() => translateChatRequest(request, mockConfig)).toThrow(
@@ -498,6 +516,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Hello" }],
           },
         ],
+        providerConfig: "default",
       };
 
       expect(() => translateChatRequest(lowTempRequest, mockConfig)).toThrow(
@@ -522,6 +541,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Hello" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, customConfig);
@@ -538,6 +558,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Hello" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -559,6 +580,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Hello" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -575,6 +597,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Hello" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -607,6 +630,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Hello" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -629,6 +653,7 @@ describe("translateChatRequest", () => {
         options: {
           stopSequences: "not an array" as any,
         },
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(request, mockConfig);
@@ -647,6 +672,7 @@ describe("translateChatRequest", () => {
             content: [{ type: "text", text: "Hello" }],
           },
         ],
+        providerConfig: "default",
       };
       // options is undefined
 

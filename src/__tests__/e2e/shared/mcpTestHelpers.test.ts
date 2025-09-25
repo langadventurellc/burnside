@@ -21,10 +21,11 @@ describe("MCP Test Helpers", () => {
       const config = createMcpTestConfig(serverUrl);
 
       expect(config).toMatchObject({
-        defaultProvider: "openai",
         providers: {
           openai: {
-            apiKey: expect.any(String),
+            default: {
+              apiKey: expect.any(String),
+            },
           },
         },
         tools: {
@@ -290,9 +291,10 @@ describe("MCP Test Helpers", () => {
 
     test("merges provided configuration with defaults", () => {
       const customConfig = {
-        defaultProvider: "anthropic" as const,
         providers: {
-          anthropic: { apiKey: "custom-key" },
+          anthropic: {
+            default: { apiKey: "custom-key" },
+          },
         },
       };
 

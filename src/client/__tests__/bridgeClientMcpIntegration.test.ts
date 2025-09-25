@@ -60,9 +60,11 @@ describe("BridgeClient MCP Integration", () => {
   describe("MCP Tool Discovery Integration", () => {
     it("should successfully initialize with MCP server configuration", async () => {
       const config: BridgeConfig = {
-        defaultProvider: "openai",
-        providers: { openai: { apiKey: "test-key" } },
-        defaultModel: "openai:gpt-4",
+        providers: {
+          openai: {
+            default: { apiKey: "test-key" },
+          },
+        },
         tools: {
           enabled: true,
           builtinTools: ["echo"],
@@ -102,9 +104,11 @@ describe("BridgeClient MCP Integration", () => {
       MockedMcpClient.mockImplementation(() => mockMcpClientInstance as any);
 
       const config: BridgeConfig = {
-        defaultProvider: "openai",
-        providers: { openai: { apiKey: "test-key" } },
-        defaultModel: "openai:gpt-4",
+        providers: {
+          openai: {
+            default: { apiKey: "test-key" },
+          },
+        },
         tools: {
           enabled: true,
           builtinTools: ["echo"],
@@ -149,9 +153,11 @@ describe("BridgeClient MCP Integration", () => {
       MockedMcpClient.mockImplementation(() => mockMcpClientInstance as any);
 
       const config: BridgeConfig = {
-        defaultProvider: "openai",
-        providers: { openai: { apiKey: "test-key" } },
-        defaultModel: "openai:gpt-4",
+        providers: {
+          openai: {
+            default: { apiKey: "test-key" },
+          },
+        },
         tools: {
           enabled: true,
           builtinTools: ["echo"],
@@ -177,9 +183,11 @@ describe("BridgeClient MCP Integration", () => {
 
     it("should not attempt MCP initialization when no servers configured", () => {
       const config: BridgeConfig = {
-        defaultProvider: "openai",
-        providers: { openai: { apiKey: "test-key" } },
-        defaultModel: "openai:gpt-4",
+        providers: {
+          openai: {
+            default: { apiKey: "test-key" },
+          },
+        },
         tools: {
           enabled: true,
           builtinTools: ["echo"],
@@ -197,9 +205,11 @@ describe("BridgeClient MCP Integration", () => {
 
     it("should not attempt MCP initialization when mcpServers is empty array", () => {
       const config: BridgeConfig = {
-        defaultProvider: "openai",
-        providers: { openai: { apiKey: "test-key" } },
-        defaultModel: "openai:gpt-4",
+        providers: {
+          openai: {
+            default: { apiKey: "test-key" },
+          },
+        },
         tools: {
           enabled: true,
           builtinTools: ["echo"],
@@ -217,9 +227,11 @@ describe("BridgeClient MCP Integration", () => {
 
     it("should not attempt MCP initialization when tools are disabled", () => {
       const config: BridgeConfig = {
-        defaultProvider: "openai",
-        providers: { openai: { apiKey: "test-key" } },
-        defaultModel: "openai:gpt-4",
+        providers: {
+          openai: {
+            default: { apiKey: "test-key" },
+          },
+        },
         // No tools configuration - tools disabled
       };
 
@@ -233,9 +245,11 @@ describe("BridgeClient MCP Integration", () => {
 
     it("should store successful MCP clients for cleanup", async () => {
       const config: BridgeConfig = {
-        defaultProvider: "openai",
-        providers: { openai: { apiKey: "test-key" } },
-        defaultModel: "openai:gpt-4",
+        providers: {
+          openai: {
+            default: { apiKey: "test-key" },
+          },
+        },
         tools: {
           enabled: true,
           builtinTools: ["echo"],
@@ -258,9 +272,11 @@ describe("BridgeClient MCP Integration", () => {
 
     it("should preserve existing tool system initialization behavior", () => {
       const config: BridgeConfig = {
-        defaultProvider: "openai",
-        providers: { openai: { apiKey: "test-key" } },
-        defaultModel: "openai:gpt-4",
+        providers: {
+          openai: {
+            default: { apiKey: "test-key" },
+          },
+        },
         tools: {
           enabled: true,
           builtinTools: ["echo"],
@@ -289,9 +305,11 @@ describe("BridgeClient MCP Integration", () => {
       );
 
       const config: BridgeConfig = {
-        defaultProvider: "openai",
-        providers: { openai: { apiKey: "test-key" } },
-        defaultModel: "openai:gpt-4",
+        providers: {
+          openai: {
+            default: { apiKey: "test-key" },
+          },
+        },
         tools: {
           enabled: true,
           builtinTools: ["echo"],
@@ -316,9 +334,11 @@ describe("BridgeClient MCP Integration", () => {
   describe("MCP Server Configuration Integration", () => {
     it("should handle STDIO MCP server configurations", async () => {
       const config: BridgeConfig = {
-        defaultProvider: "openai",
-        providers: { openai: { apiKey: "test-key" } },
-        defaultModel: "openai:gpt-4",
+        providers: {
+          openai: {
+            default: { apiKey: "test-key" },
+          },
+        },
         tools: {
           enabled: true,
           builtinTools: ["echo"],
@@ -349,9 +369,11 @@ describe("BridgeClient MCP Integration", () => {
 
     it("should handle STDIO server configuration without args", async () => {
       const config: BridgeConfig = {
-        defaultProvider: "openai",
-        providers: { openai: { apiKey: "test-key" } },
-        defaultModel: "openai:gpt-4",
+        providers: {
+          openai: {
+            default: { apiKey: "test-key" },
+          },
+        },
         tools: {
           enabled: true,
           builtinTools: ["echo"],
@@ -380,9 +402,11 @@ describe("BridgeClient MCP Integration", () => {
 
     it("should handle mixed HTTP and STDIO server configurations", async () => {
       const config: BridgeConfig = {
-        defaultProvider: "openai",
-        providers: { openai: { apiKey: "test-key" } },
-        defaultModel: "openai:gpt-4",
+        providers: {
+          openai: {
+            default: { apiKey: "test-key" },
+          },
+        },
         tools: {
           enabled: true,
           builtinTools: ["echo"],
@@ -432,9 +456,11 @@ describe("BridgeClient MCP Integration", () => {
       MockedMcpClient.mockImplementation(() => mockMcpClientInstance as any);
 
       const config: BridgeConfig = {
-        defaultProvider: "openai",
-        providers: { openai: { apiKey: "test-key" } },
-        defaultModel: "openai:gpt-4",
+        providers: {
+          openai: {
+            default: { apiKey: "test-key" },
+          },
+        },
         tools: {
           enabled: true,
           builtinTools: ["echo"],
@@ -484,9 +510,11 @@ describe("BridgeClient MCP Integration", () => {
       MockedMcpClient.mockImplementation(() => mockMcpClientInstance as any);
 
       const config: BridgeConfig = {
-        defaultProvider: "openai",
-        providers: { openai: { apiKey: "test-key" } },
-        defaultModel: "openai:gpt-4",
+        providers: {
+          openai: {
+            default: { apiKey: "test-key" },
+          },
+        },
         tools: {
           enabled: true,
           builtinTools: ["echo"],
@@ -516,9 +544,11 @@ describe("BridgeClient MCP Integration", () => {
 
     it("should preserve transport-agnostic behavior for tool discovery", async () => {
       const config: BridgeConfig = {
-        defaultProvider: "openai",
-        providers: { openai: { apiKey: "test-key" } },
-        defaultModel: "openai:gpt-4",
+        providers: {
+          openai: {
+            default: { apiKey: "test-key" },
+          },
+        },
         tools: {
           enabled: true,
           builtinTools: ["echo"],
@@ -557,9 +587,11 @@ describe("BridgeClient MCP Integration", () => {
 
     it("should maintain backward compatibility with existing HTTP configurations", async () => {
       const config: BridgeConfig = {
-        defaultProvider: "openai",
-        providers: { openai: { apiKey: "test-key" } },
-        defaultModel: "openai:gpt-4",
+        providers: {
+          openai: {
+            default: { apiKey: "test-key" },
+          },
+        },
         tools: {
           enabled: true,
           builtinTools: ["echo"],

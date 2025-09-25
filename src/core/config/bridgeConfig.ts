@@ -10,12 +10,15 @@ import type { ToolsConfig } from "./toolsConfig";
  * @example
  * ```typescript
  * const config: BridgeConfig = {
- *   defaultProvider: "openai",
  *   providers: {
- *     openai: { apiKey: "sk-..." },
- *     anthropic: { apiKey: "sk-ant-..." }
+ *     openai: {
+ *       prod: { apiKey: "sk-prod...", timeout: 30000 },
+ *       dev: { apiKey: "sk-dev...", timeout: 10000 }
+ *     },
+ *     anthropic: {
+ *       main: { apiKey: "sk-ant-...", maxTokens: 4096 }
+ *     }
  *   },
- *   defaultModel: "gpt-4",
  *   timeout: 30000,
  *   options: {
  *     logging: {
@@ -50,12 +53,12 @@ import type { ToolsConfig } from "./toolsConfig";
  * ```
  */
 export interface BridgeConfig {
-  /** Default provider to use when none specified */
-  defaultProvider?: string;
-  /** Configuration for each provider */
-  providers?: Record<string, Record<string, unknown>>;
-  /** Default model to use when none specified */
-  defaultModel?: string;
+  /** Configuration for each provider with named configurations
+   * - First level: provider type (e.g., "openai", "anthropic")
+   * - Second level: configuration name (e.g., "prod", "dev")
+   * - Third level: actual configuration object
+   */
+  providers?: Record<string, Record<string, Record<string, unknown>>>;
   /** Request timeout in milliseconds */
   timeout?: number;
   /** Additional global configuration options */

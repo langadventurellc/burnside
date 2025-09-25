@@ -9,9 +9,10 @@ export function createTestClient(
   const testConfig = loadTestConfig();
 
   const config: BridgeConfig = {
-    defaultProvider: "openai",
     providers: {
-      openai: { apiKey: testConfig.openaiApiKey },
+      openai: {
+        default: { apiKey: testConfig.openaiApiKey },
+      },
     },
     modelSeed: "builtin", // Explicitly use builtin seed to populate registry
     tools: {

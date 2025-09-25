@@ -61,10 +61,11 @@ export function createMcpTestConfig(
   }
 
   return {
-    defaultProvider: "openai",
     providers: {
       openai: {
-        apiKey: process.env.OPENAI_API_KEY || "test-api-key",
+        default: {
+          apiKey: process.env.OPENAI_API_KEY || "test-api-key",
+        },
       },
     },
     tools: {

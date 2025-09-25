@@ -20,7 +20,9 @@ describe("createClient", () => {
     it("should create client with minimal valid config (providers only)", () => {
       const config = {
         providers: {
-          openai: { apiKey: "sk-test" },
+          openai: {
+            default: { apiKey: "sk-test" },
+          },
         },
       };
 
@@ -36,8 +38,12 @@ describe("createClient", () => {
     it("should create client with complete valid configuration", () => {
       const config = {
         providers: {
-          openai: { apiKey: "sk-test", temperature: 0.7 },
-          anthropic: { apiKey: "sk-ant-test" },
+          openai: {
+            default: { apiKey: "sk-test", temperature: 0.7 },
+          },
+          anthropic: {
+            default: { apiKey: "sk-ant-test" },
+          },
         },
         timeout: 60000,
         options: { retries: 3 },
@@ -54,7 +60,9 @@ describe("createClient", () => {
     it("should apply default values for optional fields", () => {
       const config = {
         providers: {
-          openai: { apiKey: "sk-test" },
+          openai: {
+            default: { apiKey: "sk-test" },
+          },
         },
       };
 
@@ -70,7 +78,9 @@ describe("createClient", () => {
     it("should not override explicitly provided defaults", () => {
       const config = {
         providers: {
-          openai: { apiKey: "sk-test" },
+          openai: {
+            default: { apiKey: "sk-test" },
+          },
         },
         timeout: 45000,
         options: { customOption: "value" },
@@ -86,7 +96,9 @@ describe("createClient", () => {
     it("should handle provided registry options", () => {
       const config = {
         providers: {
-          openai: { apiKey: "sk-test" },
+          openai: {
+            default: { apiKey: "sk-test" },
+          },
         },
         registryOptions: {
           providers: { customProvider: "config" },
@@ -108,7 +120,9 @@ describe("createClient", () => {
     it("should handle partial registry options", () => {
       const config = {
         providers: {
-          openai: { apiKey: "sk-test" },
+          openai: {
+            default: { apiKey: "sk-test" },
+          },
         },
         registryOptions: {
           providers: { test: "value" },
@@ -149,7 +163,11 @@ describe("createClient", () => {
 
     it("should throw ValidationError for invalid field types", () => {
       const config = {
-        providers: { openai: { apiKey: "sk-test" } },
+        providers: {
+          openai: {
+            default: { apiKey: "sk-test" },
+          },
+        },
         timeout: "not-a-number" as any,
       };
 
@@ -175,15 +193,17 @@ describe("createClient", () => {
       const config = {
         providers: {
           openai: {
-            apiKey: "${TEST_API_KEY}",
-            customField: "${CUSTOM_VALUE}",
+            default: {
+              apiKey: "${TEST_API_KEY}",
+              customField: "${CUSTOM_VALUE}",
+            },
           },
         },
       };
 
       const client = createClient(config);
       const clientConfig = client.getConfig();
-      const openaiProvider = clientConfig.providers.get("openai");
+      const openaiProvider = clientConfig.providers.get("openai.default");
 
       expect(openaiProvider).toBeDefined();
       expect(openaiProvider?.apiKey).toBe("sk-env-test");
@@ -196,11 +216,13 @@ describe("createClient", () => {
       const config = {
         providers: {
           openai: {
-            apiKey: "sk-test",
-            config: {
-              nested: "${NESTED_VALUE}",
-              deep: {
-                value: "${NESTED_VALUE}",
+            default: {
+              apiKey: "sk-test",
+              config: {
+                nested: "${NESTED_VALUE}",
+                deep: {
+                  value: "${NESTED_VALUE}",
+                },
               },
             },
           },
@@ -209,7 +231,9 @@ describe("createClient", () => {
 
       const client = createClient(config);
       const clientConfig = client.getConfig();
-      const openaiProvider = clientConfig.providers.get("openai") as any;
+      const openaiProvider = clientConfig.providers.get(
+        "openai.default",
+      ) as any;
 
       expect(openaiProvider.config.nested).toBe("nested-test");
       expect(openaiProvider.config.deep.value).toBe("nested-test");
@@ -221,14 +245,16 @@ describe("createClient", () => {
       const config = {
         providers: {
           openai: {
-            apiKey: "sk-${API_KEY_SUFFIX}",
+            default: {
+              apiKey: "sk-${API_KEY_SUFFIX}",
+            },
           },
         },
       };
 
       const client = createClient(config);
       const clientConfig = client.getConfig();
-      const openaiProvider = clientConfig.providers.get("openai");
+      const openaiProvider = clientConfig.providers.get("openai.default");
 
       expect(openaiProvider?.apiKey).toBe("sk-test-key");
     });
@@ -239,7 +265,9 @@ describe("createClient", () => {
       const config = {
         providers: {
           openai: {
-            apiKey: "${MISSING_VAR}",
+            default: {
+              apiKey: "${MISSING_VAR}",
+            },
           },
         },
       };
@@ -254,15 +282,17 @@ describe("createClient", () => {
       const config = {
         providers: {
           openai: {
-            apiKey: "sk-literal-key",
-            baseUrl: "https://api.openai.com/v1",
+            default: {
+              apiKey: "sk-literal-key",
+              baseUrl: "https://api.openai.com/v1",
+            },
           },
         },
       };
 
       const client = createClient(config);
       const clientConfig = client.getConfig();
-      const openaiProvider = clientConfig.providers.get("openai");
+      const openaiProvider = clientConfig.providers.get("openai.default");
 
       expect(openaiProvider?.apiKey).toBe("sk-literal-key");
       expect(openaiProvider?.baseUrl).toBe("https://api.openai.com/v1");
@@ -282,7 +312,9 @@ describe("createClient", () => {
 
       const config = {
         providers: {
-          openai: { apiKey: "${MISSING_KEY}" },
+          openai: {
+            default: { apiKey: "${MISSING_KEY}" },
+          },
         },
       };
 
@@ -294,7 +326,7 @@ describe("createClient", () => {
         if (error instanceof ValidationError) {
           expect(error.context).toMatchObject({
             envVarName: "MISSING_KEY",
-            path: "providers.openai.apiKey",
+            path: "providers.openai.default.apiKey",
           });
         }
       }
@@ -305,7 +337,9 @@ describe("createClient", () => {
     it("should create functional BridgeClient that can access configuration", () => {
       const config = {
         providers: {
-          openai: { apiKey: "sk-test", temperature: 0.7 },
+          openai: {
+            default: { apiKey: "sk-test", temperature: 0.7 },
+          },
         },
         options: { retries: 3 },
       };
@@ -318,7 +352,7 @@ describe("createClient", () => {
 
       // Test that provider configuration was correctly transformed
       const providers = client.getConfig().providers;
-      expect(providers.get("openai")).toMatchObject({
+      expect(providers.get("openai.default")).toMatchObject({
         apiKey: "sk-test",
         temperature: 0.7,
       });
@@ -333,21 +367,24 @@ describe("createClient", () => {
         },
       };
 
-      const client = createClient(config);
-      expect(client).toBeInstanceOf(BridgeClient);
+      expect(() => createClient(config)).toThrow(
+        /Provider 'openai' has no configurations defined/,
+      );
     });
 
     it("should handle complex nested provider configurations", () => {
       const config = {
         providers: {
           openai: {
-            apiKey: "sk-test",
-            config: {
-              temperature: 0.7,
-              maxTokens: 1000,
-              nested: {
-                deep: {
-                  value: "complex",
+            default: {
+              apiKey: "sk-test",
+              config: {
+                temperature: 0.7,
+                maxTokens: 1000,
+                nested: {
+                  deep: {
+                    value: "complex",
+                  },
                 },
               },
             },
@@ -357,7 +394,9 @@ describe("createClient", () => {
 
       const client = createClient(config);
       const clientConfig = client.getConfig();
-      const openaiProvider = clientConfig.providers.get("openai") as any;
+      const openaiProvider = clientConfig.providers.get(
+        "openai.default",
+      ) as any;
 
       expect(openaiProvider.config.nested.deep.value).toBe("complex");
     });
@@ -365,19 +404,21 @@ describe("createClient", () => {
     it("should handle multiple providers with different configurations", () => {
       const config = {
         providers: {
-          openai: { apiKey: "sk-openai", model: "gpt-4" },
-          anthropic: { apiKey: "sk-ant-test", version: "2023-06-01" },
-          custom: { endpoint: "https://custom.api.com" },
+          openai: {
+            default: { apiKey: "sk-openai", model: "gpt-4" },
+          },
+          anthropic: {
+            default: { apiKey: "sk-ant-test", version: "2023-06-01" },
+          },
         },
       };
 
       const client = createClient(config);
       const clientConfig = client.getConfig();
 
-      expect(clientConfig.providers.size).toBe(3);
-      expect(clientConfig.providers.has("openai")).toBe(true);
-      expect(clientConfig.providers.has("anthropic")).toBe(true);
-      expect(clientConfig.providers.has("custom")).toBe(true);
+      expect(clientConfig.providers.size).toBe(2);
+      expect(clientConfig.providers.has("openai.default")).toBe(true);
+      expect(clientConfig.providers.has("anthropic.default")).toBe(true);
     });
   });
 });

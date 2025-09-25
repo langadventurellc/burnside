@@ -27,12 +27,10 @@ import type { BridgeConfig } from "./core/config";
  *
  * // Complete configuration with all options
  * const client = createClient({
- *   defaultProvider: "openai",
  *   providers: {
  *     openai: { apiKey: "sk-..." },
  *     anthropic: { apiKey: "sk-ant-..." }
  *   },
- *   defaultModel: "gpt-4",
  *   timeout: 30000,
  *   options: { retries: 3 },
  *   registryOptions: {
@@ -87,7 +85,10 @@ function processEnvironmentVariables(config: BridgeConfig): BridgeConfig {
   const processed = { ...config };
 
   if (processed.providers) {
-    const processedProviders: Record<string, Record<string, unknown>> = {};
+    const processedProviders: Record<
+      string,
+      Record<string, Record<string, unknown>>
+    > = {};
 
     for (const [providerName, providerConfig] of Object.entries(
       processed.providers,
@@ -95,7 +96,7 @@ function processEnvironmentVariables(config: BridgeConfig): BridgeConfig {
       processedProviders[providerName] = processObjectValues(
         providerConfig,
         `providers.${providerName}`,
-      );
+      ) as Record<string, Record<string, unknown>>;
     }
 
     processed.providers = processedProviders;

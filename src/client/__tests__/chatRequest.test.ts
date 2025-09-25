@@ -15,6 +15,7 @@ describe("ChatRequest", () => {
       const request: ChatRequest = {
         messages: validMessages,
         model: "gpt-4",
+        providerConfig: "default",
       };
 
       expect(request.messages).toEqual(validMessages);
@@ -26,6 +27,7 @@ describe("ChatRequest", () => {
         messages: validMessages,
         model: "gpt-4",
         temperature: 0.7,
+        providerConfig: "default",
       };
 
       expect(request.temperature).toBe(0.7);
@@ -36,6 +38,7 @@ describe("ChatRequest", () => {
         messages: validMessages,
         model: "gpt-4",
         maxTokens: 1000,
+        providerConfig: "default",
       };
 
       expect(request.maxTokens).toBe(1000);
@@ -47,9 +50,34 @@ describe("ChatRequest", () => {
         messages: validMessages,
         model: "gpt-4",
         options,
+        providerConfig: "default",
       };
 
       expect(request.options).toEqual(options);
+    });
+
+    it("should accept optional providerConfig parameter", () => {
+      const request: ChatRequest = {
+        messages: validMessages,
+        model: "openai:gpt-4",
+        providerConfig: "prod",
+      };
+
+      expect(request.providerConfig).toBe("prod");
+    });
+
+    it("should accept providerConfig with other optional parameters", () => {
+      const request: ChatRequest = {
+        messages: validMessages,
+        model: "anthropic:claude-3-sonnet",
+        providerConfig: "dev",
+        temperature: 0.8,
+        maxTokens: 1500,
+      };
+
+      expect(request.providerConfig).toBe("dev");
+      expect(request.temperature).toBe(0.8);
+      expect(request.maxTokens).toBe(1500);
     });
 
     it("should accept all optional parameters together", () => {
@@ -59,11 +87,13 @@ describe("ChatRequest", () => {
         temperature: 0.5,
         maxTokens: 2000,
         options: { stream: false },
+        providerConfig: "main",
       };
 
       expect(request.temperature).toBe(0.5);
       expect(request.maxTokens).toBe(2000);
       expect(request.options?.stream).toBe(false);
+      expect(request.providerConfig).toBe("main");
     });
   });
 
@@ -77,6 +107,7 @@ describe("ChatRequest", () => {
       const request: ChatRequest = {
         messages: multipleMessages,
         model: "gpt-5-nano-2025-08-07",
+        providerConfig: "default",
       };
 
       expect(request.messages).toHaveLength(2);
@@ -91,6 +122,7 @@ describe("ChatRequest", () => {
       const validRequest: ChatRequest = {
         messages: validMessages,
         model: "gpt-4",
+        providerConfig: "default",
       };
 
       expect(validRequest).toBeDefined();
@@ -101,6 +133,7 @@ describe("ChatRequest", () => {
         messages: validMessages,
         model: "gpt-4",
         temperature: 0.8,
+        providerConfig: "default",
       };
 
       // TypeScript should infer the correct types
@@ -111,6 +144,21 @@ describe("ChatRequest", () => {
       expect(messages).toEqual(validMessages);
       expect(model).toBe("gpt-4");
       expect(temperature).toBe(0.8);
+    });
+
+    it("should allow proper type inference with providerConfig", () => {
+      const request: ChatRequest = {
+        messages: validMessages,
+        model: "openai:gpt-4",
+        providerConfig: "prod",
+      };
+
+      // TypeScript should infer the correct types
+      const providerConfig: string | undefined = request.providerConfig;
+      const model: string = request.model;
+
+      expect(providerConfig).toBe("prod");
+      expect(model).toBe("openai:gpt-4");
     });
   });
 
@@ -125,6 +173,7 @@ describe("ChatRequest", () => {
         messages: validMessages,
         model: "gpt-4",
         multiTurn: multiTurnConfig,
+        providerConfig: "default",
       };
 
       expect(request.multiTurn).toEqual(multiTurnConfig);
@@ -139,6 +188,7 @@ describe("ChatRequest", () => {
         multiTurn: {
           maxIterations: 3,
         },
+        providerConfig: "default",
       };
 
       expect(request.multiTurn?.maxIterations).toBe(3);
@@ -157,6 +207,7 @@ describe("ChatRequest", () => {
           maxConcurrentTools: 2,
           timeoutMs: 120000,
         },
+        providerConfig: "default",
       };
 
       expect(request.multiTurn?.maxIterations).toBe(10);
@@ -172,6 +223,7 @@ describe("ChatRequest", () => {
         messages: validMessages,
         model: "gpt-4",
         multiTurn: {},
+        providerConfig: "default",
       };
 
       expect(request.multiTurn).toEqual({});
@@ -183,6 +235,7 @@ describe("ChatRequest", () => {
         model: "gpt-4",
         temperature: 0.7,
         maxTokens: 1000,
+        providerConfig: "default",
       };
 
       expect(request.multiTurn).toBeUndefined();
@@ -206,6 +259,7 @@ describe("ChatRequest", () => {
           toolExecutionStrategy: "sequential",
           enableStreaming: true,
         },
+        providerConfig: "default",
       };
 
       expect(basicConfig.multiTurn?.maxIterations).toBe(5);
@@ -220,6 +274,7 @@ describe("ChatRequest", () => {
           maxIterations: 5,
           enableStreaming: true,
         },
+        providerConfig: "default",
       };
 
       // TypeScript should infer correct types

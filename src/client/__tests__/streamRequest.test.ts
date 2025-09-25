@@ -18,6 +18,7 @@ describe("StreamRequest", () => {
         model: "gpt-4",
         temperature: 0.7,
         maxTokens: 1000,
+        providerConfig: "default",
       };
 
       // Should have all ChatRequest properties
@@ -32,6 +33,7 @@ describe("StreamRequest", () => {
         messages: validMessages,
         model: "gpt-4",
         stream: true,
+        providerConfig: "default",
       };
 
       expect(request.stream).toBe(true);
@@ -47,6 +49,7 @@ describe("StreamRequest", () => {
         messages: validMessages,
         model: "gpt-4",
         streamOptions,
+        providerConfig: "default",
       };
 
       expect(request.streamOptions).toEqual(streamOptions);
@@ -59,10 +62,23 @@ describe("StreamRequest", () => {
         streamOptions: {
           includeUsage: false,
         },
+        providerConfig: "default",
       };
 
       expect(request.streamOptions?.includeUsage).toBe(false);
       expect(request.streamOptions?.bufferSize).toBeUndefined();
+    });
+
+    it("should accept providerConfig from ChatRequest inheritance", () => {
+      const request: StreamRequest = {
+        messages: validMessages,
+        model: "openai:gpt-4",
+        providerConfig: "prod",
+        stream: true,
+      };
+
+      expect(request.providerConfig).toBe("prod");
+      expect(request.stream).toBe(true);
     });
 
     it("should accept all streaming parameters together", () => {
@@ -75,11 +91,13 @@ describe("StreamRequest", () => {
           includeUsage: true,
           bufferSize: 2048,
         },
+        providerConfig: "main",
       };
 
       expect(request.stream).toBe(true);
       expect(request.streamOptions?.includeUsage).toBe(true);
       expect(request.streamOptions?.bufferSize).toBe(2048);
+      expect(request.providerConfig).toBe("main");
     });
   });
 
@@ -89,12 +107,42 @@ describe("StreamRequest", () => {
         messages: validMessages,
         model: "gpt-4",
         stream: true,
+        providerConfig: "default",
       };
 
       // Should be assignable to ChatRequest
       const chatRequest: ChatRequest = streamRequest;
       expect(chatRequest.messages).toEqual(validMessages);
       expect(chatRequest.model).toBe("gpt-4");
+    });
+
+    it("should inherit providerConfig from ChatRequest", () => {
+      const request: StreamRequest = {
+        messages: validMessages,
+        model: "anthropic:claude-3-sonnet",
+        providerConfig: "backup",
+      };
+
+      // Should inherit providerConfig from ChatRequest
+      expect(request.providerConfig).toBe("backup");
+
+      // Should maintain type compatibility
+      const chatRequest: ChatRequest = request;
+      expect(chatRequest.providerConfig).toBe("backup");
+    });
+
+    it("should maintain type compatibility with providerConfig", () => {
+      const streamRequest: StreamRequest = {
+        messages: validMessages,
+        model: "openai:gpt-4",
+        providerConfig: "dev",
+        stream: true,
+      };
+
+      // Should be assignable to ChatRequest with providerConfig
+      const chatRequest: ChatRequest = streamRequest;
+      expect(chatRequest.providerConfig).toBe("dev");
+      expect(chatRequest.model).toBe("openai:gpt-4");
     });
 
     it("should inherit all ChatRequest optional properties", () => {
@@ -104,6 +152,7 @@ describe("StreamRequest", () => {
         temperature: 0.9,
         maxTokens: 500,
         options: { customOption: "value" },
+        providerConfig: "test",
         stream: true,
         streamOptions: { includeUsage: true },
       };
@@ -112,6 +161,7 @@ describe("StreamRequest", () => {
       expect(request.temperature).toBe(0.9);
       expect(request.maxTokens).toBe(500);
       expect(request.options?.customOption).toBe("value");
+      expect(request.providerConfig).toBe("test");
 
       // Plus StreamRequest-specific properties
       expect(request.stream).toBe(true);
@@ -128,6 +178,7 @@ describe("StreamRequest", () => {
           includeUsage: true,
           bufferSize: 1024,
         },
+        providerConfig: "default",
       };
 
       // TypeScript should infer correct types
@@ -143,6 +194,7 @@ describe("StreamRequest", () => {
       const request: StreamRequest = {
         messages: validMessages,
         model: "gpt-4",
+        providerConfig: "default",
       };
 
       expect(request.streamOptions).toBeUndefined();
@@ -155,6 +207,7 @@ describe("StreamRequest", () => {
         messages: validMessages,
         model: "gpt-4",
         stream: true,
+        providerConfig: "default",
       };
 
       // Should work without type errors
@@ -176,6 +229,7 @@ describe("StreamRequest", () => {
         model: "gpt-4",
         stream: true,
         multiTurn: multiTurnConfig,
+        providerConfig: "default",
       };
 
       expect(request.multiTurn).toEqual(multiTurnConfig);
@@ -195,6 +249,7 @@ describe("StreamRequest", () => {
           enableStreaming: true,
           toolExecutionStrategy: "sequential",
         },
+        providerConfig: "default",
       };
 
       expect(request.stream).toBe(true);
@@ -212,6 +267,7 @@ describe("StreamRequest", () => {
           maxIterations: 2,
           enableStreaming: false, // Disable streaming interruption handling
         },
+        providerConfig: "default",
       };
 
       expect(request.stream).toBe(true);
@@ -228,6 +284,7 @@ describe("StreamRequest", () => {
           toolExecutionStrategy: "parallel",
           maxConcurrentTools: 2,
         },
+        providerConfig: "default",
       };
 
       // Should still be assignable to ChatRequest
@@ -261,6 +318,7 @@ describe("StreamRequest", () => {
           enableStreaming: true,
           toolExecutionStrategy: "sequential",
         },
+        providerConfig: "default",
       };
 
       expect(multiTurnStreamRequest.multiTurn?.maxIterations).toBe(5);
@@ -283,6 +341,7 @@ describe("StreamRequest", () => {
           maxToolCalls: 10,
           continueOnToolError: true,
         },
+        providerConfig: "default",
       };
 
       expect(request.multiTurn?.maxIterations).toBe(8);
@@ -302,6 +361,7 @@ describe("StreamRequest", () => {
           enableStreaming: true,
           toolExecutionStrategy: "parallel",
         },
+        providerConfig: "default",
       };
 
       // TypeScript should infer correct types
@@ -325,6 +385,7 @@ describe("StreamRequest", () => {
         model: "gpt-4",
         stream: true,
         streamOptions: { includeUsage: true },
+        providerConfig: "default",
       };
 
       expect(request.multiTurn).toBeUndefined();

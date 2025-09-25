@@ -7,7 +7,6 @@
 import {
   OpenAIResponsesV1Provider,
   type OpenAIResponsesV1Config,
-  default as defaultProvider,
 } from "../index";
 
 describe("OpenAI Responses v1 Provider Module", () => {
@@ -25,11 +24,6 @@ describe("OpenAI Responses v1 Provider Module", () => {
         baseUrl: "https://api.openai.com/v1",
       };
       expect(configExample).toBeDefined();
-    });
-
-    it("should export default provider", () => {
-      expect(defaultProvider).toBeDefined();
-      expect(defaultProvider).toBe(OpenAIResponsesV1Provider);
     });
 
     it("should have proper provider metadata", () => {

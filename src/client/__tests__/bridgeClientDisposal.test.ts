@@ -43,11 +43,11 @@ describe("BridgeClient Disposal", () => {
 
     // Base configuration for tests
     baseConfig = {
-      defaultProvider: "openai",
       providers: {
-        openai: { apiKey: "test-key" },
+        openai: {
+          default: { apiKey: "test-key" },
+        },
       },
-      defaultModel: "gpt-4",
       tools: {
         enabled: true,
         builtinTools: [],
@@ -63,9 +63,11 @@ describe("BridgeClient Disposal", () => {
     it("should dispose successfully with no MCP connections", async () => {
       // Create client without MCP servers
       const configWithoutMcp: BridgeConfig = {
-        defaultProvider: "openai",
-        providers: { openai: { apiKey: "test-key" } },
-        defaultModel: "gpt-4",
+        providers: {
+          openai: {
+            default: { apiKey: "test-key" },
+          },
+        },
       };
 
       client = new BridgeClient(configWithoutMcp, {
@@ -84,9 +86,11 @@ describe("BridgeClient Disposal", () => {
 
     it("should be idempotent - safe to call multiple times", async () => {
       const configWithoutMcp: BridgeConfig = {
-        defaultProvider: "openai",
-        providers: { openai: { apiKey: "test-key" } },
-        defaultModel: "gpt-4",
+        providers: {
+          openai: {
+            default: { apiKey: "test-key" },
+          },
+        },
       };
 
       client = new BridgeClient(configWithoutMcp, {
@@ -291,9 +295,11 @@ describe("BridgeClient Disposal", () => {
     it("should handle missing tool router gracefully", async () => {
       // Create config with tools disabled to prevent tool router creation
       const configWithoutTools: BridgeConfig = {
-        defaultProvider: "openai",
-        providers: { openai: { apiKey: "test-key" } },
-        defaultModel: "gpt-4",
+        providers: {
+          openai: {
+            default: { apiKey: "test-key" },
+          },
+        },
         // No tools config means tools are disabled
       };
 

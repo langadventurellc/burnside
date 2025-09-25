@@ -49,6 +49,7 @@ describe("xAI v1 Request Translator", () => {
     ],
     temperature: 0.7,
     maxTokens: 1000,
+    providerConfig: "default",
   };
 
   describe("Model ID Mapping", () => {
@@ -106,6 +107,7 @@ describe("xAI v1 Request Translator", () => {
             ],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(multimodalRequest, mockConfig);
@@ -138,6 +140,7 @@ describe("xAI v1 Request Translator", () => {
             content: [{ type: "code", text: "console.log('hello');" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(codeRequest, mockConfig);
@@ -169,6 +172,7 @@ describe("xAI v1 Request Translator", () => {
             content: [{ type: "text", text: "Hi there!" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(multiMessageRequest, mockConfig);
@@ -195,6 +199,7 @@ describe("xAI v1 Request Translator", () => {
             ],
           },
         ],
+        providerConfig: "default",
       };
 
       expect(() => translateChatRequest(documentRequest, mockConfig)).toThrow(
@@ -211,6 +216,7 @@ describe("xAI v1 Request Translator", () => {
             content: [{ type: "unknown" as any, text: "test" }],
           },
         ],
+        providerConfig: "default",
       };
 
       expect(() => translateChatRequest(invalidRequest, mockConfig)).toThrow(
@@ -382,6 +388,7 @@ describe("xAI v1 Request Translator", () => {
             content: [{ type: "text", text: "Hello!" }],
           },
         ],
+        providerConfig: "default",
       };
 
       const result = translateChatRequest(minimalRequest, mockConfig);
@@ -514,6 +521,7 @@ describe("xAI v1 Request Translator", () => {
       const invalidRequest: ChatRequest = {
         model: "",
         messages: [],
+        providerConfig: "default",
       };
 
       expect(() => translateChatRequest(invalidRequest, mockConfig)).toThrow(
@@ -526,6 +534,7 @@ describe("xAI v1 Request Translator", () => {
       const malformedRequest = {
         model: "xai:grok-3",
         messages: null as any,
+        providerConfig: "default",
       };
 
       expect(() => translateChatRequest(malformedRequest, mockConfig)).toThrow(
@@ -542,6 +551,7 @@ describe("xAI v1 Request Translator", () => {
             content: [{ type: "text", text: "Hello!" }],
           },
         ],
+        providerConfig: "default",
       };
 
       expect(() => translateChatRequest(invalidRequest, mockConfig)).toThrow(
