@@ -4,5 +4,12 @@
     "outDir": "dist/cjs",
     "module": "commonjs",
     "target": "ES2022"
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/__tests__/**",
+    "**/*.test.*",
+    "**/*.e2e.*"
+  ]
 }

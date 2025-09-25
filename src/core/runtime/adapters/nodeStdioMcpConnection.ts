@@ -6,8 +6,9 @@
  * newline-delimited JSON over stdio streams.
  */
 
-import { spawn, type ChildProcess } from "child_process";
-import { createInterface, type Interface as ReadlineInterface } from "readline";
+// Dynamic imports for Node.js-specific modules to avoid issues in browser/React Native environments
+type ChildProcess = import("child_process").ChildProcess;
+type ReadlineInterface = import("readline").Interface;
 import type { McpConnection } from "../mcpConnection";
 import type { McpConnectionOptions } from "../mcpConnectionOptions";
 import { RuntimeError } from "../runtimeError";
@@ -79,7 +80,7 @@ export class NodeStdioMcpConnection implements McpConnection {
   async initialize(): Promise<void> {
     try {
       await this.spawnSubprocess();
-      this.setupStdioHandlers();
+      await this.setupStdioHandlers();
       this.isConnectionActive = true;
     } catch (error) {
       throw new RuntimeError(
@@ -233,20 +234,40 @@ export class NodeStdioMcpConnection implements McpConnection {
    */
   private async spawnSubprocess(): Promise<void> {
     return new Promise((resolve, reject) => {
-      try {
-        this.childProcess = spawn(this.command, this.args, {
-          stdio: ["pipe", "pipe", "inherit"],
-        });
+      void (async () => {
+        try {
+          const { spawn } = await import("child_process");
 
-        this.childProcess.on("spawn", () => {
-          resolve();
-        });
+          this.childProcess = spawn(this.command, this.args, {
+            stdio: ["pipe", "pipe", "inherit"],
+          });
 
-        this.childProcess.on("error", (error) => {
+          this.childProcess.on("spawn", () => {
+            resolve();
+          });
+
+          this.childProcess.on("error", (error: Error) => {
+            reject(
+              new RuntimeError(
+                `Failed to spawn MCP server subprocess: ${error.message}`,
+                "RUNTIME_MCP_SUBPROCESS_SPAWN_FAILED",
+                {
+                  command: this.command,
+                  args: this.args,
+                  originalError: error,
+                },
+              ),
+            );
+          });
+
+          this.childProcess.on("exit", (code, signal) => {
+            this.handleSubprocessExit(code, signal);
+          });
+        } catch (error) {
           reject(
             new RuntimeError(
-              `Failed to spawn MCP server subprocess: ${error.message}`,
-              "RUNTIME_MCP_SUBPROCESS_SPAWN_FAILED",
+              `Subprocess spawn error: ${error instanceof Error ? error.message : String(error)}`,
+              "RUNTIME_MCP_SUBPROCESS_SPAWN_ERROR",
               {
                 command: this.command,
                 args: this.args,
@@ -254,31 +275,15 @@ export class NodeStdioMcpConnection implements McpConnection {
               },
             ),
           );
-        });
-
-        this.childProcess.on("exit", (code, signal) => {
-          this.handleSubprocessExit(code, signal);
-        });
-      } catch (error) {
-        reject(
-          new RuntimeError(
-            `Subprocess spawn error: ${error instanceof Error ? error.message : String(error)}`,
-            "RUNTIME_MCP_SUBPROCESS_SPAWN_ERROR",
-            {
-              command: this.command,
-              args: this.args,
-              originalError: error,
-            },
-          ),
-        );
-      }
+        }
+      })();
     });
   }
 
   /**
    * Set up readline interface for parsing newline-delimited JSON from stdout.
    */
-  private setupStdioHandlers(): void {
+  private async setupStdioHandlers(): Promise<void> {
     if (!this.childProcess?.stdout) {
       throw new RuntimeError(
         "Subprocess stdout not available for readline setup",
@@ -286,6 +291,8 @@ export class NodeStdioMcpConnection implements McpConnection {
         { command: this.command },
       );
     }
+
+    const { createInterface } = await import("readline");
 
     this.readline = createInterface({
       input: this.childProcess.stdout,
@@ -296,9 +303,9 @@ export class NodeStdioMcpConnection implements McpConnection {
       this.handleStdoutLine(line);
     });
 
-    this.readline.on("error", (error) => {
+    this.readline.on("error", (error: Error) => {
       throw new RuntimeError(
-        `Readline error: ${error instanceof Error ? error.message : String(error)}`,
+        `Readline error: ${error.message}`,
         "RUNTIME_MCP_READLINE_ERROR",
         {
           command: this.command,
