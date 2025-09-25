@@ -31,10 +31,13 @@ import { OpenAIResponsesV1Provider } from "@langadventurellc/burnside/providers"
 // Create client with proper model seeding and provider registration
 const client = createClient({
   providers: {
-    openai: { apiKey: "sk-..." },
-    anthropic: { apiKey: "sk-ant-..." },
+    openai: {
+      default: { apiKey: "sk-..." },
+    },
+    anthropic: {
+      default: { apiKey: "sk-ant-..." },
+    },
   },
-  defaultProvider: "openai",
   modelSeed: "builtin", // Required to populate model registry
   tools: {
     enabled: true,
@@ -54,6 +57,7 @@ const response = await client.chat({
     },
   ],
   model: "openai:gpt-4o-2024-08-06", // Use actual model from registry
+  providerConfig: "default", // Required: specify which provider configuration to use
 });
 
 console.log(response.content[0].text);
@@ -71,6 +75,7 @@ for await (const delta of await client.stream({
     },
   ],
   model: "anthropic:claude-3-5-haiku-latest",
+  providerConfig: "default", // Required: specify which provider configuration to use
 })) {
   process.stdout.write(delta.delta.content?.[0]?.text || "");
 }
@@ -101,9 +106,14 @@ The library supports environment variable substitution in configuration:
 ```typescript
 const client = createClient({
   providers: {
-    openai: { apiKey: "${OPENAI_API_KEY}" },
-    anthropic: { apiKey: "${ANTHROPIC_API_KEY}" },
+    openai: {
+      default: { apiKey: "${OPENAI_API_KEY}" },
+    },
+    anthropic: {
+      default: { apiKey: "${ANTHROPIC_API_KEY}" },
+    },
   },
+  modelSeed: "builtin",
 });
 ```
 
