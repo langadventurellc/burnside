@@ -207,3 +207,14 @@ export {
  * All library errors extend BridgeError for consistent error handling patterns.
  */
 export { BridgeError } from "./core/errors/bridgeError";
+
+// ============================================================================
+// DEFAULT CONFIGURATIONS - Provider and Model Defaults
+// ============================================================================
+
+/**
+ * Default LLM models and provider configurations.
+ * This provides a curated set of commonly used models with their capabilities
+ * and default configurations for quick setup.
+ */
+export { defaultLlmModels } from "./data/defaultLlmModels";
