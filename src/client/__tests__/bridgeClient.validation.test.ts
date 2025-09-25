@@ -204,30 +204,5 @@ describe("BridgeClient - Provider Configuration Validation", () => {
       const configs = getConfigs("nonexistent");
       expect(configs).toEqual([]);
     });
-
-    it("should handle legacy single configuration format", () => {
-      // This would represent the old format if it still existed in the Map
-      const config: BridgeConfig = {
-        providers: {
-          openai: {
-            default: { apiKey: "sk-key" },
-          },
-        },
-      };
-
-      const client = new BridgeClient(config);
-
-      // Manually add a legacy key to test the fallback behavior
-      (client as any).config.providers.set("legacy-provider", {
-        apiKey: "sk-legacy",
-      });
-
-      const getConfigs = (client as any).getConfigurationsForProvider.bind(
-        client,
-      );
-
-      const configs = getConfigs("legacy-provider");
-      expect(configs).toEqual(["default"]);
-    });
   });
 });

@@ -299,8 +299,11 @@ export class BridgeClient {
         const configName = key.split(".")[1];
         configurations.push(configName);
       } else if (key === providerId) {
-        // Handle legacy single configuration format if needed
-        configurations.push("default");
+        throw new BridgeError(
+          `Provider configuration name is required for provider '${providerId}'`,
+          "PROVIDER_CONFIG_NAME_REQUIRED",
+          { providerId },
+        );
       }
     }
     return configurations;
