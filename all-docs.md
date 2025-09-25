@@ -48,9 +48,10 @@ import { OpenAIResponsesV1Provider } from "@langadventurellc/burnside/providers"
 
 const client = createClient({
   providers: {
-    openai: { apiKey: "${OPENAI_API_KEY}" },
+    openai: {
+      default: { apiKey: "${OPENAI_API_KEY}" },
+    },
   },
-  defaultProvider: "openai",
   modelSeed: "builtin",
 });
 
@@ -81,6 +82,7 @@ async chat(request: ChatRequest): Promise<Message>
 
 - `request.messages` - Array of conversation messages
 - `request.model` - Model to use (format: `provider:model-id`)
+- `request.providerConfig` - **Required:** Provider configuration name to use
 - `request.tools?` - Whether to enable tool execution
 - `request.multiTurn?` - Multi-turn conversation configuration
 - `request.temperature?` - Sampling temperature (if supported by model)
@@ -95,6 +97,7 @@ async chat(request: ChatRequest): Promise<Message>
 const response = await client.chat({
   messages: [{ role: "user", content: [{ type: "text", text: "Hello!" }] }],
   model: "openai:gpt-4o-2024-08-06",
+  providerConfig: "default",
 });
 ```
 
@@ -144,6 +147,7 @@ async stream(request: StreamRequest): Promise<AsyncIterable<StreamDelta>>
 
 - `request.messages` - Array of conversation messages
 - `request.model` - Model to use (format: `provider:model-id`)
+- `request.providerConfig` - **Required:** Provider configuration name to use
 - `request.tools?` - Whether to enable tool execution
 - `request.multiTurn?` - Multi-turn conversation configuration
 - `request.temperature?` - Sampling temperature (if supported by model)
@@ -159,6 +163,7 @@ for await (const delta of await client.stream({
     { role: "user", content: [{ type: "text", text: "Tell me a story" }] },
   ],
   model: "anthropic:claude-3-5-haiku-latest",
+  providerConfig: "default",
 })) {
   process.stdout.write(delta.delta.content?.[0]?.text || "");
 }
@@ -374,6 +379,7 @@ interface SourceRef {
 interface ChatRequest {
   messages: Message[];
   model: string; // Format: "provider:model-id"
+  providerConfig: string; // Required: provider configuration name
   tools?: ToolDefinition[]; // Array of tool definitions, not boolean
   multiTurn?: Partial<AgentExecutionOptions>;
   temperature?: number;
@@ -389,6 +395,7 @@ interface ChatRequest {
 interface StreamRequest {
   messages: Message[];
   model: string; // Format: "provider:model-id"
+  providerConfig: string; // Required: provider configuration name
   tools?: ToolDefinition[]; // Array of tool definitions, not boolean
   multiTurn?: Partial<AgentExecutionOptions>;
   temperature?: number;
@@ -481,8 +488,7 @@ type ToolHandler = (
 
 ```typescript
 interface BridgeConfig {
-  providers?: Record<string, ProviderConfig>;
-  defaultProvider?: string;
+  providers?: Record<string, Record<string, ProviderConfig>>; // Nested: provider -> config name -> config
   defaultModel?: string;
   timeout?: number;
   options?: Record<string, unknown>;
@@ -2897,7 +2903,9 @@ import { OpenAIResponsesV1Provider } from "@langadventurellc/burnside/providers"
 
 const client = createClient({
   providers: {
-    openai: { apiKey: "${OPENAI_API_KEY}" },
+    openai: {
+      default: { apiKey: "${OPENAI_API_KEY}" }, // Named configuration
+    },
   },
   modelSeed: "builtin", // Required to populate model registry
   tools: {
@@ -2921,12 +2929,52 @@ const response = await client.chat({
     },
   ],
   model: "openai:gpt-4o-2024-08-06", // Use actual model from registry
+  providerConfig: "default", // Required: specify which provider configuration to use
 });
 
 console.log(response.content[0].text);
 ```
 
 ## Configuration Options
+
+### Provider Configurations
+
+Each provider must have **named configurations**. You can have multiple configurations per provider (e.g., for different API keys, base URLs, or environments):
+
+```typescript
+const client = createClient({
+  providers: {
+    openai: {
+      default: { apiKey: "${OPENAI_API_KEY}" },
+      backup: { apiKey: "${OPENAI_BACKUP_KEY}" },
+    },
+    anthropic: {
+      production: { apiKey: "${ANTHROPIC_API_KEY}" },
+      development: { apiKey: "${ANTHROPIC_DEV_KEY}" },
+    },
+  },
+  modelSeed: "builtin",
+  tools: { enabled: true },
+});
+```
+
+**Important**: When making chat/stream requests, you must specify which configuration to use:
+
+```typescript
+// Use the "default" OpenAI configuration
+const response1 = await client.chat({
+  messages: [{ role: "user", content: [{ type: "text", text: "Hello!" }] }],
+  model: "openai:gpt-4o-2024-08-06",
+  providerConfig: "default", // Required
+});
+
+// Use the "production" Anthropic configuration
+const response2 = await client.chat({
+  messages: [{ role: "user", content: [{ type: "text", text: "Hello!" }] }],
+  model: "anthropic:claude-3-5-haiku-latest",
+  providerConfig: "production", // Required
+});
+```
 
 ### Multiple Providers
 
@@ -2940,12 +2988,19 @@ import {
 
 const client = createClient({
   providers: {
-    openai: { apiKey: "${OPENAI_API_KEY}" },
-    anthropic: { apiKey: "${ANTHROPIC_API_KEY}" },
-    google: { apiKey: "${GOOGLE_AI_API_KEY}" },
-    xai: { apiKey: "${XAI_API_KEY}" },
+    openai: {
+      default: { apiKey: "${OPENAI_API_KEY}" },
+    },
+    anthropic: {
+      default: { apiKey: "${ANTHROPIC_API_KEY}" },
+    },
+    google: {
+      default: { apiKey: "${GOOGLE_AI_API_KEY}" },
+    },
+    xai: {
+      default: { apiKey: "${XAI_API_KEY}" },
+    },
   },
-  defaultProvider: "openai",
   modelSeed: "builtin",
   tools: {
     enabled: true,
@@ -2965,7 +3020,9 @@ client.registerProvider(new XaiV1Provider());
 ```typescript
 const client = createClient({
   providers: {
-    openai: { apiKey: "${OPENAI_API_KEY}" },
+    openai: {
+      default: { apiKey: "${OPENAI_API_KEY}" },
+    },
   },
   timeout: 30000, // 30 seconds
   modelSeed: "builtin",
@@ -2981,7 +3038,9 @@ const client = createClient({
 ```typescript
 const client = createClient({
   providers: {
-    openai: { apiKey: "${OPENAI_API_KEY}" },
+    openai: {
+      default: { apiKey: "${OPENAI_API_KEY}" },
+    },
   },
   modelSeed: "builtin",
   rateLimitPolicy: {
@@ -3009,7 +3068,9 @@ import { OpenAIResponsesV1Provider } from "@langadventurellc/burnside/providers"
 
 const client = createClient({
   providers: {
-    openai: { apiKey: process.env.OPENAI_API_KEY },
+    openai: {
+      default: { apiKey: process.env.OPENAI_API_KEY },
+    },
   },
   modelSeed: "builtin",
   tools: {
@@ -3030,7 +3091,9 @@ import { OpenAIResponsesV1Provider } from "@langadventurellc/burnside/providers"
 // In main process - same configuration as Node.js
 const client = createClient({
   providers: {
-    openai: { apiKey: process.env.OPENAI_API_KEY },
+    openai: {
+      default: { apiKey: process.env.OPENAI_API_KEY },
+    },
   },
   modelSeed: "builtin",
   tools: {
@@ -3051,7 +3114,9 @@ import { OpenAIResponsesV1Provider } from "@langadventurellc/burnside/providers"
 // In renderer process
 const client = createClient({
   providers: {
-    openai: { apiKey: "..." }, // Pass from main process
+    openai: {
+      default: { apiKey: "..." }, // Pass from main process
+    },
   },
   modelSeed: "builtin",
   tools: {
@@ -3071,7 +3136,9 @@ import { OpenAIResponsesV1Provider } from "@langadventurellc/burnside/providers"
 
 const client = createClient({
   providers: {
-    openai: { apiKey: "..." },
+    openai: {
+      default: { apiKey: "..." },
+    },
   },
   modelSeed: "builtin",
   tools: {
@@ -3189,6 +3256,7 @@ try {
   const response = await client.chat({
     messages: [{ role: "user", content: [{ type: "text", text: "Hello!" }] }],
     model: "openai:gpt-4o-2024-08-06",
+    providerConfig: "default",
   });
 } catch (error) {
   if (error instanceof BridgeError) {
@@ -3208,7 +3276,9 @@ Configure logging for debugging:
 ```typescript
 const client = createClient({
   providers: {
-    openai: { apiKey: "${OPENAI_API_KEY}" },
+    openai: {
+      default: { apiKey: "${OPENAI_API_KEY}" },
+    },
   },
   logging: {
     level: "debug",
@@ -3300,10 +3370,13 @@ import { OpenAIResponsesV1Provider } from "@langadventurellc/burnside/providers"
 // Create client with proper model seeding and provider registration
 const client = createClient({
   providers: {
-    openai: { apiKey: "sk-..." },
-    anthropic: { apiKey: "sk-ant-..." },
+    openai: {
+      default: { apiKey: "sk-..." },
+    },
+    anthropic: {
+      default: { apiKey: "sk-ant-..." },
+    },
   },
-  defaultProvider: "openai",
   modelSeed: "builtin", // Required to populate model registry
   tools: {
     enabled: true,
@@ -3323,6 +3396,7 @@ const response = await client.chat({
     },
   ],
   model: "openai:gpt-4o-2024-08-06", // Use actual model from registry
+  providerConfig: "default", // Required: specify which provider configuration to use
 });
 
 console.log(response.content[0].text);
@@ -3340,6 +3414,7 @@ for await (const delta of await client.stream({
     },
   ],
   model: "anthropic:claude-3-5-haiku-latest",
+  providerConfig: "default", // Required: specify which provider configuration to use
 })) {
   process.stdout.write(delta.delta.content?.[0]?.text || "");
 }
@@ -3370,9 +3445,14 @@ The library supports environment variable substitution in configuration:
 ```typescript
 const client = createClient({
   providers: {
-    openai: { apiKey: "${OPENAI_API_KEY}" },
-    anthropic: { apiKey: "${ANTHROPIC_API_KEY}" },
+    openai: {
+      default: { apiKey: "${OPENAI_API_KEY}" },
+    },
+    anthropic: {
+      default: { apiKey: "${ANTHROPIC_API_KEY}" },
+    },
   },
+  modelSeed: "builtin",
 });
 ```
 
@@ -3442,8 +3522,10 @@ import { OpenAIResponsesV1Provider } from "@langadventurellc/burnside/providers"
 const client = createClient({
   providers: {
     openai: {
-      apiKey: "${OPENAI_API_KEY}",
-      baseUrl: "https://api.openai.com/v1", // Optional
+      default: {
+        apiKey: "${OPENAI_API_KEY}",
+        baseUrl: "https://api.openai.com/v1", // Optional
+      },
     },
   },
   modelSeed: "builtin",
@@ -3521,8 +3603,10 @@ import { AnthropicMessagesV1Provider } from "@langadventurellc/burnside/provider
 const client = createClient({
   providers: {
     anthropic: {
-      apiKey: "${ANTHROPIC_API_KEY}",
-      baseUrl: "https://api.anthropic.com", // Optional
+      default: {
+        apiKey: "${ANTHROPIC_API_KEY}",
+        baseUrl: "https://api.anthropic.com", // Optional
+      },
     },
   },
   modelSeed: "builtin",
@@ -3567,6 +3651,7 @@ const response = await client.chat({
     },
   ],
   model: "anthropic:claude-3-5-haiku-latest",
+  providerConfig: "default",
 });
 ```
 
@@ -3600,6 +3685,7 @@ const response = await client.chat({
     },
   ],
   model: "anthropic:claude-opus-4-20250514",
+  providerConfig: "default",
 });
 ```
 
@@ -3621,8 +3707,10 @@ import { GoogleGeminiV1Provider } from "@langadventurellc/burnside/providers";
 const client = createClient({
   providers: {
     google: {
-      apiKey: "${GOOGLE_AI_API_KEY}",
-      baseUrl: "https://generativelanguage.googleapis.com/v1beta", // Optional
+      default: {
+        apiKey: "${GOOGLE_AI_API_KEY}",
+        baseUrl: "https://generativelanguage.googleapis.com/v1beta", // Optional
+      },
     },
   },
   modelSeed: "builtin",
@@ -3666,6 +3754,7 @@ const response = await client.chat({
     },
   ],
   model: "google:gemini-2.5-pro",
+  providerConfig: "default",
   metadata: { thinking: true },
 });
 ```
@@ -3695,6 +3784,7 @@ const response = await client.chat({
     },
   ],
   model: "google:gemini-2.0-flash",
+  providerConfig: "default",
 });
 ```
 
@@ -3716,8 +3806,10 @@ import { XaiV1Provider } from "@langadventurellc/burnside/providers";
 const client = createClient({
   providers: {
     xai: {
-      apiKey: "${XAI_API_KEY}",
-      baseUrl: "https://api.x.ai/v1", // Optional
+      default: {
+        apiKey: "${XAI_API_KEY}",
+        baseUrl: "https://api.x.ai/v1", // Optional
+      },
     },
   },
   modelSeed: "builtin",
@@ -3761,6 +3853,7 @@ const response = await client.chat({
     },
   ],
   model: "xai:grok-4-0709",
+  providerConfig: "default",
 });
 ```
 
@@ -3787,6 +3880,70 @@ const response = await client.chat({
 
 ## Provider Configuration
 
+All providers use **named configurations** that allow multiple configurations per provider. This is **required** - you cannot configure providers with a single configuration object anymore.
+
+### Basic Configuration Structure
+
+```typescript
+const client = createClient({
+  providers: {
+    [providerName]: {
+      [configName]: {
+        /* provider config */
+      },
+      [configName2]: {
+        /* another config */
+      },
+    },
+  },
+  modelSeed: "builtin",
+});
+```
+
+### Multiple Configurations Per Provider
+
+You can define multiple configurations for each provider (useful for different environments, API keys, or settings):
+
+```typescript
+const client = createClient({
+  providers: {
+    openai: {
+      production: { apiKey: "${OPENAI_PROD_KEY}" },
+      development: { apiKey: "${OPENAI_DEV_KEY}" },
+      backup: {
+        apiKey: "${OPENAI_BACKUP_KEY}",
+        baseUrl: "https://backup-api.example.com/v1",
+      },
+    },
+    anthropic: {
+      main: { apiKey: "${ANTHROPIC_KEY}" },
+      testing: {
+        apiKey: "${ANTHROPIC_TEST_KEY}",
+        baseUrl: "https://testing.anthropic.com",
+      },
+    },
+  },
+  modelSeed: "builtin",
+});
+
+// When making requests, specify which configuration to use
+const response = await client.chat({
+  messages: [{ role: "user", content: [{ type: "text", text: "Hello!" }] }],
+  model: "openai:gpt-4o-2024-08-06",
+  providerConfig: "production", // Uses the "production" OpenAI config
+});
+
+const response2 = await client.chat({
+  messages: [
+    { role: "user", content: [{ type: "text", text: "Test message" }] },
+  ],
+  model: "anthropic:claude-3-5-haiku-latest",
+  providerConfig: "testing", // Uses the "testing" Anthropic config
+});
+```
+
+**Important**: The `providerConfig` parameter is **required** for all chat() and stream() requests. There are no default configurations - you must explicitly specify which one to use.
+
 ### Rate Limiting
 
 Configure rate limits based on your API plan:
@@ -3795,10 +3952,10 @@ Configure rate limits based on your API plan:
 const client = createClient({
   providers: {
     openai: {
-      apiKey: "${OPENAI_API_KEY}",
+      default: { apiKey: "${OPENAI_API_KEY}" },
     },
     anthropic: {
-      apiKey: "${ANTHROPIC_API_KEY}",
+      default: { apiKey: "${ANTHROPIC_API_KEY}" },
     },
   },
   modelSeed: "builtin",
@@ -3821,12 +3978,16 @@ For enterprise or proxy setups:
 const client = createClient({
   providers: {
     openai: {
-      apiKey: "${OPENAI_API_KEY}",
-      baseUrl: "https://your-enterprise-proxy.com/openai/v1",
+      default: {
+        apiKey: "${OPENAI_API_KEY}",
+        baseUrl: "https://your-enterprise-proxy.com/openai/v1",
+      },
     },
     anthropic: {
-      apiKey: "${ANTHROPIC_API_KEY}",
-      baseUrl: "https://your-enterprise-proxy.com/anthropic",
+      default: {
+        apiKey: "${ANTHROPIC_API_KEY}",
+        baseUrl: "https://your-enterprise-proxy.com/anthropic",
+      },
     },
   },
   modelSeed: "builtin",
@@ -3839,8 +4000,10 @@ const client = createClient({
 const client = createClient({
   providers: {
     openai: {
-      apiKey: "${OPENAI_API_KEY}",
-      timeout: 30000, // Provider-specific timeout override
+      default: {
+        apiKey: "${OPENAI_API_KEY}",
+        timeout: 30000, // Provider-specific timeout override
+      },
     },
   },
   modelSeed: "builtin",
