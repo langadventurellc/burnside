@@ -30,11 +30,11 @@ describe("loadDefaultModels", () => {
     ],
   };
 
-  it("should successfully load and parse valid JSON file", () => {
+  it("should successfully load and parse valid JSON file", async () => {
     const filePath = "./test-modelson";
     mockReadFileSync.mockReturnValue(JSON.stringify(validJsonData));
 
-    const result = loadDefaultModels(filePath);
+    const result = await loadDefaultModels(filePath);
 
     expect(mockReadFileSync).toHaveBeenCalledWith(filePath, "utf8");
     expect(result).toHaveLength(1);
@@ -57,7 +57,7 @@ describe("loadDefaultModels", () => {
     });
   });
 
-  it("should handle multiple providers and models", () => {
+  it("should handle multiple providers and models", async () => {
     const multiProviderData = {
       schemaVersion: "1.0.0",
       providers: [
@@ -79,7 +79,7 @@ describe("loadDefaultModels", () => {
 
     mockReadFileSync.mockReturnValue(JSON.stringify(multiProviderData));
 
-    const result = loadDefaultModels("./teston");
+    const result = await loadDefaultModels("./teston");
 
     expect(result).toHaveLength(3);
     expect(result.map((m) => m.provider)).toEqual([
@@ -90,17 +90,17 @@ describe("loadDefaultModels", () => {
     expect(result.map((m) => m.id)).toEqual(["gpt-4o", "gpt-3.5", "claude-3"]);
   });
 
-  it("should throw ValidationError for invalid JSON syntax", () => {
+  it("should throw ValidationError for invalid JSON syntax", async () => {
     const filePath = "./invalidon";
     mockReadFileSync.mockReturnValue("{ invalid json");
 
-    expect(() => loadDefaultModels(filePath)).toThrow(ValidationError);
-    expect(() => loadDefaultModels(filePath)).toThrow(
+    await expect(loadDefaultModels(filePath)).rejects.toThrow(ValidationError);
+    await expect(loadDefaultModels(filePath)).rejects.toThrow(
       `Invalid JSON syntax in ${filePath}`,
     );
   });
 
-  it("should throw ValidationError for invalid schema", () => {
+  it("should throw ValidationError for invalid schema", async () => {
     const invalidData = {
       schemaVersion: "1.0.0",
       providers: [
@@ -120,25 +120,25 @@ describe("loadDefaultModels", () => {
 
     mockReadFileSync.mockReturnValue(JSON.stringify(invalidData));
 
-    expect(() => loadDefaultModels("./invalid-schemaon")).toThrow(
+    await expect(loadDefaultModels("./invalid-schemaon")).rejects.toThrow(
       ValidationError,
     );
-    expect(() => loadDefaultModels("./invalid-schemaon")).toThrow(
+    await expect(loadDefaultModels("./invalid-schemaon")).rejects.toThrow(
       "Invalid defaultLlmModelson structure in ./invalid-schemaon",
     );
   });
 
-  it("should propagate file system errors", () => {
+  it("should propagate file system errors", async () => {
     const filePath = "./nonexistenton";
     const fsError = new Error("ENOENT: no such file or directory");
     mockReadFileSync.mockImplementation(() => {
       throw fsError;
     });
 
-    expect(() => loadDefaultModels(filePath)).toThrow(fsError);
+    await expect(loadDefaultModels(filePath)).rejects.toThrow(fsError);
   });
 
-  it("should handle empty providers array", () => {
+  it("should handle empty providers array", async () => {
     const emptyData = {
       schemaVersion: "1.0.0",
       providers: [],
@@ -146,13 +146,13 @@ describe("loadDefaultModels", () => {
 
     mockReadFileSync.mockReturnValue(JSON.stringify(emptyData));
 
-    const result = loadDefaultModels("./emptyon");
+    const result = await loadDefaultModels("./emptyon");
 
     expect(result).toHaveLength(0);
     expect(result).toEqual([]);
   });
 
-  it("should handle provider with empty models array", () => {
+  it("should handle provider with empty models array", async () => {
     const emptyModelsData = {
       schemaVersion: "1.0.0",
       providers: [
@@ -166,13 +166,13 @@ describe("loadDefaultModels", () => {
 
     mockReadFileSync.mockReturnValue(JSON.stringify(emptyModelsData));
 
-    const result = loadDefaultModels("./empty-modelson");
+    const result = await loadDefaultModels("./empty-modelson");
 
     expect(result).toHaveLength(0);
     expect(result).toEqual([]);
   });
 
-  it("should validate contextLength as positive number", () => {
+  it("should validate contextLength as positive number", async () => {
     const invalidContextLength = {
       schemaVersion: "1.0.0",
       providers: [
@@ -192,12 +192,12 @@ describe("loadDefaultModels", () => {
 
     mockReadFileSync.mockReturnValue(JSON.stringify(invalidContextLength));
 
-    expect(() => loadDefaultModels("./invalid-contexton")).toThrow(
+    await expect(loadDefaultModels("./invalid-contexton")).rejects.toThrow(
       ValidationError,
     );
   });
 
-  it("should handle large context lengths", () => {
+  it("should handle large context lengths", async () => {
     const largeContextData = {
       schemaVersion: "1.0.0",
       providers: [
@@ -217,7 +217,7 @@ describe("loadDefaultModels", () => {
 
     mockReadFileSync.mockReturnValue(JSON.stringify(largeContextData));
 
-    const result = loadDefaultModels("./largeon");
+    const result = await loadDefaultModels("./largeon");
 
     expect(result).toHaveLength(1);
     expect(result[0].capabilities.maxTokens).toBe(1000000);

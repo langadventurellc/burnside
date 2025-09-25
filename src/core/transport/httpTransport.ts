@@ -46,7 +46,22 @@ import type { RuntimeAdapter } from "../runtime/runtimeAdapter";
 import { InterceptorChain } from "./interceptorChain";
 import { TransportError } from "../errors/transportError";
 import { logger } from "../logging/simpleLogger";
-import { randomUUID } from "node:crypto";
+/**
+ * Platform-agnostic UUID generation
+ */
+function generateUUID(): string {
+  // Use crypto.randomUUID if available (modern browsers and Node.js 14.17+)
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+
+  // Fallback to RFC4122 v4 UUID implementation
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
 
 /**
  * HTTP Transport implementation with streaming support.
@@ -518,7 +533,7 @@ export class HttpTransport implements Transport {
       request,
       metadata: {
         timestamp: new Date(),
-        requestId: randomUUID(),
+        requestId: generateUUID(),
       },
       abortSignal: signal,
     };

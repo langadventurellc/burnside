@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { z } from "zod";
 import {
   mapJsonToModelInfo,
@@ -18,14 +17,19 @@ import type { ModelInfo } from "../../core/providers/modelInfo";
  * @example
  * ```typescript
  * // Load default models for testing
- * const models = loadDefaultModels('./docs/defaultLlmModelson');
+ * const models = await loadDefaultModels('./docs/defaultLlmModelson');
  * console.log(`Loaded ${models.length} models`);
  * ```
  */
-export function loadDefaultModels(filePath: string): ModelInfo[] {
+export async function loadDefaultModels(
+  filePath: string,
+): Promise<ModelInfo[]> {
   let jsonData: unknown;
 
   try {
+    // Lazy load Node.js fs module to avoid issues in non-Node environments
+    const { readFileSync } = await import("node:fs");
+
     // Read and parse JSON file
     const fileContent = readFileSync(filePath, "utf8");
     jsonData = JSON.parse(fileContent) as unknown;
@@ -35,7 +39,7 @@ export function loadDefaultModels(filePath: string): ModelInfo[] {
 
     // Convert to ModelInfo array using platform-agnostic mapper
     return mapJsonToModelInfo(validatedData);
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof SyntaxError) {
       throw new ValidationError(
         `Invalid JSON syntax in ${filePath}: ${error.message}`,
